@@ -1,9 +1,0 @@
-@media (max-width: 640px){
-  :where(.ds-filter-list-block){gap:12px;}
-  :where(.patient-search-card.ds-search-card,.lead-search-card.ds-search-card,.task-search-card.ds-search-card,.doc-search-primary.ds-search-card){padding:14px;}
-}
-
-
-
-
-

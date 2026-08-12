@@ -1,6 +1,0 @@
-@media(max-width:760px){
-  .finance-extract-row,[class*="finance-extract-"], [class*="reception-row-"]{grid-template-columns:1fr;align-items:start}
-  .agenda-card,.finance-dashboard-card,.cash-drawer-card,.finance-drawer-admin-card,.goal-card,.maestro-card,.maestro-new-card,.reception-card,.notice-card-shell,.ds-notice-shell,.notice-reader-shell{border-radius:22px;padding:14px}
-  .notice-reader-shell header,.notice-reader-shell footer{align-items:flex-start}
-  .account-env-option{grid-template-columns:auto minmax(0,1fr)}
-}

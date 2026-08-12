@@ -1,5 +1,0 @@
-body.scope-global .clinic-menu-item:hover,
-body.scope-global .clinic-menu-form button:hover,
-body.scope-global .clinic-menu-panel[open] > .clinic-menu-panel-summary{
-  background:var(--md-sys-color-surface-container-low)!important;
-}

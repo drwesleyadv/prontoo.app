@@ -1,3 +1,0 @@
-@media(max-width:900px){.agenda-day-vertical-timeline .agenda-profile-row,.agenda-day-vertical-timeline .agenda-profile-row-block{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:11px 11px 11px 0}.agenda-day-vertical-timeline .agenda-profile-row>.pill,.agenda-day-vertical-timeline .agenda-item-actions{grid-column:2;justify-self:start}.agenda-summary-list.agenda-day-vertical-timeline::before{left:36px}.agenda-day-vertical-timeline .agenda-profile-time{min-width:52px;height:32px}.journey-ux-facts{grid-template-columns:1fr}.journey-ux-fact em{white-space:normal}.journey-ux--timeline-card .journey-ux-status{flex-wrap:wrap}.journey-ux--timeline-card .journey-ux-status b{white-space:normal}}
-
-

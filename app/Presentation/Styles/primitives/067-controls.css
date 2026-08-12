@@ -1,6 +1,0 @@
-body.scope-global .global-compact-summary{
-  display:grid!important;
-  grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr)!important;
-  gap:14px!important;
-  align-items:start!important;
-}

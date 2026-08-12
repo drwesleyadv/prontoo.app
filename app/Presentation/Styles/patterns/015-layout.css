@@ -1,1 +1,0 @@
-:where(.form-actions,.action-footer,.panel-actions,.wizard-actions,.finance-operation-actions,.patient-form-actions,.employee-form-actions,.procedure-form-actions,.document-form-actions){display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:16px}

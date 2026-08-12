@@ -1,8 +1,0 @@
-body.public[data-route="login"]{
-  isolation:isolate;
-  overflow-x:hidden;
-}
-body.public[data-route="login"] main#conteudo{
-  position:relative;
-  z-index:1;
-}

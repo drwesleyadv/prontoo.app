@@ -1,9 +1,0 @@
-@media(min-width:760px){
-  body.has-seq-footer:not([data-route="appointments"]) .seq-footer{--pt-seq-footer-gap:12px;}
-}
-@media(max-width:640px){
-  body.has-seq-footer:not([data-route="appointments"]) .seq-footer{--pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));}
-}
-
-
-

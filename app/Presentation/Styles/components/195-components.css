@@ -1,7 +1,0 @@
-.sector-card-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sector-card-chip .pt-icon-glyph{font-size:17px;}
-.sector-card-fields{display:grid;gap:12px;}
-.sector-card-fields .field{margin:0;}
-.sector-card-fields .field input{background:var(--md-sys-color-surface-container-lowest);}
-.sector-icon-field{display:grid;gap:10px;}
-.sector-icon-field-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;}

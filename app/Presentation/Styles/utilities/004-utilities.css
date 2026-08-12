@@ -1,7 +1,0 @@
-:where(.card,.form-panel,.action-panel,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(p,.muted,.hint):first-child,
-:where(.card,.form-panel,.action-panel,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(h1,h2,h3):first-child + :where(p,.muted,.hint){
-  margin-block:0 var(--pt-card-section-gap)!important;
-  color:var(--md-sys-color-on-surface-variant)!important;
-  font:var(--md-sys-typescale-body-medium)!important;
-  line-height:1.42!important;
-}

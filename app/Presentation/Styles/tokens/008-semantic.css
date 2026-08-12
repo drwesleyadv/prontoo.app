@@ -1,9 +1,0 @@
-:root{
-  --ds-surface-radius:22px;
-  --ds-surface-pad:clamp(14px,2.4vw,20px);
-  --ds-row-radius:18px;
-  --ds-row-gap:10px;
-  --ds-row-pad:12px;
-  --ds-kpi-min-height:82px;
-  --ds-kpi-icon-size:42px;
-}

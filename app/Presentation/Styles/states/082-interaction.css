@@ -1,2 +1,0 @@
-.doc-tool:hover{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 8%,transparent);color:var(--clinic-accent-strong,var(--md-sys-color-primary))}
-.doc-tool.is-active{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 13%,var(--md-sys-color-surface-container-lowest))!important;color:var(--clinic-accent-strong,var(--md-sys-color-primary))!important}

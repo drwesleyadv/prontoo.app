@@ -1,8 +1,0 @@
-.top,.rolebar,.cmdbar{
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  padding-left:max(var(--pt-mobile-gutter),var(--pt-safe-left));
-  padding-right:max(var(--pt-mobile-gutter),var(--pt-safe-right));
-  overflow-y:hidden;
-}

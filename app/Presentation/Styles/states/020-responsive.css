@@ -1,3 +1,0 @@
-@supports(height:100dvh){
-  body.public.has-top-shell{min-height:100dvh!important;}
-}

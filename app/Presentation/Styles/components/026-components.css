@@ -1,3 +1,0 @@
-.titem{grid-template-columns:30px minmax(0,1fr)}.titem time{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.titem h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:800}.titem p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.empty,.empty-state,.compact-empty,.procedure-empty,.task-empty,.notice-empty,.patient-directory-empty,.maestro-empty,.empty-mini,.empty-history{padding:22px;text-align:center;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-low);border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 92%,transparent);border-radius:22px}
-
-

@@ -1,4 +1,0 @@
-@media(max-width:900px){.collaborator-search-bar.patient-search-bar{grid-template-columns:1fr;}.collaborator-search-bar .ds-search-button,.collaborator-search-bar .ghost{width:100%;justify-content:center;}.collaborator-new-panel.action-panel[open]{width:100%;min-width:0;}.collaborator-new-form{max-height:none;overflow:visible;}.collaborator-form-section .two,.collaborator-form-grid.two{grid-template-columns:1fr;}.collaborator-new-actions.form-actions{position:static;align-items:stretch;}.collaborator-new-actions.form-actions>*{flex:1 1 auto;justify-content:center;}}
-@media(max-width:760px){.collaborator-directory-overview.patient-directory-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.collaborator-card-row .collaborator-meta>span{width:100%;}.collaborator-card-row .collaborator-nameblock small{max-width:100%;}}
-
-

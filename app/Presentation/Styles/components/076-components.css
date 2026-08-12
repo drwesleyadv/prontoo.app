@@ -1,7 +1,0 @@
-.agenda-route-overlay-retired{overflow-y:auto;overscroll-behavior:contain;padding:max(12px,var(--pt-safe-top)) max(12px,var(--pt-safe-right)) max(12px,var(--pt-safe-bottom)) max(12px,var(--pt-safe-left))}
-.agenda-route-dialog-retired{width:min(620px,100%);max-height:calc(100dvh - 32px);overflow:auto;scrollbar-gutter:auto}
-.patient-suggest-panel,.counterparty-suggest-panel{overflow:auto;scrollbar-gutter:auto}
-[data-patient-live-results]{overflow:auto;max-height:min(320px,48dvh);scrollbar-gutter:auto}
-
-
-.table-scroll,.table-wrap{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-gutter:auto}

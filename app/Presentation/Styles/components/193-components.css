@@ -1,2 +1,0 @@
-.sector-editor-modern{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;background:transparent;border:0;box-shadow:none;padding:0;}
-.sector-card{display:grid;gap:14px;min-width:0;padding:16px;border-radius:24px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:none;transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast),transform var(--motion-fast);}

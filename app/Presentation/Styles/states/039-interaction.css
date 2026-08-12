@@ -1,8 +1,0 @@
-.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::after,
-.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::before{
-  opacity:1;
-  transform:translate(-50%,0) rotate(0deg);
-}
-.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::before{
-  transform:translate(-50%,0) rotate(45deg);
-}

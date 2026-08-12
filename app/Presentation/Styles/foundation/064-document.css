@@ -1,7 +1,0 @@
-body.public .signup-step-reason.is-visible{
-  padding:10px 12px;
-  border-radius:16px;
-  background:var(--md-sys-color-error-container);
-  color:var(--md-sys-color-on-error-container);
-  border:1px solid color-mix(in srgb,var(--md-sys-color-error) 18%,transparent);
-}

@@ -1,4 +1,0 @@
-body.public[data-route="login"] .login-form .field,
-body.public[data-route="login"] .login-mfa-help{
-  animation:pt-login-field-in var(--motion-med) both;
-}

@@ -1,3 +1,0 @@
-@media(max-width:760px){.doc-context-hero{grid-template-columns:1fr;border-radius:24px;padding:14px}.doc-context-metrics{grid-template-columns:1fr}.doc-issued-row,.doc-ds-model-row{grid-template-columns:auto minmax(0,1fr);align-items:start}.doc-issued-actions,.doc-model-create{grid-column:1/-1;justify-content:flex-start;width:100%}.doc-issued-actions>a,.doc-issued-actions>form,.doc-model-create>button{flex:1 1 auto}.doc-issued-title{align-items:flex-start;flex-direction:column}.doc-issued-title>span:last-child{white-space:normal}.doc-ds-search .doc-model-search{align-items:stretch}.doc-ds-search .doc-model-search label{width:100%}}
-
-

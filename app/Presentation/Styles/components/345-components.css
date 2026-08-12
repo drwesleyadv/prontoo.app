@@ -1,5 +1,0 @@
-.collaborator-card-row .collaborator-status.ok{background:var(--pt-color-success-container);color:var(--pt-color-success);}
-.collaborator-card-row .collaborator-status.bad{background:var(--md-sys-color-error-container);color:var(--md-sys-color-error);}
-.collaborator-card-row .collaborator-actions{justify-self:end;margin:0;}
-.collaborator-card-row .collaborator-actions .primary.small{min-height:36px;border-radius:14px;}
-.collaborator-add-panel--pagehead.action-panel{min-width:min(520px,92vw);}

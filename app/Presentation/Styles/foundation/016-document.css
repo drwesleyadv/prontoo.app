@@ -1,6 +1,0 @@
-body.has-seq-footer:not([data-route="appointments"]) .seq-footer{
-  --pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));
-  margin-block-start:0!important;
-  padding-block-start:var(--pt-seq-footer-gap)!important;
-  padding-block-end:var(--pt-seq-footer-gap)!important;
-}

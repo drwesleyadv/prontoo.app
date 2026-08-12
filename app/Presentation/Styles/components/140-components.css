@@ -1,9 +1,0 @@
-.empty{
-  border-radius:var(--pt-ds-surface-radius-compact)!important;
-  border-color:var(--pt-ds-surface-line)!important;
-  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 4%)!important;
-}
-
-.context-floating-pending-card{
-  --pt-ds-accent:var(--pt-floating-card-accent,var(--md-sys-color-primary));
-}

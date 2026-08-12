@@ -1,9 +1,0 @@
-@media(max-width:520px){
-  body.public[data-route="login"]{--pt-public-auth-max:100%;}
-  
-}
-@media(max-width:380px){
-  
-}
-
-

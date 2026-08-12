@@ -1,7 +1,0 @@
-.security-auth-form{display:grid;gap:12px;margin:0;padding-top:2px}
-.security-auth-form .field{gap:7px}
-.security-auth-form .field>span{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:900}
-.security-auth-form .field-help,.security-reauth-form .field-help{display:block;margin:-5px 2px 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
-.recovery-code-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
-.recovery-code-list li{min-width:0}
-.recovery-code-list code{text-align:center;white-space:nowrap}

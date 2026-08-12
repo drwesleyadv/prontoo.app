@@ -1,7 +1,0 @@
-.manager-mini-grid > span small,.manager-procedure-list > span small,.finance-mini-grid > span small,.finance-account-cards > article p{
-  margin:0;
-  color:var(--md-sys-color-on-surface-variant);
-  font:var(--md-sys-typescale-label-medium);
-  font-weight:650;
-  line-height:1.3;
-}

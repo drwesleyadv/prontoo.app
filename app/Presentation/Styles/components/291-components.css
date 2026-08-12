@@ -1,4 +1,0 @@
-.settings-ds-note .material-symbols-rounded,.settings-ds-note .pt-icon-glyph{font-size:18px;color:var(--md-sys-color-primary);}
-.settings-ds-actions{justify-content:flex-end;gap:10px;padding:2px 2px 0;}
-.settings-ds-actions .primary{min-width:184px;justify-content:center;box-shadow:var(--md-sys-elevation-level1);}
-.settings-ds-screen :where(.field input,.field select,.field textarea){background:var(--md-sys-color-surface-container-lowest);}

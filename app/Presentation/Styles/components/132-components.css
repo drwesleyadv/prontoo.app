@@ -1,3 +1,0 @@
-.agenda-route-card{max-width:980px;margin-inline:auto}.agenda-route-form{display:grid;gap:16px;padding:18px}.agenda-create-form,.agenda-block-form{display:grid;gap:14px}.agenda-day-canvas[data-agenda-create-url]{cursor:crosshair}.agenda-day-canvas[data-agenda-create-url] .agenda-day-event,.agenda-day-canvas[data-agenda-create-url] .agenda-day-event-block{cursor:default}
-
-.agenda-route-card .agenda-route-form{box-shadow:none;border:0;background:transparent}

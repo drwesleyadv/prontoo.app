@@ -1,2 +1,0 @@
-.scope-evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.scope-evidence-grid>div,.scope-sql-shape{display:grid;gap:4px;padding:10px;border-radius:14px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)}

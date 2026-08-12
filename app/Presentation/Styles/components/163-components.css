@@ -1,7 +1,0 @@
-.clinic-attention-card{padding:18px!important;border-radius:28px!important;}
-.clinic-attention-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px!important;}
-.clinic-attention-head h2{margin:2px 0 4px;font:var(--md-sys-typescale-title-large);letter-spacing:-.025em;}
-.clinic-attention-head p{margin:0;max-width:760px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium);}
-.clinic-attention-legend{align-items:center;gap:8px;white-space:nowrap;}
-.clinic-attention-list{display:grid;gap:10px;}
-.clinic-attention-item{display:grid;grid-template-columns:minmax(220px,1.45fr) minmax(150px,.8fr) minmax(132px,.62fr) minmax(128px,.64fr) auto;align-items:center;gap:12px;padding:12px 12px;border-radius:22px;background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,var(--md-sys-color-primary-container));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.76) inset,0 10px 24px rgba(15,23,42,.045);}

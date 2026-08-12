@@ -1,6 +1,0 @@
-.journey-ux--operable{position:relative;overflow:hidden}
-.journey-ux--operable::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--journey-accent);opacity:.72}
-.journey-ux-owner{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:start;padding:8px 10px;border-radius:14px;background:color-mix(in srgb,var(--journey-accent) 8%,var(--md-sys-color-surface-container-high));border:1px solid color-mix(in srgb,var(--journey-accent) 16%,transparent);color:var(--md-sys-color-on-surface)}
-.journey-ux-owner>span{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.78rem;color:var(--journey-accent)}
-.journey-ux-owner .material-symbols-rounded{font-size:17px}.journey-ux-owner em{grid-column:2;font-style:normal;font-size:.76rem;line-height:1.35;color:var(--md-sys-color-on-surface-variant)}
-.journey-ux-quick{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px;align-items:center}.journey-ux-move{display:inline-flex;margin:0}

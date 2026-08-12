@@ -1,2 +1,0 @@
-.top{position:sticky;top:0;z-index:80;height:var(--top-h);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px max(16px,calc((100vw - var(--page-max))/2));background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 90%,transparent);backdrop-filter:blur(18px) saturate(1.05);border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}
-.brand{min-width:0;display:flex;align-items:center;gap:12px;color:var(--md-sys-color-on-surface);font-weight:700}

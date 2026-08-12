@@ -1,1 +1,0 @@
-.settings-ds-screen :where(.field input:focus,.field select:focus,.field textarea:focus){box-shadow:var(--pt-focus-ring);border-color:color-mix(in srgb,var(--md-sys-color-primary) 50%,var(--md-sys-color-outline-variant));}

@@ -1,4 +1,0 @@
-.account-env-card{display:grid;gap:12px;padding:14px;border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}
-.account-env-card-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:2px 2px 4px}
-.account-env-card-icon{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
-.account-env-card-head h2{margin:2px 0 0;font:var(--md-sys-typescale-title-medium);font-weight:850;color:var(--md-sys-color-on-surface)}

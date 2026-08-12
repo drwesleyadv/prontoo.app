@@ -1,6 +1,0 @@
-body.scope-global .global-pill-section{
-  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)!important;
-  border-radius:24px!important;
-  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(248,253,249,.76))!important;
-  padding:13px!important;
-}

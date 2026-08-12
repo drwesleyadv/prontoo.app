@@ -1,8 +1,0 @@
-@media (min-width:1040px){
-  .reception-panel-grid{
-    grid-template-columns:minmax(0,1.04fr) minmax(320px,.96fr);
-  }
-  .reception-panel-grid .reception-agenda{
-    grid-column:1 / -1;
-  }
-}

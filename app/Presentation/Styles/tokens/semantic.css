@@ -1,0 +1,77 @@
+:root{
+  --pt-mobile-gutter:clamp(12px,3.6vw,16px);
+  --pt-tablet-gutter:clamp(16px,4vw,22px);
+  --pt-desktop-gutter:clamp(18px,4vw,28px);
+  --pt-safe-left:env(safe-area-inset-left,0px);
+  --pt-safe-right:env(safe-area-inset-right,0px);
+  --pt-safe-top:env(safe-area-inset-top,0px);
+  --pt-safe-bottom:env(safe-area-inset-bottom,0px);
+}
+:root{--role-h:0px;}
+:root{
+  --pt-flow-gap-xs:8px;
+  --pt-flow-gap-sm:12px;
+  --pt-flow-gap-md:16px;
+  --pt-page-bottom:clamp(18px,3vw,28px);
+}
+
+
+
+:root{
+  --pt-card-radius-m3:28px;
+  --pt-card-radius-m3-compact:24px;
+  --pt-card-strip-width:5px;
+  --pt-card-strip-pad:18px;
+  --pt-card-inner-gap:12px;
+  --pt-card-section-gap:14px;
+}
+
+
+
+:root{
+  --pt-floating-card-radius:16px;
+  --pt-floating-card-gap:5px;
+  --pt-floating-card-icon:28px;
+  --pt-floating-card-pad-y:6px;
+  --pt-floating-card-pad-x:9px;
+  --pt-floating-card-min-h:44px;
+  --pt-fixed-agenda-stack-h:150px;
+}
+:root{
+  --pt-floating-reference-w:var(--agenda-floating-w,318px);
+}
+:root{
+  --ds-selection-chip-height:36px;
+  --ds-selection-chip-radius:14px;
+  --ds-selection-chip-pad-y:7px;
+  --ds-selection-chip-pad-x:12px;
+  --ds-selection-chip-gap:7px;
+  --pt-filter-chip-h:var(--ds-selection-chip-height);
+  --pt-filter-chip-radius:var(--ds-selection-chip-radius);
+  --pt-filter-chip-pad-y:var(--ds-selection-chip-pad-y);
+  --pt-filter-chip-pad-x:var(--ds-selection-chip-pad-x);
+  --pt-filter-chip-gap:var(--ds-selection-chip-gap);
+  --pt-selection-chip-height:var(--ds-selection-chip-height);
+  --pt-selection-chip-radius:var(--ds-selection-chip-radius);
+  --pt-selection-chip-pad-y:var(--ds-selection-chip-pad-y);
+  --pt-selection-chip-pad-x:var(--ds-selection-chip-pad-x);
+  --pt-selection-chip-gap:var(--ds-selection-chip-gap);
+}
+:root{
+  --ds-surface-radius:22px;
+  --ds-surface-pad:clamp(14px,2.4vw,20px);
+  --ds-row-radius:18px;
+  --ds-row-gap:10px;
+  --ds-row-pad:12px;
+  --ds-kpi-min-height:82px;
+  --ds-kpi-icon-size:42px;
+}
+:root{
+  --pt-floating-edge-right:0px;
+  --pt-floating-edge-width:4px;
+}
+:root{
+  --pt-cohesion-gap:12px;
+  --pt-cohesion-radius:22px;
+  --pt-cohesion-row-min:56px;
+}

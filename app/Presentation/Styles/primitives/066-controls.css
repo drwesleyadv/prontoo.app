@@ -1,4 +1,0 @@
-main [data-ds-search-input="1"]{
-  background:var(--md-sys-color-surface-container-lowest)!important;
-  border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;
-}

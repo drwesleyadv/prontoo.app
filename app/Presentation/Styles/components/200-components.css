@@ -1,2 +1,0 @@
-.account-env-card .account-env-grid{display:grid;gap:8px}
-.account-env-card .account-env-option{min-height:50px;padding:8px 10px;border-radius:18px;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);box-shadow:none}

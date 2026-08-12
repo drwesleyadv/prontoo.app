@@ -1,5 +1,0 @@
-@supports(height:100dvh){body,body.app,.app,body.public{min-height:100dvh}}
-@supports not (overflow:clip){html,body{overflow-x:hidden}}
-
-
-

@@ -1,9 +1,0 @@
-.procedure-ds-intro strong{display:block;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:900;}
-.procedure-ds-intro small{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.35;}
-.procedure-ds-form{border-radius:28px;background:var(--md-sys-color-surface-container-lowest);box-shadow:var(--md-sys-elevation-level1);}
-.procedures-ds-list.card{padding:16px;border-radius:28px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);box-shadow:var(--md-sys-elevation-level1);}
-.procedures-ds-list .procedure-list-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:2px 2px 12px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 64%,transparent);}
-.procedures-ds-list .procedure-list-head h2{margin:0;font:var(--md-sys-typescale-title-large);font-weight:900;color:var(--md-sys-color-on-surface);}
-.procedures-ds-list .procedure-list-head p{margin:3px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);}
-.procedures-ds-list .procedure-list{display:grid;gap:10px;padding-top:12px;}
-.procedure-ds-card{grid-template-columns:minmax(0,1fr) auto;align-items:start;border-radius:24px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);box-shadow:none;}

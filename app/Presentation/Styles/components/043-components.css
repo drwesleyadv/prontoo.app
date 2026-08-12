@@ -1,3 +1,0 @@
-.version-update-pill.is-done{background:var(--pt-color-success);color:var(--pt-color-on-success)}.is-updating{opacity:.74}.login-lock-meter{height:6px;border-radius:999px;background:color-mix(in srgb,var(--pt-color-warning) 12%,var(--md-sys-color-surface-container-high));overflow:hidden;margin-top:8px}.login-lock-meter i{display:block;height:100%;width:var(--progress,100%);background:var(--pt-color-warning);border-radius:inherit;transition:width 1s linear}.login-lock-icon.ready{color:var(--pt-color-success)}
-
-

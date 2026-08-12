@@ -1,9 +1,0 @@
-@media(min-width:761px){
-  .doc-issued-row-compact .doc-ds-row-summary span:last-child{
-    -webkit-line-clamp:1;
-  }
-}
-
-
-
-

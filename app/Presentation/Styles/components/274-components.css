@@ -1,6 +1,0 @@
-:where(.ds-action-row,.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions){
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}

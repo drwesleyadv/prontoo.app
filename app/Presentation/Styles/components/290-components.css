@@ -1,6 +1,0 @@
-.settings-ds-head h2{margin:0;font:var(--md-sys-typescale-title-large);font-weight:900;letter-spacing:-.02em;color:var(--md-sys-color-on-surface);}
-.settings-ds-head .field-help{margin:4px 0 0;max-width:760px;color:var(--md-sys-color-on-surface-variant);}
-.settings-data-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:14px;align-items:start;}
-.settings-ds-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;}
-.settings-data-location .settings-ds-form-grid{grid-template-columns:1fr;}
-.settings-data-location .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px;}

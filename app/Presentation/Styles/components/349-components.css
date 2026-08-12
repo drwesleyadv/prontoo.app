@@ -1,8 +1,0 @@
-.collaborator-card-row .collaborator-avatar{width:38px;height:38px;border-radius:14px;}
-.collaborator-card-row .collaborator-nameblock small{max-width:280px;}
-.collaborator-card-row .collaborator-meta{gap:7px;}
-.collaborator-card-row .collaborator-meta>span{padding:4px 7px;border-radius:999px;background:var(--md-sys-color-surface-container-low);}
-.collaborator-card-row .collaborator-status.ds-status-pill{min-width:72px;justify-content:center;}
-.collaborator-card-row .collaborator-actions .primary.small{min-width:78px;}
-.collaborator-new-panel.action-panel{border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);}
-.collaborator-new-panel.action-panel[open]{padding:10px;min-width:min(720px,92vw);box-shadow:var(--md-sys-elevation-level2);}

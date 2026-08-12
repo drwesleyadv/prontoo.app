@@ -1,8 +1,0 @@
-@media(max-width:720px){
-  .metric-area-chart{min-height:188px;padding:13px;border-radius:20px;}
-  .metric-area-chart header{display:grid;gap:8px;}
-  .metric-area-chart .metric-chart-pills{justify-content:flex-start;}
-  body.scope-global .global-compact-pill{min-height:58px;}
-}
-
-

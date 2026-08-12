@@ -1,3 +1,0 @@
-@supports not (overflow-x:clip){
-  body.has-seq-footer[data-route="appointments"] main#conteudo{overflow-x:hidden!important;}
-}

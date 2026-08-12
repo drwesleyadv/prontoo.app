@@ -1,1 +1,0 @@
-.color-swatch:has(input:checked),.color-swatch-option:has(input:checked),.visual-option:has(input:checked),.sector-icon-choice:has(input:checked),.patient-health-icon-choice:has(input:checked){border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))}

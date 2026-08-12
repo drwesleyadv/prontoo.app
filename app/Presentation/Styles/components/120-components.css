@@ -1,4 +1,0 @@
-:where(.manager-goal-grid,.manager-mini-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > span,
-:where(.manager-mini-grid,.manager-goal-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > div{
-  min-height:82px!important;
-}

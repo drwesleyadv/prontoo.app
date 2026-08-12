@@ -1,8 +1,0 @@
-body.scope-global .cmdbar .cmd.active,
-body.scope-global .pagehead .pagehead-control--nav.is-active,
-body.scope-global .pagehead-control--nav:hover,
-body.scope-global .cmdbar .cmd:hover{
-  background:var(--md-sys-color-primary-container)!important;
-  color:var(--md-sys-color-on-primary-container)!important;
-  border-color:rgba(45,111,85,.16)!important;
-}

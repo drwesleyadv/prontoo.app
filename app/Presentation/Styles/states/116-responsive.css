@@ -1,8 +1,0 @@
-@media(max-width:640px){
-  .patient-tab-icon-symbol-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr));}
-  .patient-tab-icon-symbol-grid .patient-health-icon-only{min-height:50px;border-radius:17px;}
-  .patient-tab-icon-symbol{width:36px;height:36px;border-radius:14px;}
-}
-
-
-

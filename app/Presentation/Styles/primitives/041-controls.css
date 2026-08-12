@@ -1,9 +1,0 @@
-[data-password-strength],
-.person-cpf-lookup-hint,
-.counterparty-document-lookup-hint,
-[data-procedure-summary],
-[data-maestro-amount-help],
-[data-lead-lookup-status],
-[data-lead-convert-status],
-[data-pix-copy-status],
-[data-offline-status]{display:block;margin-top:6px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.35}

@@ -1,6 +1,0 @@
-.permissions-editor-pane{display:grid;gap:14px;padding:14px}
-.permissions-editor-toolbar{margin:0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:20px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 60%,transparent)}
-.permissions-editor-toolbar strong{display:block;font:var(--md-sys-typescale-title-medium);font-weight:900}.permissions-editor-toolbar span{color:var(--md-sys-color-on-surface-variant)}
-.permissions-module-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
-.permission-module-card{margin:0;min-width:0;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);box-shadow:none}
-.permission-module-card header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 55%,transparent)}

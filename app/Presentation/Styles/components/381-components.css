@@ -1,4 +1,0 @@
-.agenda-note-visibility{margin-top:12px;padding-top:12px;border-top:1px solid var(--pt-border,rgba(15,23,42,.12));display:grid;gap:10px;}
-.agenda-note-visibility-title{display:inline-flex;align-items:center;gap:8px;color:var(--pt-text,#0f172a);font-weight:750;font-size:.9rem;}
-.agenda-note-visibility-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:end;max-width:420px;}
-.agenda-note-visibility-grid--simple{grid-template-columns:minmax(0,1fr);}

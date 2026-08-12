@@ -1,0 +1,1829 @@
+@media(max-width:720px){.top .brand-copy{display:none}}
+
+
+@media(max-width:720px){.scope-evidence-grid{grid-template-columns:1fr}.scope-evidence-meta{display:grid}.scope-evidence-meta span{width:100%;border-radius:12px}}
+
+@media(max-width:980px){.two,.three{grid-template-columns:1fr}.login-shell{grid-template-columns:1fr}.pagehead{grid-template-columns:1fr;align-items:start}.pagehead-controls--actions{justify-content:flex-start}.rolebar,.cmdbar,.top{padding-inline:14px}main{padding-inline:14px}.brand b,.brand small,.tenant{max-width:58vw}}
+@media(max-width:640px){:root{--top-h:60px;--role-h:46px;--cmd-h:54px;--pt-density-row:56px;--pt-density-card:14px}main{padding:18px 12px 38px}.top{padding-inline:12px}.brand-mark{width:38px;height:38px;border-radius:14px}.top-user-name{display:inline-flex}.top-icon,.notify-link,.logout{border-radius:14px}.rolebar,.cmdbar{gap:6px}.pagehead{padding:15px;border-radius:22px;margin-bottom:14px}.pagehead h1{font-size:1.34rem;line-height:1.72rem}.pagehead p{font-size:.82rem}.pagehead-icon{width:42px;height:42px;border-radius:16px}.pagehead-controls--actions :where(a,button,summary),.primary,.ghost,.danger,.danger-soft,.cmdlike{min-height:42px;padding-inline:13px}.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{border-radius:20px;padding:14px}.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{border-radius:20px;padding:10px}.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat{min-height:76px;padding:12px}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{border-radius:26px;padding:22px}body.public main{padding:22px 12px}.floating-clock{right:12px;bottom:12px;border-radius:16px}table{display:block;overflow-x:auto;white-space:nowrap}.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{justify-content:flex-start}.form-actions .primary,.form-actions .ghost{flex:1 1 auto}.cmd{padding-inline:12px}.cmd:not(.active):not(.is-active):not([aria-current]){min-width:42px;padding-inline:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
+@media(prefers-contrast:more){:root{--md-sys-color-outline:#4f5851;--md-sys-color-outline-variant:#9aa49b;--pt-focus-ring:0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 34%,transparent)}.ghost,.cmdlike,input,select,textarea,.card,[class$="-card"],[class$="-panel"],[class$="-box"]{border-width:2px}}
+@media print{body{background:#fff!important;color:#111!important}.top,.rolebar,.cmdbar,.pagehead-controls--actions,.floating-clock,.form-actions,.skip-link{display:none!important}main{width:100%;padding:0}.card,[class$="-card"],[class$="-panel"],[class$="-box"],table{box-shadow:none!important;border-color:#ccc!important}.doc-editor-paper,.doc-a4,.doc-print-page{box-shadow:none!important;border:0!important}}
+
+
+
+@media(max-width:980px){.admin-grid,.stats-grid,.global-telemetry-grid,.global-performance-charts,.reception-panel-grid,.manager-goal-grid{grid-template-columns:1fr}.onboarding-tip-card{grid-template-columns:1fr}.clinic-actions-menu,.clinic-menu-billing{position:static;margin-top:8px;box-shadow:none}.agenda-profile-row,.agenda-profile-row-block,.reception-row,.manager-action{align-items:flex-start}.notice-minimal-row,.ds-notice-row{grid-template-columns:auto minmax(0,1fr)}}
+@media(max-width:640px){.version-update-pill{left:12px;right:12px;bottom:14px;transform:none;justify-content:center}.signup-actions,.signup-step-actions,.finance-lite-form,.finance-inline-form,.finance-drawer-actions,.agenda-head-action,.agenda-head-form,.agenda-edit-form,.agenda-delete-form{align-items:stretch}.signup-actions > *,.signup-step-actions > *,.finance-lite-form > *,.finance-inline-form > *,.agenda-head-action > *{flex:1 1 auto}.patient-suggest-panel,.counterparty-suggest-panel{position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-height:46vh;border-radius:24px}.read-only-locked-form::after{position:static;display:inline-flex;margin-bottom:8px}.notice-minimal-time{display:none}.doc-editor,.doc-google-editor{min-height:360px}.work-hour-fields,.procedure-form-grid,.procedure-quick-fields,.patient-location-fields{grid-template-columns:1fr}}
+
+
+@media(max-width:640px){.notice-form-grid{grid-template-columns:1fr}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.permission-save-actions,.task-comment-actions,.notice-form-actions{align-items:stretch}.patient-empty-action > *,.patient-empty-cta > *,.permission-save-actions > *,.notice-form-actions > *{flex:1 1 auto}}
+
+
+
+
+
+
+
+@media(max-width:760px){
+  .finance-extract-row,[class*="finance-extract-"], [class*="reception-row-"]{grid-template-columns:1fr;align-items:start}
+  .agenda-card,.finance-dashboard-card,.cash-drawer-card,.finance-drawer-admin-card,.goal-card,.maestro-card,.maestro-new-card,.reception-card,.notice-card-shell,.ds-notice-shell,.notice-reader-shell{border-radius:22px;padding:14px}
+  .notice-reader-shell header,.notice-reader-shell footer{align-items:flex-start}
+  .account-env-option{grid-template-columns:auto minmax(0,1fr)}
+}
+@supports(height:100dvh){body,body.app,.app,body.public{min-height:100dvh}}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+
+
+
+@supports(height:100dvh){body.public main{min-height:100dvh}body.public.has-top-shell main{min-height:calc(100dvh - var(--top-h))}}
+@media(min-width:760px){body.public main{place-items:center;align-content:center;padding-block:32px}}
+
+@media(min-width:760px){main{padding-inline:var(--pt-tablet-gutter);padding-block:22px 44px}}
+@media(min-width:1184px){main{padding-inline:0}}
+
+@media(min-width:1184px){.top,.rolebar,.cmdbar{padding-left:max(16px,calc((100% - var(--page-max))/2));padding-right:max(16px,calc((100% - var(--page-max))/2))}}
+
+
+@media(min-width:981px){.login-shell{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:center}.signup-wizard{grid-template-columns:minmax(0,1fr)}}
+
+
+@media(max-width:640px){
+  .clinic-actions-menu,.clinic-menu-billing{position:fixed;left:max(12px,var(--pt-safe-left));right:max(12px,var(--pt-safe-right));top:calc(var(--top-h) + 8px);min-width:0;width:auto}
+  
+  .brand b,.brand small,.tenant{max-width:calc(100dvw - 168px)}
+  .top-actions{gap:6px}.top-icon,.notify-link,.logout,.logout-icon{min-width:40px;height:40px;padding-inline:10px}
+}
+
+
+@media(max-width:640px){table{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-gutter:auto}.doc-editor-paper,.doc-a4,.doc-print-page{max-width:100%;overflow-x:auto}}
+
+
+@supports(height:100dvh){.rom-shell{min-height:100dvh}}
+@media(max-width:640px){
+  body{font:var(--md-sys-typescale-body-medium)}
+  main{padding-top:14px;padding-bottom:max(28px,var(--pt-safe-bottom))}
+  body.public main{padding-top:18px;padding-bottom:max(20px,var(--pt-safe-bottom))}
+  .pagehead{margin-bottom:12px}
+  .card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{max-width:100%}
+  .pagehead-controls--actions,.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{width:100%}
+  .pagehead-controls--actions > :where(a,button,summary),.form-actions > :where(a,button),.compact-actions > :where(a,button){flex:1 1 auto;min-width:0}
+  .floating-clock{display:none}
+}
+
+
+
+
+
+
+@media(max-width:720px){
+  .top .brand b{display:none;}
+  .top .top-account.top-user-name{padding-inline:8px;}
+}
+@media(max-width:420px){
+  .top{grid-template-columns:auto minmax(0,1fr);}
+  .top .brand{min-width:38px;}
+  .top .top-actions{justify-self:end;gap:5px;}
+  .top .top-account.top-user-name{padding-inline:7px;gap:6px;}
+}
+
+
+
+
+@media(max-width:640px){:root{--role-h:0px;}.cmdbar{top:var(--top-h)!important;}}
+
+
+
+
+@supports(height:100dvh){
+  body.public.has-top-shell main{
+    min-height:calc(100dvh - var(--top-h) - var(--pt-public-top-gap));
+  }
+}
+@media(max-width:640px){
+  body.public.has-top-shell .top{
+    grid-template-columns:minmax(0,1fr) auto;
+    width:calc(100% - max(16px,calc(var(--pt-safe-left,0px) + var(--pt-safe-right,0px) + 16px)))!important;
+    height:52px;
+    border-radius:22px!important;
+    margin-top:max(6px,var(--pt-safe-top,0px))!important;
+    padding:6px 8px!important;
+  }
+  body.public.has-top-shell .top .brand b{
+    display:block;
+    max-width:calc(100dvw - 172px);
+  }
+  body.public.has-top-shell .top .brand small,
+  body.public.has-top-shell .top .tenant{
+    display:none;
+  }
+  body.public.has-top-shell .top .top-actions{gap:6px;}
+  body.public.has-top-shell .top .ghost,
+  body.public.has-top-shell .top .primary{
+    min-height:38px;
+    padding-inline:11px;
+    font-size:.78rem;
+  }
+}
+
+
+@supports(height:100dvh){
+  body.public.has-top-shell{min-height:100dvh!important;}
+}
+@media(max-width:640px){
+  .seq-footer{
+    margin-top:18px;
+    padding-inline:max(12px,var(--pt-safe-left,0px)) max(12px,var(--pt-safe-right,0px));
+    padding-bottom:max(14px,var(--pt-safe-bottom,0px));
+  }
+  .seq-footer-chip{min-height:32px;padding:6px 10px;}
+  .seq-footer-code{font-size:.74rem;letter-spacing:.09em;}
+}
+@media(prefers-reduced-transparency:reduce){
+  .seq-footer-chip{background:var(--md-sys-color-surface-container-lowest);box-shadow:none;}
+}
+@media print{
+  .seq-footer{display:flex!important;justify-content:flex-end;margin-top:16px;padding:0;color:#444;}
+  .seq-footer-chip{box-shadow:none;border-color:#bbb;background:#fff;color:#222;}
+  .seq-footer-icon{color:#333;}
+}
+
+
+
+
+
+@media(max-width:520px){
+  .onboarding-tip-card{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;}
+  .onboarding-tip-body{font-size:.82rem!important;line-height:1.28!important;}
+  .onboarding-tip-button{min-height:36px!important;padding-inline:11px!important;}
+}
+
+
+@media(max-width:640px){
+  .top form.logout{height:40px!important;}
+  .top .logout-icon{width:40px!important;min-width:40px!important;height:40px!important;border-radius:14px!important;}
+}
+
+
+@media(max-width:640px){
+  .seq-footer{margin-top:10px!important;padding-bottom:max(10px,var(--pt-safe-bottom,0px))!important;}
+  .seq-footer-label{font-size:.68rem!important;}
+  .seq-footer-code{font-size:.72rem!important;letter-spacing:.075em!important;}
+}
+@media(max-width:360px){
+  .seq-footer-label{display:none!important;}
+}
+@media print{
+  .seq-footer{justify-content:center!important;margin-top:10px!important;padding:0!important;}
+}
+
+
+@media(max-width:360px){
+  .seq-footer-chip:is(:hover,:focus-visible,:focus-within) .seq-footer-label{max-width:8.25rem!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .seq-footer-label{transition:none!important;transform:none!important;}
+}
+
+
+
+@media(max-width:640px){
+  .seq-footer{
+    --pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));
+    margin-block-start:0!important;
+    padding-block-start:var(--pt-seq-footer-gap)!important;
+    padding-block-end:var(--pt-seq-footer-gap)!important;
+  }
+}
+@media print{
+  .seq-footer{
+    --pt-seq-footer-gap:10px;
+    margin-block-start:0!important;
+    padding-block-start:var(--pt-seq-footer-gap)!important;
+    padding-block-end:var(--pt-seq-footer-gap)!important;
+  }
+}
+
+
+
+@media(max-width:640px){
+  .seq-footer{--pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));}
+}
+@media(prefers-reduced-motion:reduce){
+  .seq-footer-chip::after,.seq-footer-chip::before{transition:none!important;transform:translate(-50%,0)!important;}
+  .seq-footer-chip::before{transform:translate(-50%,0) rotate(45deg)!important;}
+}
+@media print{
+  body.has-seq-footer main#conteudo{padding-block-end:0!important;}
+  .seq-footer-chip::after,.seq-footer-chip::before{display:none!important;}
+}
+
+
+
+
+
+@media(min-width:760px){
+  
+}
+@media(max-width:640px){
+  body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
+    min-height:0!important;
+    padding-block-end:0!important;
+  }
+  
+}
+
+
+
+
+
+@media(min-width:760px){
+  body.has-seq-footer:not([data-route="appointments"]) .seq-footer{--pt-seq-footer-gap:12px;}
+}
+@media(max-width:640px){
+  body.has-seq-footer:not([data-route="appointments"]) .seq-footer{--pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));}
+}
+
+
+
+@supports not (overflow-x:clip){body:not([data-route="appointments"]) main#conteudo{overflow-x:hidden;}}
+@media(max-width:640px){
+  main#conteudo{padding-block-start:14px;}
+  body.has-seq-footer:not([data-route="appointments"]) main#conteudo{padding-block-end:0!important;}
+  main#conteudo > :where(.flash,.billing-banner,.subscription-note,.onboarding-tip-card,.pagehead):not(:last-child){margin-block-end:10px!important;}
+  main#conteudo > :where(.card,.widebox,[class$="-card"],[class$="-panel"],[class$="-shell"],.two,.three,.grid,.timeline,.activity-timeline):not(:last-child){margin-block-end:12px!important;}
+}
+
+
+
+
+
+
+
+@supports not (overflow-x:clip){
+  body.has-seq-footer[data-route="appointments"] main#conteudo{overflow-x:hidden!important;}
+}
+@media(max-width:720px){
+  body.has-seq-footer[data-route="appointments"] main#conteudo{
+    padding-block-end:0!important;
+    scroll-padding-bottom:calc(174px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.has-seq-footer[data-route="appointments"] .seq-footer{
+    --pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));
+  }
+  body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis{
+    left:auto!important;
+    right:max(3px,var(--pt-safe-right,0px))!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    width:var(--agenda-floating-w,max-content)!important;
+    max-width:min(324px,calc(100dvw - 6px))!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:6px!important;
+  }
+}
+@media(max-width:380px){
+  body.has-seq-footer[data-route="appointments"] main#conteudo{
+    padding-block-end:0!important;
+    scroll-padding-bottom:calc(158px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis{
+    right:3px!important;
+    max-width:calc(100dvw - 6px)!important;
+  }
+}
+
+
+
+
+
+@media(max-width:640px){
+  :root{--pt-action-h:40px;--pt-action-radius:14px;}
+  .material-symbols-rounded,.pt-icon-glyph{font-size:20px!important;}
+  .top .brand b{display:none!important;}
+  .top .top-actions{gap:6px!important;}
+  .top .top-account.top-user-name{padding-inline:8px!important;}
+  :where(.pagehead-icon,.credential-icon,.choice-icon,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
+    width:40px!important;height:40px!important;border-radius:15px!important;
+  }
+  :where(.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat,.finance-kpis>div,.procedure-kpis>div,.reception-kpis>div,.kpis>div) > .material-symbols-rounded{
+    width:40px!important;height:40px!important;min-width:40px!important;border-radius:15px!important;font-size:22px!important;
+  }
+}
+
+
+
+
+
+@media(max-width:760px){
+  .manager-goal > header,.finance-drawer-admin-card > header{display:grid;grid-template-columns:1fr;}
+  .manager-action-list,.manager-mini-grid,.manager-goal-grid,.finance-account-cards,.finance-drawer-setup-grid,.finance-drawer-admin-grid{grid-template-columns:1fr;}
+  .manager-action{grid-template-columns:auto minmax(0,1fr);padding:13px;}
+  .finance-row{grid-template-columns:1fr;align-items:start;}
+  .finance-row > b,.finance-row > .pill{justify-self:start;}
+  .finance-account-cards b{justify-self:start;}
+}
+
+
+
+
+@media(max-width:720px){
+  .finance-balance-kpis{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-block:0 12px!important;
+  }
+  .finance-balance-kpis > .finance-balance-card{
+    min-height:82px;
+    padding:13px 14px 13px 12px;
+    border-radius:24px;
+  }
+  .finance-balance-kpis > .finance-balance-card > .material-symbols-rounded{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    border-radius:16px!important;
+    font-size:23px!important;
+  }
+  .finance-balance-kpis > .finance-balance-card b{
+    font:var(--md-sys-typescale-title-large);
+    font-weight:900;
+  }
+}
+
+
+
+
+
+
+@media(max-width:720px){
+  :where(
+    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+    .stats-grid,
+    .admin-overview-kpis,
+    .global-telemetry-grid,
+    .manager-kpis,
+    .manager-operational-kpis,
+    .reception-kpis,
+    .lead-overview,
+    .task-overview,
+    .patient-directory-overview,
+    .procedure-kpis,
+    .procedure-kpis-refined,
+    .notice-kpis,
+    .notice-gmail-kpis,
+    .patient-summary-cards,
+    .patient-profile-summary-cards,
+    .patient-profile-footer-cards,
+    .manager-mini-grid,
+    .manager-goal-grid,
+    .reception-pending-grid,
+    .reception-flow,
+    .finance-drawer-metrics,
+    .cash-drawer-pills
+  ){
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  :where(
+    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+    .stats-grid,
+    .admin-overview-kpis,
+    .global-telemetry-grid,
+    .manager-kpis,
+    .manager-operational-kpis,
+    .reception-kpis,
+    .lead-overview,
+    .task-overview,
+    .patient-directory-overview,
+    .procedure-kpis,
+    .procedure-kpis-refined,
+    .notice-kpis,
+    .notice-gmail-kpis,
+    .patient-summary-cards,
+    .patient-profile-summary-cards,
+    .patient-profile-footer-cards,
+    .manager-mini-grid,
+    .manager-goal-grid,
+    .reception-pending-grid,
+    .reception-flow,
+    .finance-drawer-metrics,
+    .cash-drawer-pills
+  ) > :where(article,div,a,span){
+    min-height:80px!important;
+    padding:13px 14px 13px 12px!important;
+    border-radius:24px!important;
+  }
+  :where(
+    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+    .stats-grid,
+    .admin-overview-kpis,
+    .global-telemetry-grid,
+    .manager-kpis,
+    .manager-operational-kpis,
+    .reception-kpis,
+    .lead-overview,
+    .task-overview,
+    .patient-directory-overview,
+    .procedure-kpis,
+    .procedure-kpis-refined,
+    .notice-kpis,
+    .notice-gmail-kpis,
+    .patient-summary-cards,
+    .patient-profile-summary-cards,
+    .patient-profile-footer-cards,
+    .reception-pending-grid
+  ) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    border-radius:16px!important;
+    font-size:23px!important;
+  }
+  :where(
+    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+    .stats-grid,
+    .admin-overview-kpis,
+    .global-telemetry-grid,
+    .manager-kpis,
+    .manager-operational-kpis,
+    .reception-kpis,
+    .lead-overview,
+    .task-overview,
+    .patient-directory-overview,
+    .procedure-kpis,
+    .procedure-kpis-refined,
+    .notice-kpis,
+    .notice-gmail-kpis,
+    .patient-summary-cards,
+    .patient-profile-summary-cards,
+    .patient-profile-footer-cards,
+    .manager-mini-grid,
+    .manager-goal-grid,
+    .reception-pending-grid,
+    .reception-flow,
+    .finance-drawer-metrics,
+    .cash-drawer-pills
+  ) > :where(article,div,a,span) b{
+    font:var(--md-sys-typescale-title-large)!important;
+    font-weight:900!important;
+  }
+}
+
+
+
+
+
+@media(max-width:720px){
+  .finance-balance-kpis > .finance-balance-card,
+  :where(
+    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+    .stats-grid,
+    .admin-overview-kpis,
+    .global-telemetry-grid,
+    .manager-kpis,
+    .manager-operational-kpis,
+    .reception-kpis,
+    .lead-overview,
+    .task-overview,
+    .patient-directory-overview,
+    .procedure-kpis,
+    .procedure-kpis-refined,
+    .notice-kpis,
+    .notice-gmail-kpis,
+    .patient-summary-cards,
+    .patient-profile-summary-cards,
+    .patient-profile-footer-cards,
+    .manager-mini-grid,
+    .manager-goal-grid,
+    .reception-pending-grid,
+    .reception-flow,
+    .finance-drawer-metrics,
+    .cash-drawer-pills
+  ) > :where(article,div,a,span){
+    border-radius:0 var(--pt-card-radius-m3-compact) var(--pt-card-radius-m3-compact) 0!important;
+    padding-inline-start:16px!important;
+  }
+  :where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
+    border-radius:0 18px 18px 0!important;
+    padding-inline-start:13px!important;
+  }
+}
+
+
+@media(max-width:640px){
+  .cmdbar{gap:7px!important;padding-inline:max(6px,var(--pt-safe-left)) max(6px,var(--pt-safe-right))!important;}
+  .cmdbar .cmd{width:42px!important;min-width:42px!important;max-width:42px!important;}
+  .cmdbar .cmd.active,.cmdbar .cmd.is-active,.cmdbar .cmd[aria-current]{max-width:min(62vw, 190px)!important;}
+}
+@media(prefers-reduced-motion:reduce){.cmdbar{scroll-behavior:auto!important;}}
+
+
+@media(max-width:980px){.pagehead.has-operations{grid-template-columns:1fr}.pagehead-controls--navigation{justify-content:flex-start;width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:1px}.pagehead-controls--navigation::-webkit-scrollbar{display:none}.pagehead-controls--navigation .pagehead-control--nav{flex:0 0 auto}.pagehead-controls--actions{width:100%}}
+@media(max-width:640px){.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}
+
+
+@media(max-width:760px){.doc-context-hero{grid-template-columns:1fr;border-radius:24px;padding:14px}.doc-context-metrics{grid-template-columns:1fr}.doc-issued-row,.doc-ds-model-row{grid-template-columns:auto minmax(0,1fr);align-items:start}.doc-issued-actions,.doc-model-create{grid-column:1/-1;justify-content:flex-start;width:100%}.doc-issued-actions>a,.doc-issued-actions>form,.doc-model-create>button{flex:1 1 auto}.doc-issued-title{align-items:flex-start;flex-direction:column}.doc-issued-title>span:last-child{white-space:normal}.doc-ds-search .doc-model-search{align-items:stretch}.doc-ds-search .doc-model-search label{width:100%}}
+
+
+@media(max-width:720px){
+  body:not([data-route="appointments"]) .context-floating-pending-kpis{
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+    width:min(188px,calc(100vw - 24px))!important;
+    gap:6px!important;
+  }
+  body:not([data-route="appointments"]) .context-floating-pending-card{
+    min-height:50px!important;
+    padding:8px 9px!important;
+    border-radius:17px!important;
+    gap:7px!important;
+  }
+  body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-icon{width:30px!important;height:30px!important;border-radius:12px!important}
+  body:not([data-route="appointments"]) .context-floating-pending-card b{font-size:.9rem!important}
+  body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-label{font-size:.56rem!important}
+}
+@media(max-width:420px){
+  body:not([data-route="appointments"]) .context-floating-pending-kpis{width:auto!important;max-width:calc(100vw - 24px)!important}
+  body:not([data-route="appointments"]) .context-floating-pending-card{grid-template-columns:1fr!important;justify-items:center!important;text-align:center!important;min-width:58px!important;padding:8px 7px!important}
+  body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-label{display:none!important}
+}
+
+
+
+@media(max-width:720px){
+  .pagehead-controls--navigation{max-width:100%;overflow-x:auto!important;justify-content:flex-start!important;scrollbar-width:none!important;}
+  .pagehead-controls--navigation::-webkit-scrollbar{display:none!important;}
+}
+
+
+
+
+@media(max-width:720px){:root{--pt-floating-attention-radius:14px;--pt-floating-attention-gap:5px;}}
+
+
+
+
+
+@supports not (overflow:clip){
+  main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pill-section,.finance-drawer-admin-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-report-card,.task-list-card,.notice-list-card,.document-card,.documents-card,.patient-card,.settings-card,.maestro-card),
+  main [data-ds-card-kind="card"],
+  main [data-ds-surface="card"]{overflow:hidden;}
+}
+@media(max-width:720px){
+  :root{
+    --pt-ds-surface-radius:19px;
+    --pt-ds-surface-radius-compact:16px;
+    --pt-ds-surface-pad:14px;
+    --pt-ds-surface-pad-compact:10px;
+    --pt-ds-icon-size:32px;
+    --pt-ds-icon-size-compact:28px;
+  }
+  main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,[data-ds-card-kind="card"]){
+    border-radius:var(--pt-ds-surface-radius)!important;
+  }
+}
+
+
+@media(max-width:720px){
+  .metric-area-chart{min-height:188px;padding:13px;border-radius:20px;}
+  .metric-area-chart header{display:grid;gap:8px;}
+  .metric-area-chart .metric-chart-pills{justify-content:flex-start;}
+  body.scope-global .global-compact-pill{min-height:58px;}
+}
+
+
+@media(max-width:720px){
+  body.scope-global .admin-grid-context{grid-template-columns:1fr!important;}
+  body.scope-global .global-pill-list{grid-template-columns:1fr 1fr!important;}
+  body.scope-global :where(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.metric-area-chart){border-radius:20px!important;}
+}
+@media(max-width:430px){
+  body.scope-global .global-pill-list{grid-template-columns:1fr!important;}
+  body.scope-global :where(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.metric-chart-title) > .material-symbols-rounded{width:36px!important;height:36px!important;min-width:36px!important;border-radius:13px!important;font-size:20px!important;}
+}
+
+
+
+@media(max-width:520px){
+  body.public[data-route="login"]{--pt-public-auth-max:100%;}
+  
+}
+@media(max-width:380px){
+  
+}
+
+
+@media(max-width:720px){
+  .metric-area-chart .metric-chart-pills span,
+  body.scope-global .metric-chart-pills span{
+    min-height:21px!important;
+    padding:3px 5px!important;
+    font-size:.64rem!important;
+  }
+  .metric-area-chart .metric-chart-pills .material-symbols-rounded,
+  body.scope-global .metric-chart-pills .material-symbols-rounded{
+    font-size:12px!important;
+  }
+}
+
+
+
+@media (max-width:980px){
+  body.scope-global .global-telemetry-grid,
+  body.scope-global .admin-clinic-attention-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  body.scope-global .global-compact-summary{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+@media (max-width:680px){
+  body.scope-global .global-telemetry-grid,
+  body.scope-global .admin-clinic-attention-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  body.scope-global .admin-telemetry-card,
+  body.scope-global .admin-performance-card,
+  body.scope-global .priority-actions,
+  body.scope-global .admin-ops-finance-card,
+  body.scope-global .admin-clinics-focus-card,
+  body.scope-global .admin-clinics-list-card{
+    padding:14px!important;
+    border-radius:24px!important;
+  }
+  body.scope-global .clinic-admin-table .patient-row{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+
+
+@media (max-width:980px){.clinic-attention-head{display:grid}.clinic-attention-legend{white-space:normal}.clinic-attention-item{grid-template-columns:1fr auto;grid-template-areas:"main action" "state state" "progress usage";align-items:start}.clinic-attention-main{grid-area:main}.clinic-attention-actions{grid-area:action}.clinic-attention-state{grid-area:state;display:flex;align-items:center;gap:8px}.clinic-attention-progress{grid-area:progress}.clinic-attention-usage{grid-area:usage;justify-content:flex-end}}
+@media (max-width:620px){.clinic-attention-card{padding:14px!important}.clinic-attention-item{grid-template-columns:1fr;grid-template-areas:"main" "state" "progress" "usage" "action";gap:10px;padding:12px}.clinic-attention-actions{justify-content:stretch}.clinic-attention-actions .clinic-actions-dropdown,.clinic-attention-actions .clinic-actions-summary{width:100%;}.clinic-attention-actions .clinic-actions-summary{justify-content:center}.clinic-attention-usage{justify-content:flex-start}.clinic-attention-state{display:grid;gap:4px}.clinic-attention-copy strong{white-space:normal}}
+
+
+@media(max-width:720px){.patient-search-bar,.lead-search{flex-wrap:wrap!important}.patient-search-bar .search-field,.lead-search .search-field{flex-basis:100%!important}.patient-search-bar button,.lead-search button{flex:1 1 auto!important}.lead-floating-pending{right:12px;bottom:calc(12px + env(safe-area-inset-bottom));}}
+
+
+
+@media(max-width:640px){.lead-search{flex-wrap:wrap!important}.lead-search .search-field{flex-basis:100%!important}.lead-search .primary{flex:1 1 auto!important}.activity-filter-chips,.activity-period-filter{gap:6px!important}.activity-filter-chip,.activity-period-chip{min-height:34px!important;padding:6px 10px!important}}
+
+
+
+
+
+
+
+
+@media(max-width:420px){
+  
+  
+}
+
+
+
+
+
+
+
+
+@media(max-width:420px){
+  
+  
+}
+@media(max-width:340px){
+  
+  
+  
+  
+}
+
+
+
+@media (max-width:640px){.settings-appearance{padding:14px;border-radius:24px}.settings-section-head{gap:10px}.settings-section-icon{width:42px;height:42px;border-radius:16px}.clinic-appearance-preview{padding:14px;border-radius:22px;align-items:flex-start}.clinic-appearance-mark{width:54px;height:54px;border-radius:20px}.clinic-appearance-mark .pt-icon-glyph{font-size:30px}.clinic-appearance-chip{display:none}.clinic-icon-grid,.clinic-color-grid{grid-template-columns:1fr}.appearance-picker-block{padding:12px;border-radius:22px}}
+@media(max-width:760px){.admin-alert-screen .notice-kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.admin-alert-screen .notice-kpi{min-height:70px;padding:10px}.admin-alert-screen .notice-kpi .material-symbols-rounded{width:34px;height:34px;border-radius:12px}.admin-alert-screen .notice-kpi b{font-size:1rem}.admin-alert-screen .notice-kpi span{font-size:.72rem}}
+
+
+
+@media(max-width:720px){
+  body.scope-clinic .top{grid-template-columns:minmax(0,1fr) auto!important;}
+  body.scope-clinic .top .brand b{
+    display:block!important;
+    max-width:calc(100vw - 188px)!important;
+    font-size:.94rem!important;
+    letter-spacing:-.02em!important;
+  }
+}
+@media(max-width:420px){
+  body.scope-clinic .top{grid-template-columns:minmax(0,1fr) auto!important;}
+  body.scope-clinic .top .brand{min-width:0!important;}
+  body.scope-clinic .top .brand b{
+    display:block!important;
+    max-width:calc(100vw - 174px)!important;
+    font-size:.86rem!important;
+  }
+}
+
+
+
+@media(max-width:760px){.billing-readonly-banner.ds-readonly-banner{grid-template-columns:auto minmax(0,1fr);margin-inline:10px}.billing-readonly-actions{grid-column:1/-1;width:100%;justify-content:stretch}.billing-readonly-actions a{flex:1 1 0;justify-content:center}.readonly-scope-note{grid-template-columns:auto minmax(0,1fr);align-items:start}.readonly-scope-note a{grid-column:1/-1;width:100%;justify-content:center}}
+@media (max-width: 760px){
+  .subscription-metric-row,
+  .subscription-checkout-grid{
+    grid-template-columns:1fr;
+  }
+  .subscription-hero-main,
+  .subscription-state-card,
+  .subscription-checkout-head{
+    align-items:flex-start;
+  }
+  .subscription-state-card{
+    display:grid;
+  }
+  .subscription-state-pill{
+    width:max-content;
+  }
+  .subscription-pix-copy{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .subscription-pix-copy .pix-key-value{
+    grid-column:1/-1;
+    justify-self:start;
+  }
+  .subscription-actions{
+    justify-content:stretch;
+  }
+  .subscription-actions button{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+
+@media(max-width:760px){
+  .billing-user-readonly-banner.ds-readonly-banner{grid-template-columns:auto minmax(0,1fr)}
+}
+
+
+@media(max-width:1180px){
+  body.scope-global .ds-clinic-card-head{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main action" "status status";align-items:start;}
+  body.scope-global .ds-clinic-card .clinic-attention-main{grid-area:main;}
+  body.scope-global .ds-clinic-card .clinic-attention-actions{grid-area:action;}
+  body.scope-global .ds-clinic-status{grid-area:status;justify-content:flex-start;text-align:left;}
+  body.scope-global .ds-clinic-card-body{grid-template-columns:1fr;}
+  body.scope-global .ds-clinic-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:680px){
+  body.scope-global .admin-clinics-list-card.clinic-attention-card{padding:14px!important;border-radius:26px!important;}
+  body.scope-global .clinic-attention-head{gap:10px;}
+  body.scope-global .clinic-attention-head p{font-size:.88rem;}
+  body.scope-global .ds-clinic-card-head{grid-template-columns:1fr;grid-template-areas:"main" "status" "action";}
+  body.scope-global .ds-clinic-meta-grid,
+  body.scope-global .ds-clinic-workflow{grid-template-columns:1fr;}
+  body.scope-global .ds-clinic-status small{max-width:100%;white-space:normal;}
+  body.scope-global .ds-clinic-card .clinic-attention-actions,
+  body.scope-global .ds-clinic-card .clinic-actions-dropdown,
+  body.scope-global .ds-clinic-card .clinic-actions-summary{width:100%;justify-content:center;}
+}
+
+
+@media(max-width:1180px){
+  body.scope-global .clinic-attention-item.ds-clinic-list-item{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:"identity action" "status status" "meta meta"!important;
+    align-items:start!important;
+  }
+  body.scope-global .ds-clinic-list-status{display:flex!important;align-items:center;flex-wrap:wrap;}
+  body.scope-global .ds-clinic-row-meta-chip{max-width:none;}
+}
+@media(max-width:680px){
+  body.scope-global .clinic-attention-item.ds-clinic-list-item{
+    grid-template-columns:1fr!important;
+    grid-template-areas:"identity" "status" "meta" "action"!important;
+    padding:13px!important;
+  }
+  body.scope-global .ds-clinic-row-meta{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+  body.scope-global .ds-clinic-row-meta-chip{width:100%;}
+  body.scope-global .ds-clinic-list-item .clinic-attention-actions,
+  body.scope-global .ds-clinic-list-item .clinic-actions-dropdown,
+  body.scope-global .ds-clinic-list-item .clinic-actions-summary{width:100%;justify-content:center;}
+}
+@media(max-width:440px){
+  body.scope-global .ds-clinic-row-meta{grid-template-columns:1fr;}
+}
+
+
+@media (max-width:720px){.settings-departments{padding:14px;border-radius:24px}.sector-editor-modern{grid-template-columns:1fr}.sector-card{padding:14px;border-radius:22px}.sector-card-top{align-items:flex-start}.sector-card-chip{display:none}.sector-icon-field-head{display:grid;gap:2px}.sector-icon-field-head small{text-align:left}.sector-icon-picker{grid-template-columns:repeat(2,minmax(0,1fr))}.departments-actions{justify-content:stretch}.departments-actions .primary{width:100%;justify-content:center}}
+@media (max-width:420px){.sector-icon-picker{grid-template-columns:1fr}.sector-card-icon{width:44px;height:44px;border-radius:16px}.sector-option-card{min-height:44px}}
+
+
+@media(max-width:760px){.account-env-card{padding:12px;border-radius:22px}.account-env-card-head{grid-template-columns:1fr}.account-env-card-icon{display:none}.account-env-card .account-env-option{grid-template-columns:34px minmax(0,1fr) auto;padding:8px}.account-env-card .account-env-mark{width:34px;height:34px}.account-env-card .account-env-status span{display:none}.account-env-card .account-env-status{width:32px;height:32px;padding:0;justify-content:center}.account-env-card .account-env-enter{width:30px;height:30px}}
+@media(max-width:620px){.account-mfa-panel{padding:14px;border-radius:22px}.account-mfa-head{grid-template-columns:1fr}.account-mfa-icon{display:none}.mfa-setup-step{grid-template-columns:28px minmax(0,1fr);padding:12px}.mfa-step-number{width:28px;height:28px}.account-mfa-actions{display:grid!important}.account-mfa-actions button,.account-mfa-option .form-actions button{width:100%;justify-content:center}}
+
+
+@media(max-width:760px){
+  body.public .signup-ds-shell{padding:20px;border-radius:26px;}
+  body.public .signup-ds-hero{align-items:center;}
+  body.public .signup-ds-hero p{font-size:.92rem;}
+  body.public .signup-ds-stepper{grid-template-columns:1fr;}
+  body.public .signup-ds-layout,
+  body.public .signup-ds-feature-grid,
+  body.public .signup-ds-grid.two,
+  body.public .signup-ds-grid{grid-template-columns:1fr;}
+  body.public .signup-ds-actions{justify-content:stretch;}
+  body.public .signup-ds-actions > *{flex:1 1 auto;}
+}
+
+
+
+@media(max-width:720px){
+  body.public .signup-screen-flow{width:100%;}
+  body.public .signup-screen-flow .signup-screen-panel:not([hidden]){
+    min-height:auto;
+    justify-content:flex-start;
+  }
+  body.public .signup-screen-flow .signup-screen-kicker{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+  body.public .signup-screen-flow .signup-screen-kicker strong{text-align:left;}
+}
+
+
+@media(max-width:640px){
+  :where(
+    .ds-filter-chip,
+    [data-ds-filter-chip],
+    .patient-filter-chip,
+    .lead-filter-chips > a,
+    .lead-filter-chips > button,
+    .notice-filter-chips > a,
+    .notice-filter-chips > button,
+    .task-filter,
+    .activity-filter-chip,
+    .activity-period-chip,
+    .role-permission-tab
+  ){
+    min-height:34px!important;
+    padding:6px 10px!important;
+    gap:6px!important;
+  }
+}
+
+
+
+@media(max-width:520px){
+  .patient-card-title .patient-schedule-pill{padding-inline:8px!important;min-height:26px!important;font-size:.78rem!important;}
+  .patient-card-title{gap:6px!important;}
+}
+
+
+
+
+@media (max-width: 640px){
+  :where(.ds-filter-list-block){gap:12px;}
+  :where(.patient-search-card.ds-search-card,.lead-search-card.ds-search-card,.task-search-card.ds-search-card,.doc-search-primary.ds-search-card){padding:14px;}
+}
+
+
+
+
+
+@media(max-width:640px){
+  .form-actions{
+    flex-direction:row;
+  }
+}
+
+
+@media(max-width:720px){
+  .ds-person-row,
+  .ds-patient-row,
+  .patient-card-row{
+    grid-template-columns:40px minmax(0,1fr)!important;
+    gap:10px!important;
+    padding:11px 10px 12px 12px!important;
+  }
+  .ds-person-avatar,
+  .patient-card-avatar{
+    width:40px!important;
+    height:40px!important;
+    border-radius:16px!important;
+  }
+  .ds-person-actions,
+  .patient-card-actions{
+    grid-column:2!important;
+    justify-content:flex-start!important;
+    min-width:0!important;
+  }
+  .ds-person-actions .primary.small,
+  .patient-card-actions .primary.small{
+    min-height:34px!important;
+    padding-inline:10px!important;
+  }
+}
+@media(max-width:420px){
+  .patient-card-actions .primary.small span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+    display:none!important;
+  }
+  .patient-card-actions .primary.small{
+    width:38px!important;
+    min-width:38px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  .patient-card-title .patient-schedule-pill{
+    order:-2;
+  }
+}
+
+
+@media(min-width:721px){
+  .patient-card-last-consultation{white-space:nowrap!important;}
+}
+
+
+
+
+@media(max-width:420px){
+  .ds-person-actions > :where(a.primary.small,button.primary.small),
+  .patient-card-actions > :where(a.primary.small,button.primary.small){
+    background:var(--pt-patient-action-bg)!important;
+    color:var(--pt-patient-action-fg)!important;
+  }
+}
+
+
+
+@media(max-width:720px){
+  .ds-lead-row.ds-person-row{
+    grid-template-columns:40px minmax(0,1fr) auto!important;
+    padding:11px 10px 12px 12px!important;
+  }
+  .ds-lead-row .lead-summary-actions{
+    grid-column:auto!important;
+    justify-content:flex-end!important;
+  }
+  .lead-summary-actions .lead-open-btn span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+    display:none!important;
+  }
+  .lead-summary-actions .lead-open-btn{
+    width:38px!important;
+    min-width:38px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  .ds-lead-item > .lead-card-expanded{
+    margin-left:0!important;
+  }
+}
+@media(max-width:460px){
+  .ds-lead-row.ds-person-row{
+    grid-template-columns:38px minmax(0,1fr) 38px!important;
+    gap:9px!important;
+  }
+  .ds-lead-row .lead-card-meta > span{
+    max-width:100%!important;
+  }
+}
+
+
+
+@media(max-width:900px){.patient-tabs-shell.patient-tabs-records{grid-template-columns:1fr}.patient-tab-nav{flex-direction:row;overflow-x:auto;scrollbar-width:none}.patient-tab-nav::-webkit-scrollbar{display:none}.patient-tab-nav label{flex:0 0 auto}.patient-profile-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.patient-profile-overview{padding:14px;border-radius:24px}.patient-profile-id{align-items:flex-start}.patient-profile-avatar{width:48px;height:48px;border-radius:18px}.patient-profile-status{margin-left:0;justify-self:start}.patient-profile-id{display:grid;grid-template-columns:auto minmax(0,1fr)}.patient-profile-status{grid-column:2}.patient-profile-copy h2{font-size:1.28rem;line-height:1.55rem}.patient-profile-facts,.patient-data-list{grid-template-columns:1fr}.patient-profile-metrics{grid-template-columns:1fr 1fr}.patient-profile-metric.is-wide{grid-column:1/-1}.patient-tabs-shell.patient-tabs-records{padding:10px;border-radius:24px}.patient-panel{padding:14px;border-radius:20px}.patient-section-title{display:grid}.patient-section-title>span{justify-self:start}.patient-tab-nav label{min-height:42px;padding:9px 11px}.patient-tab-nav label span b{white-space:nowrap}}
+
+
+
+@media(max-width:560px){
+  .lead-history.lead-history-compact{
+    padding:7px!important;
+    gap:5px!important;
+    border-radius:16px!important;
+  }
+  .lead-history.lead-history-compact article{
+    grid-template-columns:24px minmax(0,1fr)!important;
+    gap:7px!important;
+    padding:7px 8px!important;
+    border-radius:13px!important;
+  }
+  .lead-history.lead-history-compact article > span:first-child{
+    width:24px!important;
+    height:24px!important;
+    min-width:24px!important;
+    border-radius:9px!important;
+  }
+}
+
+
+@media(max-width:620px){.lead-lookup-status .primary.small{display:inline-flex;margin:8px 0 0 0}.patient-reception-history .titem.patient-reception-event{padding:10px 12px;border-radius:16px}}
+
+
+@media(max-width:620px){.patient-panel-atendimentos .patient-reception-history .titem.patient-reception-event.patient-reception-story{grid-template-columns:28px minmax(0,1fr);padding:9px 10px;border-radius:15px}.patient-panel-atendimentos .patient-reception-history .patient-reception-story .dot{width:28px;height:28px;border-radius:11px}.patient-panel-atendimentos .patient-reception-history .patient-reception-story h3{font-size:.9rem}.patient-panel-atendimentos .patient-reception-history .patient-reception-story p{font-size:.84rem}}
+
+
+@media(max-width:620px){.patient-panel-atendimentos .patient-reception-history .patient-reception-tags{gap:5px}.patient-panel-atendimentos .patient-reception-history .patient-reception-tag{min-height:24px;padding:3px 7px;font-size:.72rem}.patient-panel-atendimentos .patient-reception-history .patient-reception-tag .material-symbols-rounded{font-size:14px}.patient-panel-atendimentos .patient-reception-history .patient-reception-tag b{max-width:15ch}}
+
+
+@media(max-width:900px){.doc-context-top{grid-template-columns:1fr}.doc-stage-strip{grid-template-columns:1fr}.doc-stage-item{min-height:66px}.doc-page-actions{justify-content:flex-start}}
+@media(max-width:560px){.doc-page-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.doc-page-actions>a{justify-content:center}.doc-stage-copy small{display:none}.doc-stage-item{grid-template-columns:auto minmax(0,1fr) auto;padding:10px;border-radius:18px}.doc-stage-icon{width:38px;height:38px;border-radius:14px}.doc-ds-model-row .doc-model-create .primary.small{min-width:0;width:100%}}
+
+
+
+@media(max-width:780px){.doc-overview-cards{grid-template-columns:1fr;gap:10px}.doc-section-actions,.doc-page-actions{width:100%;justify-content:stretch}.doc-section-actions>a,.doc-page-actions>a{flex:1 1 auto;justify-content:center}}
+
+
+@media(max-width:980px){
+  .doc-template-author-head,
+  .doc-editor-main{
+    grid-template-columns:1fr;
+  }
+  .doc-field-panel{
+    position:static;
+    max-height:none;
+  }
+}
+@media(max-width:640px){
+  .doc-template-author-form{
+    padding:12px;
+    border-radius:22px;
+  }
+  .doc-template-author-steps,
+  .doc-template-fields-grid{
+    grid-template-columns:1fr;
+  }
+  .doc-template-author-steps span{
+    min-height:38px;
+  }
+  .doc-editor-wrap.doc-google-editor{
+    padding:10px;
+  }
+  .doc-editor-titlebar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .doc-editor-toolbar.doc-google-toolbar{
+    position:static;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    scrollbar-width:none;
+  }
+  .doc-editor-toolbar.doc-google-toolbar::-webkit-scrollbar{display:none}
+  .doc-toolbar-group{
+    flex:0 0 auto;
+  }
+  .doc-tool span{
+    display:none;
+  }
+  .doc-editor-paper{
+    padding:8px;
+  }
+  .doc-editor{
+    min-height:340px;
+    padding:12px;
+    font-size:.96rem;
+  }
+}
+@media(max-width:760px){
+  .doc-model-search{display:grid;align-items:stretch;grid-template-columns:1fr}
+  .doc-model-search button,.doc-model-search a{width:100%;justify-content:center}
+  .doc-ds-row,.doc-issued-row,.doc-model-row{grid-template-columns:auto minmax(0,1fr);align-items:start;border-radius:18px!important}
+  .doc-ds-row-actions,.doc-issued-actions,.doc-model-create{grid-column:1/-1;justify-content:stretch!important;width:100%!important}
+  .doc-ds-row-actions>a,.doc-ds-row-actions>button,.doc-ds-row-actions form,.doc-issued-actions>a,.doc-model-create button{flex:1 1 auto;justify-content:center;width:100%}
+  .doc-ds-row-icon,.doc-history-icon.doc-ds-row-icon{width:38px!important;height:38px!important;border-radius:14px!important}
+  .doc-issued-card.ds-filter-list-block,.doc-create-card.ds-filter-list-block,.doc-templates-card.ds-filter-list-block{padding:12px;border-radius:22px}
+  .doc-ds-section-head{display:grid;gap:10px}
+  .doc-ds-section-head>a{justify-self:start}
+  .doc-ds-metric-copy small{white-space:normal}
+}
+
+
+@media (max-width:620px){
+  .doc-ds-row-summary span:last-child{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+}
+
+
+
+@media(max-width:720px){
+  .doc-search-primary .patient-search-bar.doc-model-search{flex-wrap:wrap!important;}
+  .doc-search-primary .patient-search-bar.doc-model-search .search-field{flex-basis:100%!important;}
+  .doc-search-primary .patient-search-bar.doc-model-search button,
+  .doc-search-primary .patient-search-bar.doc-model-search a.ghost{flex:1 1 auto!important;justify-content:center!important;}
+}
+
+
+@media(max-width:760px){
+  .doc-issued-row-compact.doc-ds-row,
+  .doc-issued-row-compact.doc-issued-row{
+    grid-template-columns:34px minmax(0,1fr)!important;
+    gap:9px!important;
+    padding:9px!important;
+  }
+  .doc-issued-row-compact .doc-ds-row-icon,
+  .doc-issued-row-compact .doc-history-icon.doc-ds-row-icon,
+  .doc-issued-row-compact .doc-issued-icon{
+    width:34px!important;
+    height:34px!important;
+    min-width:34px!important;
+  }
+  .doc-issued-row-compact .doc-issued-actions,
+  .doc-issued-row-compact .doc-ds-row-actions{
+    grid-column:1/-1!important;
+    justify-content:stretch!important;
+    width:100%!important;
+  }
+  .doc-issued-row-compact .doc-issued-actions :where(a,button),
+  .doc-issued-row-compact .doc-ds-row-actions :where(a,button){
+    flex:1 1 0!important;
+    justify-content:center!important;
+  }
+}
+@media(max-width:420px){
+  .doc-overview-cards .doc-ds-metric.patient-kpi-card.kpi-card{grid-template-columns:38px minmax(0,1fr)!important;gap:10px!important}
+  .doc-overview-cards .doc-ds-metric-icon{width:38px!important;height:38px!important;min-width:38px!important;border-radius:14px!important}
+  .doc-issued-row-compact .doc-ds-row-meta{display:none!important}
+}
+
+
+
+@media(min-width:761px){
+  .doc-issued-row-compact .doc-ds-row-summary span:last-child{
+    -webkit-line-clamp:1;
+  }
+}
+
+
+
+
+@media(max-width:640px){
+  :where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) :where(label,.search-field){flex-basis:100%;}
+  :where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) > :where(button,a.ghost){flex:1 1 auto;justify-content:center;}
+  :where(.ds-search-card,.patient-search-card,.lead-search-card,.task-search-card,.doc-search-primary){padding:14px!important;border-radius:20px!important;}
+}
+
+
+
+@media print{
+  html,body{width:210mm;min-height:297mm;background:#fff!important}
+  .document-print main.doc-a4{
+    width:210mm!important;
+    min-height:297mm!important;
+    padding:30mm 20mm 30mm 20mm!important;
+    margin:0!important;
+    box-shadow:none!important;
+    border:0!important;
+  }
+  .doc-a4-preview-label{display:none!important}
+}
+@media(max-width:760px){
+  .doc-a4-preview-frame{min-width:100%}
+  .doc-print-page{width:100%!important;min-height:auto;aspect-ratio:auto;padding:22px!important;border-radius:18px!important;overflow:visible}
+  .doc-a4-preview-label{display:none}
+  .doc-print-content{min-height:auto;font-size:1rem}
+}
+@media print{
+  .document-print main.doc-a4{padding:30mm 20mm 30mm 20mm!important}
+}
+@media(max-width:760px){
+  .doc-a4-preview .doc-print-page{padding:22px!important}
+  .doc-a4-preview .doc-print-footer{right:22px!important;bottom:14px!important}
+}
+
+
+
+
+
+@media(max-width:720px){
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+    min-height:var(--pt-floating-card-min-h,42px)!important;
+    padding:var(--pt-floating-card-pad-y,5px) var(--pt-floating-card-pad-x,7px)!important;
+    gap:var(--pt-floating-card-gap,4px)!important;
+  }
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card .agenda-floating-icon{
+    width:var(--pt-floating-card-icon,26px)!important;
+    height:var(--pt-floating-card-icon,26px)!important;
+    min-width:var(--pt-floating-card-icon,26px)!important;
+    font-size:18px!important;
+  }
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card b{font-size:.78rem!important;}
+}
+
+
+
+
+@media(max-width:680px){
+  body.scope-global .admin-alert-actions{display:none!important;}
+}
+
+
+@media(max-width:620px){
+  
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
+    max-height:calc(100dvh - 18px)!important;
+    border-radius:24px!important;
+    padding:12px!important;
+  }
+}
+
+
+@media(max-width:620px){
+  body.scope-global dialog.clinic-actions-modal{
+    width:calc(100vw - 18px)!important;
+    max-height:calc(100dvh - 18px)!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
+    max-height:calc(100dvh - 18px)!important;
+    padding:12px!important;
+    border-radius:28px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-head{
+    min-height:68px!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    padding:10px!important;
+    border-radius:22px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-head-icon{
+    width:40px!important;
+    height:40px!important;
+    border-radius:16px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-close{
+    width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-title b{
+    font:var(--md-sys-typescale-title-small)!important;
+    font-weight:900!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-section,
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-panel{
+    padding:10px!important;
+    border-radius:22px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-billing .form-actions,
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-billing .form-actions .primary{
+    width:100%!important;
+  }
+}
+
+
+
+@media(max-width:900px){.settings-data-grid{grid-template-columns:1fr}.settings-ds-panel{padding:16px;border-radius:26px}.procedures-ds-list .procedure-list-head{display:grid}.procedure-ds-card{grid-template-columns:1fr}.procedure-card-actions{justify-content:flex-start}}
+@media(max-width:640px){.settings-ds-screen,.procedures-ds-screen{gap:12px}.settings-ds-panel{padding:14px;border-radius:24px}.settings-ds-panel::before{width:3px}.settings-ds-head{gap:10px}.settings-ds-icon{width:42px;height:42px;min-width:42px;border-radius:16px}.settings-ds-head h2{font-size:1.08rem;line-height:1.35}.settings-ds-actions{justify-content:stretch}.settings-ds-actions .primary{width:100%;min-width:0}.settings-ds-note{border-radius:18px;align-items:flex-start}.procedures-ds-screen .procedure-ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.procedures-ds-screen .procedure-ds-kpis > div{min-height:76px;padding:11px;border-radius:20px}.procedure-ds-intro{padding:12px;border-radius:22px}.procedure-ds-intro > span:first-child{width:40px;height:40px;min-width:40px;border-radius:15px}.procedures-ds-list.card,.procedure-ds-form{border-radius:24px;padding:14px}.procedure-ds-card{border-radius:20px;padding:12px}.procedure-ds-card .procedure-title-row{display:grid;gap:6px}.procedure-ds-card .procedure-title-row .task-chip{justify-self:start}}
+@media(max-width:420px){.procedures-ds-screen .procedure-ds-kpis{grid-template-columns:1fr}.settings-ds-form-grid{grid-template-columns:1fr}.procedure-ds-intro{display:grid}.procedures-ds-list .procedure-list-head .task-chip{justify-self:start}}
+
+
+
+@media(max-width:1100px){
+  .procedures-ds-screen .procedure-ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:900px){
+  .settings-data-grid{grid-template-columns:1fr;}
+  .settings-ds-panel{padding:16px;}
+  .sector-card-top,
+  .clinic-appearance-preview,
+  .settings-ds-assinatura .subscription-hero-main,
+  .settings-ds-assinatura .subscription-payment-head,
+  .settings-ds-assinatura .subscription-checkout-head{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .sector-card-chip,
+  .clinic-appearance-chip{display:none;}
+  .settings-ds-assinatura .subscription-pix-copy{grid-template-columns:auto minmax(0,1fr);}
+  .settings-ds-assinatura .pix-key-value{grid-column:1 / -1;justify-self:start;}
+}
+@media(max-width:420px){
+  .clinic-icon-grid,
+  .clinic-color-grid,
+  .sector-icon-picker,
+  .procedure-form-grid,
+  .procedure-quick-fields{grid-template-columns:1fr!important;}
+  .procedure-ds-intro{grid-template-columns:1fr;}
+}
+
+
+@media(max-width:980px){.permissions-ds-shell{grid-template-columns:1fr}.permissions-role-rail{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.permissions-rail-head{grid-column:1/-1}.permission-toggle-list-compact{grid-template-columns:1fr}.procedure-card-actions{justify-content:stretch}.procedure-card-actions > *{flex:1 1 auto}.procedure-card-actions a,.procedure-card-actions button{width:100%;justify-content:center}}
+@media(max-width:640px){.permissions-role-rail{grid-template-columns:1fr}.permissions-editor-pane{padding:10px;border-radius:22px}.permissions-sticky-actions{position:static}.permissions-sticky-actions > *{width:100%;justify-content:center}.clinic-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(50px,1fr))}.clinic-color-grid-tones{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}.sector-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(50px,1fr))}}
+
+
+
+
+@media (max-width:720px){.journey-next{align-items:flex-start}.journey-next .journey-owner{width:auto}.agenda-profile-row.journey-row,.reception-row.journey-row{align-items:flex-start}.patient-journey-pill{margin-left:0;margin-top:4px}}
+
+
+
+@media (max-width:760px){.journey-ux-rail{display:flex;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}.journey-ux-step{min-width:74px}.journey-ux-card-grid{grid-template-columns:1fr}.journey-ux--compact{padding:9px}.journey-ux-status{align-items:flex-start}.journey-ux-status em{margin-left:auto}}
+
+
+@media (max-width:760px){.journey-ux-owner{grid-template-columns:1fr}.journey-ux-owner em{grid-column:1}.journey-ux-quick{display:grid;grid-template-columns:1fr}.journey-ux-move,.journey-ux-move button{width:100%;justify-content:center}.journey-ux--operable::before{width:3px}}
+
+
+@media(max-width:900px){.agenda-day-vertical-timeline .agenda-profile-row,.agenda-day-vertical-timeline .agenda-profile-row-block{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:11px 11px 11px 0}.agenda-day-vertical-timeline .agenda-profile-row>.pill,.agenda-day-vertical-timeline .agenda-item-actions{grid-column:2;justify-self:start}.agenda-summary-list.agenda-day-vertical-timeline::before{left:36px}.agenda-day-vertical-timeline .agenda-profile-time{min-width:52px;height:32px}.journey-ux-facts{grid-template-columns:1fr}.journey-ux-fact em{white-space:normal}.journey-ux--timeline-card .journey-ux-status{flex-wrap:wrap}.journey-ux--timeline-card .journey-ux-status b{white-space:normal}}
+
+
+@media(max-width:760px){.agenda-action-panel-journey{min-width:min(100%,calc(100vw - 28px));max-width:calc(100vw - 28px)}.agenda-action-item-form{grid-template-columns:1fr}.agenda-action-item-form button{width:100%;justify-content:center}.agenda-action-item-form small{padding-inline:4px}.agenda-journey-actions{width:100%}.agenda-journey-actions>summary{width:100%;justify-content:center}}
+
+
+@media (max-width:760px){
+  .patient-active-consultation{grid-template-columns:1fr;padding:14px;border-radius:20px}
+  .patient-active-consultation-actions{justify-content:stretch}
+  .patient-active-consultation-actions .primary,.patient-active-consultation-actions .ghost{width:100%;justify-content:center}
+}
+
+
+@media(max-width:560px){
+  dialog.agenda-actions-modal{
+    width:min(250px,calc(100vw - 18px));
+    max-width:min(250px,calc(100vw - 18px));
+  }
+}
+
+
+@media(max-width:860px){.finance-consolidation-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.finance-appointment-inline{width:100%;margin-top:4px}.agenda-profile-row .finance-appointment-inline{justify-content:flex-start}.finance-appointment-receive{padding:6px 8px}.finance-reception-pending a{grid-template-columns:1fr}.finance-reception-pending a em{grid-row:auto;grid-column:auto}}
+
+
+
+@media(max-width:640px){.finance-admin-nav-shell{gap:8px}.finance-admin-nav-shell .finance-pagehead-nav{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch}.finance-nav-group>strong{font-size:.72rem}}
+
+
+@media(max-width:760px){.finance-admin-primary-nav{overflow-x:auto;flex-wrap:nowrap;padding-bottom:.25rem}.finance-admin-primary-nav .ghost{white-space:nowrap}.finance-section-intro{display:block;padding:.8rem}.finance-admin-operation-grid{grid-template-columns:1fr}.creditor-card{align-items:flex-start}.creditor-card form.inline{margin-left:0}}
+
+
+@media(max-width:980px){.finance-admin-operation-grid-three{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.finance-admin-operation-grid-three{grid-template-columns:1fr}.finance-attention-item{padding:.72rem}.finance-admin-primary-nav .ghost span{font-size:.82rem}}
+
+
+@media(max-width:860px){.finance-consolidation-footer{justify-content:stretch}.finance-consolidation-footer .primary,.finance-consolidation-footer .ghost{width:100%;justify-content:center}.finance-conference-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.finance-conference-action,.finance-conference-lock{align-items:stretch}.finance-conference-action .primary,.finance-conference-action .ghost,.finance-conference-lock .ghost{width:100%;justify-content:center}}
+
+
+@media(max-width:720px){.finance-conference-blocking-list div{align-items:flex-start;flex-direction:column}.finance-conference-blocking-list span{text-align:left}}
+
+
+
+@media(min-width:721px){
+  body[data-floating-scroll-hidden="1"] .floating-clock.context-floating-clock-card,
+  body[data-floating-scroll-hidden="1"] .floating-clock[data-floating-clock],
+  body[data-floating-scroll-hidden="1"] [data-floating-clock].floating-clock,
+  body[data-floating-scroll-hidden="1"] .agenda-floating-kpis,
+  body[data-floating-scroll-hidden="1"] .ds-fixed-agenda-kpis,
+  body[data-floating-scroll-hidden="1"] .context-floating-pending-kpis,
+  body[data-floating-scroll-hidden="1"] .lead-floating-pending{opacity:1!important;pointer-events:auto!important;}
+  .pt-floating-drag-handle{display:none!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .floating-clock,
+  .agenda-floating-kpis,
+  .ds-fixed-agenda-kpis,
+  .context-floating-pending-kpis,
+  .lead-floating-pending{transition:none!important;}
+}
+
+
+
+
+@media (max-width:900px){.ds-clinic-list-item-inline{grid-template-columns:1fr;align-items:stretch}.ds-clinic-list-item-inline .ds-clinic-row-meta{overflow-x:auto}.ds-clinic-list-item-inline .clinic-attention-actions{justify-self:start}}
+
+
+@media(max-width:640px){.top .logout-icon,.top .logout-icon:where(:not(:hover):not(:focus-visible)){width:40px!important;min-width:40px!important;height:40px!important;border-radius:14px!important;}}
+@media print{
+  .document-print-exact html,
+  .document-print-exact body,
+  body.document-print-exact{
+    width:210mm!important;
+    min-height:297mm!important;
+    background:#fff!important;
+  }
+  body.document-print-exact .doc-print-standalone{
+    width:210mm!important;
+    min-height:297mm!important;
+    margin:0!important;
+    padding:0!important;
+    background:#fff!important;
+  }
+  body.document-print-exact .doc-print-page{
+    width:210mm!important;
+    min-height:297mm!important;
+    margin:0!important;
+    padding:30mm 20mm 30mm 20mm!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+  }
+  body.document-print-exact .doc-print-footer{
+    right:20mm!important;
+    bottom:15mm!important;
+  }
+}
+
+
+
+
+@media(max-width:640px){
+  .patient-tab-icon-symbol-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr));}
+  .patient-tab-icon-symbol-grid .patient-health-icon-only{min-height:50px;border-radius:17px;}
+  .patient-tab-icon-symbol{width:36px;height:36px;border-radius:14px;}
+}
+
+
+
+@media(max-width:980px){
+  .cmdbar .cmdbar-shared-goal{max-width:22%;min-width:104px;padding-inline:8px;gap:6px;}
+  .cmdbar .cmdbar-shared-goal-track{min-width:34px;}
+}
+@media(max-width:640px){
+  .cmdbar .cmdbar-shared-goal{flex-basis:92px;max-width:92px;min-width:92px;height:32px;padding-inline:8px;}
+  .cmdbar .cmdbar-shared-goal-track{min-width:28px;}
+  .cmdbar .cmdbar-shared-goal strong{font-size:.68rem;}
+}
+
+
+@media(max-width:860px){
+  .procedure-search-bar.patient-search-bar{grid-template-columns:minmax(0,1fr);}
+  .procedure-search-bar.patient-search-bar .primary,
+  .procedure-search-bar.patient-search-bar .ghost{width:100%;justify-content:center;}
+  .procedure-row.ds-person-row{grid-template-columns:40px minmax(0,1fr)!important;align-items:start!important;}
+  .procedure-row .ds-person-title{flex-wrap:wrap!important;}
+  .procedure-row .ds-person-title strong{max-width:100%!important;}
+  .procedure-row-meta{flex-wrap:wrap!important;}
+  .procedure-row .procedure-card-actions{grid-column:2!important;justify-content:flex-start!important;min-width:0!important;flex-wrap:wrap!important;}
+}
+@media(max-width:520px){
+  .procedures-ds-list .procedure-list-head{align-items:flex-start!important;display:grid!important;}
+  .procedure-category-chip{max-width:100%!important;}
+  .procedure-row-meta > span b{max-width:180px!important;}
+  .procedure-row .procedure-card-actions .ghost.small,
+  .procedure-row .procedure-card-actions button.ghost.small{flex:1 1 auto;justify-content:center;}
+}
+
+
+@media(max-width:1100px){.collaborator-card-row.ds-collaborator-row{grid-template-columns:minmax(220px,1fr) minmax(160px,.9fr) auto;}.collaborator-card-row .collaborator-meta{grid-column:1 / -1;}.collaborator-card-row .collaborator-actions{grid-column:auto;}}
+@media(max-width:760px){.collaborator-card-row.ds-collaborator-row{grid-template-columns:1fr;align-items:start;padding:12px;}.collaborator-card-row .collaborator-status,.collaborator-card-row .collaborator-actions{justify-self:stretch;}.collaborator-card-row .collaborator-actions .primary.small{width:100%;justify-content:center;}.collaborator-card-row .collaborator-meta{grid-column:auto;}.collaborator-add-panel--pagehead.action-panel{min-width:0;width:100%;}.pagehead-controls--actions .collaborator-add-panel--pagehead{width:100%;}.pagehead-controls--actions .collaborator-add-panel--pagehead>summary{justify-content:center;}}
+
+
+
+@media(max-width:900px){.collaborator-search-bar.patient-search-bar{grid-template-columns:1fr;}.collaborator-search-bar .ds-search-button,.collaborator-search-bar .ghost{width:100%;justify-content:center;}.collaborator-new-panel.action-panel[open]{width:100%;min-width:0;}.collaborator-new-form{max-height:none;overflow:visible;}.collaborator-form-section .two,.collaborator-form-grid.two{grid-template-columns:1fr;}.collaborator-new-actions.form-actions{position:static;align-items:stretch;}.collaborator-new-actions.form-actions>*{flex:1 1 auto;justify-content:center;}}
+@media(max-width:760px){.collaborator-directory-overview.patient-directory-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}.collaborator-card-row .collaborator-meta>span{width:100%;}.collaborator-card-row .collaborator-nameblock small{max-width:100%;}}
+
+
+@media(max-width:760px){
+  .collaborator-search-bar.patient-search-bar{flex-wrap:wrap!important;}
+  .collaborator-search-bar.patient-search-bar .search-field{flex-basis:100%!important;}
+  .collaborator-search-bar.patient-search-bar button,
+  .collaborator-search-bar.patient-search-bar .ghost{flex:1 1 auto!important;justify-content:center!important;}
+  .collaborator-card-row.ds-collaborator-row-v31,
+  .collaborator-card-row.ds-person-row.ds-collaborator-row-v31{
+    grid-template-columns:40px minmax(0,1fr)!important;
+    align-items:start!important;
+  }
+  .collaborator-card-row.ds-collaborator-row-v31 .collaborator-actions{
+    grid-column:2!important;
+    justify-self:stretch!important;
+  }
+  .collaborator-card-row.ds-collaborator-row-v31 .collaborator-actions .primary.small{
+    width:100%!important;
+    justify-content:center!important;
+  }
+  .collaborator-new-actions.form-actions{align-items:stretch!important;}
+  .collaborator-new-actions.form-actions > *{flex:1 1 auto!important;justify-content:center!important;}
+}
+
+
+
+
+@media(max-width:720px){
+  .activity-screen-card.patient-list-card.ds-filter-list-block{padding:12px!important;gap:12px!important;}
+  .activity-section-head{align-items:flex-start!important;}
+  .ds-activity-filter-panel{padding:10px!important;}
+  .activity-timeline.ds-activity-list .titem{grid-template-columns:34px minmax(0,1fr)!important;padding:10px!important;}
+  .activity-timeline.ds-activity-list .dot,
+  .activity-timeline.ds-activity-list .time-dot{width:32px!important;height:32px!important;border-radius:13px!important;}
+}
+
+
+
+@media (min-width:1040px){
+  .reception-panel-grid{
+    grid-template-columns:minmax(0,1.04fr) minmax(320px,.96fr);
+  }
+  .reception-panel-grid .reception-agenda{
+    grid-column:1 / -1;
+  }
+}
+@media(max-width:760px){
+  .reception-dashboard .reception-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .reception-row{
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+  .reception-time{
+    width:auto;
+    justify-content:flex-start;
+    padding-inline:10px;
+  }
+  .reception-row > .pill{
+    justify-self:start;
+  }
+  .reception-flow{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .cash-drawer-card .cash-drawer-line{
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+  .cash-drawer-card .cash-drawer-pills{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .finance-extract-row{
+    grid-template-columns:42px minmax(0,1fr);
+  }
+  .finance-extract-row > b,
+  .finance-extract-row > .pill{
+    grid-column:2;
+    justify-self:start;
+  }
+}
+@media(max-width:520px){
+  .reception-dashboard .reception-kpis,
+  .reception-flow,
+  .cash-drawer-card .cash-drawer-pills{
+    grid-template-columns:1fr;
+  }
+  .finance-cash-pagehead-actions{
+    justify-content:flex-start;
+  }
+  .finance-cash-pagehead-actions .finance-cash-action{
+    flex:1 1 calc(50% - 6px);
+    justify-content:center;
+  }
+}
+
+
+
+
+
+@media(max-width:760px){
+  .finance-accounts-panel > header,
+  .finance-drawer-intro > header,
+  .finance-drawer-admin-list > header,
+  .finance-drawer-setup-card > header,
+  .finance-alert-card > header,
+  .finance-dashboard-card > header,
+  .finance-goal-card-panel > header,
+  .finance-report-card > header,
+  .finance-ledger-card > header,
+  .finance-list > header,
+  .cash-drawer-card > header,
+  .finance-drawer-admin-card > header,
+  .finance-drawer-setup-card > header{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+  }
+  .finance-account-cards,
+  .finance-drawer-admin-grid,
+  .finance-drawer-setup-grid,
+  .finance-drawer-metrics{
+    grid-template-columns:1fr!important;
+  }
+  .finance-row,
+  .finance-row.mini{
+    grid-template-columns:1fr!important;
+    align-items:start!important;
+  }
+  .finance-row > b,
+  .finance-row > .pill,
+  .finance-account-cards b,
+  .finance-drawer-card-actions,
+  .finance-drawer-actions,
+  .finance-action-row{
+    justify-self:start!important;
+    justify-content:flex-start!important;
+  }
+}
+
+
+
+
+
+@media(max-width:720px){
+  .pagehead{
+    align-items:flex-start!important;
+  }
+  .pagehead .actions,
+  .pagehead-controls--actions,
+  .cmdbar-actions{
+    justify-content:flex-start!important;
+    width:100%!important;
+  }
+  .search-card form,
+  .directory-search,
+  .patient-search,
+  .ds-search,
+  .list-search{
+    grid-template-columns:1fr!important;
+  }
+  .search-card button,
+  .directory-search button,
+  .patient-search button,
+  .ds-search button,
+  .list-search button,
+  .form-actions > *,
+  .action-footer > *,
+  .panel-actions > *,
+  .wizard-actions > *{
+    width:100%!important;
+  }
+}
+
+
+
+
+
+@media(max-width:860px){
+  .pt-pagehead{flex-direction:column}.pt-pagehead-actions{justify-content:flex-start;width:100%}.pt-cmdbar{align-items:stretch;flex-direction:column}.pt-progress-inline{max-width:100%;width:100%;justify-content:flex-start}.pt-searchbar{grid-template-columns:1fr}.pt-searchbar button{width:100%}.pt-entity-row{grid-template-columns:auto minmax(0,1fr)}.pt-entity-actions{grid-column:1/-1;justify-content:flex-start}.pt-form-footer>*{width:100%;justify-content:center}
+  :where(.form-actions,.action-footer,.panel-actions,.wizard-actions,.finance-operation-actions,.patient-form-actions,.employee-form-actions,.procedure-form-actions,.document-form-actions)>*{width:100%;justify-content:center}
+}
+@media(max-width:520px){
+  :root{--pt-ds-row-min:52px;--pt-ds-row-pad-y:9px;--pt-ds-row-pad-x:10px;--pt-ds-section-pad:14px}.pt-metric-grid,:where(.kpis,.stats-grid,.metric-grid,.patient-kpi-grid,.notice-kpi-grid,.finance-kpi-grid,.manager-kpis,.reception-kpis,.procedure-kpis,.employee-kpis,.creditor-kpis){grid-template-columns:1fr}.pt-pagehead-title{font:var(--md-sys-typescale-title-large);font-weight:850}
+}
+
+
+@media (max-width:720px){.agenda-day-note-card{padding:12px;border-radius:16px}.agenda-note-visibility-grid{grid-template-columns:1fr;max-width:none}.agenda-day-note-icon{width:32px;height:32px;border-radius:12px}}
+
+
+@media (max-width:720px){.agenda-day-note-card{align-items:flex-start;flex-wrap:wrap}.agenda-day-note-side{width:100%;justify-content:flex-end;margin-left:48px}.agenda-day-note-author{font-size:.76rem}}
+
+
+
+@media (max-width:760px){.finance-drawer-partial-row{display:grid}.finance-drawer-partial-actions{min-width:0;max-width:none;width:100%}.finance-drawer-partial-metrics span{flex:1 1 42%}}
+
+
+@media(max-width:760px){.admin-performance-table{min-width:680px}.admin-performance-table th,.admin-performance-table td{padding:10px 12px}.admin-performance-screen{gap:14px}}
+
+
+@media (min-width:761px){
+  body.scope-global .global-performance-charts,
+  body.scope-global .global-area-charts{
+    grid-template-columns:1fr!important;
+  }
+}
+@media (max-width:760px){
+  body.scope-global .global-performance-charts,
+  body.scope-global .global-area-charts{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+}
+
+
+
+
+
+@media(max-width:900px){
+  body.scope-global .admin-clinic-detail-columns{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:680px){
+  body.scope-global .admin-clinic-detail-hero{
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:start;
+    padding:16px;
+    border-radius:24px;
+  }
+  body.scope-global .admin-clinic-detail-hero > .clinic-attention-chip{
+    grid-column:1/-1;
+    justify-self:start;
+  }
+  body.scope-global .admin-clinic-detail-grid,
+  body.scope-global .admin-clinic-billing-fields{
+    grid-template-columns:1fr;
+  }
+  body.scope-global .admin-clinic-action-block,
+  body.scope-global .admin-clinic-billing-panel{
+    grid-template-columns:1fr;
+    align-items:stretch;
+  }
+  body.scope-global .admin-clinic-action-buttons,
+  body.scope-global .admin-clinic-action-buttons form,
+  body.scope-global .admin-clinic-action-buttons button,
+  body.scope-global .admin-clinic-action-block form,
+  body.scope-global .admin-clinic-action-block form button{
+    width:100%;
+  }
+  body.scope-global .admin-clinic-action-buttons button,
+  body.scope-global .admin-clinic-action-block form button{
+    justify-content:center;
+  }
+  body.scope-global .admin-clinic-billing-footer,
+  body.scope-global .admin-update-form-footer{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  body.scope-global .admin-clinic-billing-footer .primary,
+  body.scope-global .admin-update-form-footer .primary{
+    width:100%;
+    justify-content:center;
+  }
+  body.scope-global .admin-update-card{
+    padding:16px;
+  }
+  body.scope-global .admin-update-upload-zone{
+    padding:14px;
+  }
+}
+
+
+@media(max-width:760px){
+  body.scope-global .admin-alert-hero{
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:start;
+    padding:15px;
+    border-radius:24px;
+  }
+  body.scope-global .admin-alert-private-chip{
+    grid-column:1/-1;
+    justify-self:start;
+  }
+  body.scope-global .admin-alert-reader-toolbar,
+  body.scope-global .admin-alert-reader-meta{
+    align-items:flex-start;
+  }
+  body.scope-global .admin-alert-reader-toolbar{
+    flex-direction:column;
+  }
+  body.scope-global .admin-alert-reader-meta{
+    justify-content:flex-start;
+  }
+}
+@media(max-width:680px){
+  body.scope-global .admin-alert-screen .admin-alert-kpis{
+    grid-template-columns:1fr;
+  }
+  body.scope-global .admin-alert-screen .admin-alert-kpis .notice-kpi{
+    min-height:78px;
+  }
+  body.scope-global .admin-alert-form .two{
+    grid-template-columns:1fr;
+  }
+  body.scope-global .admin-alert-filter-label{
+    width:100%;
+  }
+  body.scope-global .admin-alert-filters .ds-filter-chip{
+    flex:1 1 0;
+    justify-content:center;
+  }
+  body.scope-global .admin-alert-shell,
+  body.scope-global .admin-alert-reader-content{
+    padding:14px;
+  }
+  body.scope-global .admin-alert-row{
+    grid-template-columns:40px minmax(0,1fr) 32px!important;
+    gap:10px!important;
+  }
+  body.scope-global .admin-alert-row-badges{
+    width:100%;
+    margin-left:0;
+  }
+  body.scope-global .admin-alert-open-icon{
+    width:32px;
+    height:32px;
+  }
+}
+
+
+@media(max-width:620px){
+  body.public[data-route="mfa"]{--pt-security-auth-max:100%}
+  .security-auth-card{gap:15px!important;padding:18px!important;border-radius:24px!important}
+  .security-step-list,.recovery-code-list{grid-template-columns:1fr}
+  .recovery-code-list code{text-align:left}
+  .security-reauth-card{gap:15px;padding:16px!important;border-radius:22px!important}
+  .security-reauth-actions{display:grid!important;grid-template-columns:1fr}
+  .security-reauth-actions :is(a,button){width:100%;justify-content:center}
+}
+
+@media(max-width:760px){body.status-public #conteudo{width:100%!important;padding:10px!important;}body.status-public .admin-performance-card{border-radius:18px!important;}body.status-public .admin-performance-card>.section-head{padding:15px!important;}body.status-public .global-performance-charts{margin:10px!important;padding:10px!important;gap:10px!important;border-radius:16px!important;}body.status-public .global-performance-charts>.metric-area-chart{padding:12px!important;border-radius:14px!important;}}
+
+
+@media(max-width:620px){
+  body.status-public .status-page-header{margin-bottom:14px;gap:11px;padding-inline:2px;}
+  body.status-public .status-page-icon{flex-basis:42px;width:42px;height:42px;border-radius:14px;}
+  body.status-public .status-page-icon .pt-icon-glyph{font-size:24px;}
+  body.status-public .status-page-header h1{font-size:1.25rem;}
+  body.status-public .status-page-header p{font-size:.82rem;}
+  body.status-public #conteudo>.stat-card{grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto auto!important;column-gap:12px!important;row-gap:3px!important;min-height:88px!important;padding:15px 16px!important;}
+  body.status-public #conteudo>.stat-card .stat-icon{grid-column:1!important;grid-row:1/3!important;}
+  body.status-public #conteudo>.stat-card .stat-title{grid-column:2!important;grid-row:1!important;align-self:end!important;}
+  body.status-public #conteudo>.stat-card .stat-value{grid-column:2!important;grid-row:2!important;align-self:start!important;text-align:left!important;}
+  body.status-public #conteudo>.stat-card+.admin-performance-card{margin-top:18px!important;}
+}
+
+@media(max-width:980px){.pagehead-controls--actions,.pagehead-controls--navigation{justify-content:flex-start;width:100%}.pagehead-controls--navigation{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:4px}.pagehead-controls--navigation::-webkit-scrollbar{display:none}.pagehead-controls--navigation .pagehead-control--nav{flex:0 0 auto}}
+@media(max-width:640px){.pagehead-control{min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}

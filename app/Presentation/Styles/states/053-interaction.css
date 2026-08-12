@@ -1,5 +1,0 @@
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
-  border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--pt-ds-surface-line))!important;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))!important;
-  box-shadow:0 8px 22px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset!important;
-}

@@ -1,8 +1,0 @@
-}
-
-
-body.is-read-only .readonly-scope-note{display:none!important}
-
-body.is-read-only .read-only-locked-form::after{content:none!important;display:none!important}
-
-

@@ -1,5 +1,0 @@
-.lead-card-expanded .lead-actions > .lead-card-details[open]{
-  flex:1 0 100%!important;
-  width:100%!important;
-  align-self:stretch!important;
-}

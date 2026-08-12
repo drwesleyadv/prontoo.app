@@ -1,5 +1,0 @@
-.reception-pending:hover{
-  background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));
-  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
-  text-decoration:none;
-}

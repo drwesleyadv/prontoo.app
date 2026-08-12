@@ -1,9 +1,0 @@
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,.clinic-actions-summary,.clinic-menu-item,.patient-new-tab-btn,.task-filter,.ds-filter-chip,.patient-filter-chip):where(:hover,:focus-visible){
-  text-decoration:none!important;
-}
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike)[disabled] .material-symbols-rounded,
-:where(button[disabled],.disabled,.is-disabled) .material-symbols-rounded{
-  opacity:.72!important;
-}
-
-

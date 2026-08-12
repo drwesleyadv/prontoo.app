@@ -1,8 +1,0 @@
-body.scope-global .admin-alert-row.severity-warning .admin-alert-avatar{
-  color:var(--pt-color-warning)!important;
-  background:var(--pt-color-warning-container)!important;
-}
-body.scope-global .admin-alert-row.severity-critical .admin-alert-avatar{
-  color:var(--md-sys-color-error)!important;
-  background:var(--md-sys-color-error-container)!important;
-}

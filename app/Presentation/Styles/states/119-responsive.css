@@ -1,5 +1,0 @@
-@media(max-width:1100px){.collaborator-card-row.ds-collaborator-row{grid-template-columns:minmax(220px,1fr) minmax(160px,.9fr) auto;}.collaborator-card-row .collaborator-meta{grid-column:1 / -1;}.collaborator-card-row .collaborator-actions{grid-column:auto;}}
-@media(max-width:760px){.collaborator-card-row.ds-collaborator-row{grid-template-columns:1fr;align-items:start;padding:12px;}.collaborator-card-row .collaborator-status,.collaborator-card-row .collaborator-actions{justify-self:stretch;}.collaborator-card-row .collaborator-actions .primary.small{width:100%;justify-content:center;}.collaborator-card-row .collaborator-meta{grid-column:auto;}.collaborator-add-panel--pagehead.action-panel{min-width:0;width:100%;}.pagehead-controls--actions .collaborator-add-panel--pagehead{width:100%;}.pagehead-controls--actions .collaborator-add-panel--pagehead>summary{justify-content:center;}}
-
-
-

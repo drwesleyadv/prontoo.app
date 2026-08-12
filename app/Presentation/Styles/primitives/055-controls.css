@@ -1,5 +1,0 @@
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button.primary,button.ghost,button.danger,button.danger-soft,a.primary,a.ghost,.clinic-actions-summary,.clinic-menu-item,.patient-new-tab-btn,.task-filter,.ds-filter-chip,.patient-filter-chip){
-  min-height:var(--pt-action-h);
-  border-radius:var(--pt-action-radius);
-  gap:8px;
-}

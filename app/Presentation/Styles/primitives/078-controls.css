@@ -1,4 +1,0 @@
-.clinic-color-label{font:var(--md-sys-typescale-label-large);font-weight:900;color:var(--md-sys-color-on-surface);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.clinic-icon-option:has(input:checked),.clinic-color-option:has(input:checked){border-color:var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest));box-shadow:var(--pt-focus-ring);}
-.clinic-icon-option:has(input:checked) .clinic-icon-option-mark{background:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);}
-.clinic-icon-option input,.clinic-color-option input{position:absolute;opacity:0;pointer-events:none;}

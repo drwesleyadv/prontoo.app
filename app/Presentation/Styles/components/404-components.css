@@ -1,4 +1,0 @@
-.security-step-list small{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.35}
-.security-auth-launch,.security-auth-submit{min-height:48px!important;justify-content:center!important;gap:8px!important;border-radius:18px!important;font-weight:900!important}
-.mfa-secret{display:grid;gap:10px;padding:14px;border-radius:20px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)}
-.mfa-secret>div{display:grid;gap:2px}

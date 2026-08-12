@@ -1,9 +1,0 @@
-@media(max-width:860px){
-  .pt-pagehead{flex-direction:column}.pt-pagehead-actions{justify-content:flex-start;width:100%}.pt-cmdbar{align-items:stretch;flex-direction:column}.pt-progress-inline{max-width:100%;width:100%;justify-content:flex-start}.pt-searchbar{grid-template-columns:1fr}.pt-searchbar button{width:100%}.pt-entity-row{grid-template-columns:auto minmax(0,1fr)}.pt-entity-actions{grid-column:1/-1;justify-content:flex-start}.pt-form-footer>*{width:100%;justify-content:center}
-  :where(.form-actions,.action-footer,.panel-actions,.wizard-actions,.finance-operation-actions,.patient-form-actions,.employee-form-actions,.procedure-form-actions,.document-form-actions)>*{width:100%;justify-content:center}
-}
-@media(max-width:520px){
-  :root{--pt-ds-row-min:52px;--pt-ds-row-pad-y:9px;--pt-ds-row-pad-x:10px;--pt-ds-section-pad:14px}.pt-metric-grid,:where(.kpis,.stats-grid,.metric-grid,.patient-kpi-grid,.notice-kpi-grid,.finance-kpi-grid,.manager-kpis,.reception-kpis,.procedure-kpis,.employee-kpis,.creditor-kpis){grid-template-columns:1fr}.pt-pagehead-title{font:var(--md-sys-typescale-title-large);font-weight:850}
-}
-
-

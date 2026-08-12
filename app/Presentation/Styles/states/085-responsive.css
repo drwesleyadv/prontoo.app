@@ -1,8 +1,0 @@
-@media(max-width:720px){
-  .doc-search-primary .patient-search-bar.doc-model-search{flex-wrap:wrap!important;}
-  .doc-search-primary .patient-search-bar.doc-model-search .search-field{flex-basis:100%!important;}
-  .doc-search-primary .patient-search-bar.doc-model-search button,
-  .doc-search-primary .patient-search-bar.doc-model-search a.ghost{flex:1 1 auto!important;justify-content:center!important;}
-}
-
-

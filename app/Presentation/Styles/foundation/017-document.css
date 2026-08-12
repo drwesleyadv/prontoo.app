@@ -1,7 +1,0 @@
-body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
-  min-height:0!important;
-  height:auto!important;
-  flex:0 0 auto!important;
-  padding-block-end:0!important;
-  margin-block-end:0!important;
-}

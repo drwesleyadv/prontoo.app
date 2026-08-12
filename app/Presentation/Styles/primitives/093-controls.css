@@ -1,7 +1,0 @@
-body.public .signup-screen-flow .signup-screen-kicker span{
-  font:var(--md-sys-typescale-label-medium);
-  font-weight:900;
-  letter-spacing:.02em;
-  text-transform:uppercase;
-  opacity:.74;
-}

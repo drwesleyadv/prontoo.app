@@ -1,6 +1,0 @@
-.pagehead,.pagehead-controls--navigation{
-  --pt-ds-accent:var(--md-sys-color-primary);
-}
-.pagehead-controls--navigation :is(a,button){
-  border-radius:var(--pt-pagehead-control-radius)!important;
-}

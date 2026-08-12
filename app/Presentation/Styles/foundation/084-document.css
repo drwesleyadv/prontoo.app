@@ -1,5 +1,0 @@
-body.scope-global dialog.clinic-actions-modal .clinic-menu-billing :where(input,select){
-  min-height:48px!important;
-  border-radius:16px!important;
-  background:var(--md-sys-color-surface-container-lowest)!important;
-}

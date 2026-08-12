@@ -1,8 +1,0 @@
-.finance-balance-kpis > .finance-balance-card span{
-  display:block;
-  color:var(--md-sys-color-on-surface-variant);
-  font:var(--md-sys-typescale-label-large);
-  font-weight:760;
-  letter-spacing:-.01em;
-  line-height:1.25;
-}
