@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.12.5 — PageHeadControl canônico e redução de compatibilidade
+
+- institui renderer único de Presentation para controles do PageHead.
+- emite papéis nav, primary, secondary e danger sobre uma única geometria de 38 px desktop e 42 px mobile.
+- consome classes legadas no boundary sem permitir que sejam autoridade visual no CSS ou JavaScript.
+- remove aliases de tokens PageHeadAction e seletores pagehead-actions, pagehead-operations e operation-chip do contrato visual.
+- remove suporte morto a operation menu e reduz UiComponentsRuntimeOperations03 para menos de 500 linhas.
+- preserva cor do consultório, somente leitura, danger semântico, compactação mobile e fluxo funcional existente.
+- publica a mudança sem alteração de banco ou schema.
+
 ## 1.8.12.4 — Harmonia global dos controles do PageHead
 
 - unifica em 38 px a altura desktop de navegação, ações primárias e ações secundárias do PageHead, preservando 42 px no mobile.

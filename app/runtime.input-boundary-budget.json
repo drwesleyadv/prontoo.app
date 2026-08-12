@@ -1,7 +1,7 @@
 {
     "schema": "prontoo-runtime-input-boundary-budget-v1",
     "policy": "runtime_input_adapter_infrastructure_gateway_and_hotspot_debt_is_explicit_and_monotonic",
-    "source_sha": "e4004e962e011ead61c4bcaa5627dbec08046e54",
+    "source_sha": "93d0c11a97d811cf9eee51b6a3020f9ca357b7bf",
     "thresholds": [
         500,
         700,
@@ -15,10 +15,10 @@
         "app/Runtime/Operational/OperationalComposition.php"
     ],
     "totals": {
-        "input_adapter_files": 109,
-        "infrastructure_references": 615,
-        "generic_data_gateway_calls": 784,
-        "hotspots_over_500": 39,
+        "input_adapter_files": 111,
+        "infrastructure_references": 609,
+        "generic_data_gateway_calls": 780,
+        "hotspots_over_500": 38,
         "hotspots_over_700": 7,
         "hotspots_over_1000": 4
     },
@@ -34,13 +34,13 @@
             "hotspot_bucket": 0
         },
         "app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php": {
-            "infrastructure_references": 8,
+            "infrastructure_references": 6,
             "infrastructure_categories": {
-                "DatabaseSchema": 2,
+                "DatabaseSchema": 1,
                 "SupportFoundation": 1,
-                "SupportTelemetry": 5
+                "SupportTelemetry": 4
             },
-            "generic_data_gateway_calls": 7,
+            "generic_data_gateway_calls": 5,
             "hotspot_bucket": 0
         },
         "app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php": {
@@ -737,13 +737,11 @@
             "hotspot_bucket": 0
         },
         "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php": {
-            "infrastructure_references": 13,
+            "infrastructure_references": 9,
             "infrastructure_categories": {
-                "DatabaseSchema": 1,
-                "SupportFoundation": 2,
-                "SupportTelemetry": 10
+                "SupportTelemetry": 9
             },
-            "generic_data_gateway_calls": 2,
+            "generic_data_gateway_calls": 0,
             "hotspot_bucket": 0
         },
         "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations01.php": {
@@ -808,7 +806,7 @@
                 "SecurityAccess": 9
             },
             "generic_data_gateway_calls": 0,
-            "hotspot_bucket": 1
+            "hotspot_bucket": 0
         },
         "app/Runtime/UiComponents/UiComponentsRuntimeOperations04.php": {
             "infrastructure_references": 2,

@@ -466,9 +466,8 @@ final class UiComponentsRuntimeOperations02
         string $iconName,
         string $current,
         array $params = [],
-    ): string 
+    ): string
     {
-    
         if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
             $iconName = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::prontoo_icon_for_route_label(
                 $route,
@@ -478,20 +477,13 @@ final class UiComponentsRuntimeOperations02
             );
         }
         $active = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::operation_current_match($route, $params, $current);
-        $cls = "operation-chip" . ($active ? " is-active" : "");
-        return '<a class="' .
-            $cls .
-            '" href="' .
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params) .
-            '" title="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
-            '"' .
-            ($active ? ' aria-current="page"' : "") .
-            ">" .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
-            "<span>" .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
-            "</span></a>";
-    
+        return \Prontoo\Presentation\UiComponents\PageHeadControlPresentationOperations01::link(
+            $label,
+            $iconName,
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params),
+            'nav',
+            $active,
+        );
     }
+
 }
