@@ -25,7 +25,9 @@ $artifact = (string) ($manifest['artifact'] ?? '');
 $retiredArtifact = (string) ($manifest['retired_artifact'] ?? '');
 $ownershipOrder = (array) ($manifest['ownership_order'] ?? []);
 $forbiddenLayers = (array) ($manifest['forbidden_layers'] ?? []);
-$equivalence = (array) ($manifest['delivery_equivalence'] ?? []);
+$artifactContract = (array) ($manifest['artifact_contract'] ?? []);
+$migrationReference = (array) ($manifest['migration_reference'] ?? []);
+$uxContract = (array) ($manifest['observable_ux_contract'] ?? []);
 $budget = (array) ($manifest['visual_debt_budget'] ?? []);
 $sources = (array) ($manifest['sources'] ?? []);
 $sequence = (array) ($manifest['sequence'] ?? []);
@@ -43,6 +45,16 @@ if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/pr
 if (!$sourceConsolidated || !$publicationReady || !$semanticDecompositionComplete || $cascadeBandCount !== 0 || $sourceModel !== 'semantic_owner_files_with_ordered_slices' || $sources === [] || $sequence === [] || $ownershipOrder === []) {
     fwrite(STDERR, "presentation-css-build: semantic owner source incomplete\n");
     exit(1);
+}
+if (($uxContract['required'] ?? false) !== true || ($uxContract['baseline'] ?? '') !== 'app/presentation.ux-baseline.json' || ($uxContract['workflow'] ?? '') !== '.github/workflows/presentation-ux.yml') {
+    fwrite(STDERR, "presentation-css-build: observable UX contract missing\n");
+    exit(1);
+}
+foreach ([(string) $uxContract['baseline'], (string) $uxContract['workflow']] as $requiredFile) {
+    if (!is_file($root . '/' . $requiredFile)) {
+        fwrite(STDERR, "presentation-css-build: observable UX contract file missing\n");
+        exit(1);
+    }
 }
 if ($sourceFileLimit < 1 || count($sources) > $sourceFileLimit || count(array_unique($ownershipOrder)) !== count($ownershipOrder)) {
     fwrite(STDERR, "presentation-css-build: source budget or ownership invalid\n");
@@ -158,11 +170,11 @@ if ($sourceImportant !== $sequenceImportant || $sourceRoutes !== $sequenceRoutes
     exit(1);
 }
 
-$referenceSha = strtolower((string) ($equivalence['reference_sha256'] ?? ''));
-$referenceBytes = (int) ($equivalence['reference_bytes'] ?? -1);
 $builtSha = hash('sha256', $built);
-if (($equivalence['byte_identical_required'] ?? false) !== true || !hash_equals($referenceSha, $builtSha) || strlen($built) !== $referenceBytes) {
-    fwrite(STDERR, "presentation-css-build: delivery equivalence failed\n");
+$expectedArtifactSha = strtolower((string) ($artifactContract['sha256'] ?? ''));
+$expectedArtifactBytes = (int) ($artifactContract['bytes'] ?? -1);
+if (($artifactContract['deterministic_source_required'] ?? false) !== true || !hash_equals($expectedArtifactSha, $builtSha) || strlen($built) !== $expectedArtifactBytes) {
+    fwrite(STDERR, "presentation-css-build: deterministic artifact contract failed\n");
     exit(1);
 }
 if ($sequenceImportant > (int) ($budget['important_count_max'] ?? -1) || $sequenceRoutes > (int) ($budget['route_scope_count_max'] ?? -1)) {
@@ -173,7 +185,7 @@ if (is_file($root . '/' . $retiredArtifact)) {
     fwrite(STDERR, "presentation-css-build: retired monolith still present\n");
     exit(1);
 }
-if (($equivalence['alias_required_until_runtime_urls_are_migrated'] ?? false) === true) {
+if (($migrationReference['alias_required_until_runtime_urls_are_migrated'] ?? false) === true) {
     $htaccess = (string) file_get_contents($root . '/.htaccess');
     if (!str_contains($htaccess, 'RewriteRule ^public/assets/design-system\\.css$ public/assets/presentation.css [L,NC]')) {
         fwrite(STDERR, "presentation-css-build: delivery alias missing\n");
@@ -194,6 +206,7 @@ if ($mode === '--lint') {
         'route_scope_count' => $sequenceRoutes,
         'source_consolidated' => $sourceConsolidated,
         'semantic_decomposition_complete' => $semanticDecompositionComplete,
+        'observable_ux_contract_required' => true,
         'debt_free' => ($manifest['debt_free'] ?? false) === true,
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
     exit(0);
@@ -214,7 +227,7 @@ if ($mode === '--check') {
         fwrite(STDERR, "presentation-css-build: generated artifact drift\n");
         exit(1);
     }
-    fwrite(STDOUT, "presentation-css-build: artifact byte-equivalent {$builtSha}\n");
+    fwrite(STDOUT, "presentation-css-build: deterministic artifact {$builtSha}\n");
     exit(0);
 }
 fwrite(STDERR, "presentation-css-build: use --lint, --check or --write\n");

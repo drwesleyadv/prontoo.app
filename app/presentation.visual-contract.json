@@ -1,12 +1,12 @@
 {
-    "version": "1.8.12.6",
+    "version": "1.8.12.9",
     "policy": "presentation-pagehead-control-primitive-v2",
     "architecture_scope": "presentation_ui_adapter_contract",
     "reference": {
-        "previous_release": "1.8.12.5",
-        "previous_visual_reference": "unified_pagehead_control_38px",
-        "visual_reference": "byte_identical_modular_presentation_delivery",
-        "functional_equivalence": "same_css_bytes_same_cascade_same_pagehead_geometry_and_same_runtime_markup"
+        "previous_release": "1.8.12.8",
+        "previous_visual_reference": "observable_ux_baseline_v1",
+        "visual_reference": "surgical_selector_list_deduplication",
+        "functional_equivalence": "computed_style_and_geometry_baseline_stable"
     },
     "primitive": {
         "renderer": "Prontoo\\Presentation\\UiComponents\\PageHeadControlPresentationOperations01",
@@ -50,30 +50,6 @@
     ],
     "metrics": {
         "before": {
-            "css_lines": 15206,
-            "css_nonblank_lines": 14434,
-            "css_bytes": 810429,
-            "important_count": 5089,
-            "route_scope_count": 1171,
-            "duplicate_selector_headers": 713,
-            "legacy_primary_small_cmdlike_inputs": 14,
-            "legacy_pagehead_actions_css": 24,
-            "legacy_pagehead_operations_css": 40,
-            "legacy_operation_chip_css": 28,
-            "legacy_pagehead_actions_js": 9,
-            "pagehead_action_alias_tokens": 28,
-            "canonical_control_css_rules": 0,
-            "canonical_primary_css_rules": 0,
-            "canonical_secondary_css_rules": 0,
-            "canonical_nav_css_rules": 0,
-            "canonical_danger_css_rules": 0,
-            "canonical_renderer_runtime_calls": 0,
-            "renderer_lines": 0,
-            "runtime03_lines": 541,
-            "runtime03_dead_operation_menu": 3,
-            "route_pagehead_identity_overrides": 0
-        },
-        "after": {
             "css_lines": 15184,
             "css_nonblank_lines": 14400,
             "css_bytes": 810078,
@@ -95,21 +71,22 @@
             "renderer_lines": 112,
             "runtime03_lines": 449,
             "runtime03_dead_operation_menu": 0,
-            "route_pagehead_identity_overrides": 0
+            "route_pagehead_identity_overrides": 0,
+            "duplicate_selector_list_entries": 1
         },
-        "delta": {
-            "css_lines": -22,
-            "css_nonblank_lines": -34,
-            "css_bytes": -351,
-            "important_count": -6,
-            "route_scope_count": 0,
-            "duplicate_selector_headers": 2,
-            "legacy_primary_small_cmdlike_inputs": 0,
-            "legacy_pagehead_actions_css": -24,
-            "legacy_pagehead_operations_css": -40,
-            "legacy_operation_chip_css": -28,
-            "legacy_pagehead_actions_js": -9,
-            "pagehead_action_alias_tokens": -28,
+        "after": {
+            "css_lines": 15183,
+            "css_nonblank_lines": 14399,
+            "css_bytes": 810039,
+            "important_count": 5083,
+            "route_scope_count": 1171,
+            "duplicate_selector_headers": 715,
+            "legacy_primary_small_cmdlike_inputs": 14,
+            "legacy_pagehead_actions_css": 0,
+            "legacy_pagehead_operations_css": 0,
+            "legacy_operation_chip_css": 0,
+            "legacy_pagehead_actions_js": 0,
+            "pagehead_action_alias_tokens": 0,
             "canonical_control_css_rules": 1,
             "canonical_primary_css_rules": 1,
             "canonical_secondary_css_rules": 1,
@@ -117,9 +94,35 @@
             "canonical_danger_css_rules": 1,
             "canonical_renderer_runtime_calls": 2,
             "renderer_lines": 112,
-            "runtime03_lines": -92,
-            "runtime03_dead_operation_menu": -3,
-            "route_pagehead_identity_overrides": 0
+            "runtime03_lines": 449,
+            "runtime03_dead_operation_menu": 0,
+            "route_pagehead_identity_overrides": 0,
+            "duplicate_selector_list_entries": 0
+        },
+        "delta": {
+            "css_lines": -1,
+            "css_nonblank_lines": -1,
+            "css_bytes": -39,
+            "important_count": 0,
+            "route_scope_count": 0,
+            "duplicate_selector_headers": 0,
+            "legacy_primary_small_cmdlike_inputs": 0,
+            "legacy_pagehead_actions_css": 0,
+            "legacy_pagehead_operations_css": 0,
+            "legacy_operation_chip_css": 0,
+            "legacy_pagehead_actions_js": 0,
+            "pagehead_action_alias_tokens": 0,
+            "canonical_control_css_rules": 0,
+            "canonical_primary_css_rules": 0,
+            "canonical_secondary_css_rules": 0,
+            "canonical_nav_css_rules": 0,
+            "canonical_danger_css_rules": 0,
+            "canonical_renderer_runtime_calls": 0,
+            "renderer_lines": 0,
+            "runtime03_lines": 0,
+            "runtime03_dead_operation_menu": 0,
+            "route_pagehead_identity_overrides": 0,
+            "duplicate_selector_list_entries": -1
         }
     },
     "exact": {
@@ -142,14 +145,17 @@
         "route_scope_count": 1171,
         "duplicate_selector_headers": 715,
         "legacy_primary_small_cmdlike_inputs": 14,
-        "runtime03_lines": 449
+        "runtime03_lines": 449,
+        "duplicate_selector_list_entries": 0
     },
     "delivery": {
         "artifact": "public/assets/presentation.css",
         "retired_artifact": "public/assets/design-system.css",
-        "reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
-        "reference_bytes": 810078,
-        "source_consolidated": true,
-        "byte_identical": true
+        "migration_reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
+        "current_sha256": "a4830722348b137f737d48a3b489cce6230eabf39e41fceb243135e36acb331c",
+        "current_bytes": 810039,
+        "deterministic_source": true,
+        "observable_ux_contract": "app/presentation.ux-baseline.json",
+        "byte_identical_to_migration_reference": false
     }
 }

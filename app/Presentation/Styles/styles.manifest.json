@@ -1,7 +1,7 @@
 {
-  "schema_version": 4,
-  "policy": "presentation-semantic-owners-v4",
-  "architecture": "semantic_owner_files_with_ordered_slice_delivery",
+  "schema_version": 5,
+  "policy": "presentation-observable-ux-source-v5",
+  "architecture": "semantic_owner_files_with_deterministic_delivery_and_observable_ux",
   "source_root": "app/Presentation/Styles",
   "artifact": "public/assets/presentation.css",
   "retired_artifact": "public/assets/design-system.css",
@@ -24,26 +24,19 @@
     "compatibility",
     "overrides"
   ],
-  "delivery_equivalence": {
-    "reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
-    "reference_bytes": 810078,
-    "reference_lines": 15184,
-    "byte_identical_required": true,
-    "request_alias": "/public/assets/design-system.css",
-    "rewrite_target": "public/assets/presentation.css",
-    "alias_required_until_runtime_urls_are_migrated": true
-  },
   "source_consolidation_gates": {
     "retired_artifact_absent": true,
     "undeclared_source_modules": 0,
     "duplicate_module_declarations": 0,
     "generated_artifact_drift": 0,
-    "delivery_sha256_matches_reference": true
+    "delivery_sha256_matches_reference": false
   },
   "visual_debt_budget": {
     "important_count_max": 5083,
     "route_scope_count_max": 1171,
-    "policy": "existing_debt_may_only_decrease_after_source_consolidation"
+    "policy": "observable_ux_stable_and_visual_debt_may_only_decrease",
+    "duplicate_selector_headers_max": 715,
+    "duplicate_selector_list_entries_max": 0
   },
   "debt_elimination_completion_gates": {
     "important_count": 0,
@@ -316,8 +309,8 @@
       "layer": "states",
       "responsibility": "responsive",
       "concern": "responsive",
-      "sha256": "e9d60f6a1a749db7d1e50e59d7b132a1b20a6b799c1aaf93743c194a39dfb79f",
-      "bytes": 79360,
+      "sha256": "f1fd6fce23e3d5bf27aeb4b5109c6460241bdb63418ca1b091d9baa47ba7df30",
+      "bytes": 79321,
       "important_count": 430,
       "route_scope_count": 0
     }
@@ -8895,8 +8888,8 @@
       "order": 953,
       "source": "states/responsive.css",
       "offset": 69237,
-      "bytes": 1065,
-      "sha256": "921a3921988f71e9ed62b0fdc7c834dcf659bcac55a473bf4a9bb44d6de6d8ef",
+      "bytes": 1026,
+      "sha256": "6b60ee30a103af53c9a7f01bd38ef400f40a23a3191fcec6525d90f49736fc1a",
       "important_count": 7,
       "route_scope_count": 0
     },
@@ -9002,7 +8995,7 @@
     {
       "order": 965,
       "source": "states/responsive.css",
-      "offset": 70302,
+      "offset": 70263,
       "bytes": 606,
       "sha256": "85c468782392b32def68d7e4a95d1709b84992e0d90e09ae62dd4ac6ead10e5c",
       "important_count": 5,
@@ -9155,7 +9148,7 @@
     {
       "order": 982,
       "source": "states/responsive.css",
-      "offset": 70908,
+      "offset": 70869,
       "bytes": 1134,
       "sha256": "691cdb2480db42ad3c4de2c213cb0d90c254f7f0f7ca70febd569806ae09c5a2",
       "important_count": 0,
@@ -9191,7 +9184,7 @@
     {
       "order": 986,
       "source": "states/responsive.css",
-      "offset": 72042,
+      "offset": 72003,
       "bytes": 217,
       "sha256": "c7fff97929b560d74f4447ce80382b3be15c7b3ab8c6c8f762e45d7fdcfeb603",
       "important_count": 0,
@@ -9227,7 +9220,7 @@
     {
       "order": 990,
       "source": "states/responsive.css",
-      "offset": 72259,
+      "offset": 72220,
       "bytes": 206,
       "sha256": "ec45f7ccf7c825d609b72d845fe4ca7fcbdec22c74be1d6e06b6d1ff89457256",
       "important_count": 0,
@@ -9245,7 +9238,7 @@
     {
       "order": 992,
       "source": "states/responsive.css",
-      "offset": 72465,
+      "offset": 72426,
       "bytes": 190,
       "sha256": "ef733d2de1fff96fa6c6bdb40d549088fd9853ec859b9cabe79a37c128f68584",
       "important_count": 0,
@@ -9263,7 +9256,7 @@
     {
       "order": 994,
       "source": "states/responsive.css",
-      "offset": 72655,
+      "offset": 72616,
       "bytes": 178,
       "sha256": "1110d17d41cb38866276ec3fdca6a1b84a95c8e8ebd69adbb8e9c04f4fa63db5",
       "important_count": 0,
@@ -9290,7 +9283,7 @@
     {
       "order": 997,
       "source": "states/responsive.css",
-      "offset": 72833,
+      "offset": 72794,
       "bytes": 353,
       "sha256": "d3d3a8b317ae95be8147087e80ee83538340711b1aeca199d2c38927f36e2c46",
       "important_count": 3,
@@ -9425,7 +9418,7 @@
     {
       "order": 1012,
       "source": "states/responsive.css",
-      "offset": 73186,
+      "offset": 73147,
       "bytes": 1605,
       "sha256": "868eb0ee935f38fe0d4ae7fc65c4e8966578744736a52d573e65319b3b87282d",
       "important_count": 0,
@@ -9614,7 +9607,7 @@
     {
       "order": 1033,
       "source": "states/responsive.css",
-      "offset": 74791,
+      "offset": 74752,
       "bytes": 1441,
       "sha256": "3e558a67b76e4ccd5332cd728a78b3d7d416640958b56f5950a6a7e9af287c8b",
       "important_count": 2,
@@ -9767,7 +9760,7 @@
     {
       "order": 1050,
       "source": "states/responsive.css",
-      "offset": 76232,
+      "offset": 76193,
       "bytes": 535,
       "sha256": "48b613eba1c6915f14748fcfaf0a9fac378125fcdabfeaf22b9ca7c79ce36664",
       "important_count": 6,
@@ -9785,7 +9778,7 @@
     {
       "order": 1052,
       "source": "states/responsive.css",
-      "offset": 76767,
+      "offset": 76728,
       "bytes": 514,
       "sha256": "3472d48fcc7a2963d0ab238bfd2da6a15d9492976dfd8bb343a0244751cfcab2",
       "important_count": 10,
@@ -9803,7 +9796,7 @@
     {
       "order": 1054,
       "source": "states/responsive.css",
-      "offset": 77281,
+      "offset": 77242,
       "bytes": 1126,
       "sha256": "2fe812c9d088d5dd46e368634f37d72c71daa67f49a442575185ce83d768fafa",
       "important_count": 16,
@@ -9947,11 +9940,31 @@
     {
       "order": 1070,
       "source": "states/responsive.css",
-      "offset": 78407,
+      "offset": 78368,
       "bytes": 953,
       "sha256": "e10acda3cc2a6e5a4c9636ee3a9654c96b1c28d09464b0b2c4e712ad0307c730",
       "important_count": 0,
       "route_scope_count": 0
     }
-  ]
+  ],
+  "migration_reference": {
+    "reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
+    "reference_bytes": 810078,
+    "reference_lines": 15184,
+    "request_alias": "/public/assets/design-system.css",
+    "rewrite_target": "public/assets/presentation.css",
+    "alias_required_until_runtime_urls_are_migrated": true
+  },
+  "artifact_contract": {
+    "sha256": "a4830722348b137f737d48a3b489cce6230eabf39e41fceb243135e36acb331c",
+    "bytes": 810039,
+    "lines": 15183,
+    "deterministic_source_required": true
+  },
+  "observable_ux_contract": {
+    "required": true,
+    "baseline": "app/presentation.ux-baseline.json",
+    "workflow": ".github/workflows/presentation-ux.yml",
+    "policy": "computed_style_and_geometry_must_not_drift_without_explicit_product_change"
+  }
 }

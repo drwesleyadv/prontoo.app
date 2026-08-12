@@ -1581,8 +1581,7 @@
   .finance-ledger-card > header,
   .finance-list > header,
   .cash-drawer-card > header,
-  .finance-drawer-admin-card > header,
-  .finance-drawer-setup-card > header{
+  .finance-drawer-admin-card > header{
     display:grid!important;
     grid-template-columns:1fr!important;
   }

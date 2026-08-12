@@ -23,11 +23,71 @@ foreach ($iterator as $file) {
 }
 $selectors = [];
 $routeOverrides = 0;
+$duplicateSelectorListEntries = 0;
+$splitSelectorList = static function (string $selector): array {
+    $parts = [];
+    $current = '';
+    $round = 0;
+    $square = 0;
+    $quote = null;
+    $escape = false;
+    $length = strlen($selector);
+    for ($index = 0; $index < $length; $index++) {
+        $char = $selector[$index];
+        if ($quote !== null) {
+            $current .= $char;
+            if ($escape) {
+                $escape = false;
+            } elseif ($char === '\\') {
+                $escape = true;
+            } elseif ($char === $quote) {
+                $quote = null;
+            }
+            continue;
+        }
+        if ($char === '"' || $char === "'") {
+            $quote = $char;
+            $current .= $char;
+            continue;
+        }
+        if ($char === '(') {
+            $round++;
+        } elseif ($char === ')') {
+            $round = max(0, $round - 1);
+        } elseif ($char === '[') {
+            $square++;
+        } elseif ($char === ']') {
+            $square = max(0, $square - 1);
+        }
+        if ($char === ',' && $round === 0 && $square === 0) {
+            $parts[] = trim($current);
+            $current = '';
+            continue;
+        }
+        $current .= $char;
+    }
+    $parts[] = trim($current);
+    return array_values(array_filter($parts, static fn(string $part): bool => $part !== ''));
+};
 if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
     foreach ($matches as $match) {
         $selector = preg_replace('/\s+/', ' ', trim((string) $match[1]));
         if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
             $selectors[$selector] = (int) ($selectors[$selector] ?? 0) + 1;
+        }
+        if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
+            $seenSelectorParts = [];
+            foreach ($splitSelectorList($selector) as $selectorPart) {
+                $normalizedPart = preg_replace('/\s+/', ' ', trim($selectorPart));
+                if (!is_string($normalizedPart) || $normalizedPart === '') {
+                    continue;
+                }
+                if (isset($seenSelectorParts[$normalizedPart])) {
+                    $duplicateSelectorListEntries++;
+                } else {
+                    $seenSelectorParts[$normalizedPart] = true;
+                }
+            }
         }
         if (is_string($selector) && str_contains($selector, 'body[data-route=') && str_contains($selector, '.pagehead-control') && preg_match('/(^|;)\s*(min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:/i', (string) $match[2])) {
             $routeOverrides++;
@@ -41,6 +101,7 @@ $metrics = [
     'important_count' => substr_count($css, '!important'),
     'route_scope_count' => substr_count($css, 'body[data-route='),
     'duplicate_selector_headers' => count(array_filter($selectors, static fn(int $count): bool => $count > 1)),
+    'duplicate_selector_list_entries' => $duplicateSelectorListEntries,
     'legacy_primary_small_cmdlike_inputs' => substr_count($php, 'primary small cmdlike'),
     'legacy_pagehead_actions_css' => substr_count($css, '.pagehead-actions'),
     'legacy_pagehead_operations_css' => substr_count($css, '.pagehead-operations'),
