@@ -1,0 +1,22 @@
+name: Presentation Normal Shadow Audit
+on:
+  push:
+    branches: [agent/presentation-normal-shadow-reduction]
+    paths:
+      - tools/presentation-normal-shadow-audit
+      - .github/workflows/presentation-normal-shadow-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/presentation-normal-shadow-reduction
+      - name: Audit shadowed identical normal declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet tinycss2
+          python3 tools/presentation-normal-shadow-audit
