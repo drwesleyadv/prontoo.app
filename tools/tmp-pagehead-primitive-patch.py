@@ -61,7 +61,7 @@ if source.count(write_call) != 2:
     raise SystemExit(f'expected 2 release write calls, found {source.count(write_call)}')
 source = source.replace(write_call, write_call + "\n" + write_call)
 
-css_comment = '/* PageHeadControl primitive: geometry is shared; role is semantic. */\\n'
+css_comment = '/* PageHeadControl primitive: geometry is shared; role is semantic. */'
 if source.count(css_comment) != 1:
     raise SystemExit('PageHead CSS comment anchor drift')
 source = source.replace(css_comment, '', 1)
