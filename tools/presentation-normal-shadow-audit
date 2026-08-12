@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import json
+from pathlib import Path
+import tinycss2
+
+CSS=Path('public/assets/presentation.css').read_text(encoding='utf-8')
+RULE_LIST_AT={'media','supports','container','layer','scope','starting-style'}
+
+
+def norm_selector(tokens): return ' '.join(tinycss2.serialize(tokens).split())
+def norm_value(tokens): return tinycss2.serialize(tokens).strip()
+
+def walk(rules,context,rows):
+    for rule in rules:
+        if rule.type=='qualified-rule':
+            selector=norm_selector(rule.prelude)
+            for item in tinycss2.parse_declaration_list(rule.content,skip_whitespace=False,skip_comments=False):
+                if item.type!='declaration' or item.important:
+                    continue
+                rows.append({'context':tuple(context),'selector':selector,'property':str(item.lower_name),'value':norm_value(item.value)})
+        elif rule.type=='at-rule' and rule.content is not None and str(rule.lower_at_keyword) in RULE_LIST_AT:
+            prelude=' '.join(tinycss2.serialize(rule.prelude).split())
+            inner=tinycss2.parse_rule_list(rule.content,skip_whitespace=False,skip_comments=False)
+            walk(inner,context+((str(rule.lower_at_keyword),prelude),),rows)
+
+rows=[]
+walk(tinycss2.parse_stylesheet(CSS,skip_whitespace=False,skip_comments=False),tuple(),rows)
+groups={}
+for index,row in enumerate(rows):
+    key=(row['context'],row['selector'],row['property'],row['value'])
+    groups.setdefault(key,[]).append(index)
+candidates=[]
+for key,indexes in groups.items():
+    if len(indexes)<2: continue
+    for index in indexes[:-1]:
+        row=rows[index]
+        candidates.append({'selector':row['selector'],'context':row['context'],'property':row['property'],'value':row['value'],'later_reassertions':len(indexes)-indexes.index(index)-1})
+print(json.dumps({
+    'parseable_normal_declarations':len(rows),
+    'shadowed_identical_normal_declarations':len(candidates),
+    'distinct_reasserted_keys':sum(1 for indexes in groups.values() if len(indexes)>=2),
+    'candidates':candidates[:200]
+},indent=2,ensure_ascii=False,default=list))
