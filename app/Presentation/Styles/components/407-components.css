@@ -1,0 +1,7 @@
+.security-reauth-card{display:grid;gap:18px;padding:22px!important;border-radius:26px!important}
+.security-reauth-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px}
+.security-reauth-head h2{margin:0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-large);font-weight:900;letter-spacing:-.025em}
+.security-reauth-form{display:grid;gap:12px;padding-top:2px}
+.security-reauth-form .field{gap:7px}
+.security-reauth-form .field>span{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:900}
+.security-reauth-actions{margin-top:4px!important;padding-top:14px;border-top:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)}

@@ -1,0 +1,11 @@
+@media(max-width:720px){
+  .activity-screen-card.patient-list-card.ds-filter-list-block{padding:12px!important;gap:12px!important;}
+  .activity-section-head{align-items:flex-start!important;}
+  .ds-activity-filter-panel{padding:10px!important;}
+  .activity-timeline.ds-activity-list .titem{grid-template-columns:34px minmax(0,1fr)!important;padding:10px!important;}
+  .activity-timeline.ds-activity-list .dot,
+  .activity-timeline.ds-activity-list .time-dot{width:32px!important;height:32px!important;border-radius:13px!important;}
+}
+
+
+

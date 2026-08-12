@@ -1,0 +1,122 @@
+body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis{
+  position:fixed!important;
+  left:auto!important;
+  top:auto!important;
+  right:max(4px,var(--pt-safe-right,0px))!important;
+  bottom:calc(218px + env(safe-area-inset-bottom,0px))!important;
+  z-index:calc(var(--pt-agenda-float-z,130) + 1)!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+  width:var(--agenda-floating-w,max-content)!important;
+  min-width:0!important;
+  max-width:min(360px,calc(100dvw - 8px))!important;
+  margin:0!important;
+  padding:0!important;
+  pointer-events:none!important;
+  transform:none!important;
+}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card{
+  pointer-events:auto!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:center!important;
+  justify-content:stretch!important;
+  justify-items:stretch!important;
+  gap:9px!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  min-height:56px!important;
+  padding:9px 11px!important;
+  text-align:left!important;
+  text-decoration:none!important;
+  border-radius:20px!important;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,rgba(255,255,255,.78))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
+  box-shadow:var(--md-sys-elevation-level3)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+  color:var(--md-sys-color-on-surface)!important;
+}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card:hover{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 28%,var(--md-sys-color-outline-variant))!important;
+}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-icon{
+  width:34px!important;
+  height:34px!important;
+  border-radius:13px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-primary)!important;
+  border-color:transparent!important;
+}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card-overdue .agenda-floating-icon{background:var(--md-sys-color-error-container)!important;color:var(--md-sys-color-error)!important}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card-today .agenda-floating-icon{background:var(--pt-color-warning-container)!important;color:var(--pt-color-warning)!important}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card-progress .agenda-floating-icon{background:var(--pt-color-info-container)!important;color:var(--pt-color-info)!important}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card-notices .agenda-floating-icon{background:var(--md-sys-color-tertiary-container)!important;color:var(--md-sys-color-tertiary)!important}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card-tasks .agenda-floating-icon{background:var(--md-sys-color-primary-container)!important;color:var(--md-sys-color-primary)!important}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card b{
+  display:block!important;
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-title-medium)!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:-.02em!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-label{
+  display:block!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-label-small)!important;
+  font-weight:900!important;
+  letter-spacing:.045em!important;
+  text-transform:uppercase!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+body[data-route="appointments"].has-floating-pending main#conteudo{
+  scroll-padding-bottom:calc(340px + env(safe-area-inset-bottom,0px))!important;
+}
+@media(max-width:720px){
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis{
+    right:max(3px,var(--pt-safe-right,0px))!important;
+    bottom:calc(190px + env(safe-area-inset-bottom,0px))!important;
+    max-width:min(324px,calc(100dvw - 6px))!important;
+    gap:6px!important;
+  }
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card{
+    min-height:50px!important;
+    padding:8px 9px!important;
+    border-radius:17px!important;
+    gap:7px!important;
+  }
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-icon{width:30px!important;height:30px!important;border-radius:12px!important}
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card b{font-size:.9rem!important}
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-label{font-size:.56rem!important}
+  body[data-route="appointments"].has-floating-pending main#conteudo{scroll-padding-bottom:calc(314px + env(safe-area-inset-bottom,0px))!important;}
+}
+@media(max-width:420px){
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis{
+    width:auto!important;
+    max-width:calc(100dvw - 6px)!important;
+  }
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card{
+    grid-template-columns:1fr!important;
+    justify-items:center!important;
+    text-align:center!important;
+    min-width:58px!important;
+    padding:8px 7px!important;
+  }
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-label{display:none!important}
+}
+
+

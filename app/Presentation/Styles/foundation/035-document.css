@@ -1,0 +1,19 @@
+body.scope-global .global-compact-summary{
+  gap:16px!important;
+}
+body.scope-global .global-pill-list{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))!important;
+}
+body.scope-global .global-compact-pill{
+  width:auto!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  grid-template-rows:auto auto auto!important;
+  align-items:center!important;
+  column-gap:10px!important;
+  row-gap:0!important;
+}
+body.scope-global .global-compact-pill > .material-symbols-rounded{
+  grid-row:1 / span 3!important;
+}

@@ -1,0 +1,1 @@
+.visual-option:has(input:checked) .visual-option-mark,.sector-icon-choice:has(input:checked) .sector-icon-choice-mark{border-color:var(--md-sys-color-primary);background:radial-gradient(circle at center,var(--md-sys-color-primary) 42%,transparent 45%)}

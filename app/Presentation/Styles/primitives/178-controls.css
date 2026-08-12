@@ -1,0 +1,7 @@
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-roles > *{
+  min-height:24px!important;
+  padding:0 9px!important;
+  border-radius:999px!important;
+  font:var(--md-sys-typescale-label-small)!important;
+  font-weight:800!important;
+}

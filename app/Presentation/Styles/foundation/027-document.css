@@ -1,0 +1,23 @@
+body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-icon{
+  width:34px!important;
+  height:34px!important;
+  border-radius:13px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-primary)!important;
+  flex:0 0 auto!important;
+}
+body:not([data-route="appointments"]) .context-floating-pending-card-overdue .agenda-floating-icon{background:var(--md-sys-color-error-container)!important;color:var(--md-sys-color-error)!important}
+body:not([data-route="appointments"]) .context-floating-pending-card-today .agenda-floating-icon{background:var(--pt-color-warning-container)!important;color:var(--pt-color-warning)!important}
+body:not([data-route="appointments"]) .context-floating-pending-card-progress .agenda-floating-icon{background:var(--pt-color-info-container)!important;color:var(--pt-color-info)!important}
+body:not([data-route="appointments"]) .context-floating-pending-card-notices .agenda-floating-icon{background:var(--md-sys-color-tertiary-container)!important;color:var(--md-sys-color-tertiary)!important}
+body:not([data-route="appointments"]) .context-floating-pending-card b{
+  display:block!important;
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-title-medium)!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:-.02em!important;
+}

@@ -1,0 +1,162 @@
+body[data-route="financial"] .finance-operations-workspace{
+  display:grid;
+  gap:14px;
+  align-items:start;
+}
+body[data-route="financial"] .finance-operations-directory-card{
+  width:100%;
+  box-sizing:border-box;
+}
+body[data-route="financial"] .finance-operations-directory-card h2,
+body[data-route="financial"] .finance-operation-screen-card h2{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0 0 6px;
+  line-height:1.15;
+}
+body[data-route="financial"] .finance-operations-directory-card h2>.material-symbols-rounded,
+body[data-route="financial"] .finance-operation-screen-card h2>.material-symbols-rounded,
+body[data-route="financial"] .finance-operations-directory-card h2>.pt-icon-glyph,
+body[data-route="financial"] .finance-operation-screen-card h2>.pt-icon-glyph{
+  flex:0 0 auto;
+}
+body[data-route="financial"] .finance-operation-directory{
+  display:grid;
+  gap:10px;
+  margin-top:16px;
+}
+body[data-route="financial"] .finance-operation-row{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  width:100%;
+  box-sizing:border-box;
+  min-height:72px;
+  padding:12px 14px;
+  text-decoration:none;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-avatar,
+body[data-route="financial"] .finance-operation-row .patient-card-avatar{
+  width:44px;
+  height:44px;
+  margin:0;
+  align-self:center;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-main,
+body[data-route="financial"] .finance-operation-row .patient-card-main{
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-title,
+body[data-route="financial"] .finance-operation-row .patient-card-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-title strong,
+body[data-route="financial"] .finance-operation-row .patient-card-title strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-meta,
+body[data-route="financial"] .finance-operation-row .patient-card-meta{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-meta>span,
+body[data-route="financial"] .finance-operation-row .patient-card-meta>span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-actions,
+body[data-route="financial"] .finance-operation-row .patient-card-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  margin-left:auto;
+  min-width:max-content;
+}
+body[data-route="financial"] .finance-operation-row .ds-person-actions .ghost,
+body[data-route="financial"] .finance-operation-row .patient-card-actions .ghost{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  white-space:nowrap;
+}
+body[data-route="financial"] .finance-operation-screen-card{
+  width:min(100%,960px);
+  box-sizing:border-box;
+}
+body[data-route="financial"] .finance-operation-screen-card .finance-lite-form{
+  display:grid;
+  gap:14px;
+}
+body[data-route="financial"] .finance-operation-screen-card .two{
+  align-items:start;
+}
+body[data-route="financial"] .finance-operation-screen-card .checkline{
+  align-items:flex-start;
+}
+body[data-route="financial"] .finance-operation-screen-card .form-actions{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:10px;
+  margin-top:2px;
+}
+body[data-route="financial"] .finance-operations-workspace>.subtle-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin:0 0 -2px;
+}
+@media(max-width:760px){
+  body[data-route="financial"] .finance-operation-row{
+    grid-template-columns:42px minmax(0,1fr);
+    gap:12px;
+    min-height:auto;
+    padding:12px;
+  }
+  body[data-route="financial"] .finance-operation-row .ds-person-avatar,
+  body[data-route="financial"] .finance-operation-row .patient-card-avatar{
+    width:40px;
+    height:40px;
+  }
+  body[data-route="financial"] .finance-operation-row .ds-person-title,
+  body[data-route="financial"] .finance-operation-row .patient-card-title,
+  body[data-route="financial"] .finance-operation-row .ds-person-meta,
+  body[data-route="financial"] .finance-operation-row .patient-card-meta{
+    flex-wrap:wrap;
+  }
+  body[data-route="financial"] .finance-operation-row .ds-person-meta>span,
+  body[data-route="financial"] .finance-operation-row .patient-card-meta>span{
+    white-space:normal;
+  }
+  body[data-route="financial"] .finance-operation-row .ds-person-actions,
+  body[data-route="financial"] .finance-operation-row .patient-card-actions{
+    grid-column:1/-1;
+    justify-content:flex-start;
+    width:100%;
+    margin-left:0;
+  }
+  body[data-route="financial"] .finance-operation-screen-card{
+    width:100%;
+  }
+  body[data-route="financial"] .finance-operation-screen-card .form-actions{
+    justify-content:stretch;
+    flex-wrap:wrap;
+  }
+  body[data-route="financial"] .finance-operation-screen-card .form-actions>*{
+    flex:1 1 160px;
+  }
+}

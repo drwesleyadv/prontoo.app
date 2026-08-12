@@ -1,0 +1,44 @@
+body[data-route="appointments"] .agenda-block-route-card{
+  max-width:980px!important;
+  margin-inline:auto!important;
+}
+body[data-route="appointments"] .agenda-block-route-card.card{
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:var(--pt-border-soft)!important;
+  border-radius:28px!important;
+  box-shadow:var(--shadow-soft)!important;
+  overflow:hidden!important;
+}
+body[data-route="appointments"] .agenda-block-form-panel{
+  padding:0!important;
+  gap:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body[data-route="appointments"] .agenda-block-hero .agenda-quick-hero-icon{
+  color:var(--md-sys-color-error)!important;
+  background:color-mix(in srgb,var(--md-sys-color-error) 10%,var(--md-sys-color-surface-container-lowest))!important;
+}
+body[data-route="appointments"] .agenda-block-summary > span:nth-child(3) .material-symbols-rounded{
+  color:var(--md-sys-color-error)!important;
+}
+body[data-route="appointments"] .agenda-structured-form .field,
+body[data-route="appointments"] .agenda-structured-form label{
+  min-width:0!important;
+}
+body[data-route="appointments"] .agenda-structured-form select,
+body[data-route="appointments"] .agenda-structured-form input{
+  min-height:48px!important;
+}
+body[data-route="appointments"] .agenda-block-scope .field{
+  max-width:520px!important;
+}
+@media(max-width:700px){
+  body[data-route="appointments"] .pagehead-controls--actions .pagehead-control{flex:1 1 auto!important}
+  body[data-route="appointments"] .agenda-block-scope .field{
+    max-width:none!important;
+  }
+}
+
+

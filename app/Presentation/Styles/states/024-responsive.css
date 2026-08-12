@@ -1,0 +1,13 @@
+@media(max-width:640px){
+  .seq-footer{margin-top:10px!important;padding-bottom:max(10px,var(--pt-safe-bottom,0px))!important;}
+  .seq-footer-label{font-size:.68rem!important;}
+  .seq-footer-code{font-size:.72rem!important;letter-spacing:.075em!important;}
+}
+@media(max-width:360px){
+  .seq-footer-label{display:none!important;}
+}
+@media print{
+  .seq-footer{justify-content:center!important;margin-top:10px!important;padding:0!important;}
+}
+
+

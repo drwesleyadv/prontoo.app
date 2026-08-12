@@ -1,0 +1,13 @@
+:root{
+  --pt-icon-xs:18px;
+  --pt-icon-sm:20px;
+  --pt-icon-md:24px;
+  --pt-icon-lg:28px;
+  --pt-icon-box-sm:38px;
+  --pt-icon-box-md:44px;
+  --pt-icon-box-lg:52px;
+  --pt-action-h:42px;
+  --pt-action-radius:16px;
+  --pt-icon-surface:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));
+  --pt-icon-surface-strong:color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest));
+}

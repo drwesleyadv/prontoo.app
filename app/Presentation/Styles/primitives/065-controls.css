@@ -1,0 +1,9 @@
+body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-label{
+  display:block!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-label-small)!important;
+  font-weight:900!important;
+  letter-spacing:.045em!important;
+  text-transform:uppercase!important;
+  line-height:1.1!important;
+}

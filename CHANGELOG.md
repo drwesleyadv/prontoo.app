@@ -1,5 +1,15 @@
 # Histórico de versões
 
+## 1.8.12.7 — CSS de Presentation consolidado sem alteração de UX
+
+- remove o arquivo físico public/assets/design-system.css e passa a gerar public/assets/presentation.css.
+- divide os 810.078 bytes do stylesheet em módulos de cascade order sob app/Presentation/Styles sem reordenar regras.
+- prova equivalência por SHA-256 e tamanho, mantendo exatamente os mesmos bytes entregues ao navegador.
+- mantém temporariamente o URL histórico por rewrite interno para não tocar hotspots de Runtime nesta migração.
+- separa conclusão da consolidação de fonte da eliminação futura da dívida visual.
+- ratcheia o teto existente de 5.083 !important e 1.171 scopes de rota sem permitir aumento.
+- integra lint de fonte e equivalência do artefato ao quality gate canônico.
+
 ## 1.8.12.6 — CSS de Presentation consolidado sem alteração de UX
 
 - remove o arquivo físico public/assets/design-system.css e passa a gerar public/assets/presentation.css.

@@ -1,0 +1,14 @@
+body.scope-global .top,
+body.scope-global .contextsbar,
+body.scope-global .pagehead{
+  border-color:rgba(154,190,166,.52)!important;
+  box-shadow:0 10px 30px rgba(26,62,43,.06)!important;
+}
+body.scope-global .brand-mark,
+body.scope-global .pagehead-icon,
+body.scope-global .top-icon .material-symbols-rounded,
+body.scope-global .admin-choice .credential-icon{
+  background:linear-gradient(145deg,#e5f5e9,#cfead6)!important;
+  color:#226146!important;
+  border-color:rgba(45,111,85,.14)!important;
+}

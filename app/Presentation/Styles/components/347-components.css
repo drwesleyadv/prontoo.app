@@ -1,0 +1,5 @@
+.collaborator-directory-overview.patient-directory-overview{padding:10px;border-radius:22px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft);}
+.collaborator-directory-overview .patient-kpi-card{min-height:72px;border-radius:18px;}
+.collaborator-search-card.ds-search-card{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);}
+.collaborator-search-bar.patient-search-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;}
+.collaborator-search-bar .search-field{margin:0;}

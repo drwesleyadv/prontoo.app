@@ -1,0 +1,5 @@
+main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pill-section,.finance-drawer-admin-card,[data-ds-card-kind="card"]):hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--pt-ds-surface-line))!important;
+  background:var(--pt-ds-surface-bg-hover)!important;
+  box-shadow:var(--pt-ds-surface-shadow-hover)!important;
+}

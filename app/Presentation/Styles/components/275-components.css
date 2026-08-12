@@ -1,0 +1,21 @@
+.patient-panel-atendimentos .patient-reception-history .patient-reception-tag{gap:6px}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-tag .material-symbols-rounded{opacity:1}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-tag b{font-weight:820}
+
+
+.doc-issued-body.doc-a4-preview{
+  display:grid;
+  justify-items:center;
+  width:100%;
+  overflow-x:auto;
+  padding:clamp(10px,2vw,22px);
+  border-radius:24px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-low) 92%,#fff),var(--md-sys-color-surface-container-lowest));
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);
+}
+.doc-a4-preview-frame{
+  position:relative;
+  display:grid;
+  justify-items:center;
+  min-width:min(100%,210mm);
+}

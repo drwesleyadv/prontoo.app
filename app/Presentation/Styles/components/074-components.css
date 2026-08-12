@@ -1,0 +1,5 @@
+:where(p,h1,h2,h3,h4,h5,h6,span,b,strong,small,time,td,th,li){overflow-wrap:anywhere}
+
+
+.login-shell,.signup-wizard{grid-template-columns:1fr;width:min(100%,1040px)}
+.login-shell,.signup-card,.auth.login-card,.clinic-choice-card,.credential-shell,.widebox{max-width:100%}

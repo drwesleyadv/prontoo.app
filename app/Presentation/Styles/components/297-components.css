@@ -1,0 +1,72 @@
+.settings-ds-assinatura{
+  align-items:start;
+}
+.settings-ds-assinatura .subscription-status-card,
+.settings-ds-assinatura .subscription-payment-box,
+.settings-ds-assinatura .subscription-state-card{
+  width:100%;
+  min-width:0;
+}
+.settings-ds-assinatura .subscription-hero-main,
+.settings-ds-assinatura .subscription-payment-head,
+.settings-ds-assinatura .subscription-checkout-head,
+.settings-ds-assinatura .subscription-state-card{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+}
+.settings-ds-assinatura .subscription-state-pill{
+  grid-column:1 / -1;
+  justify-self:start;
+}
+.settings-ds-assinatura .subscription-metric-row,
+.settings-ds-assinatura .subscription-checkout-grid,
+.settings-ds-assinatura .subscription-paid-fields{
+  min-width:0;
+}
+.settings-ds-assinatura .subscription-pix-copy{
+  width:100%;
+  min-width:0;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+}
+.settings-ds-assinatura .pix-key-text,
+.settings-ds-assinatura .pix-key-text strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.procedures-ds-screen .procedure-ds-kpis{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+}
+.procedures-ds-screen .procedure-ds-kpis > div{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+}
+.procedures-ds-screen .procedure-ds-kpis p{
+  margin:0;
+  min-width:0;
+}
+.procedures-ds-screen .procedure-ds-kpis b,
+.procedures-ds-screen .procedure-ds-kpis span{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.procedures-ds-create.card{
+  padding:0;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+.procedures-ds-create .procedure-ds-form{
+  display:grid;
+  gap:16px;
+  padding:18px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);
+  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%));
+}

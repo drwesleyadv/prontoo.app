@@ -1,0 +1,17 @@
+.metric-area-chart{position:relative;display:grid;gap:10px;min-height:220px;padding:16px;border-radius:24px;overflow:hidden;}
+.metric-area-chart header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:1;}
+.metric-area-chart .metric-chart-title{display:flex;align-items:flex-start;gap:10px;}
+.metric-area-chart .metric-chart-title .material-symbols-rounded{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;flex:0 0 auto;}
+.metric-area-chart .metric-chart-title h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface);}
+.metric-area-chart .metric-chart-title p{margin:2px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);}
+.metric-area-chart .metric-chart-pills{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;}
+.metric-area-chart .metric-chart-pills span{display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:color-mix(in srgb,var(--md-sys-color-primary) 7%,#fff);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 10%,transparent);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-weight:800;}
+.metric-area-chart .metric-chart-pills .material-symbols-rounded{font-size:16px;color:var(--md-sys-color-primary);}
+.metric-area-chart svg{width:100%;height:auto;display:block;overflow:visible;margin-top:2px;}
+.metric-area-chart .metric-chart-fill{fill:color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)!important;stroke:none!important;opacity:.88;}
+.metric-area-chart .metric-chart-line{fill:none!important;stroke:var(--md-sys-color-primary)!important;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 2px color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent));}
+.metric-area-chart .metric-grid-line{stroke:rgba(154,190,166,.48)!important;stroke-width:1;}
+.metric-area-chart .metric-chart-dot{fill:var(--md-sys-color-primary)!important;stroke:#fff!important;stroke-width:2;}
+.metric-area-chart .metric-chart-hit{fill:transparent!important;stroke:transparent!important;}
+.metric-area-chart .metric-axis-label{fill:var(--md-sys-color-on-surface-variant)!important;font-size:10px;opacity:.72;}
+.metric-area-chart .metric-x-label{text-anchor:middle;}

@@ -1,0 +1,5 @@
+.lead-card-expanded .lead-actions > .lead-card-details > summary.cmdlike{
+  margin:0!important;
+  min-height:34px!important;
+  padding:7px 12px!important;
+}

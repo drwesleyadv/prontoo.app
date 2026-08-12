@@ -1,0 +1,2 @@
+.permission-module-note{margin:10px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
+.permissions-sticky-actions{position:sticky;bottom:10px;z-index:4;margin:0;padding:10px;border-radius:22px;background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 62%,transparent);box-shadow:var(--shadow-soft);justify-content:flex-end}

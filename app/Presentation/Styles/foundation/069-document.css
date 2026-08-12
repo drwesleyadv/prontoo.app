@@ -1,0 +1,17 @@
+body.scope-global .clinic-actions-menu{
+  min-width:292px!important;
+  padding:10px!important;
+  border-radius:24px!important;
+  display:grid!important;
+  gap:8px!important;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary-container))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 72%,transparent)!important;
+  box-shadow:0 18px 42px rgba(15,23,42,.14)!important;
+}
+body.scope-global .clinic-menu-head{
+  display:grid!important;
+  gap:2px!important;
+  padding:8px 10px 10px!important;
+  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 58%,transparent)!important;
+}
+body.scope-global .clinic-menu-head b{font:var(--md-sys-typescale-label-large);font-weight:900;color:var(--md-sys-color-on-surface);}

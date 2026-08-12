@@ -1,0 +1,4 @@
+.clinic-actions-menu,.clinic-menu-billing,.patient-suggest-panel,.counterparty-suggest-panel,.agenda-route-dialog-retired,.version-update-pill{
+  max-width:calc(100dvw - max(24px,calc(var(--pt-safe-left) + var(--pt-safe-right) + 24px)));
+}
+.clinic-actions-menu,.clinic-menu-billing{right:0;left:auto;overflow:auto;max-height:calc(100dvh - var(--top-h) - 24px)}

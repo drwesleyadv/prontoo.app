@@ -1,0 +1,27 @@
+.doc-editor-toolbar.doc-google-toolbar{
+  position:sticky;
+  top:calc(var(--top-h,64px) + 8px);
+  z-index:3;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:8px;
+  border-radius:18px;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,#fff);
+  backdrop-filter:blur(8px);
+}
+.doc-toolbar-group{
+  padding:4px;
+  border-radius:14px;
+  background:var(--md-sys-color-surface-container-low);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 66%,transparent);
+}
+.doc-tool{
+  min-height:34px;
+  padding-inline:9px;
+  border-radius:12px;
+}
+.doc-tool span{
+  font-size:.78rem;
+}

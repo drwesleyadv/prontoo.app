@@ -1,0 +1,23 @@
+.procedure-row-meta{
+  flex-wrap:nowrap!important;
+  overflow:hidden!important;
+}
+.procedure-row-meta > span{
+  white-space:nowrap!important;
+}
+.procedure-row-meta > span b{
+  min-width:0!important;
+  max-width:220px!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-weight:720!important;
+}
+.procedure-row .procedure-card-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  flex-wrap:nowrap!important;
+  min-width:max-content!important;
+}

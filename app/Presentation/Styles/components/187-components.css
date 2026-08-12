@@ -1,0 +1,25 @@
+body.scope-global .ds-clinic-card .clinic-attention-icon{
+  width:46px;
+  height:46px;
+  border-radius:18px;
+  background:color-mix(in srgb,var(--md-sys-color-primary-container) 78%,#fff);
+  color:var(--md-sys-color-primary);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset;
+}
+body.scope-global .ds-clinic-card.is-critical .clinic-attention-icon{
+  background:var(--md-sys-color-error-container);
+  color:var(--md-sys-color-on-error-container);
+}
+body.scope-global .ds-clinic-card.is-warning .clinic-attention-icon{
+  background:#fff3cd;
+  color:#6b4e00;
+}
+body.scope-global .ds-clinic-card.is-muted .clinic-attention-icon{
+  background:var(--md-sys-color-surface-container);
+  color:var(--md-sys-color-on-surface-variant);
+}
+body.scope-global .ds-clinic-card .clinic-attention-copy strong{
+  font:var(--md-sys-typescale-title-medium);
+  font-weight:900;
+  letter-spacing:-.025em;
+}

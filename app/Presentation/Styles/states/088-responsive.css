@@ -1,0 +1,8 @@
+@media(max-width:640px){
+  :where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) :where(label,.search-field){flex-basis:100%;}
+  :where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) > :where(button,a.ghost){flex:1 1 auto;justify-content:center;}
+  :where(.ds-search-card,.patient-search-card,.lead-search-card,.task-search-card,.doc-search-primary){padding:14px!important;border-radius:20px!important;}
+}
+
+
+

@@ -1,0 +1,4 @@
+body.has-seq-footer[data-route="appointments"] .agenda-floating-card :where(.material-symbols-rounded,.agenda-floating-icon),
+body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] :where(.material-symbols-rounded,.agenda-floating-icon){
+  color:var(--md-sys-color-primary)!important;
+}

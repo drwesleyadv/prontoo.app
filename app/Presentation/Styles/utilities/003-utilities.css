@@ -1,0 +1,8 @@
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > p:first-of-type,
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) .muted{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-medium);
+  line-height:1.45;
+}
+
+

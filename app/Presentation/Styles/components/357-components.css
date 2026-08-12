@@ -1,0 +1,34 @@
+.activity-timeline.ds-activity-list .dot,
+.activity-timeline.ds-activity-list .time-dot{
+  width:36px!important;
+  height:36px!important;
+  margin:0!important;
+  border-radius:15px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-primary)!important;
+}
+.activity-timeline.ds-activity-list .dot .material-symbols-rounded,
+.activity-timeline.ds-activity-list .time-dot .material-symbols-rounded{
+  font-size:20px!important;
+}
+.activity-timeline.ds-activity-list time{
+  margin:0 0 2px!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-body-small)!important;
+}
+.activity-timeline.ds-activity-list h3{
+  margin:0!important;
+  font:var(--md-sys-typescale-title-small)!important;
+  font-weight:900!important;
+  color:var(--md-sys-color-on-surface)!important;
+}
+.activity-timeline.ds-activity-list p,
+.activity-timeline.ds-activity-list small{
+  color:var(--md-sys-color-on-surface-variant)!important;
+}
+.activity-load-sentinel{
+  min-height:28px!important;
+  margin-top:2px!important;
+}

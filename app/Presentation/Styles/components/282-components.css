@@ -1,0 +1,18 @@
+body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
+body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
+  position:static!important;
+  inset:auto!important;
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  max-height:calc(100dvh - 28px)!important;
+  overflow:auto!important;
+  overscroll-behavior:contain!important;
+  padding:14px!important;
+  display:grid!important;
+  gap:10px!important;
+  border-radius:28px!important;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 97%,var(--md-sys-color-primary-container))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;
+  box-shadow:0 24px 68px rgba(15,23,42,.22),0 1px 0 rgba(255,255,255,.72) inset!important;
+}

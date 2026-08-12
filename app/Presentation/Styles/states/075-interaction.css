@@ -1,0 +1,4 @@
+.lead-history.lead-history-compact article:hover{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}

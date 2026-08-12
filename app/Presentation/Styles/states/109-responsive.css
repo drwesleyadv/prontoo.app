@@ -1,0 +1,4 @@
+@media(max-width:980px){.finance-admin-operation-grid-three{grid-template-columns:1fr 1fr;}}
+@media(max-width:760px){.finance-admin-operation-grid-three{grid-template-columns:1fr}.finance-attention-item{padding:.72rem}.finance-admin-primary-nav .ghost span{font-size:.82rem}}
+
+

@@ -1,0 +1,6 @@
+@media(max-width:980px){.permissions-ds-shell{grid-template-columns:1fr}.permissions-role-rail{position:static;grid-template-columns:repeat(2,minmax(0,1fr))}.permissions-rail-head{grid-column:1/-1}.permission-toggle-list-compact{grid-template-columns:1fr}.procedure-card-actions{justify-content:stretch}.procedure-card-actions > *{flex:1 1 auto}.procedure-card-actions a,.procedure-card-actions button{width:100%;justify-content:center}}
+@media(max-width:640px){.permissions-role-rail{grid-template-columns:1fr}.permissions-editor-pane{padding:10px;border-radius:22px}.permissions-sticky-actions{position:static}.permissions-sticky-actions > *{width:100%;justify-content:center}.clinic-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(50px,1fr))}.clinic-color-grid-tones{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}.sector-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(50px,1fr))}}
+
+
+
+

@@ -1,0 +1,5 @@
+.rolebar,.cmdbar,.patient-tab-nav,.patient-hero-tabs,.finance-pagehead-nav,.permission-compact-toolbar,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.task-filters{
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:auto;
+}
+.rolebar::-webkit-scrollbar,.cmdbar::-webkit-scrollbar,.patient-tab-nav::-webkit-scrollbar,.patient-hero-tabs::-webkit-scrollbar,.finance-pagehead-nav::-webkit-scrollbar,.permission-compact-toolbar::-webkit-scrollbar,.lead-filter-chips::-webkit-scrollbar,.patient-filter-chips::-webkit-scrollbar,.notice-filter-chips::-webkit-scrollbar,.task-filters::-webkit-scrollbar{display:none}

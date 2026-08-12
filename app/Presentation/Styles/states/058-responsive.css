@@ -1,0 +1,33 @@
+@media (max-width: 760px){
+  .subscription-metric-row,
+  .subscription-checkout-grid{
+    grid-template-columns:1fr;
+  }
+  .subscription-hero-main,
+  .subscription-state-card,
+  .subscription-checkout-head{
+    align-items:flex-start;
+  }
+  .subscription-state-card{
+    display:grid;
+  }
+  .subscription-state-pill{
+    width:max-content;
+  }
+  .subscription-pix-copy{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .subscription-pix-copy .pix-key-value{
+    grid-column:1/-1;
+    justify-self:start;
+  }
+  .subscription-actions{
+    justify-content:stretch;
+  }
+  .subscription-actions button{
+    width:100%;
+    justify-content:center;
+  }
+}
+
+

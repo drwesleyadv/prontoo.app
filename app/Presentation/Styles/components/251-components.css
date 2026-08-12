@@ -1,0 +1,7 @@
+.doc-overview-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 16px;padding:0;background:transparent;border:0;box-shadow:none}
+.doc-overview-cards .doc-ds-metric{min-height:88px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}
+.doc-section-actions{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.doc-page-actions{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.doc-context-hero{display:none!important}
+.doc-search-primary{margin-top:0;margin-bottom:16px}
+.doc-issued-card.ds-filter-list-block{margin-top:0}

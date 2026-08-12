@@ -1,0 +1,85 @@
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .lead-filter-chips .lead-chip,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
+  background:var(--md-sys-color-primary-container)!important;
+  color:var(--md-sys-color-on-primary-container)!important;
+  border-color:transparent!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
+}
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .lead-filter-chips .lead-chip,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(:hover,:focus-visible){
+  color:var(--md-sys-color-on-surface)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant))!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary-container) 22%,var(--md-sys-color-surface-container-lowest))!important;
+  text-decoration:none!important;
+}
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .admin-alert-filters > button,
+  .notice-gmail-filters > a,
+  .notice-gmail-filters > button,
+  .ds-notice-filters > a,
+  .ds-notice-filters > button,
+  .permission-compact-toolbar > a,
+  .permission-compact-toolbar > button,
+  .finance-pagehead-nav > a,
+  .finance-pagehead-nav > button
+):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
+  color:var(--md-sys-color-on-primary-container)!important;
+  border-color:transparent!important;
+  background:var(--md-sys-color-primary-container)!important;
+}

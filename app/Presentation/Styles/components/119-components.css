@@ -1,0 +1,324 @@
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+){
+  display:grid!important;
+  gap:12px!important;
+  align-items:stretch!important;
+}
+
+
+:where(.lead-overview,.task-overview,.patient-directory-overview,.kpi-info-strip,.ds-notice-kpis){
+  padding:0!important;
+  margin-block:0 14px!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+}
+
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span){
+  position:relative!important;
+  min-width:0!important;
+  min-height:92px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:4px 12px!important;
+  padding:15px 16px 15px 14px!important;
+  border-radius:var(--md-sys-shape-corner-extra-large,28px)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-outline-variant))!important;
+  background:
+    radial-gradient(circle at 0 0,color-mix(in srgb,var(--md-sys-color-primary) 10%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 93%,var(--md-sys-color-primary) 3%))!important;
+  box-shadow:var(--md-sys-elevation-level1)!important;
+  color:var(--md-sys-color-on-surface)!important;
+  text-decoration:none!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .reception-pending-grid
+) > :where(article,div,a,span):has(> .material-symbols-rounded),
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .reception-pending-grid
+) > :where(article,div,a,span):has(> .pt-icon-glyph){
+  grid-template-columns:auto minmax(0,1fr)!important;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span)::before{
+  content:"";
+  position:absolute;
+  inset:12px auto 12px 0;
+  width:4px;
+  border-radius:0 999px 999px 0;
+  background:var(--md-sys-color-primary);
+  opacity:.78;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span)::after{
+  content:"";
+  position:absolute;
+  inset:auto -40px -54px auto;
+  width:124px;
+  height:124px;
+  border-radius:50%;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 6%,transparent);
+  pointer-events:none;
+  z-index:-1;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .reception-pending-grid
+) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
+  width:46px!important;
+  height:46px!important;
+  min-width:46px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:18px!important;
+  color:var(--md-sys-color-primary)!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent)!important;
+  box-shadow:0 1px 0 color-mix(in srgb,#fff 70%,transparent) inset!important;
+  font-size:25px!important;
+  grid-row:1 / span 2;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span) :where(p,div,span){
+  min-width:0;
+  margin:0!important;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span) b{
+  display:block!important;
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-headline-small)!important;
+  font-weight:900!important;
+  letter-spacing:-.035em!important;
+  line-height:1.08!important;
+  overflow-wrap:anywhere;
+}
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span) :where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong){
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-label-large);
+  font-weight:760;
+  letter-spacing:-.01em;
+  line-height:1.25;
+}
+:where(.reception-pending-grid) > a strong,
+:where(.reception-pending-grid) > a small{
+  display:block;
+}

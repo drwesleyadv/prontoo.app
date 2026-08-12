@@ -1,0 +1,21 @@
+@media(min-width:721px){
+  body[data-floating-scroll-hidden="1"] .floating-clock.context-floating-clock-card,
+  body[data-floating-scroll-hidden="1"] .floating-clock[data-floating-clock],
+  body[data-floating-scroll-hidden="1"] [data-floating-clock].floating-clock,
+  body[data-floating-scroll-hidden="1"] .agenda-floating-kpis,
+  body[data-floating-scroll-hidden="1"] .ds-fixed-agenda-kpis,
+  body[data-floating-scroll-hidden="1"] .context-floating-pending-kpis,
+  body[data-floating-scroll-hidden="1"] .lead-floating-pending{opacity:1!important;pointer-events:auto!important;}
+  .pt-floating-drag-handle{display:none!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .floating-clock,
+  .agenda-floating-kpis,
+  .ds-fixed-agenda-kpis,
+  .context-floating-pending-kpis,
+  .lead-floating-pending{transition:none!important;}
+}
+
+
+
+

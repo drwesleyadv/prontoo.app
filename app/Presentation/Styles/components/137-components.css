@@ -1,0 +1,9 @@
+main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pill-section,.finance-drawer-admin-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-report-card,.task-list-card,.notice-list-card,.document-card,.documents-card,.patient-card,.settings-card,.maestro-card),
+main [data-ds-card-kind="card"],
+main [data-ds-surface="card"]{
+  border:1px solid var(--pt-ds-surface-line)!important;
+  border-radius:var(--pt-ds-surface-radius)!important;
+  background:var(--pt-ds-surface-bg)!important;
+  box-shadow:var(--pt-ds-surface-shadow)!important;
+  overflow:clip;
+}

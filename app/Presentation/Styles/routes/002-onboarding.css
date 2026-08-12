@@ -1,0 +1,25 @@
+@media(max-width:760px){
+  body[data-route="onboarding"] .onboarding-wizard{padding:16px!important;border-radius:26px!important;gap:14px!important;}
+  body[data-route="onboarding"] .onboarding-wizard .wizard-head h1{font:var(--md-sys-typescale-headline-small)!important;font-weight:900!important;}
+  body[data-route="onboarding"] .wizard-progress{grid-template-columns:repeat(4,minmax(42px,1fr))!important;gap:6px!important;padding:5px!important;}
+  body[data-route="onboarding"] .wizard-progress span{min-height:38px!important;padding:7px 8px!important;}
+  body[data-route="onboarding"] .wizard-step:not([hidden]){padding:14px!important;border-radius:24px!important;}
+  body[data-route="onboarding"] .wizard-step-title{grid-template-columns:auto minmax(0,1fr)!important;gap:10px!important;padding-bottom:12px!important;}
+  body[data-route="onboarding"] .wizard-step-title > span:first-child{width:42px!important;height:42px!important;border-radius:16px!important;}
+  body[data-route="onboarding"] .two{grid-template-columns:1fr!important;}
+  body[data-route="onboarding"] .wizard-nav{justify-content:stretch!important;}
+  body[data-route="onboarding"] .wizard-nav > *{flex:1 1 auto!important;}
+  body:not(.public) .onboarding-tip-card{grid-template-columns:1fr!important;align-items:stretch!important;padding:14px!important;border-radius:24px!important;gap:12px!important;}
+  body:not(.public) .onboarding-tip-action{justify-self:stretch!important;}
+  body:not(.public) .onboarding-tip-button{width:100%!important;min-height:42px!important;}
+  body:not(.public) .onboarding-tip-body{font-size:.9rem!important;line-height:1.42!important;}
+}
+@media(max-width:420px){
+  body[data-route="onboarding"] .wizard-progress{grid-template-columns:repeat(4,1fr)!important;}
+  body[data-route="onboarding"] .wizard-progress span{min-width:0!important;padding-inline:4px!important;}
+  body[data-route="onboarding"] .clinic-visual-preview{grid-template-columns:1fr!important;text-align:left!important;}
+  body[data-route="onboarding"] .clinic-visual-preview .brand-mark{width:52px!important;height:52px!important;}
+}
+
+
+

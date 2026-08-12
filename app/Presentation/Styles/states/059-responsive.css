@@ -1,0 +1,5 @@
+@media(max-width:760px){
+  .billing-user-readonly-banner.ds-readonly-banner{grid-template-columns:auto minmax(0,1fr)}
+}
+
+

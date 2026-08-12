@@ -1,0 +1,24 @@
+body.public[data-route="login"] .login-telemetry-wave svg{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+body.public[data-route="login"] .login-telemetry-wave-path{
+  stroke:none;
+  opacity:.5;
+}
+body.public[data-route="login"] .login-telemetry-wave-path.is-requests{
+  fill:#347963;
+}
+body.public[data-route="login"] .login-telemetry-wave-path.is-records{
+  fill:#1f6f56;
+}
+
+
+body:not(.public){isolation:isolate;overflow-x:hidden;}
+body:not(.public) :where(.top,.side,main#conteudo){position:relative;z-index:1;}
+body:not(.public) .login-telemetry-wave{z-index:0;}
+
+
+body.has-telemetry-mountains{isolation:isolate;overflow-x:hidden}

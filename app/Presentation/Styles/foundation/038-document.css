@@ -1,0 +1,6 @@
+body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{
+  width:50px!important;
+  height:50px!important;
+  border-radius:18px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}

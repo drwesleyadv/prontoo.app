@@ -1,0 +1,8 @@
+main{
+  width:100%;
+  max-width:var(--page-max);
+  min-width:0;
+  padding-inline:max(var(--pt-mobile-gutter),var(--pt-safe-left)) max(var(--pt-mobile-gutter),var(--pt-safe-right));
+  padding-block:18px max(34px,var(--pt-safe-bottom));
+  overflow:visible;
+}

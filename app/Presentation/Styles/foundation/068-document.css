@@ -1,0 +1,5 @@
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
+  width:max-content!important;
+  min-width:0!important;
+  max-width:calc(100dvw - var(--pt-floating-left-safe-gap))!important;
+}

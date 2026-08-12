@@ -1,0 +1,12 @@
+.ds-person-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible),
+.patient-card-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible){
+  background:color-mix(in srgb,var(--pt-patient-action-bg) 86%,#000 14%)!important;
+  color:var(--pt-patient-action-fg)!important;
+  border-color:color-mix(in srgb,var(--pt-patient-action-bg) 72%,#000 28%)!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-primary) 24%,transparent),0 8px 18px color-mix(in srgb,var(--pt-patient-action-bg) 24%,transparent)!important;
+}
+.ds-person-actions > :where(a.primary.small,button.primary.small):active,
+.patient-card-actions > :where(a.primary.small,button.primary.small):active{
+  transform:translateY(1px)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.12) inset!important;
+}

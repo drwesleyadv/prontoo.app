@@ -1,0 +1,1 @@
+.activity-load-sentinel.is-loading::after{content:"Carregando mais atividades…";font:var(--md-sys-typescale-label-small);}

@@ -1,0 +1,1 @@
+.card:hover,[class$="-card"]:where(a,button):hover{box-shadow:var(--md-sys-elevation-level1)}

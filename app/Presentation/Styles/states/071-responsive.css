@@ -1,0 +1,42 @@
+@media(max-width:720px){
+  .ds-person-row,
+  .ds-patient-row,
+  .patient-card-row{
+    grid-template-columns:40px minmax(0,1fr)!important;
+    gap:10px!important;
+    padding:11px 10px 12px 12px!important;
+  }
+  .ds-person-avatar,
+  .patient-card-avatar{
+    width:40px!important;
+    height:40px!important;
+    border-radius:16px!important;
+  }
+  .ds-person-actions,
+  .patient-card-actions{
+    grid-column:2!important;
+    justify-content:flex-start!important;
+    min-width:0!important;
+  }
+  .ds-person-actions .primary.small,
+  .patient-card-actions .primary.small{
+    min-height:34px!important;
+    padding-inline:10px!important;
+  }
+}
+@media(max-width:420px){
+  .patient-card-actions .primary.small span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+    display:none!important;
+  }
+  .patient-card-actions .primary.small{
+    width:38px!important;
+    min-width:38px!important;
+    padding:0!important;
+    justify-content:center!important;
+  }
+  .patient-card-title .patient-schedule-pill{
+    order:-2;
+  }
+}
+
+

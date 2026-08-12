@@ -1,0 +1,37 @@
+body:not(.public) .onboarding-tip-card::before{
+  content:"";
+  position:absolute;
+  inset:14px auto 14px 0;
+  width:4px;
+  border-radius:999px;
+  background:linear-gradient(180deg,var(--md-sys-color-primary),color-mix(in srgb,var(--md-sys-color-primary) 46%,#fff));
+}
+body:not(.public) .onboarding-tip-head{
+  align-items:center!important;
+  gap:11px!important;
+}
+body:not(.public) .onboarding-tip-icon{
+  width:42px!important;
+  height:42px!important;
+  border-radius:17px!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 11%,var(--md-sys-color-surface-container-lowest))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 15%,transparent)!important;
+  color:var(--md-sys-color-primary)!important;
+}
+body:not(.public) .onboarding-tip-head strong{
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-title-small)!important;
+  font-weight:900!important;
+  letter-spacing:-.018em!important;
+}
+body:not(.public) .onboarding-tip-body{
+  max-width:92ch!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-body-medium)!important;
+  line-height:1.48!important;
+}
+body:not(.public) .onboarding-tip-button{
+  min-height:40px!important;
+  border-radius:999px!important;
+  padding-inline:16px!important;
+}

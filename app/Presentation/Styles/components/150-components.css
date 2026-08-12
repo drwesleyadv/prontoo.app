@@ -1,0 +1,28 @@
+body.public[data-route="login"] .auth.login-card.login-shell{
+  width:min(var(--pt-public-auth-max),100%)!important;
+  max-width:var(--pt-public-auth-max)!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  align-items:stretch!important;
+  gap:14px!important;
+  padding:clamp(20px,3vw,26px)!important;
+  border-radius:28px!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,#fff),color-mix(in srgb,var(--md-sys-color-primary-container) 10%,var(--md-sys-color-surface-container-lowest)))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)!important;
+  box-shadow:0 18px 44px rgba(26,62,43,.10),0 1px 0 rgba(255,255,255,.78) inset!important;
+}
+body.public[data-route="login"] .auth.login-card.login-shell>*{
+  grid-column:1/-1!important;
+  min-width:0!important;
+}
+body.public[data-route="login"] .login-titleline,
+body.public[data-route="login"] .auth-titleline{
+  margin-bottom:0!important;
+  align-items:center!important;
+}
+body.public[data-route="login"] .login-titleline h1,
+body.public[data-route="login"] .auth-titleline h1{
+  font:var(--md-sys-typescale-headline-small)!important;
+  font-weight:900!important;
+  letter-spacing:-.04em!important;
+}

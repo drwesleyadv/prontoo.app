@@ -1,0 +1,1 @@
+.finance-conference-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.finance-conference-summary article{display:grid;gap:4px;padding:12px;border-radius:18px;background:#fff;border:1px solid rgba(20,40,70,.08)}.finance-conference-summary span{font-size:.82rem;color:var(--muted)}.finance-conference-summary b{font-size:1.02rem}

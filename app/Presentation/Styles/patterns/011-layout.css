@@ -1,0 +1,9 @@
+.collaborator-new-actions.form-actions{
+  position:static!important;
+  justify-content:flex-end!important;
+  padding:14px 0 0!important;
+  margin:0!important;
+  background:transparent!important;
+  border-top:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 60%,transparent)!important;
+  border-radius:0!important;
+}

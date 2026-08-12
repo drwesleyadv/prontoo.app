@@ -1,0 +1,1 @@
+.patient-tab-nav label.is-active em,.patient-tab-nav label[aria-selected="true"] em{background:var(--clinic-accent-strong,var(--md-sys-color-primary));color:#fff}

@@ -1,0 +1,10 @@
+body.public .signup-screen-flow .signup-screen-kicker strong{
+  font:var(--md-sys-typescale-title-small);
+  font-weight:900;
+  text-align:right;
+}
+body.public .signup-screen-flow .signup-ds-actions{
+  margin-top:auto;
+  padding-top:12px;
+  border-top:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 72%,transparent);
+}

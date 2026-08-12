@@ -1,0 +1,12 @@
+.patient-tab-icon-symbol{
+  width:38px;
+  height:38px;
+  border-radius:15px;
+  display:grid;
+  place-items:center;
+  color:var(--md-sys-color-on-surface-variant);
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-high) 82%,transparent);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 72%,transparent);
+  transition:background var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast),transform var(--motion-fast);
+}
+.patient-tab-icon-symbol .material-symbols-rounded,.patient-tab-icon-symbol .pt-icon-glyph{font-size:23px;}

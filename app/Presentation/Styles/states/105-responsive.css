@@ -1,0 +1,8 @@
+@media(max-width:560px){
+  dialog.agenda-actions-modal{
+    width:min(250px,calc(100vw - 18px));
+    max-width:min(250px,calc(100vw - 18px));
+  }
+}
+
+

@@ -1,0 +1,11 @@
+.top .logout-icon,
+.top .logout-icon:where(:not(:hover):not(:focus-visible)){
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+}
+.top .logout-icon:hover,
+.top .logout-icon:focus-visible{
+  background:color-mix(in srgb,var(--md-sys-color-error) 7%,transparent)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-error) 18%,transparent)!important;
+}

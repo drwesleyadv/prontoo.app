@@ -1,0 +1,33 @@
+body.scope-global .admin-clinic-action-copy{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  min-width:0;
+}
+body.scope-global .admin-clinic-action-copy > .material-symbols-rounded{
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  width:38px;
+  height:38px;
+  border-radius:14px;
+  background:var(--md-sys-color-primary-container);
+  color:var(--md-sys-color-on-primary-container);
+}
+body.scope-global .admin-clinic-action-copy > div{
+  display:grid;
+  gap:3px;
+}
+body.scope-global .admin-clinic-action-copy b{
+  color:var(--md-sys-color-on-surface);
+}
+body.scope-global .admin-clinic-action-copy span{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+}
+body.scope-global .admin-clinic-action-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}

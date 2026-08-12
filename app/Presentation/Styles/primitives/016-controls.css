@@ -1,0 +1,1 @@
+.signup-step,.wizard-progress span{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border-radius:16px;background:#fff;border:1px solid rgba(165,198,175,.58);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:800}

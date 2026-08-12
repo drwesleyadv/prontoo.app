@@ -1,0 +1,3 @@
+main#conteudo > :where(.card,.widebox,[class$="-card"],[class$="-panel"],[class$="-shell"],.two,.three,.grid,.timeline,.activity-timeline):not(:last-child){
+  margin-block-end:var(--pt-flow-gap-md)!important;
+}

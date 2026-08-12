@@ -1,0 +1,2 @@
+body:not(.public){background:radial-gradient(circle at 0% -5%,color-mix(in srgb,var(--md-sys-color-primary) 6%,transparent) 0,transparent 330px),linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-background)),var(--md-sys-color-background) 360px)}
+a{color:var(--md-sys-color-primary);text-decoration:none;text-underline-offset:3px}

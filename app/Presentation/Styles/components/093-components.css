@@ -1,0 +1,11 @@
+.seq-footer{
+  --pt-seq-footer-gap:max(12px,var(--pt-safe-bottom,0px));
+  margin-block-start:0!important;
+  padding-block-start:var(--pt-seq-footer-gap)!important;
+  padding-block-end:var(--pt-seq-footer-gap)!important;
+}
+.seq-footer-chip{
+  position:relative!important;
+  overflow:visible!important;
+  gap:7px!important;
+}

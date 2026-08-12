@@ -1,0 +1,15 @@
+.procedure-route-form .agenda-quick-section{background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 72%,transparent)}
+.procedure-route-form .agenda-quick-section legend{color:var(--md-sys-color-on-surface)}
+.procedure-card-actions{display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.procedure-edit-link{white-space:nowrap}
+.procedure-empty{display:grid;place-items:center;text-align:center;gap:10px;padding:28px}
+.procedure-empty .primary{margin-top:4px}
+.permissions-ds-card.card{padding:0;background:transparent;border:0;box-shadow:none}
+.permissions-ds-form{display:block}
+.permissions-ds-shell{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:14px;align-items:start}
+.permissions-role-rail,.permissions-editor-pane{min-width:0;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent);background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%));border-radius:26px;box-shadow:var(--shadow-soft)}
+.permissions-role-rail{display:grid;gap:8px;padding:12px;position:sticky;top:84px}
+.permissions-rail-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;padding:8px 8px 12px;color:var(--md-sys-color-on-surface-variant);border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 60%,transparent)}
+.permissions-rail-head > span{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container)}
+.permissions-rail-head strong{display:block;color:var(--md-sys-color-on-surface)}
+.permission-role-block{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center;text-decoration:none;color:var(--md-sys-color-on-surface);padding:10px;border-radius:18px;border:1px solid transparent;background:transparent;transition:background .16s ease,border-color .16s ease,transform .16s ease}

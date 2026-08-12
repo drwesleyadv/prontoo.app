@@ -1,0 +1,1 @@
+.agenda-action-disclosure>summary{list-style:none;cursor:pointer}.agenda-action-disclosure>summary::-webkit-details-marker{display:none}.agenda-action-disclosure[open]>summary{background:color-mix(in srgb,var(--md-sys-color-primary) 6%,var(--md-sys-color-surface-container-low));border-color:color-mix(in srgb,var(--md-sys-color-primary) 30%,var(--md-sys-color-outline-variant))}

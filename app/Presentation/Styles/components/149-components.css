@@ -1,0 +1,32 @@
+body.scope-global .global-compact-pill > :is(.material-symbols-rounded,.pt-icon-glyph){
+  display:inline-grid!important;
+  place-items:center!important;
+  grid-row:1 / span 3!important;
+  width:40px!important;
+  height:40px!important;
+  min-width:40px!important;
+  border-radius:15px!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 10%,#fff)!important;
+  color:var(--md-sys-color-primary)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)!important;
+  overflow:hidden!important;
+}
+body.scope-global .global-pill-title > :is(.material-symbols-rounded,.pt-icon-glyph){
+  display:inline-grid!important;
+  place-items:center!important;
+  width:28px!important;
+  height:28px!important;
+  min-width:28px!important;
+  color:var(--md-sys-color-primary)!important;
+  background:transparent!important;
+  border:0!important;
+}
+body.scope-global .global-compact-pill > span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+  font:var(--md-sys-typescale-body-small)!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+}
+
+
+
+
+

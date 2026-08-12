@@ -1,0 +1,22 @@
+body.scope-global .clinic-menu-panel{
+  padding:0!important;
+  border:0!important;
+  border-radius:18px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.scope-global .clinic-menu-panel > summary{list-style:none!important;}
+body.scope-global .clinic-menu-panel > summary::-webkit-details-marker{display:none!important;}
+body.scope-global .clinic-menu-billing{
+  position:static!important;
+  min-width:0!important;
+  margin-top:6px!important;
+  padding:10px!important;
+  border-radius:18px!important;
+  box-shadow:none!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+}
+body.scope-global .admin-health-compact-kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))!important;}
+body.scope-global .admin-alert-patient-list{display:grid!important;gap:10px!important;}
+body.scope-global .admin-alert-patient-row{text-decoration:none!important;color:inherit!important;}
+body.scope-global .admin-alert-avatar{background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))!important;}

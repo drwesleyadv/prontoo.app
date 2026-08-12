@@ -1,0 +1,32 @@
+.doc-ds-meta-chip .material-symbols-rounded,
+.doc-ds-id .material-symbols-rounded,
+.doc-ds-chip .material-symbols-rounded{font-size:16px;line-height:1}
+.doc-ds-meta-chip span,
+.doc-ds-id span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-ds-id{background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 9%,var(--md-sys-color-surface-container-lowest));color:var(--clinic-accent-strong,var(--md-sys-color-primary));border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 16%,transparent);font-weight:850}
+.doc-ds-id.is-empty-id{background:var(--md-sys-color-surface-container-low);color:var(--md-sys-color-on-surface-variant)}
+.doc-ds-chip.ok{background:color-mix(in srgb,var(--pt-color-success-container) 86%,#fff);color:var(--pt-color-on-success-container);border-color:color-mix(in srgb,var(--pt-color-success) 18%,transparent)}
+.doc-ds-chip.warn{background:color-mix(in srgb,var(--pt-color-warning-container) 88%,#fff);color:var(--pt-color-on-warning-container);border-color:color-mix(in srgb,var(--pt-color-warning) 18%,transparent)}
+.doc-ds-chip.bad{background:color-mix(in srgb,var(--md-sys-color-error-container) 90%,#fff);color:var(--md-sys-color-on-error-container);border-color:color-mix(in srgb,var(--md-sys-color-error) 18%,transparent)}
+.doc-ds-chip.neutral{background:var(--md-sys-color-surface-container-low);color:var(--md-sys-color-on-surface-variant)}
+.doc-ds-row-actions,
+.doc-issued-actions,
+.doc-model-create{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important;margin:0!important}
+.doc-issued-list,
+.doc-model-list,
+.doc-template-list-grid{gap:10px!important}
+.doc-template-grid.doc-template-list-grid{grid-template-columns:1fr!important}
+.doc-ds-template-card{
+  display:grid;
+  gap:10px;
+  padding:12px!important;
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
+}
+.doc-ds-template-card .task-main{align-items:flex-start}
+.doc-template-marker{margin-top:9px;background:var(--clinic-accent-strong,var(--md-sys-color-primary))!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 11%,transparent)!important}
+.doc-ds-template-card h3{font:var(--md-sys-typescale-title-small);font-weight:850;letter-spacing:-.012em;margin:0;color:var(--md-sys-color-on-surface)}
+.doc-ds-template-card .task-copy p{margin:2px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.35}
+.doc-template-actions{margin-top:0;justify-content:flex-start}
+.doc-template-edit-details{border-radius:18px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent);padding:6px;margin-top:2px!important}

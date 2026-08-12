@@ -1,0 +1,5 @@
+.finance-admin-nav-shell{display:grid;gap:10px;width:100%;margin:0 0 14px}
+.finance-nav-group{display:grid;gap:6px;min-width:0}
+.finance-nav-group>strong{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.76rem;line-height:1;text-transform:uppercase;letter-spacing:.065em;font-weight:900;padding-inline:4px}
+.finance-admin-nav-shell .finance-pagehead-nav{margin:0;padding:10px;border-radius:18px;background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 88%,transparent)}
+.finance-admin-operation-card h2{display:flex;align-items:center;gap:8px}

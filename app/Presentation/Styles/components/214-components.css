@@ -1,0 +1,5 @@
+body.public .signup-ds-actions .primary,
+body.public .signup-ds-actions .ghost{
+  min-height:46px;
+  border-radius:16px;
+}

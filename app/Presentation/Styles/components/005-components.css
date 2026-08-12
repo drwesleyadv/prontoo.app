@@ -1,0 +1,10 @@
+.scope-evidence-grid span,.scope-recorded-reason,.scope-evidence-meta{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
+.scope-recorded-reason{margin:10px 0 0}
+.scope-evidence-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.scope-evidence-meta span{padding:5px 8px;border-radius:999px;background:var(--md-sys-color-surface-container-lowest);border:1px solid var(--md-sys-color-outline-variant)}
+.scope-sql-shape{margin-top:10px;overflow:hidden}
+.scope-sql-shape code{display:block;overflow:auto;padding:8px;border-radius:10px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);font-size:.78rem;white-space:pre-wrap;word-break:break-word}
+.titem.scope-objective{border-left:4px solid var(--md-sys-color-error)}
+.titem.scope-review{border-left:4px solid var(--pt-color-warning)}
+.titem.scope-policy{border-left:4px solid var(--pt-color-info)}
+.scope-recommended-action .t-actions{display:grid}

@@ -1,0 +1,10 @@
+[data-patient-live-results],
+.patient-suggest-panel,
+.counterparty-suggest-panel{background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);border-radius:18px;box-shadow:var(--md-sys-elevation-level3);overflow:hidden}
+[data-patient-live-empty]{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);padding:10px 12px}
+
+
+.rom-shell{min-height:100vh;display:grid;place-items:center;padding:18px;background:radial-gradient(circle at top,color-mix(in srgb,var(--md-sys-color-primary) 10%,#fff),var(--md-sys-color-background) 420px)}
+.rom-card{width:min(100%,440px);padding:24px;border-radius:28px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);box-shadow:var(--md-sys-elevation-level3)}
+.rom-drop{display:grid;gap:12px;border:1.5px dashed var(--md-sys-color-outline-variant);border-radius:22px;padding:18px;background:var(--md-sys-color-surface-container-low);text-align:center}.rom-bar{height:10px;background:var(--md-sys-color-surface-container-high);border-radius:999px;overflow:hidden;margin-top:16px}.rom-bar>i{display:block;width:0;height:100%;background:var(--md-sys-color-primary);border-radius:inherit;transition:width var(--motion-fast)}.rom-status{margin-top:12px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);word-break:break-word}.rom-status.ok{color:var(--pt-color-success)}.rom-status.bad{color:var(--md-sys-color-error)}
+

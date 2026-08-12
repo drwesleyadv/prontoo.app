@@ -1,0 +1,9 @@
+:root{
+  --pt-floating-card-radius:16px;
+  --pt-floating-card-gap:5px;
+  --pt-floating-card-icon:28px;
+  --pt-floating-card-pad-y:6px;
+  --pt-floating-card-pad-x:9px;
+  --pt-floating-card-min-h:44px;
+  --pt-fixed-agenda-stack-h:150px;
+}

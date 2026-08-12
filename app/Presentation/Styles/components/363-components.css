@@ -1,0 +1,32 @@
+.finance-cash-pagehead-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.finance-cash-pagehead-actions .finance-cash-action.active{
+  background:var(--pt-pagehead-control-container);
+  color:var(--pt-pagehead-control-on-container);
+  border-color:color-mix(in srgb,var(--pt-pagehead-control-accent) 22%,var(--md-sys-color-outline-variant));
+}
+.cash-drawer-card{
+  padding:16px;
+}
+.cash-drawer-card .cash-drawer-line{
+  display:grid;
+  grid-template-columns:minmax(210px,280px) minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+}
+.cash-drawer-title{
+  margin:0;
+  padding:0;
+  border-bottom:0;
+  justify-content:flex-start;
+}
+.cash-drawer-title strong{
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-title-medium);
+  font-weight:880;
+}

@@ -1,0 +1,8 @@
+@media(max-width:640px){
+  .cmdbar{gap:7px!important;padding-inline:max(6px,var(--pt-safe-left)) max(6px,var(--pt-safe-right))!important;}
+  .cmdbar .cmd{width:42px!important;min-width:42px!important;max-width:42px!important;}
+  .cmdbar .cmd.active,.cmdbar .cmd.is-active,.cmdbar .cmd[aria-current]{max-width:min(62vw, 190px)!important;}
+}
+@media(prefers-reduced-motion:reduce){.cmdbar{scroll-behavior:auto!important;}}
+
+

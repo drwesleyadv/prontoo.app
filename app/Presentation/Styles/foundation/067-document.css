@@ -1,0 +1,4 @@
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
+  max-width:100dvw!important;
+  padding-right:calc(var(--pt-floating-card-pad-x,9px) + var(--pt-floating-edge-width) + 3px)!important;
+}

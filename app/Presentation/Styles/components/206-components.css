@@ -1,0 +1,5 @@
+.mfa-step-content{display:grid;gap:10px;min-width:0;padding-top:4px}
+.mfa-step-content>strong{color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:900}
+.mfa-step-content>small{margin-top:-7px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.45}
+.mfa-step-content :is(.security-auth-form,.account-mfa-form){margin-top:2px}
+.mfa-manual-setup{min-width:0}

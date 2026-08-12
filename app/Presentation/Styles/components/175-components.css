@@ -1,0 +1,4 @@
+.clinic-color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:10px;}
+.clinic-color-option{display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 12px;border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);cursor:pointer;}
+.clinic-color-preview{display:grid;grid-template-columns:repeat(3,14px);gap:3px;align-items:center;flex:0 0 auto;}
+.clinic-color-preview i{display:block;width:14px;height:28px;border-radius:999px;border:1px solid rgba(15,23,42,.08);}

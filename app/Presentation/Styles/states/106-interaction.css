@@ -1,0 +1,3 @@
+body.scope-global .admin-alert-row:hover .admin-alert-open-icon{
+  transform:translateX(2px);
+}

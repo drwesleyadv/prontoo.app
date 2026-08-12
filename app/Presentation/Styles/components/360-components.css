@@ -1,0 +1,12 @@
+.reception-list{
+  gap:8px;
+}
+.reception-row{
+  grid-template-columns:78px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-height:62px;
+  padding:10px 12px;
+  border-radius:18px;
+  text-decoration:none;
+}

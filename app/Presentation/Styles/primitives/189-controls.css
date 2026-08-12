@@ -1,0 +1,1 @@
+.security-step-list li>span{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-lowest);font:var(--md-sys-typescale-label-medium);font-weight:900}

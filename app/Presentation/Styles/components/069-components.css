@@ -1,0 +1,4 @@
+.has-alert{box-shadow:inset 4px 0 0 var(--pt-color-warning)}
+
+
+.account-env-item-form{margin:0}.account-env-option{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;min-height:58px;padding:12px 14px;border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);color:var(--md-sys-color-on-surface);text-align:left}

@@ -1,0 +1,3 @@
+.manager-action > .pt-icon-glyph{width:42px;height:42px;border-radius:16px;display:inline-grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);font-size:22px;flex:0 0 auto;}
+.manager-action strong{display:block;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:850;letter-spacing:-.015em;}
+.manager-action p{margin:4px 0 10px;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.42;}

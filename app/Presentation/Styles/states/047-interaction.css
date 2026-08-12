@@ -1,0 +1,20 @@
+.cmdbar .cmd.active,
+.cmdbar .cmd.is-active,
+.cmdbar .cmd[aria-current]{
+  width:auto!important;
+  min-width:42px!important;
+  max-width:min(58vw, 220px)!important;
+  padding-inline:12px!important;
+  gap:8px!important;
+  justify-content:center!important;
+}
+.cmdbar .cmd.active > span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+.cmdbar .cmd.is-active > span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+.cmdbar .cmd[aria-current] > span:not(.material-symbols-rounded):not(.pt-icon-glyph){
+  display:inline-flex!important;
+  align-items:center!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}

@@ -1,0 +1,14 @@
+:where(.top-icon,.notify-link,.logout-icon,.icon-only,.password-toggle,.status-icon-only){
+  width:var(--pt-action-h)!important;
+  min-width:var(--pt-action-h)!important;
+  height:var(--pt-action-h)!important;
+  min-height:var(--pt-action-h)!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:var(--pt-action-radius)!important;
+}
+:where(.top-icon,.notify-link,.logout-icon,.icon-only,.password-toggle,.status-icon-only) .material-symbols-rounded{
+  font-size:21px!important;
+}

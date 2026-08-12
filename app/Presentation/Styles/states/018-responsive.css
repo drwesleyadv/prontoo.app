@@ -1,0 +1,5 @@
+@supports(height:100dvh){
+  body.public.has-top-shell main{
+    min-height:calc(100dvh - var(--top-h) - var(--pt-public-top-gap));
+  }
+}

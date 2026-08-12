@@ -1,0 +1,39 @@
+.doc-print-identifier-pill{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em}
+
+
+[class*="patient-panel-"],
+.patient-panel{min-width:0;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);padding:14px}
+.patient-panel-financeiro{background:linear-gradient(180deg,color-mix(in srgb,var(--pt-color-success-container) 18%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest))}
+.patient-panel-novaanotacao,.patient-panel-novaaba{background:var(--md-sys-color-surface-container-low)}
+.patient-existing-lock{display:flex;gap:10px;padding:12px;border-radius:18px;background:var(--pt-color-warning-container);color:var(--pt-color-on-warning-container);border:1px solid color-mix(in srgb,var(--pt-color-warning) 22%,transparent)}
+
+
+.notice-card-shell,
+.ds-notice-shell,
+.notice-reader-shell,
+.notice-screen,
+[class*="notice-card-shell-"],
+[class*="notice-reader-"],
+[class*="notice-screen-"],
+[class*="notice-section-"],
+[class*="task-group-"]{min-width:0}
+.notice-card-shell,.ds-notice-shell,.notice-reader-shell{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);overflow:hidden}
+.notice-reader-shell{display:grid;gap:0}.notice-reader-shell header,.notice-reader-shell footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;background:var(--md-sys-color-surface-container-low);border-bottom:var(--pt-border-soft)}.notice-reader-shell footer{border-top:var(--pt-border-soft);border-bottom:0}.notice-reader-shell h2{padding:16px 16px 0;margin:0}.notice-reader-shell .notice-reader-body{border:0;background:transparent;padding:16px}
+.notice-card-shell-inbox,.notice-section-inbox{border-left:4px solid var(--md-sys-color-primary)}.notice-card-shell-archived,.notice-section-archived{opacity:.82}.notice-card-shell-sent,.notice-section-sent{border-left:4px solid var(--pt-color-info)}
+[class*="severity-"]{border-left:4px solid var(--pt-color-info)}.severity-warning{border-left-color:var(--pt-color-warning)}.severity-critical,.severity-error{border-left-color:var(--md-sys-color-error)}
+[class*="task-group-"]{display:grid;gap:10px;padding:12px;border-radius:20px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}
+.task-group-overdue,.task-group-atrasadas{border-left:4px solid var(--md-sys-color-error)}.task-group-today,.task-group-hoje{border-left:4px solid var(--pt-color-warning)}.task-group-open,.task-group-abertas{border-left:4px solid var(--md-sys-color-primary)}
+
+
+.maestro-card,
+.maestro-new-card{display:grid;gap:12px;padding:16px;border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);box-shadow:0 1px 0 rgba(255,255,255,.74) inset}
+.maestro-new-card{background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-primary-container) 32%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest))}
+[data-maestro-action], [data-maestro-priority], [data-maestro-amount]{background:var(--md-sys-color-surface-container-lowest)}
+
+
+.reception-card,
+.reception-full{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);padding:16px;box-shadow:0 1px 0 rgba(255,255,255,.74) inset}.reception-full{grid-column:1/-1}
+[class*="reception-row-"]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}
+.proof-review,.subscription-action{display:grid;gap:10px;padding:12px;border-radius:18px;background:var(--pt-color-warning-container);color:var(--pt-color-on-warning-container);border:1px solid color-mix(in srgb,var(--pt-color-warning) 22%,transparent)}
+.runtime,.auto-reparo{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--md-sys-color-surface-container-high);border-radius:10px;padding:2px 6px;color:var(--md-sys-color-on-surface-variant)}
+.has-actions{--pt-has-actions:1}

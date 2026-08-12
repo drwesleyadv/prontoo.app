@@ -1,0 +1,29 @@
+@media(max-width:720px){
+  .finance-balance-kpis{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-block:0 12px!important;
+  }
+  .finance-balance-kpis > .finance-balance-card{
+    min-height:82px;
+    padding:13px 14px 13px 12px;
+    border-radius:24px;
+  }
+  .finance-balance-kpis > .finance-balance-card > .material-symbols-rounded{
+    width:42px!important;
+    height:42px!important;
+    min-width:42px!important;
+    border-radius:16px!important;
+    font-size:23px!important;
+  }
+  .finance-balance-kpis > .finance-balance-card b{
+    font:var(--md-sys-typescale-title-large);
+    font-weight:900;
+  }
+}
+
+
+
+
+
+

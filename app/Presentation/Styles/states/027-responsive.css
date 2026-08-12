@@ -1,0 +1,15 @@
+@media(min-width:760px){
+  
+}
+@media(max-width:640px){
+  body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
+    min-height:0!important;
+    padding-block-end:0!important;
+  }
+  
+}
+
+
+
+
+

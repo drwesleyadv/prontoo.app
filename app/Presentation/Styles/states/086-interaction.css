@@ -1,0 +1,5 @@
+body.scope-global .clinic-actions-close:hover,
+body.scope-global .clinic-actions-close:focus-visible{
+  color:var(--md-sys-color-primary)!important;
+  background:var(--md-sys-color-primary-container)!important;
+}

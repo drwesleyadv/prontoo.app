@@ -1,0 +1,6 @@
+.patient-filter-chip,.lead-chip,.activity-filter-chip{display:inline-flex!important;align-items:center!important;gap:7px!important;}
+.patient-filter-chip .material-symbols-rounded,.lead-chip-icon .material-symbols-rounded,.activity-filter-chip .material-symbols-rounded{font-size:18px!important;line-height:1!important;}
+.lead-floating-pending{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:70;display:flex;gap:8px;width:max-content;max-width:calc(100vw - 32px);}
+.lead-floating-pending .agenda-floating-card{min-height:48px;padding:10px 12px;border-radius:18px;background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container);border:1px solid color-mix(in srgb,var(--md-sys-color-error) 18%,transparent);box-shadow:var(--elevation-2);text-decoration:none;display:flex;align-items:center;gap:10px;}
+.activity-filter-panel{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;}
+.activity-filter-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;}

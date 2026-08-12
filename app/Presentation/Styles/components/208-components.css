@@ -1,0 +1,7 @@
+.account-mfa-management-grid{display:grid;grid-template-columns:1fr;gap:10px;padding-top:12px}
+.account-mfa-option{align-content:start;padding:14px;border-radius:19px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)}
+.account-mfa-option.is-critical{border-color:color-mix(in srgb,var(--md-sys-color-error) 22%,var(--md-sys-color-outline-variant))}
+.account-mfa-option.is-critical .ghost{color:var(--md-sys-color-error)}
+.account-mfa-option-head{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:10px;margin-bottom:2px}
+.account-mfa-option-head>span{display:grid;place-items:center;width:36px;height:36px;border-radius:13px;color:var(--md-sys-color-primary);background:var(--md-sys-color-surface-container-low)}
+.account-mfa-option-head>div{display:grid;gap:2px;padding-top:1px}

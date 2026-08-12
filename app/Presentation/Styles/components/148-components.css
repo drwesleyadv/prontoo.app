@@ -1,0 +1,7 @@
+body.scope-global .global-compact-pill b,
+body.scope-global .global-compact-pill span,
+body.scope-global .global-compact-pill small{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}

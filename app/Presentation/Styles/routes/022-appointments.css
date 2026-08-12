@@ -1,0 +1,42 @@
+@media(max-width:720px){
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card,
+  .floating-clock[data-floating-clock],
+  [data-floating-clock].floating-clock,
+  body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+  body[data-route="appointments"] > .ds-fixed-agenda-kpis,
+  body[data-route="appointments"] > .agenda-floating-kpis,
+  body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+  body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis,
+  body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis,
+  body:not([data-route="appointments"]) .context-floating-pending-kpis,
+  .lead-floating-pending{
+    position:fixed!important;
+    inset-block-start:auto!important;
+    inset-inline-start:auto!important;
+    inset-inline-end:0!important;
+    left:auto!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+    opacity:1!important;
+    transform:none!important;
+    transition:opacity 3s ease!important;
+    cursor:auto!important;
+    user-select:auto!important;
+    -webkit-user-select:auto!important;
+    will-change:opacity!important;
+    pointer-events:auto!important;
+  }
+  body[data-floating-scroll-hidden="1"] .floating-clock.context-floating-clock-card,
+  body[data-floating-scroll-hidden="1"] .floating-clock[data-floating-clock],
+  body[data-floating-scroll-hidden="1"] [data-floating-clock].floating-clock,
+  body[data-floating-scroll-hidden="1"] .agenda-floating-kpis,
+  body[data-floating-scroll-hidden="1"] .ds-fixed-agenda-kpis,
+  body[data-floating-scroll-hidden="1"] .context-floating-pending-kpis,
+  body[data-floating-scroll-hidden="1"] .lead-floating-pending{
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+  .pt-floating-drag-handle{display:none!important;}
+  [data-floating-shared-draggable="1"]::before,
+  [data-floating-efficient-drag="1"]::before{content:normal!important;display:none!important;}
+}

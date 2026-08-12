@@ -1,0 +1,7 @@
+body.has-seq-footer[data-route="appointments"] main#conteudo > :last-child,
+body.has-seq-footer[data-route="appointments"] .agenda-profile.agenda-day-first,
+body.has-seq-footer[data-route="appointments"] .agenda-crown-page,
+body.has-seq-footer[data-route="appointments"] .agenda-day-shell.agenda-crown-shell,
+body.has-seq-footer[data-route="appointments"] .agenda-day-shell{
+  margin-block-end:0!important;
+}

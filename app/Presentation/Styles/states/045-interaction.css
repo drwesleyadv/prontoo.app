@@ -1,0 +1,32 @@
+:where(
+  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
+  .stats-grid,
+  .admin-overview-kpis,
+  .global-telemetry-grid,
+  .manager-kpis,
+  .manager-operational-kpis,
+  .reception-kpis,
+  .lead-overview,
+  .task-overview,
+  .patient-directory-overview,
+  .procedure-kpis,
+  .procedure-kpis-refined,
+  .notice-kpis,
+  .notice-gmail-kpis,
+  .patient-summary-cards,
+  .patient-profile-summary-cards,
+  .patient-profile-footer-cards,
+  .manager-mini-grid,
+  .manager-goal-grid,
+  .reception-pending-grid,
+  .reception-flow,
+  .finance-drawer-metrics,
+  .cash-drawer-pills
+) > :where(article,div,a,span):where(:hover,:focus-visible){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  background:
+    radial-gradient(circle at 0 0,color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 90%,var(--md-sys-color-primary) 5%))!important;
+  box-shadow:var(--md-sys-elevation-level2)!important;
+  text-decoration:none!important;
+}

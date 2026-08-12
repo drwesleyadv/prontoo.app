@@ -1,0 +1,3 @@
+body.has-seq-footer:not([data-route="appointments"]) :where(.card,.pagehead,.two,.three,.grid,.timeline,.patient-tabs-shell,.dashboard-grid,.admin-grid,.settings-grid,.task-board,.notice-screen,.clinic-shell,.manager-shell):last-child{
+  margin-block-end:0!important;
+}

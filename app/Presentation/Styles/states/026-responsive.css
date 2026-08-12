@@ -1,0 +1,16 @@
+@media(max-width:640px){
+  .seq-footer{--pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));}
+}
+@media(prefers-reduced-motion:reduce){
+  .seq-footer-chip::after,.seq-footer-chip::before{transition:none!important;transform:translate(-50%,0)!important;}
+  .seq-footer-chip::before{transform:translate(-50%,0) rotate(45deg)!important;}
+}
+@media print{
+  body.has-seq-footer main#conteudo{padding-block-end:0!important;}
+  .seq-footer-chip::after,.seq-footer-chip::before{display:none!important;}
+}
+
+
+
+
+

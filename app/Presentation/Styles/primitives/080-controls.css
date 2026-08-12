@@ -1,0 +1,14 @@
+.subscription-state-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:32px;
+  padding:7px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+  background:color-mix(in srgb,var(--pt-color-warning-container) 76%,var(--md-sys-color-surface-container-low));
+  color:var(--pt-color-on-warning-container);
+  border:1px solid color-mix(in srgb,var(--pt-color-warning) 18%,transparent);
+  font:var(--md-sys-typescale-label-medium);
+  font-weight:800;
+}

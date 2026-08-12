@@ -1,0 +1,25 @@
+.manager-finance-card{display:grid;gap:14px;overflow:hidden;position:relative;}
+.manager-finance-card::before,.finance-goal-card-panel::before,.manager-goal::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:4px;
+  background:linear-gradient(90deg,var(--md-sys-color-primary),color-mix(in srgb,var(--md-sys-color-primary) 34%,transparent));
+  opacity:.78;
+}
+.manager-mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.manager-mini-grid > span,.manager-procedure-list > span,.finance-mini-grid > span,.finance-account-cards > article{
+  min-width:0;
+  display:grid;
+  gap:4px;
+  padding:13px 14px;
+  border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-outline-variant));
+  background:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-low));
+}
+.manager-mini-grid > span b,.manager-procedure-list > span b,.finance-mini-grid > span b,.finance-account-cards > article b{
+  font:var(--md-sys-typescale-title-medium);
+  font-weight:900;
+  color:var(--md-sys-color-on-surface);
+  letter-spacing:-.025em;
+}

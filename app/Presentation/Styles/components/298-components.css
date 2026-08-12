@@ -1,0 +1,33 @@
+.procedure-ds-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+}
+.procedure-ds-card .procedure-card-main,
+.procedure-ds-card .procedure-card-copy,
+.procedure-ds-card .procedure-title-row,
+.procedure-ds-card .procedure-meta{
+  min-width:0;
+}
+.procedure-ds-card .procedure-title-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.procedure-ds-card h3{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.procedure-ds-card .procedure-meta{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.procedure-ds-card .procedure-edit-details{
+  border-radius:20px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent);
+  overflow:hidden;
+}

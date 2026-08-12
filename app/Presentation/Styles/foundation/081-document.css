@@ -1,0 +1,4 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form{
+  display:grid!important;
+  gap:8px!important;
+}

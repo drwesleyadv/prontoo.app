@@ -1,0 +1,9 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item:hover,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft):hover,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item:focus-visible,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft):focus-visible{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-primary)!important;
+  box-shadow:var(--pt-focus-ring)!important;
+}

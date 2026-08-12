@@ -1,0 +1,7 @@
+.clinic-attention-chip .material-symbols-rounded{font-size:17px;}
+.clinic-attention-chip.is-critical{background:color-mix(in srgb,var(--md-sys-color-error-container) 78%,#fff);color:var(--md-sys-color-on-error-container);border-color:color-mix(in srgb,var(--md-sys-color-error) 18%,transparent);}
+.clinic-attention-chip.is-warning{background:color-mix(in srgb,#fff3cd 76%,#fff);color:#6b4e00;border-color:rgba(169,120,0,.18);}
+.clinic-attention-chip.is-muted{background:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface-variant);border-color:var(--md-sys-color-outline-variant);}
+.clinic-attention-chip.is-stable,.clinic-attention-chip.is-model,.clinic-attention-chip.is-exempt{background:color-mix(in srgb,var(--md-sys-color-primary-container) 72%,#fff);color:var(--md-sys-color-primary);border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,transparent);}
+.clinic-attention-progress,.clinic-attention-usage{display:flex;align-items:center;justify-content:flex-start;min-width:0;}
+.clinic-attention-actions{display:flex;justify-content:flex-end;}

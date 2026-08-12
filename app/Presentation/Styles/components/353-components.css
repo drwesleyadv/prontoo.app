@@ -1,0 +1,22 @@
+.collaborator-directory-card.patient-directory-card,
+.collaborator-search-card.patient-search-card,
+.collaborator-new-screen-card.patient-new-screen-card{
+  border-radius:24px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)!important;
+  box-shadow:var(--md-sys-elevation-level1)!important;
+}
+.collaborator-directory-overview.patient-directory-overview{
+  margin-bottom:14px!important;
+}
+.collaborator-search-bar.patient-search-bar{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+}
+.collaborator-search-bar.patient-search-bar .search-field{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  margin:0!important;
+}

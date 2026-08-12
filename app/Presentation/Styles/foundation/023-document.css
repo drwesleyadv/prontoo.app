@@ -1,0 +1,15 @@
+body.has-seq-footer[data-route="appointments"] .agenda-crown-page{
+  padding-block-end:0!important;
+}
+body.has-seq-footer[data-route="appointments"] .seq-footer{
+  --pt-seq-footer-gap:12px;
+  width:min(var(--page-max),100%)!important;
+  margin:0 auto!important;
+  padding-block-start:var(--pt-seq-footer-gap)!important;
+  padding-block-end:var(--pt-seq-footer-gap)!important;
+  padding-inline:max(12px,var(--pt-safe-left,0px)) max(12px,var(--pt-safe-right,0px))!important;
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+}
+

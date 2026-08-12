@@ -1,0 +1,2 @@
+.permission-role-block:hover{background:var(--md-sys-color-surface-container-low);transform:translateY(-1px)}
+.permission-role-block.is-active{background:var(--md-sys-color-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,transparent);color:var(--md-sys-color-on-primary-container)}

@@ -1,0 +1,52 @@
+.settings-ds-actions{
+  width:100%;
+  margin-top:0;
+  padding-top:4px;
+  border-top:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 52%,transparent);
+}
+.settings-ds-actions .primary{
+  min-height:44px;
+  border-radius:999px;
+}
+.settings-ds-note{
+  max-width:100%;
+  white-space:normal;
+}
+.settings-ds-note span{
+  min-width:0;
+}
+.settings-ds-screen .settings-departments,
+.settings-ds-screen .settings-appearance{
+  width:100%;
+  min-width:0;
+}
+.sector-editor-modern{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  align-items:start;
+}
+.sector-card-top{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+}
+.sector-card-chip{
+  justify-self:end;
+  max-width:150px;
+}
+.sector-icon-picker{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,136px),1fr));
+}
+.appearance-picker-block{
+  min-width:0;
+}
+.clinic-appearance-preview{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+}
+.clinic-icon-grid,
+.clinic-color-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,196px),1fr));
+}
+.clinic-icon-option,
+.clinic-color-option{
+  min-width:0;
+}

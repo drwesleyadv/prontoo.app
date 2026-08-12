@@ -1,0 +1,52 @@
+.ds-person-list,
+.ds-patient-list,
+.patient-directory-list{
+  display:grid!important;
+  gap:8px!important;
+}
+.patient-list-card.patient-directory-card,
+.card.patient-list-card.ds-filter-list-block{
+  overflow:hidden;
+}
+.ds-person-row,
+.ds-patient-row,
+.patient-card-row{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-width:0!important;
+  padding:12px!important;
+  border:1px solid var(--md-sys-color-outline-variant)!important;
+  border-left:0!important;
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  color:var(--md-sys-color-on-surface)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.68) inset!important;
+  transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast),transform var(--motion-fast)!important;
+}
+.ds-person-row::before,
+.ds-patient-row::before,
+.patient-card-row::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:12px;
+  bottom:12px;
+  width:3px;
+  border-radius:999px;
+  background:var(--md-sys-color-outline-variant);
+}
+.ds-patient-row.patient-status-ok::before,
+.patient-card-row.patient-status-ok::before{
+  background:var(--pt-color-success);
+}
+.ds-patient-row.patient-status-warn::before,
+.patient-card-row.patient-status-warn::before{
+  background:var(--pt-color-warning);
+}
+.ds-patient-row.patient-status-bad::before,
+.patient-card-row.patient-status-bad::before{
+  background:var(--md-sys-color-error);
+}

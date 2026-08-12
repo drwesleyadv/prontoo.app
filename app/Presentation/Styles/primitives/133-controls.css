@@ -1,0 +1,10 @@
+.doc-issued-row-compact .doc-ds-row-summary{
+  gap:5px!important;
+  font-size:.8rem!important;
+  line-height:1.22!important;
+  font-weight:620!important;
+}
+.doc-issued-row-compact .doc-ds-row-summary :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph){
+  font-size:15px!important;
+  line-height:1!important;
+}

@@ -1,0 +1,3 @@
+.activity-timeline.ds-activity-list .titem:hover{
+  background:var(--pt-row-hover)!important;
+}

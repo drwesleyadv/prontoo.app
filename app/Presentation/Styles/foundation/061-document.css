@@ -1,0 +1,46 @@
+body.public .signup-ds-price-card{
+  display:grid;
+  align-content:center;
+  gap:6px;
+  padding:18px;
+}
+body.public .signup-ds-price-card strong{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  color:var(--md-sys-color-on-surface);
+}
+body.public .signup-ds-price-card small{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+  font-weight:700;
+}
+body.public .signup-ds-icon{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border-radius:16px;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 16%,#fff);
+  color:var(--md-sys-color-primary);
+}
+body.public .signup-ds-icon.small{
+  width:38px;
+  height:38px;
+  border-radius:14px;
+}
+body.public .signup-ds-feature-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+body.public .signup-ds-feature-grid span{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  align-items:center;
+  column-gap:10px;
+  row-gap:1px;
+  padding:12px;
+  min-width:0;
+}

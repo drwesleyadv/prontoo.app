@@ -1,0 +1,26 @@
+:root{
+  --pt-ds-page-max:var(--page-max,1184px);
+  --pt-ds-gap-2xs:4px;
+  --pt-ds-gap-xs:8px;
+  --pt-ds-gap-sm:10px;
+  --pt-ds-gap-md:12px;
+  --pt-ds-gap-lg:16px;
+  --pt-ds-gap-xl:20px;
+  --pt-ds-radius-sm:14px;
+  --pt-ds-radius-md:18px;
+  --pt-ds-radius-lg:22px;
+  --pt-ds-radius-xl:28px;
+  --pt-ds-row-min:56px;
+  --pt-ds-row-pad-y:10px;
+  --pt-ds-row-pad-x:12px;
+  --pt-ds-section-pad:16px;
+  --pt-ds-action-h:40px;
+  --pt-ds-icon-box:42px;
+  --pt-ds-border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent);
+  --pt-ds-border-soft:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent);
+  --pt-ds-surface:var(--md-sys-color-surface-container-lowest);
+  --pt-ds-surface-soft:var(--md-sys-color-surface-container-low);
+  --pt-ds-surface-hover:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest));
+}
+
+

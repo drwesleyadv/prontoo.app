@@ -1,0 +1,11 @@
+.seq-footer-label{
+  display:inline-block!important;
+  max-width:0!important;
+  margin:0!important;
+  opacity:0!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  transform:translateX(-3px)!important;
+  transition:max-width 160ms ease,opacity 140ms ease,margin 160ms ease,transform 160ms ease!important;
+  pointer-events:none!important;
+}

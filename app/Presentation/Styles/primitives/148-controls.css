@@ -1,0 +1,4 @@
+.settings-ds-screen :where(input,select,textarea),
+.procedures-ds-screen :where(input,select,textarea){
+  min-width:0;
+}

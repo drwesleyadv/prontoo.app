@@ -1,0 +1,7 @@
+.doc-ds-row:hover,
+.doc-issued-row:hover,
+.doc-model-row:hover{
+  background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 4%,var(--md-sys-color-surface-container-lowest))!important;
+  border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 18%,var(--md-sys-color-outline-variant))!important;
+  transform:translateY(-1px);
+}

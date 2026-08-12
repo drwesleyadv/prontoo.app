@@ -1,0 +1,10 @@
+body.has-seq-footer:not([data-route="appointments"]) main#conteudo > :last-child{
+  margin-block-end:0!important;
+}
+
+
+
+body:not([data-route="appointments"]) main#conteudo{
+  overflow-x:clip;
+  scrollbar-gutter:auto;
+}

@@ -1,0 +1,29 @@
+details.action-panel,
+details.task-details,
+details.procedure-edit-details,
+details.clinic-actions-dropdown{
+  transition:border-color var(--motion-fast),background var(--motion-fast),box-shadow var(--motion-fast);
+}
+details.action-panel[open],
+details.task-details[open],
+details.procedure-edit-details[open]{
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 22%,var(--md-sys-color-outline-variant))!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 2%,var(--md-sys-color-surface-container-lowest))!important;
+}
+:where(.empty,.empty-state){
+  min-height:auto!important;
+  display:grid!important;
+  gap:6px!important;
+  align-content:center!important;
+  justify-items:center!important;
+  padding:18px!important;
+  border-radius:20px!important;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 72%,transparent)!important;
+  border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+}
+:where(.empty,.empty-state) .pt-icon-glyph,
+:where(.empty,.empty-state) .material-symbols-rounded{
+  color:var(--md-sys-color-primary)!important;
+}
+.context-floating-pending-card-tasks .agenda-floating-icon{background:var(--md-sys-color-primary-container)!important;color:var(--md-sys-color-primary)!important}

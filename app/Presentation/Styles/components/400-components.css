@@ -1,0 +1,9 @@
+body.scope-global .admin-alert-screen .notice-empty > :is(.material-symbols-rounded,.pt-icon-glyph){
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  border-radius:17px;
+  color:var(--md-sys-color-primary);
+  background:var(--md-sys-color-primary-container);
+}

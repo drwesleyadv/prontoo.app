@@ -1,0 +1,13 @@
+.ds-lead-item > summary,
+.ds-lead-row.lead-list-summary{
+  list-style:none!important;
+  cursor:pointer!important;
+}
+.ds-lead-item > summary::-webkit-details-marker,
+.ds-lead-row.lead-list-summary::-webkit-details-marker{
+  display:none!important;
+}
+.ds-lead-item > summary::marker,
+.ds-lead-row.lead-list-summary::marker{
+  content:""!important;
+}

@@ -1,0 +1,7 @@
+.finance-attention-item>.material-symbols-outlined{color:var(--md-sys-color-primary);font-size:1.35rem;margin-top:.08rem;}
+.finance-attention-item span{display:grid;gap:.12rem;min-width:0;}
+.finance-attention-item b{font-size:.9rem;line-height:1.25;}
+.finance-attention-item small{color:var(--muted,#64748b);font-size:.78rem;line-height:1.25;}
+.finance-attention-item.is-danger{border-color:color-mix(in srgb,#b42318 24%,var(--md-sys-color-outline-variant));background:color-mix(in srgb,#b42318 7%,var(--md-sys-color-surface-container-low));}
+.finance-attention-item.is-danger>.material-symbols-outlined{color:#b42318;}
+.finance-conference-pending-card h2{display:flex;align-items:center;gap:.45rem;}

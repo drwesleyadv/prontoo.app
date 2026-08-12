@@ -1,0 +1,5 @@
+:root{
+  --pt-floating-card-accent:var(--md-sys-color-primary);
+  --pt-floating-attention-radius:16px;
+  --pt-floating-attention-gap:6px;
+}

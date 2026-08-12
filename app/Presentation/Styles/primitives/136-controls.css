@@ -1,0 +1,8 @@
+:where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) :where(input[type="search"],input[type="text"]){
+  min-height:46px;
+  border-radius:16px;
+  background:var(--md-sys-color-surface-container-lowest);
+}
+:where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) > :where(button,a.ghost){
+  flex:0 0 auto;
+}

@@ -1,0 +1,15 @@
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row) :where(.material-symbols-rounded,.pt-icon-glyph):first-child{
+  color:var(--md-sys-color-primary)!important;
+}
+
+
+
+:where(.card,.form-panel,.action-panel,.finance-form,.finance-lite-form,.clinic-shell,.patient-form,.notice-form,.task-form) :where(.field,input,select,textarea){
+  max-width:100%;
+}
+:where(.card,.form-panel,.action-panel,.finance-form,.finance-lite-form,.clinic-shell,.patient-form,.notice-form,.task-form) .field + .field{
+  margin-block-start:0;
+}
+
+
+

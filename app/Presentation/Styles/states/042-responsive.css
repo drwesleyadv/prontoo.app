@@ -1,0 +1,8 @@
+@media(max-width:720px){
+  .pagehead-controls--navigation{max-width:100%;overflow-x:auto!important;justify-content:flex-start!important;scrollbar-width:none!important;}
+  .pagehead-controls--navigation::-webkit-scrollbar{display:none!important;}
+}
+
+
+
+

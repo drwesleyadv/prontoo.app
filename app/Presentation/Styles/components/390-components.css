@@ -1,0 +1,13 @@
+body.scope-global .admin-clinic-detail-item b,
+body.scope-global .admin-clinic-manager-note b{
+  min-width:0;
+  overflow-wrap:anywhere;
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-body-medium);
+  font-weight:700;
+}
+body.scope-global .admin-clinic-detail-item span,
+body.scope-global .admin-clinic-manager-note span{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+}

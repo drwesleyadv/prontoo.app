@@ -1,0 +1,7 @@
+@media (max-width:760px){
+  .patient-active-consultation{grid-template-columns:1fr;padding:14px;border-radius:20px}
+  .patient-active-consultation-actions{justify-content:stretch}
+  .patient-active-consultation-actions .primary,.patient-active-consultation-actions .ghost{width:100%;justify-content:center}
+}
+
+

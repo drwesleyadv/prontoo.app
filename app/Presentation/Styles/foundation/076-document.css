@@ -1,0 +1,23 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-panel{
+  padding:10px!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 62%,transparent)!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+}
+body.scope-global .clinic-menu-panel-title{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  padding:2px 2px 8px!important;
+  font:var(--md-sys-typescale-label-large)!important;
+  font-weight:900!important;
+  color:var(--md-sys-color-on-surface)!important;
+}
+body.scope-global dialog.clinic-actions-modal .clinic-menu-billing{
+  position:static!important;
+  margin-top:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body.scope-global .clinic-attention-actions > dialog.clinic-actions-modal{justify-self:auto;}

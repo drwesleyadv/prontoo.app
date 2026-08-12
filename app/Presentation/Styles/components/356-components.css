@@ -1,0 +1,56 @@
+.activity-screen-card.patient-list-card.ds-filter-list-block{
+  display:grid!important;
+  gap:14px!important;
+  padding:14px!important;
+}
+.activity-section-head{
+  justify-content:flex-start!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}
+.activity-section-head > div{
+  display:grid!important;
+  gap:2px!important;
+  min-width:0!important;
+}
+.activity-section-head strong{
+  font:var(--md-sys-typescale-title-small)!important;
+  font-weight:900!important;
+  color:var(--md-sys-color-on-surface)!important;
+}
+.activity-section-head span:not(.notice-minimal-icon):not(.material-symbols-rounded){
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-body-small)!important;
+}
+.ds-activity-filter-panel{
+  display:grid!important;
+  gap:10px!important;
+  margin:0!important;
+  padding:12px!important;
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+  border:var(--pt-border-soft)!important;
+}
+.ds-activity-filter-panel .activity-filter-chips,
+.ds-activity-filter-panel .activity-period-filter{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-wrap:wrap!important;
+  min-width:0!important;
+}
+.activity-timeline.ds-activity-list{
+  display:grid!important;
+  gap:8px!important;
+  margin:0!important;
+}
+.activity-timeline.ds-activity-list .titem{
+  min-height:58px!important;
+  grid-template-columns:40px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:10px 12px!important;
+  border-radius:18px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:var(--pt-border-soft)!important;
+  box-shadow:none!important;
+}

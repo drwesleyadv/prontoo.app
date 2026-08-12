@@ -1,0 +1,13 @@
+.onboarding-tip-card{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+.onboarding-tip-main{min-width:0!important;}
+.onboarding-tip-action{
+  justify-self:end!important;
+  align-self:center!important;
+  margin:0!important;
+  min-width:max-content!important;
+}

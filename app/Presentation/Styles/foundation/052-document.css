@@ -1,0 +1,34 @@
+body.scope-global .ds-clinic-card .clinic-attention-copy small{
+  font:var(--md-sys-typescale-body-small);
+}
+body.scope-global .ds-clinic-status{
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+  min-width:0;
+  text-align:right;
+}
+body.scope-global .ds-clinic-status small{
+  max-width:230px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body.scope-global .ds-clinic-test-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:28px;
+  padding:4px 9px;
+  border-radius:999px;
+  background:var(--md-sys-color-surface-container-low);
+  color:var(--md-sys-color-on-surface-variant);
+  border:1px solid var(--md-sys-color-outline-variant);
+  font:var(--md-sys-typescale-label-small);
+  font-weight:800;
+}
+body.scope-global .ds-clinic-test-pill .material-symbols-rounded{
+  font-size:16px;
+}

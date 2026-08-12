@@ -1,0 +1,15 @@
+@media(max-width:720px){
+  :root{
+    --pt-ds-surface-radius:19px;
+    --pt-ds-surface-radius-compact:16px;
+    --pt-ds-surface-pad:14px;
+    --pt-ds-surface-pad-compact:10px;
+    --pt-ds-icon-size:32px;
+    --pt-ds-icon-size-compact:28px;
+  }
+  main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,[data-ds-card-kind="card"]){
+    border-radius:var(--pt-ds-surface-radius)!important;
+  }
+}
+
+

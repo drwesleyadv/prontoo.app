@@ -1,0 +1,2 @@
+:where(.form-screen,.new-patient-screen,.new-employee-screen,.new-procedure-screen,.new-task-screen,.new-notice-screen,.finance-operation-screen,.document-model-screen){display:grid;gap:var(--pt-ds-gap-lg)}
+:where(.form-section,.patient-form-section,.employee-form-section,.procedure-form-section,.task-form-section,.notice-form-section,.finance-operation-section,.document-form-section){border-radius:var(--pt-ds-radius-lg);background:var(--pt-ds-surface);border:var(--pt-ds-border);box-shadow:var(--md-sys-elevation-level1);padding:var(--pt-ds-section-pad)}

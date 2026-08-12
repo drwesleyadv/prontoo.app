@@ -1,0 +1,5 @@
+.doc-template-editor-field>span{
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-label-large);
+  font-weight:900;
+}

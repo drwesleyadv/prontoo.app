@@ -1,0 +1,86 @@
+body.public .signup-ds-shell{
+  width:min(980px,100%);
+  display:grid;
+  gap:18px;
+  padding:26px;
+}
+body.public .signup-ds-hero{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin:0;
+  padding:0 0 16px;
+  border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);
+}
+body.public .signup-ds-hero-main{
+  min-width:0;
+  display:grid;
+  gap:6px;
+}
+body.public .signup-ds-hero h1{
+  margin:0;
+  font:var(--md-sys-typescale-headline-medium);
+  font-weight:900;
+  letter-spacing:-.045em;
+  color:var(--md-sys-color-on-surface);
+}
+body.public .signup-ds-hero p{
+  margin:0;
+  max-width:680px;
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-medium);
+}
+body.public .signup-ds-stepper{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+body.public .signup-ds-stepper li{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  padding:10px 12px;
+  border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent);
+  background:var(--md-sys-color-surface-container-lowest);
+  color:var(--md-sys-color-on-surface-variant);
+  transition:background var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast);
+}
+body.public .signup-ds-stepper li b{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border-radius:12px;
+  background:var(--md-sys-color-surface-container);
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-label-large);
+  font-weight:900;
+}
+body.public .signup-ds-stepper li span{
+  min-width:0;
+  display:grid;
+  gap:1px;
+}
+body.public .signup-ds-stepper li strong{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:inherit;
+  font:var(--md-sys-typescale-label-large);
+  font-weight:900;
+}
+body.public .signup-ds-stepper li small{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font:var(--md-sys-typescale-body-small);
+  color:inherit;
+  opacity:.78;
+}

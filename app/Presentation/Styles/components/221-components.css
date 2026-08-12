@@ -1,0 +1,36 @@
+.ds-status-pill.ok,
+.patient-status-pill.ok,
+.patient-card-title > .pill.ok{
+  background:color-mix(in srgb,var(--pt-color-success-container) 72%,var(--md-sys-color-surface-container-lowest))!important;
+  color:var(--pt-color-success)!important;
+}
+.ds-status-pill.warn,
+.patient-status-pill.warn,
+.patient-card-title > .pill.warn{
+  background:var(--pt-color-warning-container)!important;
+  color:var(--pt-color-on-warning-container)!important;
+}
+.ds-status-pill.bad,
+.patient-status-pill.bad,
+.patient-card-title > .pill.bad{
+  background:var(--md-sys-color-error-container)!important;
+  color:var(--md-sys-color-on-error-container)!important;
+}
+.ds-person-actions,
+.patient-card-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  min-width:max-content!important;
+}
+.ds-person-actions .primary.small,
+.patient-card-actions .primary.small{
+  min-height:36px!important;
+  padding-inline:12px!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+.patient-card-actions .primary.small :where(.material-symbols-rounded,.pt-icon-glyph){
+  font-size:18px!important;
+}

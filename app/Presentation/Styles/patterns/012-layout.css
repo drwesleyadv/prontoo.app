@@ -1,0 +1,5 @@
+.finance-form .form-actions,
+.cash-secondary-form .form-actions{
+  justify-content:flex-end;
+  margin-top:2px;
+}

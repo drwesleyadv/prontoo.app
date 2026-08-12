@@ -1,0 +1,3 @@
+@media(min-width:760px){main{padding-inline:var(--pt-tablet-gutter);padding-block:22px 44px}}
+@media(min-width:1184px){main{padding-inline:0}}
+

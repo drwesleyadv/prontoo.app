@@ -1,0 +1,7 @@
+@media(max-width:520px){
+  .onboarding-tip-card{grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;}
+  .onboarding-tip-body{font-size:.82rem!important;line-height:1.28!important;}
+  .onboarding-tip-button{min-height:36px!important;padding-inline:11px!important;}
+}
+
+

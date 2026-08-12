@@ -1,0 +1,7 @@
+dialog.agenda-actions-modal .agenda-row-action-form button{
+  width:100%;
+  justify-content:flex-start;
+  min-height:36px;
+  padding-inline:10px;
+  box-shadow:none;
+}

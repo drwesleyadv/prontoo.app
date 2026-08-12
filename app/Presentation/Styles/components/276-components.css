@@ -1,0 +1,99 @@
+.doc-print-page,
+.doc-a4{
+  width:min(100%,210mm)!important;
+  min-height:297mm;
+  aspect-ratio:210/297;
+  box-sizing:border-box;
+  margin-inline:auto;
+  padding:30mm 20mm 30mm 20mm;
+  position:relative;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#171b18;
+  box-shadow:0 22px 62px rgba(15,23,42,.16),0 1px 0 rgba(255,255,255,.7) inset!important;
+  overflow:hidden;
+}
+.doc-print-content,
+.doc-a4-main{
+  min-height:calc(297mm - 60mm);
+  color:#171b18;
+  font-family:Inter,Roboto,"Segoe UI",Arial,sans-serif;
+  font-size:12pt;
+  line-height:1.55;
+}
+.doc-print-main{max-width:100%}
+.doc-editor .ta-left,.doc-print-page .ta-left,.doc-a4 .ta-left{text-align:left!important}
+.doc-editor .ta-center,.doc-print-page .ta-center,.doc-a4 .ta-center{text-align:center!important}
+.doc-editor .ta-right,.doc-print-page .ta-right,.doc-a4 .ta-right{text-align:right!important}
+.doc-editor .ta-justify,.doc-print-page .ta-justify,.doc-a4 .ta-justify{text-align:justify!important;text-align-last:auto}
+.doc-editor .indent-1,.doc-print-page .indent-1,.doc-a4 .indent-1{margin-left:1cm!important}
+.doc-editor .indent-2,.doc-print-page .indent-2,.doc-a4 .indent-2{margin-left:2cm!important}
+.doc-editor .indent-3,.doc-print-page .indent-3,.doc-a4 .indent-3{margin-left:3cm!important}
+.doc-print-page p,.doc-a4 p,
+.doc-print-page div,.doc-a4 div{
+  margin:.62em 0;
+}
+.doc-print-page h2,.doc-a4 h2,
+.doc-editor h2{
+  font-size:15pt;
+  line-height:1.25;
+  margin:1.1em 0 .48em;
+  font-weight:850;
+  color:#171b18;
+}
+.doc-print-page h3,.doc-a4 h3,
+.doc-editor h3{
+  font-size:13pt;
+  line-height:1.28;
+  margin:.95em 0 .4em;
+  font-weight:800;
+  color:#171b18;
+}
+.doc-print-page ul,.doc-print-page ol,.doc-a4 ul,.doc-a4 ol,
+.doc-editor ul,.doc-editor ol{
+  margin:.62em 0 .62em 1.1cm;
+  padding:0;
+}
+.doc-print-page li,.doc-a4 li,
+.doc-editor li{
+  margin:.28em 0;
+  padding-left:.1cm;
+}
+.doc-editor .ta-center ul,.doc-print-page .ta-center ul,.doc-a4 .ta-center ul,
+.doc-editor .ta-center ol,.doc-print-page .ta-center ol,.doc-a4 .ta-center ol{
+  display:inline-block;
+  text-align:left;
+}
+.doc-print-footer{
+  position:absolute;
+  right:20mm;
+  bottom:15mm;
+  display:flex;
+  justify-content:flex-end;
+  margin:0!important;
+  max-width:calc(100% - 40mm);
+}
+.doc-print-identifier{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  color:#39423b;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:8pt;
+  line-height:1;
+  letter-spacing:.02em;
+  white-space:nowrap;
+}
+.document-print{
+  background:#fff!important;
+}
+.document-print .doc-a4{
+  width:210mm!important;
+  min-height:297mm!important;
+  margin:0 auto!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+@page{size:A4;margin:0}

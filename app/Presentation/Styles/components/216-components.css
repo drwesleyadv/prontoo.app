@@ -1,0 +1,29 @@
+:where(.lead-filter-chips,.notice-filter-chips) :where(.lead-chip-icon,.notice-chip-icon){
+  display:contents!important;
+  width:auto!important;
+  height:auto!important;
+  min-width:0!important;
+  padding:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:currentColor!important;
+}
+:where(.lead-filter-chips,.notice-filter-chips) :where(.lead-chip-label,span),
+:where(.task-filter,.ds-filter-chip,.patient-filter-chip,.activity-filter-chip,.activity-period-chip,.role-permission-tab) span{
+  color:currentColor!important;
+  font-weight:700!important;
+}
+:where(.lead-filter-chips > a,.notice-filter-chips > a,.task-filter,[data-ds-filter-chip]) :where(b,em,.count,.badge){
+  min-width:20px!important;
+  height:20px!important;
+  padding:0 6px!important;
+  border-radius:999px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:color-mix(in srgb,currentColor 9%,transparent)!important;
+  color:currentColor!important;
+  font:var(--md-sys-typescale-label-small)!important;
+  font-weight:800!important;
+  font-style:normal!important;
+}

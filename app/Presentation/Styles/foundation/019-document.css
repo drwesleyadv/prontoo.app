@@ -1,0 +1,11 @@
+body.has-seq-footer:not([data-route="appointments"]) .seq-footer{
+  --pt-seq-footer-gap:max(10px,var(--pt-safe-bottom,0px));
+  width:min(var(--page-max),100%)!important;
+  margin:0 auto!important;
+  padding-block-start:var(--pt-seq-footer-gap)!important;
+  padding-block-end:var(--pt-seq-footer-gap)!important;
+  padding-inline:max(12px,var(--pt-safe-left,0px)) max(12px,var(--pt-safe-right,0px))!important;
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+}

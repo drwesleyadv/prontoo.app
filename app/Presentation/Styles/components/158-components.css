@@ -1,0 +1,17 @@
+body.scope-global .admin-telemetry-card,
+body.scope-global .admin-performance-card,
+body.scope-global .priority-actions,
+body.scope-global .admin-ops-finance-card,
+body.scope-global .admin-clinics-focus-card,
+body.scope-global .admin-clinics-list-card{
+  border-radius:28px!important;
+  padding:18px!important;
+  margin-bottom:14px!important;
+}
+body.scope-global .admin-telemetry-card > h2,
+body.scope-global .priority-actions > h2{
+  margin:0 0 12px!important;
+  font:var(--md-sys-typescale-title-medium)!important;
+  font-weight:900!important;
+  letter-spacing:-.025em!important;
+}

@@ -1,0 +1,12 @@
+@media(max-width:760px){
+  .manager-goal > header,.finance-drawer-admin-card > header{display:grid;grid-template-columns:1fr;}
+  .manager-action-list,.manager-mini-grid,.manager-goal-grid,.finance-account-cards,.finance-drawer-setup-grid,.finance-drawer-admin-grid{grid-template-columns:1fr;}
+  .manager-action{grid-template-columns:auto minmax(0,1fr);padding:13px;}
+  .finance-row{grid-template-columns:1fr;align-items:start;}
+  .finance-row > b,.finance-row > .pill{justify-self:start;}
+  .finance-account-cards b{justify-self:start;}
+}
+
+
+
+

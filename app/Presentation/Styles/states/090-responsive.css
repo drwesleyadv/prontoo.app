@@ -1,0 +1,12 @@
+@media print{
+  .document-print main.doc-a4{padding:30mm 20mm 30mm 20mm!important}
+}
+@media(max-width:760px){
+  .doc-a4-preview .doc-print-page{padding:22px!important}
+  .doc-a4-preview .doc-print-footer{right:22px!important;bottom:14px!important}
+}
+
+
+
+
+

@@ -1,0 +1,5 @@
+.finance-invisible-intro{background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low)),var(--md-sys-color-surface));}
+.finance-admin-operation-grid-three{grid-template-columns:repeat(3,minmax(0,1fr));}
+.finance-attention-card h2{display:flex;align-items:center;gap:.45rem;margin-bottom:.25rem;}
+.finance-attention-list{display:grid;gap:.55rem;margin-top:.75rem;}
+.finance-attention-item{display:flex;align-items:flex-start;gap:.75rem;text-decoration:none;color:inherit;padding:.78rem .86rem;border-radius:18px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-outline-variant));background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low));}

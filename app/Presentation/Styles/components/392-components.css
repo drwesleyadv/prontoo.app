@@ -1,0 +1,4 @@
+body.scope-global .admin-clinic-action-buttons form,
+body.scope-global .admin-clinic-action-block form{
+  margin:0;
+}

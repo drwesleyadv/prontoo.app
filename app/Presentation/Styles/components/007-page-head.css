@@ -1,0 +1,4 @@
+:where(.top,.brand,.top-actions,.pagehead,.pagehead-copy,.pagehead-controls--actions,.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],.two,.three,.grid,.list,.timeline,.titem,form,fieldset,section,article,details,summary,label,.field,.form-panel,.action-panel,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.clinic-choice,.credential-choice,.maestro-rule-row){
+  min-width:0;
+  max-width:100%;
+}

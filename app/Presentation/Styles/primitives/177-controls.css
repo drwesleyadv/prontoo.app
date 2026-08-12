@@ -1,0 +1,8 @@
+.collaborator-search-bar.patient-search-bar input[type="search"]{
+  width:100%!important;
+}
+.collaborator-search-bar.patient-search-bar button,
+.collaborator-search-bar.patient-search-bar .ghost{
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+}

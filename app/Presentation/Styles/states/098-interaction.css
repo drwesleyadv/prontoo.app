@@ -1,0 +1,5 @@
+.patient-tab-icon-symbol-grid .patient-health-icon-only:hover .patient-tab-icon-symbol{
+  color:var(--clinic-accent-strong,var(--md-sys-color-primary));
+  border-color:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 28%,transparent);
+  background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 8%,var(--md-sys-color-surface-container-lowest));
+}

@@ -1,0 +1,16 @@
+@media(max-width:640px){
+  body{font:var(--md-sys-typescale-body-medium)}
+  main{padding-top:14px;padding-bottom:max(28px,var(--pt-safe-bottom))}
+  body.public main{padding-top:18px;padding-bottom:max(20px,var(--pt-safe-bottom))}
+  .pagehead{margin-bottom:12px}
+  .card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{max-width:100%}
+  .pagehead-controls--actions,.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{width:100%}
+  .pagehead-controls--actions > :where(a,button,summary),.form-actions > :where(a,button),.compact-actions > :where(a,button){flex:1 1 auto;min-width:0}
+  .floating-clock{display:none}
+}
+
+
+
+
+
+

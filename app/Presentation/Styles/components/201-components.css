@@ -1,0 +1,5 @@
+.account-env-card .account-env-mark{width:36px;height:36px;border-radius:14px;display:grid;place-items:center;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)}
+.account-env-card .account-env-copy{display:grid;gap:1px;min-width:0}
+.account-env-card .account-env-copy strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--md-sys-typescale-title-small);font-weight:850;color:var(--md-sys-color-on-surface)}
+.account-env-card .account-env-copy small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant)}
+.account-env-card .account-env-enter{width:34px;height:34px;border-radius:13px;display:grid;place-items:center;color:var(--md-sys-color-primary);background:transparent}

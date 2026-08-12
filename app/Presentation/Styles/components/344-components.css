@@ -1,0 +1,18 @@
+.collaborator-directory-overview.patient-directory-overview{margin-bottom:14px;}
+.collaborator-search-card.ds-search-card{margin-bottom:14px;}
+.collaborator-directory-card.patient-directory-card{display:grid;gap:12px;}
+.collaborator-list-toolbar{margin:0 0 2px;}
+.collaborator-directory-list.patient-directory-list{display:grid;gap:8px;}
+.collaborator-card-row.ds-collaborator-row{grid-template-columns:minmax(220px,1.15fr) minmax(160px,.8fr) minmax(260px,1.25fr) auto auto;align-items:center;gap:12px;min-height:66px;padding:10px 12px;border-radius:18px;}
+.collaborator-card-row .collaborator-main{display:flex;align-items:center;gap:10px;min-width:0;color:var(--md-sys-color-on-surface);text-decoration:none;}
+.collaborator-card-row .collaborator-nameblock{display:grid;gap:2px;min-width:0;}
+.collaborator-card-row .collaborator-nameblock strong,.collaborator-card-row .collaborator-nameblock small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.collaborator-card-row .collaborator-nameblock small{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);}
+.collaborator-card-row .collaborator-avatar{width:42px;height:42px;border-radius:16px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);}
+.collaborator-card-row .collaborator-roles{min-width:0;gap:6px;}
+.collaborator-card-row .role-badge-list{gap:6px;min-width:0;}
+.collaborator-card-row .role-badge{padding:5px 8px;max-width:100%;white-space:nowrap;}
+.collaborator-card-row .collaborator-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);}
+.collaborator-card-row .collaborator-meta>span{display:inline-flex;align-items:center;gap:5px;min-width:0;max-width:100%;}
+.collaborator-card-row .collaborator-meta span span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.collaborator-card-row .collaborator-meta .material-symbols-rounded,.collaborator-card-row .collaborator-meta .pt-icon-glyph{font-size:16px;color:var(--md-sys-color-primary);}

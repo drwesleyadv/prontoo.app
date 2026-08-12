@@ -1,0 +1,7 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-panel-title .material-symbols-rounded{
+  width:34px!important;
+  height:34px!important;
+  border-radius:14px!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))!important;
+  color:var(--md-sys-color-primary)!important;
+}

@@ -1,0 +1,9 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-title b{
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font:var(--md-sys-typescale-title-medium)!important;
+  font-weight:900!important;
+  letter-spacing:-.018em!important;
+  color:var(--md-sys-color-on-surface)!important;
+}

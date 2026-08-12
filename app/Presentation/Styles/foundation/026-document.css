@@ -1,0 +1,28 @@
+body:not([data-route="appointments"]) .context-floating-pending-kpis{
+  position:fixed!important;
+  right:clamp(14px,2.4vw,28px)!important;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;
+  z-index:62!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:8px!important;
+  width:min(230px,calc(100vw - 28px))!important;
+  pointer-events:none!important;
+}
+body:not([data-route="appointments"]) .context-floating-pending-card{
+  pointer-events:auto!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:9px!important;
+  min-height:58px!important;
+  padding:9px 11px!important;
+  text-decoration:none!important;
+  border-radius:20px!important;
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,rgba(255,255,255,.78))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
+  box-shadow:var(--md-sys-elevation-level3)!important;
+  -webkit-backdrop-filter:blur(12px)!important;
+  backdrop-filter:blur(12px)!important;
+  color:var(--md-sys-color-on-surface)!important;
+}

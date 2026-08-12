@@ -1,0 +1,54 @@
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card,
+body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+body[data-route="appointments"] > .ds-fixed-agenda-kpis,
+body[data-route="appointments"] > .agenda-floating-kpis,
+body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis,
+body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis,
+body:not([data-route="appointments"]) .context-floating-pending-kpis,
+.lead-floating-pending{
+  right:0!important;
+  box-sizing:border-box!important;
+}
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card,
+body[data-route="appointments"] .agenda-floating-card,
+body[data-route="appointments"] [class*="agenda-floating-card-"],
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card,
+body:not([data-route="appointments"]) .context-floating-pending-card,
+.lead-floating-pending .agenda-floating-card{
+  box-sizing:border-box!important;
+  min-height:var(--pt-floating-card-min-h)!important;
+  gap:var(--pt-floating-card-gap)!important;
+  padding:var(--pt-floating-card-pad-y) calc(var(--pt-floating-card-pad-x) + var(--pt-floating-edge-width) + 4px) var(--pt-floating-card-pad-y) var(--pt-floating-card-pad-x)!important;
+  border-radius:var(--pt-floating-attention-radius) 0 0 var(--pt-floating-attention-radius)!important;
+  border:1px solid var(--pt-floating-surface-line)!important;
+  background:var(--pt-floating-surface-bg)!important;
+  box-shadow:var(--pt-floating-surface-shadow)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.14)!important;
+  backdrop-filter:blur(22px) saturate(1.14)!important;
+  outline:1px solid rgba(255,255,255,.20)!important;
+  outline-offset:-2px!important;
+}
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card:hover,
+body[data-route="appointments"] .agenda-floating-card:hover,
+body[data-route="appointments"] [class*="agenda-floating-card-"]:hover,
+body[data-route="appointments"].has-floating-pending .context-floating-pending-card:hover,
+body:not([data-route="appointments"]) .context-floating-pending-card:hover,
+.lead-floating-pending .agenda-floating-card:hover{
+  background:var(--pt-floating-surface-bg-hover)!important;
+  box-shadow:var(--pt-floating-surface-shadow-hover)!important;
+  border-color:color-mix(in srgb,var(--pt-floating-surface-line) 72%,var(--pt-floating-card-accent,var(--md-sys-color-primary)) 28%)!important;
+}
+body:not(.has-floating-pending) .floating-clock.context-floating-clock-card,
+body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+body[data-route="appointments"] > .ds-fixed-agenda-kpis,
+body[data-route="appointments"] > .agenda-floating-kpis,
+body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis,
+body[data-route="appointments"].has-floating-pending .context-floating-pending-kpis,
+body:not([data-route="appointments"]) .context-floating-pending-kpis,
+.lead-floating-pending{
+  max-width:min(var(--pt-floating-reference-w,318px),calc(100dvw - var(--pt-floating-left-safe-gap)))!important;
+}

@@ -1,0 +1,5 @@
+body.scope-global :where(.stat-card>.material-symbols-rounded,.admin-tile>.material-symbols-rounded,.global-compact-pill>.material-symbols-rounded,.metric-chart-title>.material-symbols-rounded,.model-inline-icon){
+  color:#238763!important;
+  background:color-mix(in srgb,#238763 10%,#ffffff)!important;
+  border-color:color-mix(in srgb,#238763 16%,transparent)!important;
+}

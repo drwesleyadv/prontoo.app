@@ -1,0 +1,62 @@
+.settings-ds-screen,
+.procedures-ds-screen{
+  width:100%;
+  max-width:100%;
+  align-items:start;
+  grid-auto-rows:max-content;
+}
+.settings-ds-card-shell.card,
+.clinic-data-card.card,
+.clinic-departments-card.card,
+.clinic-appearance-card.card{
+  width:100%;
+  min-width:0;
+  overflow:visible;
+}
+.settings-ds-screen .clinic-settings-ds-form,
+.procedures-ds-screen .procedure-ds-form{
+  width:100%;
+  min-width:0;
+}
+.settings-ds-panel{
+  isolation:isolate;
+  align-content:start;
+}
+.settings-ds-panel::before{
+  pointer-events:none;
+  z-index:0;
+}
+.settings-ds-panel > *{
+  position:relative;
+  z-index:1;
+}
+.settings-ds-head{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+}
+.settings-ds-head > div,
+.settings-ds-head h2,
+.settings-ds-head .field-help{
+  min-width:0;
+}
+.settings-data-grid{
+  grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+  gap:16px;
+}
+.settings-ds-form-grid,
+.settings-data-location .two,
+.procedure-form-grid,
+.procedure-quick-fields{
+  min-width:0;
+}
+.settings-ds-form-grid > .field,
+.settings-data-location .two > .field,
+.procedure-form-grid > .field,
+.procedure-quick-fields > .field{
+  min-width:0;
+}
+.settings-ds-screen .field,
+.procedures-ds-screen .field{
+  align-content:start;
+}

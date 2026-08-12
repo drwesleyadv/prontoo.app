@@ -1,0 +1,2 @@
+.doc-model-search label{display:grid;gap:7px;flex:1 1 260px;min-width:0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-label-large);font-weight:800}
+.doc-model-search input[type="search"]{min-height:46px;border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}

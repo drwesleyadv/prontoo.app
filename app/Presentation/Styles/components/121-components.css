@@ -1,0 +1,8 @@
+:where(.kpi-card.warn,.patient-kpi-card.warn,.patient-kpi-card.is-warn,.patient-kpi-card.is-bad,.manager-stat.bad,.stat-card.bad) {
+  border-color:color-mix(in srgb,var(--pt-color-warning) 35%,var(--md-sys-color-outline-variant))!important;
+  background:
+    radial-gradient(circle at 0 0,color-mix(in srgb,var(--pt-color-warning) 16%,transparent),transparent 34%),
+    linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 90%,var(--pt-color-warning) 6%))!important;
+}
+:where(.kpi-card.warn,.patient-kpi-card.warn,.patient-kpi-card.is-warn,.patient-kpi-card.is-bad,.manager-stat.bad,.stat-card.bad)::before{background:var(--pt-color-warning)!important;}
+:where(.kpi-card.warn,.patient-kpi-card.warn,.patient-kpi-card.is-warn,.patient-kpi-card.is-bad,.manager-stat.bad,.stat-card.bad) > :where(.material-symbols-rounded,.pt-icon-glyph){color:var(--pt-color-warning)!important;background:color-mix(in srgb,var(--pt-color-warning) 12%,var(--md-sys-color-surface-container-lowest))!important;}

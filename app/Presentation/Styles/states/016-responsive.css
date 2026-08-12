@@ -1,0 +1,14 @@
+@media(max-width:720px){
+  .top .brand b{display:none;}
+  .top .top-account.top-user-name{padding-inline:8px;}
+}
+@media(max-width:420px){
+  .top{grid-template-columns:auto minmax(0,1fr);}
+  .top .brand{min-width:38px;}
+  .top .top-actions{justify-self:end;gap:5px;}
+  .top .top-account.top-user-name{padding-inline:7px;gap:6px;}
+}
+
+
+
+

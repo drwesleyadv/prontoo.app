@@ -1,0 +1,24 @@
+body.scope-global .admin-alert-kpis .notice-kpi > div{
+  display:grid;
+  gap:1px;
+  min-width:0;
+}
+body.scope-global .admin-alert-kpis .notice-kpi b{
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-headline-small);
+  font-weight:900;
+  line-height:1;
+}
+body.scope-global .admin-alert-kpis .notice-kpi span{
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-label-large);
+  font-weight:800;
+}
+body.scope-global .admin-alert-kpis .notice-kpi small{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+}
+body.scope-global .admin-alert-kpis .notice-kpi-pending{
+  border-color:color-mix(in srgb,var(--pt-color-warning) 28%,var(--md-sys-color-outline-variant));
+  background:color-mix(in srgb,var(--pt-color-warning-container) 28%,var(--md-sys-color-surface-container-lowest));
+}

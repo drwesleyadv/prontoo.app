@@ -1,0 +1,55 @@
+@media(max-width:900px){
+  body.scope-global .admin-clinic-detail-columns{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:680px){
+  body.scope-global .admin-clinic-detail-hero{
+    grid-template-columns:auto minmax(0,1fr);
+    align-items:start;
+    padding:16px;
+    border-radius:24px;
+  }
+  body.scope-global .admin-clinic-detail-hero > .clinic-attention-chip{
+    grid-column:1/-1;
+    justify-self:start;
+  }
+  body.scope-global .admin-clinic-detail-grid,
+  body.scope-global .admin-clinic-billing-fields{
+    grid-template-columns:1fr;
+  }
+  body.scope-global .admin-clinic-action-block,
+  body.scope-global .admin-clinic-billing-panel{
+    grid-template-columns:1fr;
+    align-items:stretch;
+  }
+  body.scope-global .admin-clinic-action-buttons,
+  body.scope-global .admin-clinic-action-buttons form,
+  body.scope-global .admin-clinic-action-buttons button,
+  body.scope-global .admin-clinic-action-block form,
+  body.scope-global .admin-clinic-action-block form button{
+    width:100%;
+  }
+  body.scope-global .admin-clinic-action-buttons button,
+  body.scope-global .admin-clinic-action-block form button{
+    justify-content:center;
+  }
+  body.scope-global .admin-clinic-billing-footer,
+  body.scope-global .admin-update-form-footer{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  body.scope-global .admin-clinic-billing-footer .primary,
+  body.scope-global .admin-update-form-footer .primary{
+    width:100%;
+    justify-content:center;
+  }
+  body.scope-global .admin-update-card{
+    padding:16px;
+  }
+  body.scope-global .admin-update-upload-zone{
+    padding:14px;
+  }
+}
+
+

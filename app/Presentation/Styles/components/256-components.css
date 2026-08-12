@@ -1,0 +1,23 @@
+.doc-editor-main{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(240px,.32fr);
+  gap:12px;
+  align-items:start;
+}
+.doc-editor-paper{
+  min-width:0;
+  padding:18px;
+  border-radius:18px;
+  background:#fff;
+}
+.doc-editor{
+  min-height:440px;
+  padding:18px;
+  border-radius:14px;
+  outline:0;
+  color:#1d1b20;
+  font-family:Inter,Roboto,"Segoe UI",Arial,sans-serif;
+  font-size:1rem;
+  line-height:1.62;
+  background:#fff;
+}

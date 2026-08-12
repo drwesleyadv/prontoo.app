@@ -1,0 +1,3 @@
+body.scope-global dialog.clinic-actions-modal[open]{display:block!important;}
+body.scope-global dialog.clinic-actions-modal.is-fallback-open{display:block!important;}
+body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell{box-sizing:border-box!important;}

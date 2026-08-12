@@ -1,0 +1,1 @@
+.sector-option-card:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--md-sys-color-primary) 28%,transparent);outline-offset:2px;}

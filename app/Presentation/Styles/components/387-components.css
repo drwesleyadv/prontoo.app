@@ -1,0 +1,10 @@
+.cmdbar,
+:where(.cmdbar),
+.pt-cmdbar{
+  border-radius:0!important;
+}
+
+
+
+
+

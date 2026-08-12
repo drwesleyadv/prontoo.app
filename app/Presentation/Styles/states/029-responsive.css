@@ -1,0 +1,1 @@
+@supports not (overflow-x:clip){body:not([data-route="appointments"]) main#conteudo{overflow-x:hidden;}}

@@ -1,0 +1,4 @@
+body.scope-global .ds-clinic-card .clinic-attention-progress,
+body.scope-global .ds-clinic-card .clinic-attention-usage{
+  min-width:0;
+}

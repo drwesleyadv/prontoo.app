@@ -1,0 +1,21 @@
+body.scope-global .admin-alert-screen{
+  display:grid;
+  gap:16px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+body.scope-global .admin-alert-hero{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:18px;
+  border-radius:28px;
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 9%,transparent),transparent 58%),
+    var(--md-sys-color-surface-container-lowest);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);
+  box-shadow:var(--md-sys-elevation-level1);
+}

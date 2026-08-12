@@ -1,0 +1,15 @@
+@media(max-width:720px){
+  body.public .signup-screen-flow{width:100%;}
+  body.public .signup-screen-flow .signup-screen-panel:not([hidden]){
+    min-height:auto;
+    justify-content:flex-start;
+  }
+  body.public .signup-screen-flow .signup-screen-kicker{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:4px;
+  }
+  body.public .signup-screen-flow .signup-screen-kicker strong{text-align:left;}
+}
+
+

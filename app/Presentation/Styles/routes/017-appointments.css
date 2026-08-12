@@ -1,0 +1,29 @@
+body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-profile-row{grid-template-columns:78px minmax(0,1fr) auto auto;gap:10px;padding-top:10px;padding-bottom:10px}
+body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-profile-main{gap:4px}
+body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-profile-main>small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean{gap:6px!important;padding:8px 9px!important;margin-top:5px!important;border-radius:16px!important;background:color-mix(in srgb,var(--journey-accent) 4%,var(--md-sys-color-surface-container-lowest))!important}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean::before{display:none}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-compact-head,
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-status{display:none!important}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-rail{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:center;gap:0;width:100%;height:28px;padding:0 7px;isolation:isolate}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-rail::before{content:"";position:absolute;left:18px;right:18px;top:50%;height:3px;transform:translateY(-50%);border-radius:999px;background:color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent);z-index:0}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-width:0;height:28px}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step::before{display:none!important}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step::after{content:"";position:absolute;left:50%;right:-50%;top:50%;height:3px;transform:translateY(-50%);margin:0;border-radius:999px;background:color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent);z-index:-1}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step:last-child::after{display:none!important}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step.is-done::after,
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step.is-current::after{background:linear-gradient(90deg,color-mix(in srgb,var(--journey-accent) 74%,var(--md-sys-color-primary)),color-mix(in srgb,var(--journey-accent) 34%,var(--md-sys-color-outline-variant)))}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-dot{width:22px;height:22px;min-width:22px;border-width:2px;background:var(--md-sys-color-surface-container-highest);box-shadow:0 0 0 4px var(--md-sys-color-surface-container-lowest)}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step.is-done .journey-ux-dot{background:color-mix(in srgb,var(--journey-accent) 20%,var(--md-sys-color-surface));border-color:color-mix(in srgb,var(--journey-accent) 62%,var(--md-sys-color-outline-variant));color:var(--journey-accent)}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-step.is-current .journey-ux-dot{background:var(--journey-accent);border-color:var(--journey-accent);color:var(--md-sys-color-on-primary);box-shadow:0 0 0 5px color-mix(in srgb,var(--journey-accent) 16%,var(--md-sys-color-surface-container-lowest))}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-dot .material-symbols-rounded{font-size:13px}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-facts{grid-template-columns:minmax(120px,.85fr) minmax(96px,.65fr) minmax(160px,1.3fr);gap:5px}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-fact{padding:6px 7px;border-radius:12px;background:color-mix(in srgb,var(--md-sys-color-surface-container-high) 78%,transparent)}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-fact b{font-size:.6rem;letter-spacing:.02em}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-fact em{font-size:.73rem;font-weight:740}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-quick{gap:5px;margin-top:0;padding-top:0}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-move button{min-height:28px;padding:5px 8px;font-size:.72rem;box-shadow:none}
+body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-move button .material-symbols-rounded{font-size:15px}
+@media(max-width:900px){body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-profile-row{grid-template-columns:66px minmax(0,1fr)}body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-profile-main>small{white-space:normal}body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-facts{grid-template-columns:1fr}body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-fact em{white-space:normal}body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-rail{height:26px;padding-inline:4px}body[data-route="appointments"] .journey-ux--timeline-card.journey-ux--lean .journey-ux-rail::before{left:14px;right:14px}}
+
+

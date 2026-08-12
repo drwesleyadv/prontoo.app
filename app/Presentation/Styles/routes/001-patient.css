@@ -1,0 +1,50 @@
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-didactic time{display:block;white-space:normal;line-height:1.35;font-weight:900;color:var(--md-sys-color-on-surface);background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-low));border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-outline-variant));border-radius:14px;padding:8px 10px;margin-bottom:8px}
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-didactic h3{margin-top:0}
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-didactic p{margin-top:4px}
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-didactic small{display:block;margin-top:8px;white-space:normal;line-height:1.35;color:var(--md-sys-color-on-surface-variant)}
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-status-atendimento-concluido,
+body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-status-finalizado{border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}
+
+
+
+
+@media(max-width:720px){
+  body[data-route="patient"] .patient-panel-agenda .timeline .titem.patient-appointment-didactic time{
+    background:transparent!important;
+    border:0!important;
+    padding:0!important;
+  }
+  body[data-route="patient"] .patient-appointment-line{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  body[data-route="patient"] .patient-appointment-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    min-height:28px;
+    padding:5px 8px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-outline-variant));
+    background:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-low));
+    color:var(--md-sys-color-on-surface);
+    font-size:.78rem;
+    font-weight:850;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+  body[data-route="patient"] .patient-appointment-chip span{
+    color:var(--md-sys-color-on-surface-variant);
+    font-weight:750;
+  }
+}
+@media(max-width:420px){
+  body[data-route="patient"] .patient-appointment-line{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  body[data-route="patient"] .patient-appointment-chip{min-width:0;justify-content:flex-start;white-space:normal;}
+}
+
+
+

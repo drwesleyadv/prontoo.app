@@ -1,0 +1,14 @@
+.sector-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px}
+.sector-icon-grid-symbols .sector-icon-choice{min-height:54px;padding:0;display:grid;place-items:center;border-radius:18px}
+.sector-icon-grid-symbols .sector-option-symbol{width:38px;height:38px;border-radius:14px;margin:0}
+.sector-icon-grid-symbols .sector-option-symbol .material-symbols-rounded,.sector-icon-grid-symbols .sector-option-symbol .pt-icon-glyph{font-size:24px}
+.clinic-icon-grid-symbols{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:9px}
+.clinic-icon-grid-symbols .clinic-icon-option{min-height:58px;padding:0;display:grid;place-items:center;border-radius:19px}
+.clinic-icon-grid-symbols .clinic-icon-option-mark{width:42px;height:42px;border-radius:16px;margin:0}
+.clinic-icon-grid-symbols .clinic-icon-option-mark .material-symbols-rounded,.clinic-icon-grid-symbols .clinic-icon-option-mark .pt-icon-glyph{font-size:26px}
+.clinic-color-grid-tones{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.clinic-color-grid-tones .clinic-color-option{min-height:54px;padding:8px;border-radius:18px;display:grid;place-items:center}
+.clinic-color-grid-tones .clinic-color-preview{display:grid;grid-template-columns:repeat(4,1fr);width:100%;height:30px;border-radius:999px;overflow:hidden;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-outline-variant) 65%,transparent)}
+.clinic-color-grid-tones .clinic-color-preview i{height:100%;min-width:0;border-radius:0!important}
+.procedure-route-card.card{padding:0;background:transparent;border:0;box-shadow:none}
+.procedure-route-form-panel{display:grid;gap:16px}

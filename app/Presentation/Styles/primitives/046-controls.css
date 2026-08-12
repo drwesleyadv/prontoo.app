@@ -1,0 +1,5 @@
+body.public.has-top-shell .top .top-actions :where(a,button),
+body.public.has-top-shell .top .ghost,
+body.public.has-top-shell .top .primary{
+  border-radius:18px!important;
+}

@@ -1,0 +1,6 @@
+.doc-draft-card,
+.doc-print-card,
+.doc-template-new-card{border-radius:26px;background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),var(--md-sys-color-surface-container-low));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)}
+.doc-preview-step{border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 80%,transparent);padding:14px}
+.doc-preview-step h3{font:var(--md-sys-typescale-title-small);font-weight:850;letter-spacing:-.015em}
+.doc-found-filters{margin:0 0 10px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}

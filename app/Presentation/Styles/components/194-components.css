@@ -1,0 +1,6 @@
+.sector-card-top{display:flex;align-items:flex-start;gap:12px;min-width:0;}
+.sector-card-icon{display:inline-grid;place-items:center;flex:0 0 auto;width:48px;height:48px;border-radius:18px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent);}
+.sector-card-icon .pt-icon-glyph{font-size:27px;}
+.sector-card-copy{display:grid;gap:2px;min-width:0;flex:1 1 auto;}
+.sector-card-copy strong{font:var(--md-sys-typescale-title-medium);font-weight:900;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sector-card-copy small{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.35;}

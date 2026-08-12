@@ -1,0 +1,9 @@
+body.public .signup-ds-offer-card,
+body.public .signup-ds-price-card,
+body.public .signup-ds-feature-grid span,
+body.public .signup-ds-fieldset{
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent);
+  border-radius:22px;
+  background:var(--md-sys-color-surface-container-lowest);
+  box-shadow:0 1px 0 rgba(255,255,255,.72) inset;
+}

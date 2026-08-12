@@ -1,0 +1,5 @@
+.seq-footer-chip:is(:hover,:focus-visible){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 30%,var(--md-sys-color-outline-variant));
+  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 86%,var(--md-sys-color-primary) 14%);
+  box-shadow:0 1px 0 rgba(255,255,255,.82) inset,0 10px 24px rgba(28,42,34,.08);
+}

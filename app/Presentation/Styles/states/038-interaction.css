@@ -1,0 +1,9 @@
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within) .seq-footer-label{
+  max-width:9.5rem!important;
+  margin-inline-end:7px!important;
+  opacity:1!important;
+  transform:translateX(0)!important;
+}
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within){
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
+}

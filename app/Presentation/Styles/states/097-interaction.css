@@ -1,0 +1,13 @@
+.top form.logout:hover,.top form.logout:focus-within{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
+.top .logout-icon,.top .logout-icon:where(:not(:hover):not(:focus-visible)){
+  width:42px!important;min-width:42px!important;height:42px!important;padding:0 12px!important;
+  border-radius:var(--md-sys-shape-corner-large)!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent)!important;
+  color:var(--md-sys-color-on-surface-variant)!important;box-shadow:none!important;
+}
+.top .logout-icon:hover,.top .logout-icon:focus-visible{
+  background:var(--state-hover)!important;
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,var(--md-sys-color-outline-variant))!important;
+  color:var(--md-sys-color-primary)!important;
+}

@@ -1,0 +1,8 @@
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice){
+  position:relative;
+  min-width:0;
+  border:1px solid var(--pt-ds-surface-line)!important;
+  border-radius:var(--pt-ds-surface-radius-compact)!important;
+  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%))!important;
+  box-shadow:0 6px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.66) inset!important;
+}

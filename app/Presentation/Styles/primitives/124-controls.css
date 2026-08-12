@@ -1,0 +1,6 @@
+.doc-template-edit-details>summary{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  cursor:pointer;
+}

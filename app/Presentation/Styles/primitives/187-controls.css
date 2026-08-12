@@ -1,0 +1,5 @@
+body.scope-global .admin-clinic-detail-item small,
+body.scope-global .admin-clinic-manager-note small{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-label-small);
+}

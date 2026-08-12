@@ -1,0 +1,46 @@
+.collaborator-list-toolbar.patient-filter-chips{
+  margin-bottom:12px!important;
+}
+.ds-collaborator-list.ds-person-list{
+  display:grid!important;
+  gap:8px!important;
+}
+.collaborator-card-row.ds-collaborator-row-v31,
+.collaborator-card-row.ds-person-row.ds-collaborator-row-v31{
+  display:grid!important;
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:12px!important;
+  min-height:62px!important;
+  padding:12px!important;
+  border-radius:20px!important;
+  border-left:0!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-main{
+  display:grid!important;
+  gap:6px!important;
+  min-width:0!important;
+  color:inherit!important;
+  text-decoration:none!important;
+}
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-titleline{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  min-width:0!important;
+}
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-titleline strong{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-meta,
+.collaborator-card-row.ds-collaborator-row-v31 .collaborator-roles{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:6px 10px!important;
+  min-width:0!important;
+}

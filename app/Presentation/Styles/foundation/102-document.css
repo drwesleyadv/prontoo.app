@@ -1,0 +1,5 @@
+body.public[data-route="mfa"]{--pt-security-auth-max:560px}
+body.public[data-route="mfa"].has-top-shell .top{width:min(var(--pt-security-auth-max),calc(100% - max(24px,calc(var(--pt-safe-left,0px) + var(--pt-safe-right,0px) + 24px))))!important}
+body.public[data-route="mfa"].has-top-shell .top-actions{display:none!important}
+body.public[data-route="mfa"].has-top-shell main#conteudo{width:100%;place-items:start center!important;align-content:start!important;padding-block-start:clamp(12px,2.4vh,26px)!important}
+body.public[data-route="mfa"] .flash{width:min(var(--pt-security-auth-max),100%);margin-inline:auto!important}

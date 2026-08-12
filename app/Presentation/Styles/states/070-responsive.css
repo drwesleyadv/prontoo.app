@@ -1,0 +1,7 @@
+@media(max-width:640px){
+  .form-actions{
+    flex-direction:row;
+  }
+}
+
+

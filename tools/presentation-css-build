@@ -29,11 +29,13 @@ $equivalence = (array) ($manifest['delivery_equivalence'] ?? []);
 $budget = (array) ($manifest['visual_debt_budget'] ?? []);
 $sourceConsolidated = ($manifest['source_consolidated'] ?? false) === true;
 $publicationReady = ($manifest['publication_ready'] ?? false) === true;
+$semanticDecompositionComplete = ($manifest['semantic_decomposition_complete'] ?? false) === true;
+$cascadeBandCount = (int) ($manifest['cascade_band_count'] ?? -1);
 if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css' || $retiredArtifact !== 'public/assets/design-system.css') {
     fwrite(STDERR, "presentation-css-build: canonical paths changed\n");
     exit(1);
 }
-if (!$sourceConsolidated || !$publicationReady || $modules === [] || $ownershipOrder === []) {
+if (!$sourceConsolidated || !$publicationReady || !$semanticDecompositionComplete || $cascadeBandCount !== 0 || $modules === [] || $ownershipOrder === []) {
     fwrite(STDERR, "presentation-css-build: source consolidation incomplete\n");
     exit(1);
 }
@@ -71,6 +73,10 @@ foreach ($modules as $module) {
     }
     if (str_contains($relativePath, '..') || str_starts_with($relativePath, '/') || !str_ends_with($relativePath, '.css')) {
         fwrite(STDERR, "presentation-css-build: unsafe module path\n");
+        exit(1);
+    }
+    if (str_contains($relativePath, 'cascade-band') || !str_starts_with($relativePath, $layer . '/')) {
+        fwrite(STDERR, "presentation-css-build: semantic ownership path invalid\n");
         exit(1);
     }
     $modulePath = $root . '/' . $sourceRoot . '/' . $relativePath;

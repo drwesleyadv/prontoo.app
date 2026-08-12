@@ -1,0 +1,5 @@
+@media(max-width:680px){
+  body.scope-global .admin-alert-actions{display:none!important;}
+}
+
+

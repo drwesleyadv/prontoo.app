@@ -1,0 +1,17 @@
+body.scope-global .admin-clinics-list-card.clinic-attention-card{
+  padding:20px!important;
+  border-radius:32px!important;
+  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),var(--md-sys-color-surface-container-low));
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 72%,transparent);
+}
+body.scope-global .clinic-attention-head{
+  margin-bottom:16px!important;
+  padding:0;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+body.scope-global .clinic-attention-list{
+  display:grid;
+  gap:14px;
+}

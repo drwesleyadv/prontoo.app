@@ -1,0 +1,14 @@
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell){
+  border-radius:var(--md-sys-shape-corner-extra-large,28px);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);
+  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%));
+  box-shadow:var(--md-sys-elevation-level1);
+}
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > h2:first-child,
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > header:first-child h2{
+  margin:0 0 12px;
+  font:var(--md-sys-typescale-title-large);
+  font-weight:850;
+  letter-spacing:-.03em;
+  color:var(--md-sys-color-on-surface);
+}

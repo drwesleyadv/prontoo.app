@@ -1,0 +1,7 @@
+:where(.kpis,.stats-grid,.admin-grid,.manager-kpis,.reception-kpis,.notice-kpis,.finance-kpis,.procedure-kpis,.task-overview,.lead-overview,.patient-directory-overview,.global-telemetry-grid,.global-performance-charts,.timeline,.activity-timeline):empty{
+  display:none!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+}

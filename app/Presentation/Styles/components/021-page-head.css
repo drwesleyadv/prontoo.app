@@ -1,0 +1,2 @@
+:where(.pagehead,.profile-hero,.patient-profile-hero,.procedure-hero,.employee-hero,.finance-hero,.document-hero){gap:var(--pt-ds-gap-lg)}
+:where(.pagehead .actions,.pagehead-controls--actions,.cmdbar-actions,.patient-card-actions,.procedure-card-actions,.finance-drawer-actions,.agenda-item-actions,.manager-actions,.lead-actions,.task-actions,.notice-actions,.compact-actions){align-items:center;gap:var(--pt-ds-gap-xs)}

@@ -1,0 +1,1 @@
+.account-env-card .account-env-item-form.is-active .account-env-option,.account-env-card .account-env-option.active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset}

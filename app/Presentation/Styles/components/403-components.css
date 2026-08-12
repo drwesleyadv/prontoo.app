@@ -1,0 +1,3 @@
+.security-step-list li.is-current{color:var(--md-sys-color-on-primary-container);background:var(--md-sys-color-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,transparent)}
+.security-step-list li.is-current>span{color:var(--md-sys-color-on-primary);background:var(--md-sys-color-primary)}
+.security-step-list li>div{display:grid;gap:2px;min-width:0}

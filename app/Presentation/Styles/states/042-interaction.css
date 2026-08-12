@@ -1,0 +1,6 @@
+.manager-mini-grid > span:hover,.manager-procedure-list > span:hover,.finance-account-cards > article:hover{
+  background:color-mix(in srgb,var(--md-sys-color-primary) 6%,var(--md-sys-color-surface-container-lowest));
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));
+}
+
+

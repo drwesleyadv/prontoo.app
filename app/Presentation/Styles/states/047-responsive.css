@@ -1,0 +1,12 @@
+@media(max-width:720px){
+  body.scope-global .admin-grid-context{grid-template-columns:1fr!important;}
+  body.scope-global .global-pill-list{grid-template-columns:1fr 1fr!important;}
+  body.scope-global :where(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.metric-area-chart){border-radius:20px!important;}
+}
+@media(max-width:430px){
+  body.scope-global .global-pill-list{grid-template-columns:1fr!important;}
+  body.scope-global :where(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.metric-chart-title) > .material-symbols-rounded{width:36px!important;height:36px!important;min-width:36px!important;border-radius:13px!important;font-size:20px!important;}
+}
+
+
+

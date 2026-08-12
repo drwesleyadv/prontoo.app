@@ -1,0 +1,15 @@
+.cmdbar,
+.context-bar,
+.module-bar{
+  align-items:center!important;
+  gap:10px!important;
+}
+.card > h2,
+.card > header h2,
+.ds-card > h2,
+.panel-card > h2{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  line-height:1.15!important;
+}

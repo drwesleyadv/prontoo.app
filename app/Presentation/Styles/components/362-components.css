@@ -1,0 +1,56 @@
+.reception-pending > .material-symbols-rounded{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  color:var(--md-sys-color-primary);
+  background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));
+}
+.reception-pending span{
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+.reception-pending b{
+  grid-row:1 / span 2;
+  justify-self:end;
+  align-self:center;
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-title-medium);
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.reception-pending strong,
+.reception-pending small{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  padding-right:48px;
+}
+.reception-pending strong{
+  color:var(--md-sys-color-on-surface);
+  font:var(--md-sys-typescale-title-small);
+  font-weight:820;
+}
+.reception-pending small{
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-body-small);
+}
+.reception-flow{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+.reception-flow > span{
+  min-height:70px;
+  padding:12px;
+  border-radius:18px;
+  background:var(--md-sys-color-surface-container-low);
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);
+}
+.reception-flow > span b{
+  font-size:1.22rem;
+  line-height:1.24;
+  font-weight:900;
+}

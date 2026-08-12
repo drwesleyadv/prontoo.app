@@ -1,0 +1,14 @@
+:root{
+  --pt-module-patient:color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72);
+  --pt-module-agenda:color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7);
+  --pt-module-doc:#4f5f72;
+  --pt-module-finance:#6b5b2a;
+  --pt-module-task:#4d5b6c;
+  --pt-module-danger:#b3261e;
+  --pt-surface-glass:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent);
+  --pt-border-soft:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent);
+  --pt-border-strong:1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant));
+  --pt-row-hover:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest));
+}
+
+

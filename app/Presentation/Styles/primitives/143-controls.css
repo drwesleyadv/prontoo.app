@@ -1,0 +1,25 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft){
+  min-height:48px!important;
+  justify-content:flex-start!important;
+  padding:11px 12px!important;
+  border-radius:18px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-label-large)!important;
+  font-weight:820!important;
+  transition:background var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast),box-shadow var(--motion-fast),transform var(--motion-fast)!important;
+}
+body.scope-global dialog.clinic-actions-modal .clinic-menu-item .material-symbols-rounded,
+body.scope-global dialog.clinic-actions-modal .clinic-menu-form button:not(.primary):not(.danger):not(.danger-soft) .material-symbols-rounded{
+  width:34px!important;
+  height:34px!important;
+  flex:0 0 34px!important;
+  border-radius:14px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 9%,var(--md-sys-color-surface-container-lowest))!important;
+  color:var(--md-sys-color-primary)!important;
+}

@@ -1,0 +1,20 @@
+.cmdbar{
+  gap:8px!important;
+  scroll-behavior:smooth;
+  scroll-padding-inline:calc((100vw - 42px) / 2);
+  justify-content:flex-start!important;
+}
+.cmdbar .cmd{
+  width:42px!important;
+  min-width:42px!important;
+  max-width:42px!important;
+  height:38px!important;
+  padding-inline:0!important;
+  gap:0!important;
+  overflow:visible!important;
+}
+.cmdbar .cmd > span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+.cmdbar .cmd > small,
+.cmdbar .cmd > strong{
+  display:none!important;
+}

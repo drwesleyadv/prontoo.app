@@ -1,0 +1,7 @@
+.lead-search{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:10px!important;width:100%!important;}
+.lead-search .search-field{flex:1 1 auto!important;min-width:0!important;margin:0!important;}
+.lead-search .search-field input{width:100%!important;min-width:0!important;}
+.lead-search .primary{flex:0 0 auto!important;white-space:nowrap!important;}
+.lead-search .ds-search-help{display:none!important;}
+.activity-filter-panel{display:grid!important;gap:10px!important;margin-bottom:14px!important;}
+.activity-filter-chips,.activity-period-filter{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important;}

@@ -1,0 +1,22 @@
+@media(max-width:640px){
+  .seq-footer{
+    margin-top:18px;
+    padding-inline:max(12px,var(--pt-safe-left,0px)) max(12px,var(--pt-safe-right,0px));
+    padding-bottom:max(14px,var(--pt-safe-bottom,0px));
+  }
+  .seq-footer-chip{min-height:32px;padding:6px 10px;}
+  .seq-footer-code{font-size:.74rem;letter-spacing:.09em;}
+}
+@media(prefers-reduced-transparency:reduce){
+  .seq-footer-chip{background:var(--md-sys-color-surface-container-lowest);box-shadow:none;}
+}
+@media print{
+  .seq-footer{display:flex!important;justify-content:flex-end;margin-top:16px;padding:0;color:#444;}
+  .seq-footer-chip{box-shadow:none;border-color:#bbb;background:#fff;color:#222;}
+  .seq-footer-icon{color:#333;}
+}
+
+
+
+
+

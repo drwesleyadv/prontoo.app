@@ -1,0 +1,7 @@
+body.scope-global .admin-alert-screen .notice-empty{
+  display:grid;
+  justify-items:center;
+  gap:8px;
+  min-height:128px;
+  align-content:center;
+}

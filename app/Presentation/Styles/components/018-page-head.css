@@ -1,0 +1,23 @@
+:where(
+  .ds-filter-chip,
+  [data-ds-filter-chip],
+  .patient-filter-chip,
+  .lead-filter-chips > a,
+  .lead-filter-chips > button,
+  .notice-filter-chips > a,
+  .notice-filter-chips > button,
+  .task-filter,
+  .activity-filter-chip,
+  .activity-period-chip,
+  .role-permission-tab,
+  .admin-alert-filters > a,
+  .notice-gmail-filters > a,
+  .ds-notice-filters > a,
+  .permission-compact-toolbar > a,
+  .finance-pagehead-nav > a
+) :where(.material-symbols-rounded,.pt-icon-glyph){
+  font-size:18px!important;
+  line-height:1!important;
+  color:currentColor!important;
+  font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 20;
+}

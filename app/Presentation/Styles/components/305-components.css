@@ -1,0 +1,2 @@
+.permission-toggle-list-compact{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 0 0;border:0;background:transparent}
+.permission-toggle-compact{min-width:0;margin:0;border-radius:16px;padding:8px;gap:7px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 58%,transparent)}

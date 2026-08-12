@@ -1,0 +1,25 @@
+.doc-template-author-steps span{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:42px;
+  padding:8px 10px;
+  border-radius:16px;
+  background:var(--md-sys-color-surface-container-lowest);
+  border:var(--pt-border-soft);
+  color:var(--md-sys-color-on-surface-variant);
+  font:var(--md-sys-typescale-label-medium);
+  font-weight:800;
+}
+.doc-template-author-steps b{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  background:var(--md-sys-color-primary-container);
+  color:var(--md-sys-color-on-primary-container);
+  font:var(--md-sys-typescale-label-small);
+  font-weight:900;
+}

@@ -1,0 +1,9 @@
+body.scope-global .admin-tile b,
+body.scope-global .global-pill-title b{
+  letter-spacing:-.025em!important;
+}
+body.scope-global .admin-tile span,
+body.scope-global .global-compact-pill small,
+body.scope-global .stat-card small{
+  color:var(--md-sys-color-on-surface-variant)!important;
+}

@@ -1,0 +1,19 @@
+.lead-history.lead-history-compact article > span:first-child{
+  width:26px!important;
+  height:26px!important;
+  min-width:26px!important;
+  border-radius:10px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))!important;
+  color:var(--md-sys-color-primary)!important;
+}
+.lead-history.lead-history-compact article > span:first-child :where(.material-symbols-rounded,.pt-icon-glyph){
+  font-size:16px!important;
+  line-height:1!important;
+}
+.lead-history.lead-history-compact article > div{
+  min-width:0!important;
+  display:grid!important;
+  gap:2px!important;
+}

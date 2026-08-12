@@ -1,0 +1,4 @@
+.patient-directory-empty{
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+}

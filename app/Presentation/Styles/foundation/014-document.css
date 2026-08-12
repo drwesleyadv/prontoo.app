@@ -1,0 +1,7 @@
+body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
+  padding-block-end:0!important;
+}
+body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo{
+  min-height:auto!important;
+  padding-block-end:0!important;
+}

@@ -1,0 +1,4 @@
+@media(max-width:980px){.pagehead.has-operations{grid-template-columns:1fr}.pagehead-controls--navigation{justify-content:flex-start;width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:1px}.pagehead-controls--navigation::-webkit-scrollbar{display:none}.pagehead-controls--navigation .pagehead-control--nav{flex:0 0 auto}.pagehead-controls--actions{width:100%}}
+@media(max-width:640px){.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}
+
+

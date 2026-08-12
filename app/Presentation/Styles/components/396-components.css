@@ -1,0 +1,9 @@
+body.scope-global .admin-alert-kpis .notice-kpi-pending > :is(.material-symbols-rounded,.pt-icon-glyph){
+  color:var(--pt-color-warning);
+  background:var(--pt-color-warning-container);
+}
+body.scope-global .notice-filter-list-block.admin-alert-filter-list-block,
+body.scope-global .admin-alert-screen .notice-filter-list-block{
+  display:grid;
+  gap:14px;
+}

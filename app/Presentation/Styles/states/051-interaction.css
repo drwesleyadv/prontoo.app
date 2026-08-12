@@ -1,0 +1,6 @@
+body:not([data-route="appointments"]) .context-floating-pending-card:focus-visible,
+.pagehead-controls--navigation .pagehead-control--nav:focus-visible,
+.cmdbar .cmd:focus-visible{
+  outline:none!important;
+  box-shadow:var(--pt-focus-ring),var(--md-sys-elevation-level2)!important;
+}

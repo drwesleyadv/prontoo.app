@@ -1,0 +1,16 @@
+:root{
+  --pt-floating-edge-right:0px;
+  --pt-floating-edge-width:4px;
+  --pt-floating-left-safe-gap:12px;
+  --pt-floating-card-gap:8px;
+  --pt-floating-card-pad-x:10px;
+  --pt-floating-card-pad-y:7px;
+  --pt-floating-card-min-h:46px;
+  --pt-floating-card-icon:30px;
+  --pt-floating-attention-radius:17px;
+  --pt-floating-surface-line:color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62));
+  --pt-floating-surface-bg:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%));
+  --pt-floating-surface-bg-hover:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%));
+  --pt-floating-surface-shadow:0 14px 34px rgba(20,37,29,.14),0 2px 8px rgba(20,37,29,.07),0 1px 0 rgba(255,255,255,.74) inset;
+  --pt-floating-surface-shadow-hover:0 16px 38px rgba(20,37,29,.16),0 3px 10px rgba(20,37,29,.08),0 1px 0 rgba(255,255,255,.78) inset;
+}

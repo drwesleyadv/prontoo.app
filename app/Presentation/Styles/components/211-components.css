@@ -1,0 +1,13 @@
+body.public .signup-ds-offer-card h2,
+body.public .signup-ds-price-card strong{
+  margin:2px 0 4px;
+  font:var(--md-sys-typescale-title-large);
+  font-weight:900;
+  letter-spacing:-.025em;
+}
+body.public .signup-ds-offer-card p,
+body.public .signup-ds-price-card p{
+  margin:0;
+  color:inherit;
+  opacity:.86;
+}

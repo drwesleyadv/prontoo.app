@@ -1,0 +1,5 @@
+body.public .signup-ds-feature-grid .material-symbols-rounded,
+body.public .signup-ds-feature-grid .pt-icon-glyph{
+  grid-row:1 / span 2;
+  color:var(--md-sys-color-primary);
+}

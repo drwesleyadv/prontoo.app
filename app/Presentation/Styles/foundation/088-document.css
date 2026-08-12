@@ -1,0 +1,29 @@
+body.scope-global .admin-clinic-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+body.scope-global .admin-clinic-detail-item{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+  gap:10px;
+  min-width:0;
+  padding:12px;
+  border:var(--pt-border-soft);
+  border-radius:18px;
+  background:var(--md-sys-color-surface-container-low);
+}
+body.scope-global .admin-clinic-detail-item-icon{
+  width:36px;
+  height:36px;
+  border-radius:13px;
+}
+body.scope-global .admin-clinic-detail-item-icon .material-symbols-rounded{
+  font-size:20px;
+}
+body.scope-global .admin-clinic-detail-item > div{
+  display:grid;
+  min-width:0;
+  gap:2px;
+}

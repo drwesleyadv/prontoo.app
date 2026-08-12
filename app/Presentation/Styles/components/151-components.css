@@ -1,0 +1,5 @@
+body.public[data-route="login"] .login-boot,
+body.public[data-route="login"] .login-lock-panel,
+body.public[data-route="login"] .flash.warn{
+  margin:0!important;
+}

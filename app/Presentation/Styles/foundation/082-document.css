@@ -1,0 +1,6 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-panel-title{
+  padding:0 2px 2px!important;
+  gap:8px!important;
+  font:var(--md-sys-typescale-label-large)!important;
+  font-weight:880!important;
+}

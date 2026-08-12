@@ -1,0 +1,6 @@
+.patient-panel-atendimentos .patient-reception-history{display:grid;gap:8px}
+.patient-panel-atendimentos .patient-reception-history .timeline{display:grid;gap:8px;padding:0;background:transparent;border:0}
+.patient-panel-atendimentos .patient-reception-history .titem.patient-reception-event.patient-reception-story{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:flex-start;padding:10px 12px;border-radius:16px;background:var(--md-sys-color-surface-container-low,var(--surface-container-low,#f8fafc));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant,var(--outline-variant,#e2e8f0)) 84%,transparent);box-shadow:none}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-story .dot{width:30px;height:30px;border-radius:12px;background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary,#166534)) 10%,var(--md-sys-color-surface-container-lowest,#fff));color:var(--clinic-accent-strong,var(--md-sys-color-primary,#166534));display:inline-flex;align-items:center;justify-content:center;margin:0}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-story .dot .material-symbols-rounded{font-size:18px;line-height:1}
+.patient-panel-atendimentos .patient-reception-history .patient-reception-story>div{min-width:0;display:grid;gap:3px}

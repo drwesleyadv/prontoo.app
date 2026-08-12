@@ -1,0 +1,8 @@
+.doc-print-page .doc-print-content,
+.doc-print-page .doc-print-main,
+.doc-a4 .doc-a4-main{margin:0!important}
+.doc-a4-preview .doc-print-page{min-height:auto!important;aspect-ratio:210/297}
+.doc-a4-preview .doc-print-content{min-height:auto!important}
+
+
+

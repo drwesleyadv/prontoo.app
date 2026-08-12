@@ -1,0 +1,44 @@
+@media(max-width:620px){
+  body.scope-global dialog.clinic-actions-modal{
+    width:calc(100vw - 18px)!important;
+    max-height:calc(100dvh - 18px)!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
+    max-height:calc(100dvh - 18px)!important;
+    padding:12px!important;
+    border-radius:28px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-head{
+    min-height:68px!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    padding:10px!important;
+    border-radius:22px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-head-icon{
+    width:40px!important;
+    height:40px!important;
+    border-radius:16px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-close{
+    width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-title b{
+    font:var(--md-sys-typescale-title-small)!important;
+    font-weight:900!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-section,
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-panel{
+    padding:10px!important;
+    border-radius:22px!important;
+  }
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-billing .form-actions,
+  body.scope-global dialog.clinic-actions-modal .clinic-menu-billing .form-actions .primary{
+    width:100%!important;
+  }
+}
+
+
+

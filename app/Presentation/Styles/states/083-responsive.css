@@ -1,0 +1,14 @@
+@media(max-width:760px){
+  .doc-model-search{display:grid;align-items:stretch;grid-template-columns:1fr}
+  .doc-model-search button,.doc-model-search a{width:100%;justify-content:center}
+  .doc-ds-row,.doc-issued-row,.doc-model-row{grid-template-columns:auto minmax(0,1fr);align-items:start;border-radius:18px!important}
+  .doc-ds-row-actions,.doc-issued-actions,.doc-model-create{grid-column:1/-1;justify-content:stretch!important;width:100%!important}
+  .doc-ds-row-actions>a,.doc-ds-row-actions>button,.doc-ds-row-actions form,.doc-issued-actions>a,.doc-model-create button{flex:1 1 auto;justify-content:center;width:100%}
+  .doc-ds-row-icon,.doc-history-icon.doc-ds-row-icon{width:38px!important;height:38px!important;border-radius:14px!important}
+  .doc-issued-card.ds-filter-list-block,.doc-create-card.ds-filter-list-block,.doc-templates-card.ds-filter-list-block{padding:12px;border-radius:22px}
+  .doc-ds-section-head{display:grid;gap:10px}
+  .doc-ds-section-head>a{justify-self:start}
+  .doc-ds-metric-copy small{white-space:normal}
+}
+
+

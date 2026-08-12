@@ -1,0 +1,8 @@
+@media(max-width:640px){
+  .clinic-actions-menu,.clinic-menu-billing{position:fixed;left:max(12px,var(--pt-safe-left));right:max(12px,var(--pt-safe-right));top:calc(var(--top-h) + 8px);min-width:0;width:auto}
+  
+  .brand b,.brand small,.tenant{max-width:calc(100dvw - 168px)}
+  .top-actions{gap:6px}.top-icon,.notify-link,.logout,.logout-icon{min-width:40px;height:40px;padding-inline:10px}
+}
+
+

@@ -1,0 +1,5 @@
+.patient-tab-icon-symbol-grid .patient-health-icon-only input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}

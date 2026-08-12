@@ -1,0 +1,6 @@
+.pagehead-controls{display:flex;align-items:center;min-width:0}
+.pagehead-controls--actions{justify-content:flex-end;gap:var(--pt-pagehead-control-gap);flex-wrap:wrap}
+.pagehead-controls--navigation{justify-content:flex-end;gap:var(--pt-pagehead-operation-gap);flex-wrap:wrap;padding:4px;border-radius:20px;background:color-mix(in srgb,var(--pt-pagehead-control-accent) 3%,var(--md-sys-color-surface-container-low))}
+.pagehead-control{min-height:var(--pt-pagehead-control-height);display:inline-flex;align-items:center;justify-content:center;gap:var(--pt-pagehead-control-gap);padding:var(--pt-pagehead-control-padding-block) var(--pt-pagehead-control-padding-inline);border:1px solid transparent;border-radius:var(--pt-pagehead-control-radius);font:var(--pt-pagehead-control-font);font-weight:var(--pt-pagehead-control-weight);line-height:1;white-space:nowrap;text-decoration:none;box-shadow:none;transition:background var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast),box-shadow var(--motion-fast)}
+.pagehead-control :is(.material-symbols-rounded,.pt-icon-glyph){font-size:var(--pt-pagehead-control-icon-size);line-height:1;flex:0 0 auto}
+.pagehead-control--primary{background:var(--pt-pagehead-control-accent);color:var(--pt-pagehead-control-on-accent);border-color:transparent;box-shadow:0 1px 2px rgba(0,0,0,.06)}

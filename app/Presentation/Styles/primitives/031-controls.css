@@ -1,0 +1,1 @@
+.doc-print-card,.doc-form,.doc-draft-card,.doc-template-new-card,.doc-create-card,.doc-template-card,.doc-model-row,.procedure-form,.procedure-form-refined,.procedure-summary,.procedure-edit-details{display:grid;gap:12px;padding:16px;border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}

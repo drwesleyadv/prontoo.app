@@ -1,0 +1,11 @@
+:where(.card,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(.form-actions,.compact-actions,.finance-action-row,.manager-actions,.patient-card-actions):last-child{
+  margin-block-start:var(--pt-card-section-gap)!important;
+}
+
+
+
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
+  border-radius:0 20px 20px 0!important;
+  border-left:var(--pt-card-strip-width) solid color-mix(in srgb,var(--md-sys-color-primary) 70%,var(--md-sys-color-outline-variant))!important;
+  padding-inline-start:14px!important;
+}

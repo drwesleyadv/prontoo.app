@@ -1,0 +1,19 @@
+body.has-seq-footer[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .ds-fixed-agenda-kpis,
+body.has-seq-footer[data-route="appointments"] > .agenda-floating-kpis{
+  position:fixed!important;
+  top:auto!important;
+  left:auto!important;
+  right:max(4px,var(--pt-safe-right,0px))!important;
+  bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+  width:var(--agenda-floating-w,max-content)!important;
+  min-width:0!important;
+  max-width:min(360px,calc(100dvw - 8px))!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  justify-items:stretch!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:0!important;
+  pointer-events:none!important;
+  transform:none!important;
+}

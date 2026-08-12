@@ -1,0 +1,3 @@
+body.public[data-route="login"] .top .top-actions>a.ghost[href*="r=login"]{
+  display:none!important;
+}

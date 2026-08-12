@@ -1,0 +1,4 @@
+:where(h1,h2,h3,h4,h5,h6,p,ul,ol,dl,figure,blockquote,fieldset):last-child,
+:where(.card,.widebox,.auth,.login-card,.signup-card,.credential-shell,.pagehead,.onboarding-tip-card,.billing-banner,.subscription-note,.flash,.empty,.empty-state,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],section,article,form,details,header,footer) > :last-child{
+  margin-block-end:0!important;
+}

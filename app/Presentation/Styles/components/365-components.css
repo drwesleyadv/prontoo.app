@@ -1,0 +1,11 @@
+.cash-drawer-card .cash-drawer-metric b{
+  font-size:1.08rem;
+  line-height:1.25;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.finance-lite-form{
+  display:grid;
+  gap:12px;
+  max-width:980px;
+}

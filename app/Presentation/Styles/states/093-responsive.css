@@ -1,0 +1,11 @@
+@media(max-width:620px){
+  
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
+  body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
+    max-height:calc(100dvh - 18px)!important;
+    border-radius:24px!important;
+    padding:12px!important;
+  }
+}
+
+

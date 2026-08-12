@@ -1,0 +1,14 @@
+.clinic-appearance-card.card{padding:0;background:transparent;border:0;box-shadow:none;}
+.clinic-appearance-form{gap:16px;}
+.settings-appearance{display:grid;gap:18px;padding:18px;border-radius:28px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);box-shadow:var(--md-sys-elevation-level1);}
+.settings-section-head{display:flex;align-items:flex-start;gap:12px;min-width:0;}
+.settings-section-icon{width:46px;height:46px;border-radius:18px;display:inline-flex;align-items:center;justify-content:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent);flex:0 0 auto;}
+.settings-section-icon .pt-icon-glyph{font-size:25px;}
+.settings-section-head h2{margin:0;font:var(--md-sys-typescale-title-large);font-weight:900;color:var(--md-sys-color-on-surface);}
+.settings-section-head .field-help{margin:4px 0 0;max-width:780px;}
+.clinic-appearance-preview{display:flex;align-items:center;gap:14px;min-width:0;padding:16px;border-radius:26px;background:linear-gradient(135deg,color-mix(in srgb,var(--appearance-accent) 12%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest));border:1px solid color-mix(in srgb,var(--appearance-accent) 20%,var(--md-sys-color-outline-variant));box-shadow:var(--md-sys-elevation-level1);}
+.clinic-appearance-mark{width:62px;height:62px;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--appearance-accent);color:var(--appearance-on-accent);box-shadow:0 12px 24px color-mix(in srgb,var(--appearance-accent-dark) 24%,transparent);flex:0 0 auto;}
+.clinic-appearance-mark .pt-icon-glyph{font-size:34px;}
+.clinic-appearance-copy{display:grid;gap:2px;min-width:0;flex:1;}
+.clinic-appearance-copy strong{font:var(--md-sys-typescale-title-medium);font-weight:900;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.clinic-appearance-copy small{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);}

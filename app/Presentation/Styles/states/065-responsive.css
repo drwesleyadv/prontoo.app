@@ -1,0 +1,15 @@
+@media(max-width:760px){
+  body.public .signup-ds-shell{padding:20px;border-radius:26px;}
+  body.public .signup-ds-hero{align-items:center;}
+  body.public .signup-ds-hero p{font-size:.92rem;}
+  body.public .signup-ds-stepper{grid-template-columns:1fr;}
+  body.public .signup-ds-layout,
+  body.public .signup-ds-feature-grid,
+  body.public .signup-ds-grid.two,
+  body.public .signup-ds-grid{grid-template-columns:1fr;}
+  body.public .signup-ds-actions{justify-content:stretch;}
+  body.public .signup-ds-actions > *{flex:1 1 auto;}
+}
+
+
+

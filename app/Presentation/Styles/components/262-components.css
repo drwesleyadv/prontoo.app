@@ -1,0 +1,15 @@
+.doc-ds-row,
+.doc-issued-row,
+.doc-model-row{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  min-height:72px;
+  padding:12px!important;
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.72) inset!important;
+  transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast),transform var(--motion-fast);
+}

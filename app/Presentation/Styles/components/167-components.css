@@ -1,0 +1,3 @@
+.patient-search-bar,.lead-search{display:flex!important;align-items:center!important;gap:10px!important;width:100%!important;}
+.patient-search-bar .search-field,.lead-search .search-field{flex:1 1 auto!important;min-width:0!important;margin:0!important;}
+.patient-search-bar .search-field input,.lead-search .search-field input{width:100%!important;}

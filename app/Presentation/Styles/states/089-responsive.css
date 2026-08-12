@@ -1,0 +1,18 @@
+@media print{
+  html,body{width:210mm;min-height:297mm;background:#fff!important}
+  .document-print main.doc-a4{
+    width:210mm!important;
+    min-height:297mm!important;
+    padding:30mm 20mm 30mm 20mm!important;
+    margin:0!important;
+    box-shadow:none!important;
+    border:0!important;
+  }
+  .doc-a4-preview-label{display:none!important}
+}
+@media(max-width:760px){
+  .doc-a4-preview-frame{min-width:100%}
+  .doc-print-page{width:100%!important;min-height:auto;aspect-ratio:auto;padding:22px!important;border-radius:18px!important;overflow:visible}
+  .doc-a4-preview-label{display:none}
+  .doc-print-content{min-height:auto;font-size:1rem}
+}

@@ -1,0 +1,13 @@
+body.scope-clinic .top .brand{
+  gap:10px!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+body.scope-clinic .top .brand b{
+  display:block!important;
+  max-width:min(48vw,360px)!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}

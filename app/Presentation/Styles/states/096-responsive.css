@@ -1,0 +1,18 @@
+@media(max-width:1100px){
+  .procedures-ds-screen .procedure-ds-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:900px){
+  .settings-data-grid{grid-template-columns:1fr;}
+  .settings-ds-panel{padding:16px;}
+  .sector-card-top,
+  .clinic-appearance-preview,
+  .settings-ds-assinatura .subscription-hero-main,
+  .settings-ds-assinatura .subscription-payment-head,
+  .settings-ds-assinatura .subscription-checkout-head{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+  .sector-card-chip,
+  .clinic-appearance-chip{display:none;}
+  .settings-ds-assinatura .subscription-pix-copy{grid-template-columns:auto minmax(0,1fr);}
+  .settings-ds-assinatura .pix-key-value{grid-column:1 / -1;justify-self:start;}
+}

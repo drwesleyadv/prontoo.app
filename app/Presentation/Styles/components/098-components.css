@@ -1,0 +1,6 @@
+body.has-seq-footer:not([data-route="appointments"]) main#conteudo :where(.page-fill,.fill-page,.full-height,.min-vh,.min-screen,[style*="100vh"],[style*="100dvh"],[style*="100svh"]){
+  min-height:auto!important;
+}
+
+
+

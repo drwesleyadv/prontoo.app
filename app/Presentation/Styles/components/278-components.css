@@ -1,0 +1,39 @@
+.doc-print-page,
+.doc-a4{
+  padding:30mm 20mm 30mm 20mm!important;
+  position:relative!important;
+}
+.doc-print-content,
+.doc-a4-main{
+  min-height:calc(297mm - 60mm)!important;
+}
+.doc-print-footer{
+  position:absolute!important;
+  right:20mm!important;
+  bottom:15mm!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  width:auto!important;
+  max-width:calc(100% - 40mm)!important;
+  margin:0!important;
+  padding:0!important;
+}
+.doc-print-identifier{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  width:max-content!important;
+  max-width:100%!important;
+  color:#39423b!important;
+  background:transparent!important;
+  border:0!important;
+  padding:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;
+  font-size:8pt!important;
+  line-height:1!important;
+  font-weight:500!important;
+  letter-spacing:.02em!important;
+  white-space:nowrap!important;
+}

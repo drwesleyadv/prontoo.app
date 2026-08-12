@@ -1,0 +1,6 @@
+body.scope-global :where(.admin-tile,.global-compact-pill,.stat-link):hover{
+  transform:translateY(-1px)!important;
+  background:linear-gradient(180deg,#ffffff,#f1faf4)!important;
+  border-color:rgba(45,111,85,.22)!important;
+  box-shadow:0 16px 38px rgba(26,62,43,.075),0 1px 0 rgba(255,255,255,.76) inset!important;
+}

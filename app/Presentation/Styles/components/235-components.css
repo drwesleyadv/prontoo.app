@@ -1,0 +1,1 @@
+.patient-data-list{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.patient-data-list>div{display:grid;gap:4px;min-height:66px;padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 80%,transparent)}

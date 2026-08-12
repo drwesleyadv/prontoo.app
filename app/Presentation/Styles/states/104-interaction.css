@@ -1,0 +1,1 @@
+:where(.ds-person-row,.patient-card-row,.finance-row,.activity-row,.notice-row,.task-row,.procedure-row,.creditor-row,.employee-row):hover{background:var(--pt-ds-surface-hover);border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant));transform:translateY(-1px)}

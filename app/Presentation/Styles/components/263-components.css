@@ -1,0 +1,28 @@
+.doc-ds-row-icon,
+.doc-history-icon.doc-ds-row-icon{
+  width:42px!important;
+  height:42px!important;
+  border-radius:16px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  color:var(--clinic-accent-strong,var(--md-sys-color-primary))!important;
+  background:color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 10%,var(--md-sys-color-surface-container-lowest))!important;
+  border:1px solid color-mix(in srgb,var(--clinic-accent-strong,var(--md-sys-color-primary)) 12%,transparent)!important;
+  flex:0 0 auto;
+}
+.doc-ds-row-main{display:grid;gap:6px;min-width:0}
+.doc-ds-row-title,
+.doc-issued-title{
+  display:flex!important;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  color:var(--md-sys-color-on-surface)!important;
+  font:var(--md-sys-typescale-title-small)!important;
+  font-weight:850!important;
+  line-height:1.25;
+}
+.doc-ds-row-title>span:last-child,
+.doc-issued-title>span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-ds-row-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}

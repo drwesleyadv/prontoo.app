@@ -1,0 +1,8 @@
+body.scope-global :where(.admin-tile,.stat-card,.global-compact-summary,.global-compact-pill,.metric-area-chart,.settings-section,.card,.clinic-menu-panel,.patient-compact-list.clinic-admin-table,.patient-row.clinic-admin-row){
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(248,253,249,.88))!important;
+  border:1px solid rgba(154,190,166,.46)!important;
+  box-shadow:0 12px 32px rgba(26,62,43,.055),0 1px 0 rgba(255,255,255,.72) inset!important;
+}
+body.scope-global :where(.admin-tile,.global-compact-pill,.stat-link){
+  transition:transform var(--motion-fast),background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast)!important;
+}

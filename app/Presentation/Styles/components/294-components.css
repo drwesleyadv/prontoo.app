@@ -1,0 +1,2 @@
+.procedure-ds-card .procedure-meta span{border-radius:999px;background:var(--md-sys-color-surface-container-high);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent);}
+.procedure-ds-card .procedure-edit-details{grid-column:1/-1;background:var(--md-sys-color-surface-container-lowest);}

@@ -1,0 +1,7 @@
+body:not(.public):not([data-route="appointments"]) main#conteudo:empty{
+  display:none!important;
+  padding:0!important;
+  margin:0!important;
+  min-height:0!important;
+}
+

@@ -1,0 +1,20 @@
+@media(max-width:720px){
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
+    right:12px!important;
+    bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+    min-height:var(--pt-floating-card-min-h,42px)!important;
+    padding:var(--pt-floating-card-pad-y,5px) var(--pt-floating-card-pad-x,7px)!important;
+    gap:var(--pt-floating-card-gap,4px)!important;
+  }
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card .agenda-floating-icon{
+    width:var(--pt-floating-card-icon,26px)!important;
+    height:var(--pt-floating-card-icon,26px)!important;
+    min-width:var(--pt-floating-card-icon,26px)!important;
+    font-size:18px!important;
+  }
+  body:not(.has-floating-pending) .floating-clock.context-floating-clock-card b{font-size:.78rem!important;}
+}
+
+
+
+

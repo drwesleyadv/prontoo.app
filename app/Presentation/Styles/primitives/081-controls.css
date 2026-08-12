@@ -1,0 +1,12 @@
+.subscription-step span{
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  flex:0 0 28px;
+  border-radius:999px;
+  background:var(--md-sys-color-primary-container);
+  color:var(--md-sys-color-primary);
+  font:var(--md-sys-typescale-label-large);
+  font-weight:900;
+}

@@ -1,0 +1,4 @@
+.collaborator-list-toolbar.patient-filter-chips{align-items:center;gap:8px;padding:0;}
+.collaborator-directory-card.patient-directory-card{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);}
+.collaborator-directory-list.patient-directory-list{gap:7px;}
+.collaborator-card-row.ds-collaborator-row{min-height:62px;padding:9px 11px;border-radius:17px;background:var(--md-sys-color-surface-container-lowest);}

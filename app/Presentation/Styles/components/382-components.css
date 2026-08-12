@@ -1,0 +1,4 @@
+.agenda-day-note-card{display:flex;align-items:center;gap:12px;}
+.agenda-day-note-copy{flex:1 1 auto;min-width:0;}
+.agenda-day-note-side{margin-left:auto;display:inline-flex;align-items:center;justify-content:flex-end;min-width:max-content;align-self:center;}
+.agenda-day-note-delete{margin:0;display:inline-flex;align-items:center;}

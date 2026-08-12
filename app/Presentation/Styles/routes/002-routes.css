@@ -1,0 +1,17 @@
+@media(max-width:640px){
+  body[data-route="settings"] .pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph),
+  body[data-route="procedures"] .pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:inline}
+  body[data-route="settings"] .pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]),
+  body[data-route="procedures"] .pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:auto}
+  .settings-ds-head{grid-template-columns:1fr;}
+  .settings-ds-icon{margin-bottom:2px;}
+  .settings-ds-panel{padding:14px;}
+  .settings-ds-panel::before{inset:auto 14px 0 14px;width:auto;height:3px;}
+  .settings-ds-actions .primary,
+  .procedures-ds-create .procedure-ds-form > .form-actions .primary{width:100%;min-width:0;margin-left:0;}
+  .procedures-ds-screen .procedure-ds-kpis{grid-template-columns:1fr;}
+  .procedure-ds-card{grid-template-columns:1fr;}
+  .procedure-card-actions{justify-content:stretch;}
+  .procedure-card-actions .procedure-toggle,
+  .procedure-card-actions button{width:100%;justify-content:center;}
+}

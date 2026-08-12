@@ -1,0 +1,15 @@
+body.scope-global dialog.clinic-actions-modal .clinic-menu-title small{
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-body-small)!important;
+  font-weight:760!important;
+}
+body.scope-global dialog.clinic-actions-modal .clinic-actions-close{
+  width:42px!important;
+  height:42px!important;
+  min-height:42px!important;
+  border-radius:16px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)!important;
+  transition:background var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast),box-shadow var(--motion-fast)!important;
+}

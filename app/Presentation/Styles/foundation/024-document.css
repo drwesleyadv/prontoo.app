@@ -1,0 +1,10 @@
+body.has-seq-footer[data-route="appointments"] .agenda-floating-card,
+body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"]{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  justify-content:stretch!important;
+  justify-items:stretch!important;
+  text-align:left!important;
+}

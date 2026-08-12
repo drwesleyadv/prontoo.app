@@ -1,0 +1,2 @@
+.doc-stage-icon{width:42px;height:42px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}
+.doc-stage-copy{display:grid;gap:2px;min-width:0}.doc-stage-copy strong{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.doc-stage-copy small{font:var(--md-sys-typescale-body-small);line-height:1.32;color:var(--md-sys-color-on-surface-variant)}

@@ -1,0 +1,32 @@
+:where(.ds-search-card){
+  display:block;
+}
+:where(.ds-search-card) :where(form,.ds-search-block){
+  margin:0;
+}
+:where(.ds-search-card) :where(form){
+  width:100%;
+}
+:where(.ds-filter-list-block){
+  display:flex;
+  flex-direction:column;
+  gap:clamp(12px,2.2vw,18px);
+}
+:where(.ds-filter-list-block) > :where(nav,.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.activity-filter-panel,.ds-selection-chips){
+  margin:0;
+}
+:where(.ds-filter-list-block) :where(.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.activity-period-filter){
+  width:100%;
+}
+:where(.ds-filter-list-block) :where(.patient-directory-list,.lead-list,.task-board,.notice-list,.activity-timeline,.procedure-list,.doc-history-list){
+  margin-top:0;
+}
+:where(.notice-filter-list-block.ds-filter-list-block){
+  margin-top:clamp(12px,2vw,16px);
+}
+:where(.activity-screen-card.ds-filter-list-block) .activity-filter-panel{
+  margin-bottom:0;
+}
+:where(.patient-search-card.ds-search-card,.lead-search-card.ds-search-card,.task-search-card.ds-search-card,.doc-search-primary.ds-search-card){
+  padding:clamp(14px,2.6vw,20px);
+}

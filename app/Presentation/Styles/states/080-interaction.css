@@ -1,0 +1,3 @@
+.doc-editor:focus{
+  box-shadow:0 0 0 3px var(--md-sys-color-primary-container);
+}

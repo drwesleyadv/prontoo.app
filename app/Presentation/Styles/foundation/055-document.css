@@ -1,0 +1,9 @@
+body.scope-global .admin-clinics-list-card.clinic-attention-card{
+  padding:18px!important;
+}
+body.scope-global .clinic-attention-head{
+  margin-bottom:14px!important;
+}
+body.scope-global .clinic-attention-head > div:first-child{
+  max-width:880px;
+}

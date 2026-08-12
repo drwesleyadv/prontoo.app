@@ -1,0 +1,11 @@
+body.scope-global .admin-clinic-action-block,
+body.scope-global .admin-clinic-billing-panel{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:18px;
+  padding:16px;
+  border:var(--pt-border-soft);
+  border-radius:20px;
+  background:var(--md-sys-color-surface-container-low);
+}

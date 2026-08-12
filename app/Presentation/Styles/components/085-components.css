@@ -1,0 +1,18 @@
+.seq-footer-icon{
+  width:18px;
+  height:18px;
+  display:inline-grid!important;
+  place-items:center;
+  flex:0 0 auto;
+  color:var(--md-sys-color-primary);
+  font-size:18px!important;
+  font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 20;
+}
+.seq-footer-code{
+  min-width:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  font-size:.78rem;
+  line-height:1;
+  letter-spacing:.105em;
+  color:var(--md-sys-color-on-surface);
+}

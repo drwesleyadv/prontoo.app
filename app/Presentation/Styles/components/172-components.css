@@ -1,0 +1,6 @@
+.activity-filter-chip.active,.activity-period-chip.active{background:var(--md-sys-color-primary-container)!important;color:var(--md-sys-color-on-primary-container)!important;border-color:transparent!important;}
+.activity-date-dialog{width:min(420px,calc(100vw - 28px));border:0;border-radius:24px;padding:0;background:var(--md-sys-color-surface-container-lowest);box-shadow:0 24px 80px rgba(15,23,42,.24);}
+.activity-date-dialog::backdrop{background:rgba(15,23,42,.34);backdrop-filter:blur(2px);}
+.activity-date-form{display:grid;gap:14px;padding:18px;}
+.activity-date-form header{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.activity-date-form header strong{font:var(--md-sys-typescale-title-medium);font-weight:900;}

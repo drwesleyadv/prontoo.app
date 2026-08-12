@@ -1,0 +1,15 @@
+body.public .signup-ds-stepper li.is-complete{
+  background:color-mix(in srgb,var(--md-sys-color-primary-container) 55%,#fff);
+  border-color:color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent);
+}
+body.public .signup-ds-form{
+  display:grid;
+  gap:16px;
+}
+body.public .signup-ds-step{
+  display:grid !important;
+  gap:16px;
+  padding:0;
+  border:0;
+  background:transparent;
+}

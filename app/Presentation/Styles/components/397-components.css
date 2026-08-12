@@ -1,0 +1,5 @@
+body.scope-global .admin-alert-scope-help :is(.material-symbols-rounded,.pt-icon-glyph){
+  margin-top:1px;
+  color:var(--md-sys-color-primary);
+  font-size:18px;
+}

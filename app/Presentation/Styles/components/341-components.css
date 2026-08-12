@@ -1,0 +1,66 @@
+.procedure-directory-screen{
+  gap:clamp(12px,2vw,16px);
+}
+.procedures-search-card.patient-search-card.ds-search-card{
+  padding:clamp(14px,2.4vw,18px)!important;
+}
+.procedure-search-bar.patient-search-bar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:10px;
+}
+.procedure-list-card.patient-directory-card{
+  padding:clamp(14px,2.4vw,18px)!important;
+  border-radius:28px!important;
+  background:var(--md-sys-color-surface-container-low)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)!important;
+}
+.procedures-ds-list .procedure-list-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  margin-bottom:12px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+.procedures-ds-list .procedure-list-head h2{
+  margin:0!important;
+  font:var(--md-sys-typescale-title-medium)!important;
+  font-weight:850!important;
+  letter-spacing:-.02em!important;
+  color:var(--md-sys-color-on-surface)!important;
+}
+.procedures-ds-list .procedure-list-head p{
+  margin:3px 0 0!important;
+  color:var(--md-sys-color-on-surface-variant)!important;
+  font:var(--md-sys-typescale-body-small)!important;
+}
+.procedure-list.ds-person-list{
+  display:grid!important;
+  gap:8px!important;
+  margin:0!important;
+  padding:0!important;
+}
+.procedure-row.ds-person-row{
+  grid-template-columns:44px minmax(0,1fr) auto!important;
+  min-height:68px!important;
+  padding:10px 12px!important;
+  border-radius:20px!important;
+  background:var(--md-sys-color-surface-container-lowest)!important;
+}
+.procedure-row.ds-person-row::before{
+  background:var(--md-sys-color-primary)!important;
+}
+.procedure-row.patient-status-warn::before{
+  background:var(--md-sys-color-outline)!important;
+}
+.procedure-row .ds-person-title{
+  gap:7px!important;
+  flex-wrap:nowrap!important;
+}
+.procedure-row .ds-person-title strong{
+  max-width:min(42vw,520px)!important;
+}

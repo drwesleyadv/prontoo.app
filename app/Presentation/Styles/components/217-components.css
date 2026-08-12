@@ -1,0 +1,27 @@
+.patient-card-title .patient-schedule-pill,
+.patient-schedule-pill{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-height:28px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))!important;
+  color:var(--md-sys-color-primary)!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent)!important;
+  font-weight:700!important;
+  font-size:.82rem!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  flex:0 0 auto!important;
+}
+.patient-schedule-pill .material-symbols-rounded,
+.patient-schedule-pill .pt-icon-glyph{
+  font-size:17px!important;
+  line-height:1!important;
+}
+.patient-card-title{
+  align-items:center!important;
+  gap:8px!important;
+}

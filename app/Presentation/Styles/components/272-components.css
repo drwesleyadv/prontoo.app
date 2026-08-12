@@ -1,0 +1,13 @@
+:where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search){
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  width:100%;
+  margin:0;
+}
+:where(.ds-search-shell,.patient-search-bar,.lead-search,.task-search,.doc-model-search) :where(label,.search-field){
+  flex:1 1 240px;
+  min-width:0;
+  margin:0;
+}

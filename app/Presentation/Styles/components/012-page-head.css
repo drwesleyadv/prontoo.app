@@ -1,0 +1,2 @@
+.pagehead.has-operations{grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
+.pagehead-controls--navigation{display:flex;align-items:center;justify-content:flex-end;gap:var(--pt-pagehead-operation-gap);flex-wrap:wrap;min-width:0}

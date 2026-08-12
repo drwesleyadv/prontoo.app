@@ -1,0 +1,26 @@
+@media(max-width:1180px){
+  body.scope-global .clinic-attention-item.ds-clinic-list-item{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:"identity action" "status status" "meta meta"!important;
+    align-items:start!important;
+  }
+  body.scope-global .ds-clinic-list-status{display:flex!important;align-items:center;flex-wrap:wrap;}
+  body.scope-global .ds-clinic-row-meta-chip{max-width:none;}
+}
+@media(max-width:680px){
+  body.scope-global .clinic-attention-item.ds-clinic-list-item{
+    grid-template-columns:1fr!important;
+    grid-template-areas:"identity" "status" "meta" "action"!important;
+    padding:13px!important;
+  }
+  body.scope-global .ds-clinic-row-meta{display:grid;grid-template-columns:1fr 1fr;width:100%;}
+  body.scope-global .ds-clinic-row-meta-chip{width:100%;}
+  body.scope-global .ds-clinic-list-item .clinic-attention-actions,
+  body.scope-global .ds-clinic-list-item .clinic-actions-dropdown,
+  body.scope-global .ds-clinic-list-item .clinic-actions-summary{width:100%;justify-content:center;}
+}
+@media(max-width:440px){
+  body.scope-global .ds-clinic-row-meta{grid-template-columns:1fr;}
+}
+
+
