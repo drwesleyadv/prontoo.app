@@ -9,7 +9,7 @@ if count != 2:
     raise SystemExit(f'expected 2 bridge selector anchors, found {count}')
 source = source.replace(old, new)
 anchor = "css = re.sub(r'([^{}]+)\\{([^{}]*)\\}', strip_obsolete_nav_rule, css)\n\nprimitive_css = r'''"
-insert = r'''css = re.sub(r'([^{}]+)\{([^{}]*)\}', strip_obsolete_nav_rule, css)
+insert = r"""css = re.sub(r'([^{}]+)\{([^{}]*)\}', strip_obsolete_nav_rule, css)
 
 # Route adapters may retain layout (width/flex/overflow), never control identity.
 def strip_route_control_identity(match):
@@ -17,8 +17,8 @@ def strip_route_control_identity(match):
     declarations = match.group(2)
     if 'body[data-route=' not in selector or '.pagehead-control' not in selector:
         return match.group(0)
-    identity = r'(?:(?<=^)|(?<=;))\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:[^;{}]+;?'
-    cleaned = re.sub(identity, '', declarations, flags=re.I)
+    identity = r'(^|;)\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:[^;{}]+;?'
+    cleaned = re.sub(identity, lambda m: m.group(1), declarations, flags=re.I)
     cleaned = re.sub(r';\s*;', ';', cleaned).strip().strip(';').strip()
     if not cleaned:
         return ''
@@ -26,7 +26,7 @@ def strip_route_control_identity(match):
 
 css = re.sub(r'([^{}]+)\{([^{}]*)\}', strip_route_control_identity, css)
 
-primitive_css = r''' '''
+primitive_css = r'''"""
 if source.count(anchor) != 1:
     raise SystemExit('route identity cleanup anchor drift')
 source = source.replace(anchor, insert, 1)
