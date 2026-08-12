@@ -112,6 +112,7 @@ $run('operation-gateway-budget', 'tools/operation-gateway-budget-check');
 $run('presentation-visual-contract', 'tools/presentation-visual-contract-check');
 $run('presentation-css-source-contract', 'tools/presentation-css-build');
 $run('presentation-css-artifact-equivalence', 'tools/presentation-css-build', ['--check']);
+$run('presentation-observable-ux-baseline', 'tools/presentation-ux-baseline-check.php');
 
 if ($fast) {
     fwrite(STDOUT, json_encode([
