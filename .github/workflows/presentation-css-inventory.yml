@@ -30,6 +30,15 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/presentation-css-source-consolidate')
+          source = path.read_text(encoding='utf-8')
+          start = source.index('def split_units(source: str) -> list[str]:')
+          end = source.index('\ndef concerns(chunk: str)', start)
+          replacement = '''def split_units(source: str) -> list[str]:\n    units = source.splitlines(keepends=True)\n    if not units or \"\".join(units) != source:\n        fail(\"line-fragment split changed source\")\n    return units\n\n'''
+          path.write_text(source[:start] + replacement + source[end + 1:], encoding='utf-8')
+          PY
           python3 tools/presentation-css-source-consolidate
           test ! -e public/assets/design-system.css
           test -f public/assets/presentation.css
