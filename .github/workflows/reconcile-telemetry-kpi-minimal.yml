@@ -159,79 +159,85 @@ jobs:
 
           css_path = Path('public/assets/design-system.css')
           css = css_path.read_text()
-          css_block = """
-
-/* Minimal telemetry KPI trend: compact 15d-over-15d variation beside the primary value. */
-.stat-card.telemetry-kpi-card{display:flex;align-items:center;gap:12px}
-.stat-card.telemetry-kpi-card>div{min-width:0}
-.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
-.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;gap:2px;position:relative;top:-.28em;font-size:.72rem!important;line-height:1!important;font-weight:800!important;letter-spacing:-.01em;white-space:nowrap}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend>span{display:inline!important;color:inherit!important;font:inherit!important}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-neutral{color:var(--md-sys-color-on-surface-variant)!important}
-.stat-card.telemetry-kpi-card .telemetry-kpi-trend-icon{font-size:.68em!important}
-"""
+          css_block = "\n".join([
+              '',
+              '',
+              '/* Minimal telemetry KPI trend: compact 15d-over-15d variation beside the primary value. */',
+              '.stat-card.telemetry-kpi-card{display:flex;align-items:center;gap:12px}',
+              '.stat-card.telemetry-kpi-card>div{min-width:0}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:flex;align-items:baseline;gap:7px;white-space:nowrap}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;gap:2px;position:relative;top:-.28em;font-size:.72rem!important;line-height:1!important;font-weight:800!important;letter-spacing:-.01em;white-space:nowrap}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend>span{display:inline!important;color:inherit!important;font:inherit!important}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-neutral{color:var(--md-sys-color-on-surface-variant)!important}',
+              '.stat-card.telemetry-kpi-card .telemetry-kpi-trend-icon{font-size:.68em!important}',
+              '',
+          ])
           if 'telemetry-kpi-trend.is-positive' in css:
               raise SystemExit('telemetry KPI trend CSS already present')
           css_path.write_text(css.rstrip() + css_block)
 
           contract_path = Path('tools/telemetry-json-source-contract-check')
           contract = contract_path.read_text()
-          anchor = """$assert(
-    str_contains($admin3, '$current[\"landing_requests\"]') &&
-    str_contains($admin3, '$variations[\"landing_requests_pct\"]'),
-    'card Landing Page deixou de consumir total e comparação canônicos',
-);
-"""
-          addition = anchor + """$assert(
-    str_contains($admin3, 'telemetry-kpi-card') &&
-    str_contains($admin3, 'telemetry-kpi-value') &&
-    !str_contains($admin3, 'admin_telemetry_variation_note') &&
-    !str_contains($admin3, '15 dias móveis') &&
-    !str_contains($admin3, 'vs. 15 dias anteriores'),
-    'cards de telemetria perderam a apresentação minimalista da variação',
-);
-$assert(
-    str_contains($admin6, 'admin_telemetry_kpi_cards_html(true)') &&
-    str_contains($admin3, 'admin_telemetry_kpi_cards_html()'),
-    'Painel do Desenvolvedor e Status devem compartilhar o renderer minimalista dos KPIs',
-);
-$positiveTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(12.34);
-$negativeTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(-8.0);
-$neutralTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(0.0);
-$missingTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(null);
-$assert(
-    str_contains($positiveTrend, 'is-positive') &&
-    str_contains($positiveTrend, '▲') &&
-    str_contains($positiveTrend, '12,3%') &&
-    !str_contains($positiveTrend, '+12'),
-    'variação positiva deve ser compacta, azul e precedida por triângulo para cima',
-);
-$assert(
-    str_contains($negativeTrend, 'is-negative') &&
-    str_contains($negativeTrend, '▼') &&
-    str_contains($negativeTrend, '8%') &&
-    !str_contains($negativeTrend, '-8'),
-    'variação negativa deve ser compacta, vermelha e precedida por triângulo para baixo',
-);
-$assert(
-    str_contains($neutralTrend, 'is-neutral') &&
-    str_contains($neutralTrend, '0%') &&
-    !str_contains($neutralTrend, '▲') &&
-    !str_contains($neutralTrend, '▼') &&
-    $missingTrend === '',
-    'variação neutra/não comparável deve permanecer minimalista',
-);
-foreach ([
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',
-    'top:-.28em',
-] as $trendCssToken) {
-    $assert(str_contains($css, $trendCssToken), 'CSS minimalista dos KPIs divergente: ' . $trendCssToken);
-}
-"""
+          anchor_lines = [
+              '$assert(',
+              '    str_contains($admin3, \'$current["landing_requests"]\') &&',
+              '    str_contains($admin3, \'$variations["landing_requests_pct"]\'),',
+              "    'card Landing Page deixou de consumir total e comparação canônicos',",
+              ');',
+          ]
+          anchor = "\n".join(anchor_lines) + "\n"
+          extra_lines = [
+              '$assert(',
+              "    str_contains($admin3, 'telemetry-kpi-card') &&",
+              "    str_contains($admin3, 'telemetry-kpi-value') &&",
+              "    !str_contains($admin3, 'admin_telemetry_variation_note') &&",
+              "    !str_contains($admin3, '15 dias móveis') &&",
+              "    !str_contains($admin3, 'vs. 15 dias anteriores'),",
+              "    'cards de telemetria perderam a apresentação minimalista da variação',",
+              ');',
+              '$assert(',
+              "    str_contains($admin6, 'admin_telemetry_kpi_cards_html(true)') &&",
+              "    str_contains($admin3, 'admin_telemetry_kpi_cards_html()'),",
+              "    'Painel do Desenvolvedor e Status devem compartilhar o renderer minimalista dos KPIs',",
+              ');',
+              '$positiveTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(12.34);',
+              '$negativeTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(-8.0);',
+              '$neutralTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(0.0);',
+              '$missingTrend = \\Prontoo\\Presentation\\AdminPages\\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(null);',
+              '$assert(',
+              "    str_contains($positiveTrend, 'is-positive') &&",
+              "    str_contains($positiveTrend, '▲') &&",
+              "    str_contains($positiveTrend, '12,3%') &&",
+              "    !str_contains($positiveTrend, '+12'),",
+              "    'variação positiva deve ser compacta, azul e precedida por triângulo para cima',",
+              ');',
+              '$assert(',
+              "    str_contains($negativeTrend, 'is-negative') &&",
+              "    str_contains($negativeTrend, '▼') &&",
+              "    str_contains($negativeTrend, '8%') &&",
+              "    !str_contains($negativeTrend, '-8'),",
+              "    'variação negativa deve ser compacta, vermelha e precedida por triângulo para baixo',",
+              ');',
+              '$assert(',
+              "    str_contains($neutralTrend, 'is-neutral') &&",
+              "    str_contains($neutralTrend, '0%') &&",
+              "    !str_contains($neutralTrend, '▲') &&",
+              "    !str_contains($neutralTrend, '▼') &&",
+              "    $missingTrend === '',",
+              "    'variação neutra/não comparável deve permanecer minimalista',",
+              ');',
+              'foreach ([',
+              "    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',",
+              "    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',",
+              "    'top:-.28em',",
+              '] as $trendCssToken) {',
+              "    $assert(str_contains($css, $trendCssToken), 'CSS minimalista dos KPIs divergente: ' . $trendCssToken);",
+              '}',
+          ]
+          addition = anchor + "\n".join(extra_lines) + "\n"
           if contract.count(anchor) != 1:
               raise SystemExit('telemetry KPI contract insertion point count != 1')
           contract = contract.replace(anchor, addition, 1)
