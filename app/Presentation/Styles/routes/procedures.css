@@ -5,11 +5,11 @@ body[data-route="procedures"] .procedure-route-card.card{
 body[data-route="procedures"] .procedure-route-form-panel{
   position:relative;
   overflow:hidden;
-  padding:16px!important;
-  border-radius:30px!important;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent)!important;
+  padding:16px;
+  border-radius:30px;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);
   background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 95%,var(--md-sys-color-primary) 3%))!important;
-  box-shadow:var(--shadow-soft)!important;
+  box-shadow:var(--shadow-soft);
 }
 body[data-route="procedures"] .procedure-route-form-panel::before{
   content:"";
