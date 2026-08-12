@@ -9,14 +9,27 @@ phase1_sha = '5c8a450d4808eb052e483a31488f1dcc33c69707'
 phase2_sha = '485f8cca8f292adfc4b8510ea95294963f647e0e'
 release = '1.8.12.1'
 css_path = root / 'public/assets/design-system.css'
+identity_re = re.compile(r'(^|;)\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:', re.I)
 
 
-def metrics(text: str) -> dict:
+def rules(text):
+    return [(m.group(1).strip(), m.group(2)) for m in re.finditer(r'([^{}]+)\{([^{}]*)\}', text)]
+
+
+def is_route_descendant_identity(selector, declarations):
+    return 'body[data-route=' in selector and re.search(r'\.pagehead-actions\s+(?:[>+~]|\.)', selector) is not None and identity_re.search(declarations) is not None
+
+
+def is_legacy_direct_identity(selector, declarations):
+    return re.search(r'\.pagehead-actions\s*>\s*(?:a|button|summary)', selector) is not None and identity_re.search(declarations) is not None
+
+
+def metrics(text):
     selectors = []
-    for match in re.finditer(r'([^{}]+)\{', text):
-        selector = re.sub(r'\s+', ' ', match.group(1).strip())
-        if selector and not selector.startswith('@'):
-            selectors.append(selector)
+    for selector, declarations in rules(text):
+        normalized = re.sub(r'\s+', ' ', selector)
+        if normalized and not normalized.startswith('@'):
+            selectors.append(normalized)
     counts = {}
     for selector in selectors:
         counts[selector] = counts.get(selector, 0) + 1
@@ -27,56 +40,56 @@ def metrics(text: str) -> dict:
         'important_count': text.count('!important'),
         'route_scope_count': text.count('body[data-route='),
         'duplicate_selector_headers': sum(1 for count in counts.values() if count > 1),
-        'pagehead_route_cosmetic_overrides': len(re.findall(r'body\[data-route=[^\]]+\][^{]*\.pagehead-actions', text)),
+        'pagehead_route_identity_overrides': sum(1 for selector, declarations in rules(text) if is_route_descendant_identity(selector, declarations)),
+        'pagehead_legacy_direct_identity_overrides': sum(1 for selector, declarations in rules(text) if is_legacy_direct_identity(selector, declarations)),
         'doc_pagehead_primary_overrides': text.count('.doc-page-actions .primary{'),
         'pagehead_ds_action_overrides': text.count('.pagehead-actions .ds-pagehead-action{'),
         'canonical_pagehead_geometry_rules': text.count('.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-height)'),
     }
 
 
-def legacy_count(ref: str | None = None) -> int:
+def legacy_count(ref=None):
     if ref is None:
-        total = 0
-        for path in (root / 'app').rglob('*.php'):
-            total += path.read_text(errors='ignore').count('primary small cmdlike')
-        return total
-    result = subprocess.run(
-        ['git', 'grep', '-o', '-F', 'primary small cmdlike', ref, '--', 'app'],
-        capture_output=True,
-        text=True,
-    )
+        return sum(path.read_text(errors='ignore').count('primary small cmdlike') for path in (root / 'app').rglob('*.php'))
+    result = subprocess.run(['git', 'grep', '-o', '-F', 'primary small cmdlike', ref, '--', 'app'], capture_output=True, text=True)
     if result.returncode not in (0, 1):
-        raise SystemExit('git grep failed for legacy visual debt')
+        raise SystemExit('legacy visual debt scan failed')
     return len([line for line in result.stdout.splitlines() if line.strip()])
 
 
 css = css_path.read_text()
+
+def strip_route_identity(match):
+    selector = match.group(1)
+    declarations = match.group(2)
+    return '' if is_route_descendant_identity(selector, declarations) else match.group(0)
+
+css = re.sub(r'([^{}]+)\{([^{}]*)\}', strip_route_identity, css)
+legacy_group = '.pagehead .actions > a,\n.pagehead .actions > button,\n.pagehead-actions > a,\n.pagehead-actions > button,\n.cmdbar-actions > a,\n.cmdbar-actions > button{'
+lean_group = '.pagehead .actions > a,\n.pagehead .actions > button,\n.cmdbar-actions > a,\n.cmdbar-actions > button{'
+if legacy_group not in css:
+    raise SystemExit('legacy direct PageHead identity group not found')
+css = css.replace(legacy_group, lean_group, 1)
 needle = '  --pt-pagehead-action-icon-size:20px;\n  --pt-pagehead-action-font:var(--md-sys-typescale-label-medium);'
 if css.count(needle) != 1:
-    raise SystemExit('pagehead token insertion point not unique')
-css = css.replace(
-    needle,
-    '  --pt-pagehead-action-icon-size:20px;\n  --pt-pagehead-action-mobile-height:42px;\n  --pt-pagehead-action-mobile-padding-inline:13px;\n  --pt-pagehead-action-font:var(--md-sys-typescale-label-medium);',
-)
+    raise SystemExit('PageHead token insertion point not unique')
+css = css.replace(needle, '  --pt-pagehead-action-icon-size:20px;\n  --pt-pagehead-action-mobile-height:42px;\n  --pt-pagehead-action-mobile-padding-inline:13px;\n  --pt-pagehead-action-font:var(--md-sys-typescale-label-medium);')
 old_mobile = '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:42px;padding-inline:13px}}'
 new_mobile = '@media(max-width:640px){.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-mobile-height);padding-inline:var(--pt-pagehead-action-mobile-padding-inline)}}'
 if css.count(old_mobile) != 1:
-    raise SystemExit('canonical mobile pagehead rule not unique')
+    raise SystemExit('PageHead mobile canonical rule not unique')
 css = css.replace(old_mobile, new_mobile)
 css_path.write_text(css)
 
 ui_path = root / 'app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php'
 ui = ui_path.read_text()
-marker = '<div class=\\"pagehead-actions\\" aria-label=\\"Operações rápidas\\">'
-replacement = '<div class=\\"pagehead-actions\\" data-ui-contract=\\"pagehead-actions-v1\\" aria-label=\\"Operações rápidas\\">'
+marker = '<div class="pagehead-actions" aria-label="Operações rápidas">'
+replacement = '<div class="pagehead-actions" data-ui-contract="pagehead-actions-v1" aria-label="Operações rápidas">'
 if ui.count(marker) != 1:
-    raise SystemExit('PageHead actions DOM marker not unique')
+    raise SystemExit('PageHead DOM contract point not unique')
 ui_path.write_text(ui.replace(marker, replacement))
 
-baseline_css = subprocess.check_output(
-    ['git', 'show', baseline_sha + ':public/assets/design-system.css'],
-    text=True,
-)
+baseline_css = subprocess.check_output(['git', 'show', baseline_sha + ':public/assets/design-system.css'], text=True)
 current_css = css_path.read_text()
 before = metrics(baseline_css)
 after = metrics(current_css)
@@ -144,29 +157,24 @@ contract = {
         'read_only_state_changes_context_color_not_geometry',
         'danger_remains_semantic_error_not_clinic_accent',
         'mobile_preserves_42px_touch_target',
-        'route_specific_pagehead_cosmetic_overrides_are_zero',
+        'route_layout_may_change_but_route_action_identity_may_not',
         'module_specific_pagehead_primary_overrides_are_zero',
         'visual_debt_may_not_increase_without_contract_change',
     ],
-    'css_statistics': {
-        'before': before,
-        'after': after,
-        'delta': delta,
-    },
+    'css_statistics': {'before': before, 'after': after, 'delta': delta},
     'debt_budget': {
         'important_count_max': after['important_count'],
         'route_scope_count_max': after['route_scope_count'],
         'duplicate_selector_headers_max': after['duplicate_selector_headers'],
         'legacy_primary_small_cmdlike_max': after['legacy_primary_small_cmdlike'],
-        'pagehead_route_cosmetic_overrides_max': 0,
+        'pagehead_route_identity_overrides_max': 0,
+        'pagehead_legacy_direct_identity_overrides_max': 0,
         'doc_pagehead_primary_overrides_max': 0,
         'pagehead_ds_action_overrides_max': 0,
         'canonical_pagehead_geometry_rules_exact': 1,
     },
 }
-(root / 'app/presentation.visual-contract.json').write_text(
-    json.dumps(contract, indent=4, ensure_ascii=False) + '\n'
-)
+(root / 'app/presentation.visual-contract.json').write_text(json.dumps(contract, indent=4, ensure_ascii=False) + '\n')
 
 checker = r'''<?php
 declare(strict_types=1);
@@ -188,12 +196,22 @@ foreach ($iterator as $file) {
         $php .= (string) file_get_contents($file->getPathname());
     }
 }
-$selectors = [];
-if (preg_match_all('/([^{}]+)\{/', $css, $matches)) {
-    foreach ($matches[1] as $selector) {
-        $selector = preg_replace('/\s+/', ' ', trim((string) $selector));
+$identityPattern = '/(^|;)\s*(?:min-height|height|padding(?:-[a-z]+)?|gap|border(?:-[a-z]+)?|border-radius|background(?:-[a-z]+)?|color|box-shadow|font(?:-[a-z]+)?|line-height|white-space|align-items|justify-content)\s*:/i';
+$routeIdentity = 0;
+$legacyDirectIdentity = 0;
+$selectorCounts = [];
+if (preg_match_all('/([^{}]+)\{([^{}]*)\}/', $css, $matches, PREG_SET_ORDER)) {
+    foreach ($matches as $match) {
+        $selector = preg_replace('/\s+/', ' ', trim((string) $match[1]));
+        $declarations = (string) $match[2];
         if (is_string($selector) && $selector !== '' && !str_starts_with($selector, '@')) {
-            $selectors[$selector] = ($selectors[$selector] ?? 0) + 1;
+            $selectorCounts[$selector] = ($selectorCounts[$selector] ?? 0) + 1;
+        }
+        if (str_contains((string) $selector, 'body[data-route=') && preg_match('/\.pagehead-actions\s+(?:[>+~]|\.)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
+            $routeIdentity++;
+        }
+        if (preg_match('/\.pagehead-actions\s*>\s*(?:a|button|summary)/', (string) $selector) === 1 && preg_match($identityPattern, $declarations) === 1) {
+            $legacyDirectIdentity++;
         }
     }
 }
@@ -203,9 +221,10 @@ $metrics = [
     'bytes' => strlen($css),
     'important_count' => substr_count($css, '!important'),
     'route_scope_count' => substr_count($css, 'body[data-route='),
-    'duplicate_selector_headers' => count(array_filter($selectors, static fn(int $count): bool => $count > 1)),
+    'duplicate_selector_headers' => count(array_filter($selectorCounts, static fn(int $count): bool => $count > 1)),
     'legacy_primary_small_cmdlike' => substr_count($php, 'primary small cmdlike'),
-    'pagehead_route_cosmetic_overrides' => preg_match_all('/body\[data-route=[^\]]+\][^{]*\.pagehead-actions/', $css),
+    'pagehead_route_identity_overrides' => $routeIdentity,
+    'pagehead_legacy_direct_identity_overrides' => $legacyDirectIdentity,
     'doc_pagehead_primary_overrides' => substr_count($css, '.doc-page-actions .primary{'),
     'pagehead_ds_action_overrides' => substr_count($css, '.pagehead-actions .ds-pagehead-action{'),
     'canonical_pagehead_geometry_rules' => substr_count($css, '.pagehead-actions :where(a,button,summary){min-height:var(--pt-pagehead-action-height)'),
@@ -236,7 +255,7 @@ foreach ($required as $token) {
         $failures[] = 'missing:' . $token;
     }
 }
-if (!str_contains($ui, 'data-ui-contract=\\"pagehead-actions-v1\\"')) {
+if (!str_contains($ui, 'data-ui-contract="pagehead-actions-v1"')) {
     $failures[] = 'missing:pagehead-dom-contract';
 }
 if (($contract['version'] ?? '') !== ($version['version'] ?? '')) {
@@ -265,7 +284,8 @@ foreach ([
     'route_scope_count' => 'route_scope_count_max',
     'duplicate_selector_headers' => 'duplicate_selector_headers_max',
     'legacy_primary_small_cmdlike' => 'legacy_primary_small_cmdlike_max',
-    'pagehead_route_cosmetic_overrides' => 'pagehead_route_cosmetic_overrides_max',
+    'pagehead_route_identity_overrides' => 'pagehead_route_identity_overrides_max',
+    'pagehead_legacy_direct_identity_overrides' => 'pagehead_legacy_direct_identity_overrides_max',
     'doc_pagehead_primary_overrides' => 'doc_pagehead_primary_overrides_max',
     'pagehead_ds_action_overrides' => 'pagehead_ds_action_overrides_max',
 ] as $metric => $limit) {
@@ -275,12 +295,6 @@ foreach ([
 }
 if ($metrics['canonical_pagehead_geometry_rules'] !== (int) ($budget['canonical_pagehead_geometry_rules_exact'] ?? 1)) {
     $failures[] = 'canonical_pagehead_geometry_rules';
-}
-if (str_contains($css, 'body[data-route=\\"appointments\\"] .pagehead-actions .cmdlike')) {
-    $failures[] = 'route-owned-pagehead-geometry';
-}
-if (str_contains($css, '.pagehead.has-operations .pagehead-actions .doc-page-actions .primary')) {
-    $failures[] = 'document-owned-pagehead-elevation';
 }
 fwrite(STDOUT, json_encode([
     'ok' => $failures === [],
@@ -300,10 +314,9 @@ checker_path.chmod(0o755)
 qg_path = root / 'tools/quality-gate'
 qg = qg_path.read_text()
 needle = "$run('operation-gateway-budget', 'tools/operation-gateway-budget-check');\n"
-insert = needle + "$run('presentation-visual-contract', 'tools/presentation-visual-contract-check');\n"
 if qg.count(needle) != 1 or 'presentation-visual-contract-check' in qg:
     raise SystemExit('quality gate insertion point invalid')
-qg_path.write_text(qg.replace(needle, insert))
+qg_path.write_text(qg.replace(needle, needle + "$run('presentation-visual-contract', 'tools/presentation-visual-contract-check');\n"))
 
 arch_path = root / 'app/architecture.manifest.json'
 arch = json.loads(arch_path.read_text())
