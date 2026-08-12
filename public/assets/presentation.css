@@ -11629,8 +11629,8 @@ body[data-route="financial"] .finance-attention-card{display:none!important;}
 
 
 body[data-route="procedures"] .procedure-route-card.card{
-  max-width:min(100%,1040px)!important;
-  margin-inline:auto!important;
+  max-width:min(100%,1040px);
+  margin-inline:auto;
 }
 body[data-route="procedures"] .procedure-route-form-panel{
   position:relative;
@@ -11738,8 +11738,8 @@ body[data-route="procedures"] .procedure-route-summary small{
   letter-spacing:.045em!important;
 }
 body[data-route="procedures"] .procedure-route-form{
-  display:grid!important;
-  gap:12px!important;
+  display:grid;
+  gap:12px;
   margin:0!important;
   padding:0!important;
 }
@@ -13310,8 +13310,8 @@ body[data-route="patient"] .patient-section-title > span{
   white-space:nowrap!important;
 }
 body[data-route="patient"] .patient-data-list{
-  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
-  gap:8px!important;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:8px;
 }
 body[data-route="patient"] .patient-data-list > div{
   min-height:72px!important;
@@ -13391,7 +13391,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
 }
 @media(max-width:860px){
   body[data-route="patient"] .patient-hero{
-    align-items:flex-start!important;
+    align-items:flex-start;
     flex-direction:column!important;
   }
   body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions){width:100%!important}
@@ -13417,7 +13417,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
     border-radius:22px!important;
   }
   body[data-route="patient"] .patient-data-list{
-    grid-template-columns:1fr!important;
+    grid-template-columns:1fr;
   }
   body[data-route="patient"] .patient-section-title{
     flex-direction:column!important;
