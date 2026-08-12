@@ -1,8 +1,0 @@
-body.is-read-only {
-  --pt-pagehead-control-accent: var(--clinic-identity-readonly);
-  --pt-pagehead-control-on-accent: var(--clinic-identity-on-readonly);
-  --pt-pagehead-control-hover: var(--clinic-identity-readonly-hover);
-  --pt-pagehead-control-pressed: color-mix(in srgb, var(--clinic-identity-readonly) 76%, #000);
-  --pt-pagehead-control-container: color-mix(in srgb, var(--clinic-identity-readonly) 15%, var(--md-sys-color-surface-container-lowest));
-  --pt-pagehead-control-on-container: color-mix(in srgb, var(--clinic-identity-readonly) 74%, #102018);
-}

@@ -1,12 +1,12 @@
 {
-    "version": "1.8.12.5",
+    "version": "1.8.12.6",
     "policy": "presentation-pagehead-control-primitive-v2",
     "architecture_scope": "presentation_ui_adapter_contract",
     "reference": {
-        "previous_release": "1.8.12.4",
+        "previous_release": "1.8.12.5",
         "previous_visual_reference": "unified_pagehead_control_38px",
-        "visual_reference": "canonical_pagehead_control_renderer_38px",
-        "functional_equivalence": "same_pagehead_geometry_semantic_roles_clinic_identity_mobile_touch_targets_and_navigation_compaction"
+        "visual_reference": "byte_identical_modular_presentation_delivery",
+        "functional_equivalence": "same_css_bytes_same_cascade_same_pagehead_geometry_and_same_runtime_markup"
     },
     "primitive": {
         "renderer": "Prontoo\\Presentation\\UiComponents\\PageHeadControlPresentationOperations01",
@@ -143,5 +143,13 @@
         "duplicate_selector_headers": 715,
         "legacy_primary_small_cmdlike_inputs": 14,
         "runtime03_lines": 449
+    },
+    "delivery": {
+        "artifact": "public/assets/presentation.css",
+        "retired_artifact": "public/assets/design-system.css",
+        "reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
+        "reference_bytes": 810078,
+        "source_consolidated": true,
+        "byte_identical": true
     }
 }

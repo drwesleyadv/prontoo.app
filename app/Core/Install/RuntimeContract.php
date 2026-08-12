@@ -88,7 +88,7 @@ final class RuntimeContract
             'br/index.php',
             'app/bootstrap_architecture.php',
             'app/Database/schema.sql',
-            'public/assets/design-system.css',
+            'public/assets/presentation.css',
             'public/assets/app.js',
         ];
         foreach (RuntimeModuleCatalog::fullModules() as $module) {
