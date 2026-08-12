@@ -14,6 +14,7 @@ $assert(str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryI
 $assert(class_exists(\Prontoo\Infrastructure\SupportTelemetry\TelemetryJsonStore::class), 'store JSON canônico não foi carregado');
 $admin2 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations02.php');
 $admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php');
+$admin6 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php');
 $admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');
 $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
 $presentation3 = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
@@ -32,15 +33,34 @@ $assert(
     str_contains($admin3, '$variations["landing_requests_pct"]'),
     'card Landing Page deixou de consumir total e comparação canônicos',
 );
-$loadLinePos = strpos($presentation3, 'metric-chart-line-load');
-$recordLinePos = strpos($presentation3, 'metric-chart-line-response');
-$assert($loadLinePos !== false && $recordLinePos !== false && $recordLinePos > $loadLinePos, 'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias');
+$loadAreaPos = strpos($presentation3, '$loadArea =');
+$responseAreaPos = strpos($presentation3, '$responseArea =');
+$fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');
+$assert(
+    $loadAreaPos !== false &&
+    $responseAreaPos !== false &&
+    $responseAreaPos > $loadAreaPos &&
+    $fillOrderPos !== false,
+    'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias',
+);
+$assert(
+    str_contains($admin6, 'page_admin_painel()') &&
+    str_contains($admin6, 'admin_performance_card_html()'),
+    'Painel do Desenvolvedor deixou de consumir o gráfico canônico de 30 dias',
+);
+$assert(
+    str_contains($admin3, 'page_status()') &&
+    str_contains($admin3, 'admin_performance_card_html(true)'),
+    'Status deixou de consumir o gráfico canônico de 30 dias',
+);
 $requestWavePos = strpos($login, 'data-wave-series="requests"');
 $recordWavePos = strpos($login, 'data-wave-series="records"');
 $assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');
 foreach ([
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#347963;opacity:.5}',
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',
+    "body.public[data-route=\"login\"] .login-telemetry-wave-path{\n  stroke:none;\n  opacity:.5;\n}",
+    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
     'body.public[data-route="login"] .login-telemetry-wave-path.is-requests{',
     'fill:#347963;',
     'body.public[data-route="login"] .login-telemetry-wave-path.is-records{',
@@ -60,4 +80,4 @@ $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_con
 foreach ([$admin2, $admin3, $admin9, $login] as $source) {
     $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
 }
-unset($root, $assert, $admin2, $admin3, $admin9, $login, $presentation3, $speedGeometry, $css, $loadLinePos, $recordLinePos, $requestWavePos, $recordWavePos, $visualToken, $opacityToken, $token, $source);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $visualToken, $opacityToken, $token, $source);
