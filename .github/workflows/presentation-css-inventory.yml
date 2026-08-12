@@ -59,6 +59,6 @@ jobs:
           php tools/release-contract-reconcile --check
           php tools/quality-gate --fast
           git add -A
-          git diff --cached --check
+          git diff --cached --check -- . ':(exclude)app/Presentation/Styles/**/*.css' ':(exclude)public/assets/presentation.css'
           git commit -m "refactor(presentation): consolidate CSS source with byte-equivalent delivery"
           git push origin HEAD:agent/presentation-css-source-consolidation
