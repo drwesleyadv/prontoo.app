@@ -50,7 +50,7 @@ jobs:
           test ! -e public/assets/design-system.css
           test -f public/assets/presentation.css
           test "$(sha256sum public/assets/presentation.css | awk '{print $1}')" = "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561"
-          git rm .github/workflows/presentation-css-inventory.yml tools/presentation-css-source-consolidate
+          git rm -f .github/workflows/presentation-css-inventory.yml tools/presentation-css-source-consolidate
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
           php tools/presentation-visual-contract-check
