@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+import hashlib
+import json
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+STYLE_ROOT = ROOT / 'app/Presentation/Styles'
+MANIFEST_PATH = STYLE_ROOT / 'styles.manifest.json'
+ARTIFACT_PATH = ROOT / 'public/assets/presentation.css'
+
+
+def fail(message: str) -> None:
+    raise SystemExit(f'presentation-css-compact-owners: {message}')
+
+
+def safe_name(value: str) -> str:
+    value = re.sub(r'[^a-z0-9]+', '-', value.lower()).strip('-')
+    return value or 'general'
+
+
+def main() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding='utf-8'))
+    modules = manifest.get('modules') or []
+    if manifest.get('schema_version') != 3 or not manifest.get('semantic_decomposition_complete') or not modules:
+        fail('semantic v3 source required')
+
+    artifact = ARTIFACT_PATH.read_bytes()
+    rebuilt = b''.join((STYLE_ROOT / item['path']).read_bytes() for item in modules)
+    if rebuilt != artifact:
+        fail('v3 semantic modules no longer match artifact')
+
+    owner_bytes: dict[str, bytearray] = {}
+    owner_meta: dict[str, dict] = {}
+    sequence: list[dict] = []
+    ownership_index = {'pagehead_control': [], 'clinic_identity_tokens': [], 'route_scopes': []}
+
+    for order, item in enumerate(modules, 1):
+        layer = str(item['layer'])
+        concerns = item.get('concerns') or []
+        concern = safe_name(str(concerns[0] if concerns else item.get('responsibility', 'general')))
+        owner_path = f'{layer}/{concern}.css'
+        fragment = (STYLE_ROOT / item['path']).read_bytes()
+        bucket = owner_bytes.setdefault(owner_path, bytearray())
+        offset = len(bucket)
+        bucket.extend(fragment)
+        fragment_text = fragment.decode('utf-8')
+        sequence.append({
+            'order': order,
+            'source': owner_path,
+            'offset': offset,
+            'bytes': len(fragment),
+            'sha256': hashlib.sha256(fragment).hexdigest(),
+            'important_count': fragment_text.count('!important'),
+            'route_scope_count': fragment_text.count('body[data-route='),
+        })
+        meta = owner_meta.setdefault(owner_path, {'layer': layer, 'concern': concern})
+        if meta['layer'] != layer or meta['concern'] != concern:
+            fail(f'owner collision {owner_path}')
+        if '.pagehead-control' in fragment_text and owner_path not in ownership_index['pagehead_control']:
+            ownership_index['pagehead_control'].append(owner_path)
+        if '--clinic-identity-' in fragment_text and owner_path not in ownership_index['clinic_identity_tokens']:
+            ownership_index['clinic_identity_tokens'].append(owner_path)
+        if 'body[data-route=' in fragment_text and owner_path not in ownership_index['route_scopes']:
+            ownership_index['route_scopes'].append(owner_path)
+
+    for css_path in STYLE_ROOT.rglob('*.css'):
+        css_path.unlink()
+
+    sources = []
+    ownership_rank = {name: idx for idx, name in enumerate(manifest['ownership_order'])}
+    ordered_paths = sorted(owner_bytes, key=lambda p: (ownership_rank[owner_meta[p]['layer']], p))
+    for owner_path in ordered_paths:
+        data = bytes(owner_bytes[owner_path])
+        path = STYLE_ROOT / owner_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        text = data.decode('utf-8')
+        meta = owner_meta[owner_path]
+        sources.append({
+            'path': owner_path,
+            'layer': meta['layer'],
+            'responsibility': meta['concern'].replace('-', ' '),
+            'concern': meta['concern'],
+            'sha256': hashlib.sha256(data).hexdigest(),
+            'bytes': len(data),
+            'important_count': text.count('!important'),
+            'route_scope_count': text.count('body[data-route='),
+        })
+
+    reconstructed = bytearray()
+    source_lookup = {path: bytes(data) for path, data in owner_bytes.items()}
+    for segment in sequence:
+        data = source_lookup[segment['source']]
+        start = segment['offset']
+        end = start + segment['bytes']
+        reconstructed.extend(data[start:end])
+    if bytes(reconstructed) != artifact:
+        fail('owner sources and sequence changed artifact')
+
+    manifest['schema_version'] = 4
+    manifest['policy'] = 'presentation-semantic-owners-v4'
+    manifest['architecture'] = 'semantic_owner_files_with_ordered_slice_delivery'
+    manifest['source_model'] = 'semantic_owner_files_with_ordered_slices'
+    manifest['physical_source_file_count'] = len(sources)
+    manifest['physical_source_file_count_max'] = len(sources)
+    manifest['sequence_segment_count'] = len(sequence)
+    manifest['ownership_index'] = ownership_index
+    manifest['sources'] = sources
+    manifest['sequence'] = sequence
+    manifest.pop('modules', None)
+    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+
+    print(json.dumps({
+        'ok': True,
+        'physical_source_files': len(sources),
+        'sequence_segments': len(sequence),
+        'artifact_sha256': hashlib.sha256(artifact).hexdigest(),
+        'artifact_bytes': len(artifact),
+        'owners_by_layer': {
+            layer: sum(1 for source in sources if source['layer'] == layer)
+            for layer in manifest['ownership_order']
+        },
+    }, indent=2))
+
+
+if __name__ == '__main__':
+    main()
