@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.13.1 — KPIs do Painel e Status em grade 2×2
+
+- distribui os quatro cards de telemetria do Painel do Desenvolvedor em duas colunas e duas linhas.
+- aplica a mesma composição 2×2 aos quatro cards da página pública de Status.
+- reutiliza o renderer compartilhado dos KPIs para evitar duplicação de layout.
+- mantém cálculos, fontes e indicadores de tendência da telemetria inalterados.
+- mantém banco e schema inalterados.
+
 ## 1.8.12.24 — Redução contratada de prioridades em primitives visuais
 
 - remove 8 ocorrências de !important em primitives já cobertas pelo contrato observável oficial.

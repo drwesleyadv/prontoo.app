@@ -88,7 +88,7 @@ final class AdminPagesRuntimeOperations03
             is_numeric($recordComparison["variation_pct"])
                 ? (float) $recordComparison["variation_pct"]
                 : null;
-        return $card(
+        $cards = $card(
             "Visualizações",
             max(0, (int) ($current["requests"] ?? 0)),
             "route",
@@ -118,6 +118,11 @@ final class AdminPagesRuntimeOperations03
                     ? (float) $variations["landing_requests_pct"]
                     : null,
             );
+        return '<div class="stats-grid admin-overview-kpis two wide"' .
+            ($linked ? "" : ' style="margin-bottom:24px"') .
+            ">" .
+            $cards .
+            "</div>";
     }
 
     public static function page_status(): void
