@@ -19,7 +19,7 @@ Se prosa e contrato executável divergirem, preserve o contrato e corrija a docu
 ## 2. Baseline e ambiente
 
 - branch de integração: `prontoo`;
-- baseline auditada: `1.8.13.3`;
+- baseline auditada: `1.8.13.4`;
 - PHP: família `8.4`, mínimo `8.4.0`;
 - MySQL: `8.0.30` ou superior;
 - aplicação: monólito modular PHP;
@@ -108,6 +108,8 @@ Não introduza estilos inline para contornar o build nem duplique componentes ca
 Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status devem aparecer em `2 colunas × 2 linhas` em viewport ampla e cair para uma coluna no breakpoint responsivo existente.
 
 No Painel do Desenvolvedor, os quatro cards são filhos diretos de `.admin-telemetry-card`; não reintroduza wrapper intermediário para agrupá-los. A própria Telemetria usa a primitive `two`, e o título usa `wide` para ocupar as duas colunas. No Status público, o wrapper `two wide global-telemetry-grid` permanece porque compõe os KPIs como bloco independente antes do gráfico de desempenho. Não combine `two` no mesmo elemento com `stats-grid` ou `admin-overview-kpis`, pois o `auto-fit` dessas classes pode anular a grade 2×2.
+
+Os gráficos de performance `Últimas 24 horas` e `Últimos 30 dias` compartilham a mesma semântica de latência em milissegundos: `Rotas` é a série primária, verde escuro e pintada ao fundo; `Banco de dados` é a série secundária, verde mais claro e pintada à frente. A latência de banco representa o tempo médio ponderado de execução de prepared statements pelo PDO (`soma das durações / quantidade de consultas`), nunca média de médias. `speed.json` persiste somente contagem e duração agregadas por page load; SQL e parâmetros não são persistidos. Períodos anteriores ao início desta coleta permanecem sem amostra e não podem ser preenchidos artificialmente com zero.
 
 ## 8. Release e versionamento
 

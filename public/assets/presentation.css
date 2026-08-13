@@ -15069,3 +15069,10 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 .pagehead-control--danger-soft{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container);border-color:color-mix(in srgb,var(--md-sys-color-error) 24%,var(--md-sys-color-outline-variant))}
 @media(max-width:980px){.pagehead-controls--actions,.pagehead-controls--navigation{justify-content:flex-start;width:100%}.pagehead-controls--navigation{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:4px}.pagehead-controls--navigation::-webkit-scrollbar{display:none}.pagehead-controls--navigation .pagehead-control--nav{flex:0 0 auto}}
 @media(max-width:640px){.pagehead-control{min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}
+
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}

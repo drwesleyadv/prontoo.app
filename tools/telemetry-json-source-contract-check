@@ -20,9 +20,51 @@ $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnb
 $presentation3 = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $speedGeometry = (string) file_get_contents($root . '/app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php');
 $css = (string) file_get_contents($root . '/public/assets/presentation.css');
-foreach (['"primary_label" => "Visualizações"', '"secondary_label" => "Registros"', '"Velocidade"'] as $token) {
-    $assert(str_contains($admin2, $token), 'gráficos perderam ' . $token);
+foreach (['"primary_label" => "Rotas"', '"secondary_label" => "Banco de dados"', '"Últimas 24 horas"', '"Últimos 30 dias"', '"visual_mode" => "latency"'] as $token) {
+    $assert(str_contains($admin2, $token), 'gráficos de latência perderam ' . $token);
 }
+$assert(
+    str_contains($admin2, 'admin_global_metric_series_24h("route")') &&
+    str_contains($admin2, 'admin_global_metric_series_24h("database")') &&
+    str_contains($admin2, 'admin_global_metric_series_30d("route")') &&
+    str_contains($admin2, 'admin_global_metric_series_30d("database")'),
+    'gráficos de 24h e 30d devem compartilhar Rotas e Banco de dados',
+);
+$assert(
+    !str_contains($admin2, '"secondary_label" => "Landing Page"') &&
+    !str_contains($admin2, '"Leitura e gravação"'),
+    'gráficos operacionais não podem manter a composição antiga',
+);
+$assert(class_exists(\Prontoo\Infrastructure\Database\PdoQueryTelemetry::class), 'acumulador de latência PDO ausente');
+\Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
+\Prontoo\Infrastructure\Database\PdoQueryTelemetry::record(2000000);
+\Prontoo\Infrastructure\Database\PdoQueryTelemetry::record(4000000);
+$querySnapshot = \Prontoo\Infrastructure\Database\PdoQueryTelemetry::snapshot();
+$assert(
+    (int) ($querySnapshot['count'] ?? 0) === 2 &&
+    (int) ($querySnapshot['duration_ns'] ?? 0) === 6000000 &&
+    abs((float) ($querySnapshot['average_ms'] ?? 0.0) - 3.0) < 0.000001,
+    'média ponderada de consultas PDO divergente',
+);
+\Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
+$databaseSchemaSource = (string) file_get_contents($root . '/app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php');
+$pdoStatementSource = (string) file_get_contents($root . '/app/Infrastructure/Database/TelemetryPdoStatement.php');
+$telemetryStoreSource = (string) file_get_contents($root . '/app/Infrastructure/SupportTelemetry/TelemetryJsonStore.php');
+$assert(
+    str_contains($databaseSchemaSource, 'PDO::ATTR_STATEMENT_CLASS') &&
+    str_contains($databaseSchemaSource, 'TelemetryPdoStatement::class') &&
+    str_contains($pdoStatementSource, 'parent::execute($params)') &&
+    str_contains($pdoStatementSource, 'PdoQueryTelemetry::record'),
+    'latência deve ser medida na execução real do prepared statement PDO',
+);
+$assert(
+    str_contains($telemetryStoreSource, '"database_query_count"') &&
+    str_contains($telemetryStoreSource, '"database_query_duration_ns"') &&
+    str_contains($telemetryStoreSource, '"database_query_observed"') &&
+    !str_contains($telemetryStoreSource, 'database_query_sql') &&
+    !str_contains($telemetryStoreSource, 'database_query_params'),
+    'speed.json deve persistir somente agregados seguros da consulta',
+);
 foreach (['"Visualizações"', '"Tempo médio das rotas"', '"Registros"', '"Landing Page"'] as $token) {
     $assert(str_contains($admin3, $token), 'cards perderam ' . $token);
 }
@@ -105,7 +147,7 @@ $assert(
     $responseAreaPos !== false &&
     $responseAreaPos > $loadAreaPos &&
     $fillOrderPos !== false,
-    'Registros devem ser pintados depois de Visualizações no gráfico de 30 dias',
+    'a série secundária deve ser pintada depois da série primária nos gráficos duplos',
 );
 $assert(
     str_contains($admin6, 'page_admin_painel()') &&
@@ -120,6 +162,14 @@ $assert(
 $requestWavePos = strpos($login, 'data-wave-series="requests"');
 $recordWavePos = strpos($login, 'data-wave-series="records"');
 $assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');
+foreach ([
+    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
+    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
+    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}',
+    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}',
+] as $latencyVisualToken) {
+    $assert(str_contains($css, $latencyVisualToken), 'hierarquia visual de latência divergente: ' . $latencyVisualToken);
+}
 foreach ([
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#347963;opacity:.5}',
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',
@@ -144,4 +194,4 @@ $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_con
 foreach ([$admin2, $admin3, $admin9, $login] as $source) {
     $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
 }
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $opacityToken, $token, $source);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $latencyVisualToken, $opacityToken, $token, $source, $querySnapshot, $databaseSchemaSource, $pdoStatementSource, $telemetryStoreSource);

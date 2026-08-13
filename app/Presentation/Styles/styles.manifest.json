@@ -83,7 +83,7 @@
   "source_model": "semantic_owner_files_with_ordered_slices",
   "physical_source_file_count": 23,
   "physical_source_file_count_max": 23,
-  "sequence_segment_count": 1070,
+  "sequence_segment_count": 1071,
   "sources": [
     {
       "path": "tokens/clinic.css",
@@ -140,8 +140,8 @@
       "layer": "components",
       "responsibility": "components",
       "concern": "components",
-      "sha256": "d7ab4a94ddad8e85e9e4c48c7d4b3105adb3244a74b360f9dddcfd77efe4edd4",
-      "bytes": 336433,
+      "sha256": "c7d3811ba196a08c304ef3acca2e2c0aee767045525294395b80be4b60068a69",
+      "bytes": 337022,
       "important_count": 1637,
       "route_scope_count": 0
     },
@@ -9946,6 +9946,15 @@
       "sha256": "e10acda3cc2a6e5a4c9636ee3a9654c96b1c28d09464b0b2c4e712ad0307c730",
       "important_count": 0,
       "route_scope_count": 0
+    },
+    {
+      "order": 1071,
+      "source": "components/components.css",
+      "offset": 336433,
+      "bytes": 589,
+      "sha256": "b65d3a96d22be9146e042979f77187bfcf37cb94d462a733bef41a0e3a6e3f2e",
+      "important_count": 0,
+      "route_scope_count": 0
     }
   ],
   "migration_reference": {
@@ -9957,8 +9966,8 @@
     "alias_required_until_runtime_urls_are_migrated": true
   },
   "artifact_contract": {
-    "sha256": "b7979d46a6e9a2560676e6d58cbb268757945cfcee5edeba1288692def5c3bb3",
-    "bytes": 798851,
+    "sha256": "2ea8b5bc28fc631f499108b0e6fdb146394a3a8247e74e73f36f95258dd20986",
+    "bytes": 799440,
     "lines": 15072,
     "deterministic_source_required": true
   },

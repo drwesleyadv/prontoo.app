@@ -5413,3 +5413,10 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-neutral{color:var(--md-sys-color-on-surface-variant)!important}
 .stat-card.telemetry-kpi-card .telemetry-kpi-trend-icon{font-size:.68em!important}
+
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
+.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}

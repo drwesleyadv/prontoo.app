@@ -181,82 +181,18 @@ final class AdminPagesRuntimeOperations02
     }
 
     public static function admin_global_metric_series_24h(string $metric): array
-    
     {
-        static $series = null;
-        $metric = in_array(
-            $metric,
-            ["duration", "landing_duration", "requests"],
-            true,
-        ) ? $metric : "duration";
-        if (!is_array($series)) {
-            $tz = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
-            $nowUnixUs = (int) floor(microtime(true) * 1000000);
-            $startUnixUs = $nowUnixUs - 24 * 3600 * 1000000;
-            $startTs = intdiv($startUnixUs, 1000000);
-            $series = ["duration" => [], "landing_duration" => [], "requests" => []];
-            for ($i = 0; $i < 1440; $i++) {
-                $ts = $startTs + $i * 60;
-                $dt = new DateTimeImmutable("@" . $ts)->setTimezone($tz);
-                $baseRow = [
-                    "ts" => $ts,
-                    "label" => $dt->format("H:i"),
-                    "tooltip" => $dt->format("d/m H:i"),
-                    "value" => 0.0,
-                    "sum" => 0.0,
-                    "count" => 0,
-                ];
-                $series["duration"][$i] = $baseRow;
-                $series["landing_duration"][$i] = $baseRow;
-                $series["requests"][$i] = $baseRow;
-            }
-            foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
-                $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-                if ($finishedUs < $startUnixUs || $finishedUs >= $nowUnixUs) {
-                    continue;
-                }
-                $idx = intdiv($finishedUs - $startUnixUs, 60 * 1000000);
-                if ($idx < 0 || $idx >= 1440) {
-                    continue;
-                }
-                $series["requests"][$idx]["value"]++;
-                if (!empty($event["speed_observed"])) {
-                    $series["duration"][$idx]["sum"] +=
-                        max(0, (int) ($event["duracao_ns"] ?? 0));
-                    $series["duration"][$idx]["count"]++;
-                    if ((string) ($event["rota"] ?? "") === "landing") {
-                        $series["landing_duration"][$idx]["sum"] +=
-                            max(0, (int) ($event["duracao_ns"] ?? 0));
-                        $series["landing_duration"][$idx]["count"]++;
-                    }
-                }
-            }
-            foreach (["duration", "landing_duration"] as $averageSeries) {
-                foreach ($series[$averageSeries] as &$row) {
-                    $row["value"] = $row["count"] > 0
-                        ? round(($row["sum"] / $row["count"]) / 1000000, 6, \RoundingMode::HalfAwayFromZero)
-                        : 0.0;
-                    $row["samples"] = (int) $row["count"];
-                    $row["sum_ns"] = (int) $row["sum"];
-                    unset($row["sum"], $row["count"]);
-                }
-                unset($row);
-            }
-            foreach ($series["requests"] as &$row) {
-                unset($row["sum"], $row["count"]);
-            }
-            unset($row);
-            foreach ($series as $seriesKey => $seriesRows) {
-                $series[$seriesKey] = array_values($seriesRows);
-            }
-        }
-        return $series[$metric];
-    
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_latency_series_24h($metric);
     }
 
     public static function admin_global_sequence_series_20d(): array
     {
         return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d();
+    }
+
+    public static function admin_global_metric_series_30d(string $metric): array
+    {
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_latency_series_30d($metric);
     }
 
     public static function admin_maestro_health_time_label(?string $value): string
@@ -358,59 +294,49 @@ final class AdminPagesRuntimeOperations02
     }
 
     public static function admin_global_perf_charts_html(): string
-    
     {
-        $duration = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("duration");
-        $landingDuration = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("landing_duration");
-        $requests = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_requests_series_20d();
-        $records = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
-        $recordObservedDays = count(
-            array_filter(
-                $records,
-                static fn(array $row): bool => !empty($row["observed"]),
-            ),
-        );
-        $recordCoverageNote = $recordObservedDays >= 30
-            ? "dados de Visualizações e Registros na janela móvel dos últimos 30 dias, atualizada pelo timestamp corrente."
-            : "Visualizações cobrem a janela móvel dos últimos 30 dias. Registros têm " .
-                $recordObservedDays .
-                " janela(s) de 24h observada(s) desde o início da nova coleta; janelas sem amostra não são tratadas como zero.";
+        $route24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("route");
+        $database24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("database");
+        $route30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_30d("route");
+        $database30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_30d("database");
         return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="5min">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
-                "Velocidade",
-                $duration,
-                $landingDuration,
+                "Últimas 24 horas",
+                $route24h,
+                $database24h,
                 "speed",
                 [
                     "primary_label" => "Rotas",
-                    "secondary_label" => "Landing Page",
+                    "secondary_label" => "Banco de dados",
                     "value_type" => "ms",
+                    "visual_mode" => "latency",
+                    "recent_points" => 5,
+                    "middle_points" => 30,
                     "recent_title" => "Tempo médio das rotas nos últimos 5 minutos",
                     "middle_title" => "Tempo médio das rotas nos últimos 30 minutos",
                     "overall_title" => "Tempo médio das rotas nas últimas 24 horas",
-                    "summary_lead" => "dados de duração de rotas e da Landing Page.",
+                    "summary_lead" => "tempo médio das rotas e das consultas preparadas ao banco de dados.",
                 ],
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
-                "Leitura e gravação",
-                $requests,
-                $records,
-                "speed",
+                "Últimos 30 dias",
+                $route30d,
+                $database30d,
+                "calendar_month",
                 [
-                    "primary_label" => "Visualizações",
-                    "secondary_label" => "Registros",
-                    "value_type" => "count",
-                    "recent_points" => 15,
-                    "comparison_points" => 15,
-                    "middle_points" => 15,
-                    "recent_title" => "Média por 24h de visualizações · 15 dias recentes",
-                    "middle_title" => "Média por 24h de visualizações · 15 dias anteriores",
-                    "overall_title" => "Média por 24h de visualizações · janela móvel de 30 dias",
-                    "summary_lead" => $recordCoverageNote,
+                    "primary_label" => "Rotas",
+                    "secondary_label" => "Banco de dados",
+                    "value_type" => "ms",
+                    "visual_mode" => "latency",
+                    "recent_points" => 1,
+                    "middle_points" => 7,
+                    "recent_title" => "Tempo médio das rotas nas últimas 24 horas",
+                    "middle_title" => "Tempo médio das rotas nos últimos 7 dias",
+                    "overall_title" => "Tempo médio das rotas nos últimos 30 dias",
+                    "summary_lead" => "tempo médio das rotas e das consultas preparadas ao banco de dados.",
                 ],
             ) .
             "</div>";
-    
     }
 
     public static function admin_performance_card_content_html(bool $public = false): string
