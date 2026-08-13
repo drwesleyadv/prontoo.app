@@ -1,0 +1,101 @@
+name: Presentation Priority Contract Wide Batch 2
+on:
+  push:
+    branches: [agent/presentation-priority-contract-wide-batch-2]
+    paths: [.github/workflows/presentation-priority-contract-wide-batch-2.yml]
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Validate exact audited base
+        run: |
+          set -euo pipefail
+          BASE="5d22afefcc8f1634a9ed2ccb9ade5266a45ad306"
+          git merge-base --is-ancestor "$BASE" HEAD
+          test -z "$(git diff --name-only "$BASE"..HEAD | grep -v '^\.github/workflows/presentation-priority-contract-wide-batch-2\.yml$' || true)"
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          rm -f .github/workflows/presentation-priority-contract-wide-batch-2.yml
+          php tools/release-contract-reconcile --check
+      - name: Setup pinned Chromium contract
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Materialize exact newly proven offsets
+        run: |
+          set -euo pipefail
+          git show f1d1a1e3feb747944f7798aa2e8bce273d38c6a2:.github/workflows/presentation-priority-contract-wide-batch-1.yml \
+            | sed -n "/cat > contract-wide-materialize.mjs <<'NODE'/,/^          NODE$/p" \
+            | sed '1d;$d;s/^          //' > contract-wide-materialize.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('contract-wide-materialize.mjs')
+          s=p.read_text()
+          selected="""const selected = [
+  {source:'components/components.css', sourceByteOffset:121190, sequenceOrder:371, selector:'main pill primitive', property:'border-radius', value:'var(--md-sys-shape-corner-full)'},
+  {source:'components/components.css', sourceByteOffset:121219, sequenceOrder:371, selector:'main pill primitive', property:'font-weight', value:'800'},
+  {source:'components/components.css', sourceByteOffset:217062, sequenceOrder:703, selector:'kpi card primitive', property:'border-radius', value:'20px'},
+  {source:'components/components.css', sourceByteOffset:217209, sequenceOrder:703, selector:'kpi card primitive', property:'border', value:'contracted-border'},
+  {source:'components/components.css', sourceByteOffset:217401, sequenceOrder:703, selector:'kpi card primitive', property:'background', value:'contracted-gradient'},
+  {source:'components/components.css', sourceByteOffset:217430, sequenceOrder:703, selector:'kpi card primitive', property:'box-shadow', value:'none'},
+  {source:'components/components.css', sourceByteOffset:309476, sequenceOrder:958, selector:'.cmdbar,.context-bar,.module-bar', property:'align-items', value:'center'},
+  {source:'components/components.css', sourceByteOffset:310605, sequenceOrder:964, selector:'.pill,.status-pill,.badge', property:'line-height', value:'1'}
+];"""
+          s,n=re.subn(r"const selected = \[\n.*?\n\];",selected,s,count=1,flags=re.S)
+          assert n==1
+          replacements=[
+            ("version.version !== '1.8.12.22'","version.version !== '1.8.12.23'"),
+            ("important_count_max) !== 4889","important_count_max) !== 4881"),
+            ("count(oldArtifact, '!important') !== 4889","count(oldArtifact, '!important') !== 4881"),
+            ("importantCount !== 4881 || count(artifact, '!important') !== 4881","importantCount !== 4873 || count(artifact, '!important') !== 4873"),
+            ("release !== '1.8.12.23'","release !== '1.8.12.24'"),
+            ("Primeiro lote fixture-wide: 8 prioridades CSS removidas","Segundo lote fixture-wide: 8 prioridades CSS removidas"),
+            ("4.889 para 4.881","4.881 para 4.873"),
+            ("important_before:4889","important_before:4881")
+          ]
+          for old,new in replacements:
+            assert old in s, old
+            s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+          node --check contract-wide-materialize.mjs
+          node contract-wide-materialize.mjs
+          rm -f contract-wide-materialize.mjs .github/workflows/presentation-priority-contract-wide-batch-2.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate final materialized state
+        run: |
+          set -euo pipefail
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          node tools/presentation-ux-contract.mjs --check
+      - name: Publish validated ordinary delta
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git show f1d1a1e3feb747944f7798aa2e8bce273d38c6a2:.github/workflows/presentation-priority-contract-wide-batch-1.yml \
+            | sed -n "/cat > publish-delta.mjs <<'NODE'/,/^          NODE$/p" \
+            | sed '1d;$d;s/^          //' > publish-delta.mjs
+          node --check publish-delta.mjs
+          node publish-delta.mjs
