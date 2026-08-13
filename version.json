@@ -1,10 +1,10 @@
 {
-    "version": "1.8.12.20",
-    "release": "1.8.12.20",
-    "generated_at_unix": 1786581570,
-    "generated_at": "2026-08-12T20:39:30-04:00",
-    "updated_at": "2026-08-12T20:39:30-04:00",
-    "build": "1.8.12.20-presentation-contracted-priority-adaptive",
+    "version": "1.8.12.21",
+    "release": "1.8.12.21",
+    "generated_at_unix": 1786581963,
+    "generated_at": "2026-08-12T20:46:03-04:00",
+    "updated_at": "2026-08-12T20:46:03-04:00",
+    "build": "1.8.12.21-presentation-contracted-priority-adaptive",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.12.19",
+    "previous_version": "1.8.12.20",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.12.20-presentation-contracted-priority-adaptive",
-    "deployment_sync_requested_at": "2026-08-12T20:39:30-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.12.21-presentation-contracted-priority-adaptive",
+    "deployment_sync_requested_at": "2026-08-12T20:46:03-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -352,11 +352,11 @@
     "changelog": {
         "title": "Novo lote de prioridades visuais contratadas",
         "items": [
-            "reduz 8 ocorrências de !important formalmente comprovadas, de 4910 para 4902",
+            "reduz 8 ocorrências de !important formalmente comprovadas, de 4902 para 4894",
             "mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile",
             "mantém route scopes em 1.091 sem ampliar o alcance de seletores",
             "mantém banco e schema inalterados",
-            "ratcheta o budget de !important para 4902 sem ampliar qualquer outro budget visual"
+            "ratcheta o budget de !important para 4894 sem ampliar qualquer outro budget visual"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
