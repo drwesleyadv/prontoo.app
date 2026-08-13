@@ -15070,9 +15070,22 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 @media(max-width:980px){.pagehead-controls--actions,.pagehead-controls--navigation{justify-content:flex-start;width:100%}.pagehead-controls--navigation{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;padding-bottom:4px}.pagehead-controls--navigation::-webkit-scrollbar{display:none}.pagehead-controls--navigation .pagehead-control--nav{flex:0 0 auto}}
 @media(max-width:640px){.pagehead-control{min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}
 
+@media(max-width:980px){
+  body.scope-global main :is(.global-telemetry-grid,.admin-telemetry-card){
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}
+
+.global-telemetry-grid,
+body.scope-global .admin-telemetry-card{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}

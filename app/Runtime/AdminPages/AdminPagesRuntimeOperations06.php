@@ -377,7 +377,7 @@ final class AdminPagesRuntimeOperations06
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Desenvolvedor Prontoo", "") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 '<h2 class="wide">Telemetria do sistema</h2>' . $telemetry,
-                "admin-telemetry-card two",
+                "admin-telemetry-card",
             ) .
             $charts .
             $actionsCard;
