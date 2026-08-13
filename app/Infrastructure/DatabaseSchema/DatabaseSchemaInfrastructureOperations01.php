@@ -229,6 +229,10 @@ final class DatabaseSchemaInfrastructureOperations01
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_STRINGIFY_FETCHES => false,
             PDO::ATTR_PERSISTENT => false,
+            PDO::ATTR_STATEMENT_CLASS => [
+                \Prontoo\Infrastructure\Database\TelemetryPdoStatement::class,
+                [],
+            ],
         ];
         if (defined("PDO::MYSQL_ATTR_USE_BUFFERED_QUERY")) {
             $options[constant("PDO::MYSQL_ATTR_USE_BUFFERED_QUERY")] = true;

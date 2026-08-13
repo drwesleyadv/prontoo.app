@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.13.4 — Latência de rotas e banco nos gráficos operacionais
+
+- substitui Landing Page no gráfico de 24 horas pelo tempo médio ponderado das consultas preparadas ao banco de dados.
+- recompõe o gráfico de 30 dias para exibir as mesmas séries de Rotas e Banco de dados em milissegundos.
+- mantém Rotas em verde escuro ao fundo e Banco de dados em verde mais claro à frente nos dois gráficos.
+- mede a execução de prepared statements no PDO sem persistir SQL parâmetros resultados ou dados clínicos e preserva períodos históricos sem amostra como lacunas.
+- mantém banco e schema inalterados.
+
 ## 1.8.13.3 — Telemetria do Painel sem wrapper intermediário
 
 - remove o container intermediário que agrupava os quatro KPIs dentro de Telemetria do sistema no Painel do Desenvolvedor.

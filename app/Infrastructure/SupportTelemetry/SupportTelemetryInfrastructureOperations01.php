@@ -228,6 +228,7 @@ final class SupportTelemetryInfrastructureOperations01
     ): array 
     {
         $durationNs = max(0, $finishedMonotonicNs - $startedMonotonicNs);
+        $databaseQueryTelemetry = \Prontoo\Infrastructure\Database\PdoQueryTelemetry::snapshot();
         $statusCode = $statusCode >= 100 && $statusCode <= 599 ? $statusCode : 200;
         $route = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_safe($route);
         $method = strtoupper(mb_trim((string) ($method ?? "GET")));
@@ -279,6 +280,8 @@ final class SupportTelemetryInfrastructureOperations01
                 6,
                 \RoundingMode::HalfAwayFromZero,
             ),
+            "database_query_count" => max(0, (int) ($databaseQueryTelemetry["count"] ?? 0)),
+            "database_query_duration_ns" => max(0, (int) ($databaseQueryTelemetry["duration_ns"] ?? 0)),
             "status_http" => $statusCode,
             "sucesso" => $fatalError === null && $statusCode < 500,
             "erro_fatal" => $fatalError,
@@ -312,6 +315,11 @@ final class SupportTelemetryInfrastructureOperations01
         $method = strtoupper(mb_trim((string) ($event["metodo"] ?? "")));
         $path = mb_trim((string) ($event["caminho"] ?? ""));
         $finishMarker = (string) ($event["marco_final"] ?? "");
+        $databaseQueryCount = max(0, (int) ($event["database_query_count"] ?? 0));
+        $databaseQueryDurationNs = max(0, (int) ($event["database_query_duration_ns"] ?? 0));
+        if ($databaseQueryCount === 0) {
+            $databaseQueryDurationNs = 0;
+        }
         if (
             $route === "unknown" ||
             $startedNs < 0 ||
@@ -339,6 +347,8 @@ final class SupportTelemetryInfrastructureOperations01
             6,
             \RoundingMode::HalfAwayFromZero,
         );
+        $event["database_query_count"] = $databaseQueryCount;
+        $event["database_query_duration_ns"] = $databaseQueryDurationNs;
         $event["status_http"] = max(
             100,
             min(599, (int) ($event["status_http"] ?? 200)),

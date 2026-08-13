@@ -38,6 +38,7 @@ final class AdminPagesPresentationOperations03
         $primaryLabel = mb_trim((string) ($presentation["primary_label"] ?? "Carregamento"));
         $secondaryLabel = mb_trim((string) ($presentation["secondary_label"] ?? "Resposta"));
         $valueType = (string) ($presentation["value_type"] ?? "ms");
+        $visualMode = (string) ($presentation["visual_mode"] ?? "default");
         if ($primaryLabel === "") {
             $primaryLabel = "Carregamento";
         }
@@ -47,6 +48,9 @@ final class AdminPagesPresentationOperations03
         if (!in_array($valueType, ["ms", "count"], true)) {
             $valueType = "ms";
         }
+        if (!in_array($visualMode, ["default", "latency"], true)) {
+            $visualMode = "default";
+        }
         $recentPoints = max(1, (int) ($presentation["recent_points"] ?? 5));
         $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));
         $comparisonPoints = max(0, (int) ($presentation["comparison_points"] ?? 0));
@@ -54,7 +58,18 @@ final class AdminPagesPresentationOperations03
         $middleTitle = mb_trim((string) ($presentation["middle_title"] ?? "Carregamento médio dos últimos 30 minutos"));
         $overallTitle = mb_trim((string) ($presentation["overall_title"] ?? "Carregamento médio das últimas 24 horas"));
         $summaryLead = mb_trim((string) ($presentation["summary_lead"] ?? "indicadores exibem somente o tempo de carregamento."));
-        $loadValues = array_map( fn($r) => (float) ($r["value"] ?? 0), $loadSeries);
+        $loadValues = array_values(
+            array_map(
+                static fn(array $r): float => (float) $r["value"],
+                array_filter(
+                    $loadSeries,
+                    static fn(array $r): bool =>
+                        (!array_key_exists("observed", $r) || !empty($r["observed"])) &&
+                        isset($r["value"]) &&
+                        is_numeric($r["value"]),
+                ),
+            ),
+        );
         $responseValues = array_values(
             array_map(
                 static fn(array $r): float => (float) $r["value"],
@@ -386,6 +401,8 @@ final class AdminPagesPresentationOperations03
         $fillAreas = $loadArea . $responseArea;
         return '<article class="metric-line-chart metric-area-chart metric-dual-time-chart" data-metric-value-type="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($valueType) .
+            '" data-metric-visual="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($visualMode) .
             '" data-ds-card="admin-dual-area-chart" aria-label="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             '"><header><div class="metric-chart-title">' .

@@ -135,6 +135,15 @@ final class TelemetryJsonStore
                 "duracao_ns" => is_array($speedRow)
                     ? max(0, (int) ($speedRow["duracao_ns"] ?? 0))
                     : 0,
+                "database_query_count" => is_array($speedRow)
+                    ? max(0, (int) ($speedRow["database_query_count"] ?? 0))
+                    : 0,
+                "database_query_duration_ns" => is_array($speedRow)
+                    ? max(0, (int) ($speedRow["database_query_duration_ns"] ?? 0))
+                    : 0,
+                "database_query_observed" => is_array($speedRow) &&
+                    array_key_exists("database_query_count", $speedRow) &&
+                    (int) ($speedRow["database_query_count"] ?? 0) > 0,
                 "status_http" => max(
                     100,
                     min(599, (int) ($view["status_http"] ?? 200)),
@@ -297,6 +306,8 @@ final class TelemetryJsonStore
             "rota" => (string) ($event["rota"] ?? "unknown"),
             "fim_unix_us" => (int) ($event["fim_unix_us"] ?? 0),
             "duracao_ns" => max(0, (int) ($event["duracao_ns"] ?? 0)),
+            "database_query_count" => max(0, (int) ($event["database_query_count"] ?? 0)),
+            "database_query_duration_ns" => max(0, (int) ($event["database_query_duration_ns"] ?? 0)),
             "sucesso" => (bool) ($event["sucesso"] ?? false),
         ];
     }
