@@ -38,9 +38,10 @@ jobs:
       - name: Materialize exact newly proven offsets
         run: |
           set -euo pipefail
-          git show f1d1a1e3feb747944f7798aa2e8bce273d38c6a2:.github/workflows/presentation-priority-contract-wide-batch-1.yml \
+          curl -fsSL "https://raw.githubusercontent.com/drwesleyadv/prontoo.app/f1d1a1e3feb747944f7798aa2e8bce273d38c6a2/.github/workflows/presentation-priority-contract-wide-batch-1.yml" \
             | sed -n "/cat > contract-wide-materialize.mjs <<'NODE'/,/^          NODE$/p" \
             | sed '1d;$d;s/^          //' > contract-wide-materialize.mjs
+          test -s contract-wide-materialize.mjs
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -96,8 +97,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git show f1d1a1e3feb747944f7798aa2e8bce273d38c6a2:.github/workflows/presentation-priority-contract-wide-batch-1.yml \
+          curl -fsSL "https://raw.githubusercontent.com/drwesleyadv/prontoo.app/f1d1a1e3feb747944f7798aa2e8bce273d38c6a2/.github/workflows/presentation-priority-contract-wide-batch-1.yml" \
             | sed -n "/cat > publish-delta.mjs <<'NODE'/,/^          NODE$/p" \
             | sed '1d;$d;s/^          //' > publish-delta.mjs
+          test -s publish-delta.mjs
           node --check publish-delta.mjs
           node publish-delta.mjs
