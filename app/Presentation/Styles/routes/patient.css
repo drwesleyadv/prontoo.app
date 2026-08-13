@@ -76,15 +76,15 @@ body[data-route="patient"] .patient-hero p{
 }
 body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions){flex-wrap:wrap!important}
 body[data-route="patient"] .patient-tabs-shell{
-  display:grid!important;
-  gap:14px!important;
+  display:grid;
+  gap:14px;
   padding:12px!important;
   border-radius:28px!important;
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
 body[data-route="patient"] .patient-tab-nav{
   gap:8px;
-  padding:4px!important;
+  padding:4px;
   border-radius:20px;
   background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 84%,transparent);
   border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);
@@ -293,7 +293,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
   }
   body[data-route="patient"] .patient-tab-nav{
     padding:3px!important;
-    gap:6px!important;
+    gap:6px;
   }
   body[data-route="patient"] .patient-tab-nav > label{
     min-height:38px!important;
