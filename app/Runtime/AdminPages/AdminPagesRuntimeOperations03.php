@@ -118,7 +118,7 @@ final class AdminPagesRuntimeOperations03
                     ? (float) $variations["landing_requests_pct"]
                     : null,
             );
-        return '<div class="stats-grid admin-overview-kpis two wide"' .
+        return '<div class="two wide global-telemetry-grid"' .
             ($linked ? "" : ' style="margin-bottom:24px"') .
             ">" .
             $cards .

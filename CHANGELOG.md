@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.13.2 — Baseline auditada e guardrails para agentes
+
+- corrige a composição dos quatro KPIs de telemetria para 2 colunas × 2 linhas em viewport ampla, preservando a queda responsiva para uma coluna.
+- remove do wrapper interno a combinação de classes cujo auto-fit anulava a intenção da grade two, sem alterar CSS, cálculos ou fontes de telemetria.
+- atualiza README, índice documental e guia de contribuição para a baseline vigente.
+- adiciona AGENTS.md com ordem de autoridade, invariantes de arquitetura, tenant, segurança, banco, Presentation, release e checklist de merge para IA agêntica.
+- mantém banco e schema inalterados.
+
 ## 1.8.13.1 — KPIs do Painel e Status em grade 2×2
 
 - distribui os quatro cards de telemetria do Painel do Desenvolvedor em duas colunas e duas linhas.

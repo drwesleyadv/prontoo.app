@@ -2,6 +2,10 @@
 
 Esta documentação descreve o Prontoo como ele existe na arquitetura consolidada. O objetivo não é reproduzir o código em prosa, mas oferecer um modelo mental que permita entender decisões, localizar responsabilidades e operar o sistema sem depender de conhecimento oral.
 
+## Entrada para agentes
+
+Qualquer IA agêntica ou automação que pretenda editar o repositório deve começar por `../AGENTS.md`. Esse documento reúne guardrails operacionais, ordem de autoridade, regras de tenant, segurança, banco, Presentation, release e Definition of Done. A baseline vigente está registrada em `audits/BASELINE-1.8.13.2.md`.
+
 ## Leitura recomendada
 
 Comece por `architecture/overview.md` e `architecture/layers.md`. Em seguida, escolha a trilha correspondente ao trabalho: `domain/` para comportamento de negócio, `security/` para controles, `operations/` para execução e incidentes, `database/` para integridade, `performance/` para budgets e telemetria, e `testing/` para a malha de verificação.

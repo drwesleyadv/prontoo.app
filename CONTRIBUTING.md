@@ -2,6 +2,10 @@
 
 Contribuir com o Prontoo significa preservar comportamento e invariantes enquanto o produto evolui. A arquitetura já está consolidada; portanto, mudanças devem resolver uma necessidade real de produto, segurança, operação ou manutenção, e não criar refatorações autônomas sem benefício mensurável.
 
+## Antes de alterar
+
+Humanos e agentes devem ler `AGENTS.md`. Ele reúne a ordem de autoridade, invariantes arquiteturais, regras de tenant, segurança, banco, Presentation, release e Definition of Done.
+
 ## Ambiente
 
 Use PHP 8.4 e MySQL 8.0.30 ou superior. A família PHP é intencionalmente exata: uma versão posterior não deve ser presumida compatível até que o contrato seja alterado. A branch de integração é `prontoo`.
