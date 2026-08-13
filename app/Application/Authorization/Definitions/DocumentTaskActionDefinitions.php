@@ -11,8 +11,8 @@ final class DocumentTaskActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $documents = 'Domain/Documents/Documents.php';
-        $tasks = 'Domain/Tasks/TasksNotices.php';
+        $documents = 'Runtime/Documents';
+        $tasks = 'Runtime/TasksNotices';
 
         $definitions->add('documents', 'save_template', 'clinic', $documents, [], ['documents:template'], [], 'matrix', 'documents:edit');
         $definitions->add('documents', ['approve_template', 'reject_template', 'save_document', 'confirm_document'], 'clinic', $documents, ['documents:edit'], ['documents:edit']);

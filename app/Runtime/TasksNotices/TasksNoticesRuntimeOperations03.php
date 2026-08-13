@@ -77,7 +77,7 @@ final class TasksNoticesRuntimeOperations03
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_global_notices");
         }
         $form =
-            '<details class="form-panel"><summary class="primary small cmdlike">' .
+            '<details class="form-panel"><summary class="pagehead-control pagehead-control--primary">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Nova aviso global", "notifications") .
             '</summary><form method="post" class="compact">' .
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .

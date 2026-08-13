@@ -43,40 +43,14 @@ $canonicalChangelog = static function (string $source, string $release, array $v
     if ($title === '' || $items === []) {
         throw new RuntimeException('Bloco canônico de changelog ausente em version.json.');
     }
-    $prefix = '# Histórico de versões' . PHP_EOL;
-    if (!str_starts_with($source, $prefix)) {
-        throw new RuntimeException('Cabeçalho canônico do CHANGELOG.md ausente.');
-    }
+    $prefix = '# Versão canônica' . PHP_EOL;
     $heading = '## ' . $release . ' — ' . $title;
     $body = implode(PHP_EOL, array_map(
         static fn(string $item): string => '- ' . rtrim($item, '.') . '.',
         $items,
     ));
     $entry = $heading . PHP_EOL . PHP_EOL . $body . PHP_EOL;
-    $sectionPattern = '/^##\s+' . preg_quote($release, '/') . '\s+—[^\n]*\n.*?(?=^##\s+|\z)/ms';
-    if (preg_match($sectionPattern, $source) === 1) {
-        $updated = preg_replace_callback(
-            $sectionPattern,
-            static fn(array $match): string => $entry . PHP_EOL,
-            $source,
-            1,
-            $count,
-        );
-        if (!is_string($updated) || $count !== 1) {
-            throw new RuntimeException('Falha ao reconciliar entrada existente do CHANGELOG.md.');
-        }
-    } else {
-        $updated = $prefix . PHP_EOL . $entry . substr($source, strlen($prefix));
-    }
-    $updated = preg_replace(
-        '/^##\s+Não publicado[^\n]*\n.*?(?=^##\s+|\z)/ms',
-        '',
-        $updated,
-    );
-    if (!is_string($updated)) {
-        throw new RuntimeException('Falha ao consumir o bloco não publicado do CHANGELOG.md.');
-    }
-    return $updated;
+    return $prefix . PHP_EOL . $entry;
 };
 
 $documentationWorkflow = <<<'YAML'
@@ -161,8 +135,7 @@ $version = $readJson($versionPath);
 $manifest = $readJson($manifestPath);
 $architecture = $readJson($architecturePath);
 $release = mb_trim((string) ($version['version'] ?? ''));
-$previous = mb_trim((string) ($version['previous_version'] ?? ''));
-if ($release === '' || mb_trim((string) ($version['release'] ?? '')) !== $release || $previous === '') {
+if ($release === '' || mb_trim((string) ($version['release'] ?? '')) !== $release) {
     throw new RuntimeException('Metadados canônicos de release inválidos.');
 }
 if (mb_trim((string) ($version['updated_at'] ?? '')) === '') {
@@ -170,7 +143,6 @@ if (mb_trim((string) ($version['updated_at'] ?? '')) === '') {
 }
 
 $prontoo = $syncConstant((string) file_get_contents($prontooPath), 'PRONTOO_VERSION_FALLBACK', $release);
-$prontoo = $syncConstant($prontoo, 'PRONTOO_PREVIOUS_VERSION', $previous);
 $landing = $syncConstant((string) file_get_contents($landingPath), 'BR_LANDING_VERSION_FALLBACK', $release);
 $changelog = $canonicalChangelog((string) file_get_contents($changelogPath), $release, $version);
 
@@ -180,7 +152,6 @@ foreach ([
     'build' => 'build',
     'generated_at' => 'generated_at',
     'updated_at' => 'updated_at',
-    'previous_version' => 'previous_version',
     'deployment_sync_id' => 'deployment_sync_id',
     'logic_changes' => 'logic_changes',
     'documentation_changes' => 'documentation_changes',
@@ -224,7 +195,6 @@ foreach ([
     'post_window_policy',
     'asset_version',
     'required_php_family',
-    'previous_version',
     'deployment_sync_id',
     'release_date',
 ] as $key) {

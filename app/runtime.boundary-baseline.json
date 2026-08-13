@@ -2,7 +2,6 @@
     "schema": "prontoo-runtime-boundary-baseline-v1",
     "policy": "runtime_debt_is_tokenized_inventoried_and_may_only_decrease_until_semantic_closure",
     "source_sha": "e4004e962e011ead61c4bcaa5627dbec08046e54",
-    "source_version": "1.8.10.2",
     "composition_roots": {
         "app/Runtime/LayeredKernel.php": "wires the authorization service and its infrastructure proof store",
         "app/Runtime/Patients/PatientComposition.php": "wires patient application services to PDO repositories",
@@ -11,7 +10,7 @@
         "app/Runtime/Operational/OperationalComposition.php": "wires scoped operational use cases to the PDO catalog repository"
     },
     "structural_sql_exceptions": {
-        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen compatibility execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
+        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen structural execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
     },
     "detection_contract": {
         "persistence_helpers": {

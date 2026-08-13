@@ -11,8 +11,8 @@ final class AdminActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $admin = 'Admin/AdminPages.php';
-        $tasks = 'Domain/Tasks/TasksNotices.php';
+        $admin = 'Runtime/AdminPages';
+        $tasks = 'Runtime/TasksNotices';
 
         $globalActions = [
             'admin_painel' => ['goal', 'confirm_subscription_payment', 'reject_subscription_payment'],

@@ -18,31 +18,6 @@ final class SupportTelemetryInfrastructureOperations03
         return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/database.json";
     }
 
-    private static function telemetry_database_legacy_file(): string
-    {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_storage_dir() . "/database-record-counts.json";
-    }
-
-    private static function telemetry_database_migrate_legacy(): void
-    {
-        $target = self::telemetry_database_records_file();
-        $legacy = self::telemetry_database_legacy_file();
-        if (is_file($target) || !is_file($legacy)) {
-            return;
-        }
-        $raw = @file_get_contents($legacy);
-        $payload = is_string($raw) ? json_decode($raw, true) : null;
-        if (!is_array($payload) || (string) ($payload["schema"] ?? "") !== "prontoo.telemetria.registros.v1") {
-            return;
-        }
-        if (!@rename($legacy, $target)) {
-            @copy($legacy, $target);
-        }
-        if (is_file($target)) {
-            @chmod($target, 0640);
-        }
-    }
-
     public static function telemetry_database_total_records(): array
     {
         $started = microtime(true);
@@ -79,7 +54,6 @@ final class SupportTelemetryInfrastructureOperations03
 
     public static function telemetry_database_record_samples(): array
     {
-        self::telemetry_database_migrate_legacy();
         $file = self::telemetry_database_records_file();
         if (!is_file($file)) {
             return [];
@@ -144,8 +118,7 @@ final class SupportTelemetryInfrastructureOperations03
             ) {
                 throw new RuntimeException("Diretório de telemetria indisponível.");
             }
-            self::telemetry_database_migrate_legacy();
-            $file = self::telemetry_database_records_file();
+                $file = self::telemetry_database_records_file();
             $handle = @fopen($file, "c+");
             if (!is_resource($handle)) {
                 throw new RuntimeException("Arquivo de contagem de registros indisponível.");

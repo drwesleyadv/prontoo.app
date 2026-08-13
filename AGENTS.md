@@ -19,7 +19,7 @@ Se prosa e contrato executável divergirem, preserve o contrato e corrija a docu
 ## 2. Baseline e ambiente
 
 - branch de integração: `prontoo`;
-- baseline auditada: `1.8.13.4`;
+- estado canônico: definido exclusivamente por `version.json`;
 - PHP: família `8.4`, mínimo `8.4.0`;
 - MySQL: `8.0.30` ou superior;
 - aplicação: monólito modular PHP;
@@ -117,7 +117,7 @@ Os gráficos de performance são compartilhados integralmente pelo Painel do Des
 
 Para uma release:
 
-1. faça bump explícito em `version.json` (`version`, `release`, `previous_version`, `build`, timestamps, flags e `changelog`);
+1. faça bump explícito em `version.json` (`version`, `release`, `build`, timestamps, flags e `changelog`);
 2. não edite fallbacks, `app/update.manifest.json` ou `app/architecture.manifest.json` de forma independente;
 3. execute `php tools/release-contract-reconcile --write`;
 4. confirme com `php tools/release-contract-reconcile --check`;
@@ -186,3 +186,7 @@ Antes do merge:
 ## 12. Definition of Done
 
 Uma mudança está pronta quando o comportamento pedido é observável, o diff é mínimo, tenant/segurança/integridade permanecem preservados, budgets não cresceram, artefatos derivados estão reconciliados, documentação corresponde ao estado mergeado e a CI aplicável passa sem exceções improvisadas.
+
+### Estado canônico sem compatibilidade histórica
+
+O código ativo, contratos e documentação normativa devem referenciar apenas caminhos, artefatos e mecanismos canônicos atuais. Não mantenha aliases, resolvers, mapas de migração de paths, fallbacks de arquivos ou metadados de release anterior apenas para compatibilidade com versões superadas. Histórico permanece no Git, não no runtime nem nos contratos executáveis.

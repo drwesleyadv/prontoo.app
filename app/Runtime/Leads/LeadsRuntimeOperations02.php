@@ -638,7 +638,7 @@ final class LeadsRuntimeOperations02
             "</form>";
         if (isset($_GET["new"]) && (string) $_GET["new"] !== "0") {
             $newLeadHeadAction =
-                '<a class="ghost small cmdlike" href="' .
+                '<a class="pagehead-control pagehead-control--secondary" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("leads") .
                 '">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Interessados", "arrow_back") .
@@ -654,7 +654,7 @@ final class LeadsRuntimeOperations02
             return;
         }
         $headAction =
-            '<a class="primary small cmdlike" href="' .
+            '<a class="pagehead-control pagehead-control--primary" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("leads", ["new" => 1]) .
             '">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo Interessado", "person_add") .
@@ -812,7 +812,7 @@ final class LeadsRuntimeOperations02
                 $primaryAction =
                     '<details class="lead-card-details form-panel lead-convert-panel"' .
                     $openAttr .
-                    '><summary class="primary small cmdlike">' .
+                    '><summary class="pagehead-control pagehead-control--primary">' .
                     \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Tornar Paciente", "person_add") .
                     "</summary>" .
                     $conflictHtml .
@@ -862,7 +862,7 @@ final class LeadsRuntimeOperations02
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($r["phone"]) .
                 '" readonly aria-readonly="true" inputmode="tel">';
             $touch =
-                '<details class="lead-card-details"><summary class="ghost small cmdlike">' .
+                '<details class="lead-card-details"><summary class="pagehead-control pagehead-control--secondary">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Registrar contato", "forum") .
                 '</summary><form method="post" class="compact lead-touch-form">' .
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .

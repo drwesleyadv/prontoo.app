@@ -8,7 +8,6 @@ O marcador inicial fica no primeiro ponto executável do front controller; o fin
 
 ## Armazenamento
 
-Eventos canônicos são persistidos em `ssd/telemetry/page-loads.jsonl`. Telemetria histórica de requisições pode coexistir, mas não deve ser misturada com page load.
 
 ## Diagnóstico
 

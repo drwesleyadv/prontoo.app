@@ -12,7 +12,7 @@ $schema = (string) file_get_contents($schemaFile);
 $contract = json_decode((string) file_get_contents($contractFile), true, 512, JSON_THROW_ON_ERROR);
 
 if (!defined('PRONTOO_SCHEMA_REV')) {
-    define('PRONTOO_SCHEMA_REV', 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger');
+    define('PRONTOO_SCHEMA_REV', 'prontoo_clean_schema_r7_layer2_ledger');
 }
 if (!defined('PRONTOO_MIN_MYSQL_VERSION')) {
     define('PRONTOO_MIN_MYSQL_VERSION', '8.0.30');

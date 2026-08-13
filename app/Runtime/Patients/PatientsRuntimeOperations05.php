@@ -401,7 +401,7 @@ final class PatientsRuntimeOperations05
             $newPatientParams["f"] = $filter;
         }
         $headAction =
-            '<a class="primary small cmdlike" href="' .
+            '<a class="pagehead-control pagehead-control--primary" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("patients", $newPatientParams) .
             '">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo Paciente", "person_add") .

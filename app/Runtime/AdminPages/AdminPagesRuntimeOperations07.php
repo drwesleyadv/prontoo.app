@@ -119,7 +119,7 @@ final class AdminPagesRuntimeOperations07
                     : "Sem vencimento"));
     
         $hero =
-            '<div class="admin-clinic-detail-toolbar"><a class="ghost small cmdlike" href="' .
+            '<div class="admin-clinic-detail-toolbar"><a class="pagehead-control pagehead-control--secondary" href="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics")) .
             '">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .

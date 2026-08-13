@@ -11,7 +11,7 @@ final class PatientActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $patients = 'Domain/Patients/Patients.php';
+        $patients = 'Runtime/Patients';
 
         $definitions->add('patients', '__default__', 'clinic', $patients, ['patients:add'], ['patients:add']);
         $definitions->add('patient', ['save_legal_guardian', 'update_patient_contact', 'update_patient', 'create_patient_tab', 'update_care'], 'clinic', $patients, ['patients:edit'], ['patients:edit']);

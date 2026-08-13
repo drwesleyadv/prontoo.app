@@ -40,7 +40,7 @@ final class TasksNoticesRuntimeOperations05
             error_log("[Prontoo readonly support alerts list] " . $e->getMessage());
         }
         $form =
-            '<details class="form-panel notice-compose-panel readonly-support-compose" open><summary class="primary small cmdlike">' .
+            '<details class="form-panel notice-compose-panel readonly-support-compose" open><summary class="pagehead-control pagehead-control--primary">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Mensagem para o suporte", "support_agent") .
             '</summary><form method="post" class="compact notice-form notice-form-refined" data-notice-form>' .
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .

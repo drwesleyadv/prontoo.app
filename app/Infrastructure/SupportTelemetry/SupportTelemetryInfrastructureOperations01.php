@@ -46,11 +46,6 @@ final class SupportTelemetryInfrastructureOperations01
         return self::telemetry_storage_dir() . "/speed.json";
     }
 
-    public static function telemetry_legacy_file(): string
-    {
-        return self::telemetry_storage_dir() . "/page-loads.jsonl";
-    }
-
     public static function telemetry_file(): string
     {
         return self::telemetry_views_file();

@@ -452,7 +452,7 @@ final class TasksNoticesRuntimeOperations04
             return;
         }
         $form =
-            '<a class="primary small cmdlike" href="' .
+            '<a class="pagehead-control pagehead-control--primary" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("tasks", ["new" => 1]) .
             '">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Nova tarefa", "add_task") .

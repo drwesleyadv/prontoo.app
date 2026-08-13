@@ -222,7 +222,7 @@ final class TasksNoticesRuntimeOperations06
         }
         $form = $readOnly
             ? ""
-            : '<a class="primary small cmdlike" href="' .
+            : '<a class="pagehead-control pagehead-control--primary" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view, "new" => 1]) .
                 '">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo aviso", "notifications") .

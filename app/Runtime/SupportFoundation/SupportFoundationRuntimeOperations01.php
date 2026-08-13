@@ -504,7 +504,7 @@ final class SupportFoundationRuntimeOperations01
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf()) .
             '"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/public/assets/favicon-' .
             rawurlencode(PRONTOO_ASSET_REV) .
-            '.png" type="image/png"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+            '.png" type="image/png"><link rel="stylesheet" href="/public/assets/presentation.css?v=' .
             rawurlencode(
                 defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,
             ) .

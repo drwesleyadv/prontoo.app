@@ -1,6 +1,5 @@
 {
     "schema": "prontoo-performance-budgets-v1",
-    "version": "1.7.30.1",
     "policy": "budgets_are_guardrails_and_must_be_tightened_from_production_baselines_without_weakening_security_or_integrity",
     "defaults": {
         "max_elapsed_ms": 2500,

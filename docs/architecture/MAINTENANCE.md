@@ -1,6 +1,6 @@
 # Manutenção da arquitetura consolidada
 
-A baseline consolidada é `1.8.11.1`. A versão `1.8.11.2` inaugura explicitamente o modo `consolidated_maintenance`: arquitetura deixa de ser um programa contínuo de refatoração e passa a atuar como conjunto de limites executáveis para a evolução do produto.
+O projeto opera em modo `consolidated_maintenance`: arquitetura não é um programa contínuo de refatoração; ela atua como conjunto de limites executáveis para a evolução do produto.
 
 ## Quando abrir novo ciclo
 

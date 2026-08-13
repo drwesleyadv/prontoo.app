@@ -11,8 +11,8 @@ final class WorkforceActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $users = 'Domain/Permissions/UsersPermissions.php';
-        $maestro = 'Domain/Maestro/Maestro.php';
+        $users = 'Runtime/UsersPermissions';
+        $maestro = 'Runtime/Maestro';
 
         $definitions->add('users', ['__default__', 'save'], 'clinic', $users, ['users:add'], ['users:add']);
         $definitions->add('users', 'deactivate', 'clinic', $users, ['users:delete'], ['users:deactivate']);

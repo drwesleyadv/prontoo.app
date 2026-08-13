@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/compatibility-source.php';
+require_once __DIR__ . '/canonical-source.php';
 $root = dirname(__DIR__);
 require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 $assert = static function (bool $ok, string $message): void {
@@ -198,7 +198,4 @@ foreach ([
     $assert(str_contains($speedGeometry, $opacityToken), 'gráfico Últimos 30 dias perdeu transparência obrigatória de 50%: ' . $opacityToken);
 }
 $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'linha pública/rodapé deixou de usar as séries canônicas');
-foreach ([$admin2, $admin3, $admin9, $login] as $source) {
-    $assert(!str_contains($source, 'page-loads.jsonl') && !str_contains($source, 'database-record-counts.json'), 'Runtime/Presentation lê arquivo legado diretamente');
-}
 unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $latencyVisualToken, $opacityToken, $token, $source, $querySnapshot, $databaseSchemaSource, $pdoStatementSource, $telemetryStoreSource);

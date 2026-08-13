@@ -491,14 +491,12 @@ final class DatabaseSchemaInfrastructureOperations01
     
         $contract = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::prontoo_operational_schema_contract();
         $tables = array_keys((array) ($contract["tables"] ?? []));
-        foreach (["redesigned_tables", "new_support_tables"] as $key) {
-            foreach ((array) ($contract[$key] ?? []) as $table) {
-                $table = mb_trim((string) $table);
-                if ($table !== "") {
-                    $tables[] = $table;
-                }
-            }
-        }
+        foreach ((array) ($contract["structurally_validated_tables"] ?? []) as $table) {
+    $table = mb_trim((string) $table);
+    if ($table !== "") {
+        $tables[] = $table;
+    }
+}
         $tables = array_values(array_unique($tables));
         sort($tables, SORT_STRING);
     

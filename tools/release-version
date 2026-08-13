@@ -118,7 +118,6 @@ if ($write) {
     $version['version_sequence_policy'] = 'sequence_starts_at_1_and_resets_each_publication_day';
     $version['release_version_policy'] = 'explicit_date_sequence_generator_v1';
     $version['release_version_generator'] = 'tools/release-version';
-    $version['release_version_last_transition'] = $current . '->' . $next;
     $version['notes'] = 'Engenharia 16–21: fechamento semântico do Runtime financeiro, identidade e módulos operacionais; matriz integral de Application; budgets reais MySQL ampliados; e contrato final de arquitetura.';
     $version['changelog'] = [
         'title' => 'Engenharia arquitetural 16–21 e consolidação',
@@ -133,7 +132,6 @@ if ($write) {
             'publica a conclusão das fases 16–21 sem mudança de schema, banco ou interface',
         ],
     ];
-    $version['previous_version'] = $current;
     $version['deployment_sync_id'] = 'github-prontoo-' . $next . '-architecture-21';
     $version['deployment_sync_requested_at'] = $timestamp;
     $version['release_reconciliation_policy'] = 'version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only';
@@ -146,7 +144,6 @@ if ($write) {
     fwrite(STDOUT, json_encode([
         'ok' => true,
         'mode' => 'write',
-        'previous_version' => $current,
         'version' => $next,
         'release_date' => $targetDate,
         'policy' => 'explicit_date_sequence_generator_v1',
@@ -158,7 +155,6 @@ $failures = [];
 $current = trim((string) ($version['version'] ?? ''));
 $release = trim((string) ($version['release'] ?? ''));
 $releaseDate = trim((string) ($version['release_date'] ?? ''));
-$previous = trim((string) ($version['previous_version'] ?? ''));
 $changelog = (array) ($version['changelog'] ?? []);
 $changelogTitle = trim((string) ($changelog['title'] ?? ''));
 $changelogItems = array_values(array_filter(
@@ -176,15 +172,11 @@ try {
     if ($sequence < 1) {
         $failures[] = 'sequence';
     }
-    $parseVersion($previous);
 } catch (Throwable $error) {
     $failures[] = 'format:' . $error->getMessage();
 }
 if ($release !== $current) {
     $failures[] = 'release_mismatch';
-}
-if ($previous === '' || $previous === $current) {
-    $failures[] = 'previous_version';
 }
 if (($version['version_format'] ?? '') !== '1.month.day.sequence') {
     $failures[] = 'version_format';
@@ -213,7 +205,6 @@ fwrite(STDOUT, json_encode([
     'mode' => 'check',
     'policy' => 'explicit_date_sequence_generator_v1',
     'version' => $current,
-    'previous_version' => $previous,
     'release_date' => $releaseDate,
     'changelog_items' => count($changelogItems),
     'self_tests' => count($selfTests) + 1,

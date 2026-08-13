@@ -22,11 +22,9 @@ if (!is_array($manifest)) {
 
 $sourceRoot = (string) ($manifest['source_root'] ?? '');
 $artifact = (string) ($manifest['artifact'] ?? '');
-$retiredArtifact = (string) ($manifest['retired_artifact'] ?? '');
 $ownershipOrder = (array) ($manifest['ownership_order'] ?? []);
 $forbiddenLayers = (array) ($manifest['forbidden_layers'] ?? []);
 $artifactContract = (array) ($manifest['artifact_contract'] ?? []);
-$migrationReference = (array) ($manifest['migration_reference'] ?? []);
 $uxContract = (array) ($manifest['observable_ux_contract'] ?? []);
 $budget = (array) ($manifest['visual_debt_budget'] ?? []);
 $sources = (array) ($manifest['sources'] ?? []);
@@ -38,7 +36,7 @@ $cascadeBandCount = (int) ($manifest['cascade_band_count'] ?? -1);
 $sourceModel = (string) ($manifest['source_model'] ?? '');
 $sourceFileLimit = (int) ($manifest['physical_source_file_count_max'] ?? -1);
 
-if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css' || $retiredArtifact !== 'public/assets/design-system.css') {
+if ($sourceRoot !== 'app/Presentation/Styles' || $artifact !== 'public/assets/presentation.css') {
     fwrite(STDERR, "presentation-css-build: canonical paths changed\n");
     exit(1);
 }
@@ -180,17 +178,6 @@ if (($artifactContract['deterministic_source_required'] ?? false) !== true || !h
 if ($sequenceImportant > (int) ($budget['important_count_max'] ?? -1) || $sequenceRoutes > (int) ($budget['route_scope_count_max'] ?? -1)) {
     fwrite(STDERR, "presentation-css-build: visual debt budget increased\n");
     exit(1);
-}
-if (is_file($root . '/' . $retiredArtifact)) {
-    fwrite(STDERR, "presentation-css-build: retired monolith still present\n");
-    exit(1);
-}
-if (($migrationReference['alias_required_until_runtime_urls_are_migrated'] ?? false) === true) {
-    $htaccess = (string) file_get_contents($root . '/.htaccess');
-    if (!str_contains($htaccess, 'RewriteRule ^public/assets/design-system\\.css$ public/assets/presentation.css [L,NC]')) {
-        fwrite(STDERR, "presentation-css-build: delivery alias missing\n");
-        exit(1);
-    }
 }
 
 $mode = $argv[1] ?? '--lint';

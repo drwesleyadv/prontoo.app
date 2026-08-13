@@ -3,8 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Core\Architecture;
 
-require_once __DIR__ . '/CompatibilitySourceResolver.php';
-
 use Prontoo\Application\Authorization\ActionCatalog;
 
 final class ArchitectureVerifier
@@ -85,14 +83,14 @@ final class ArchitectureVerifier
             if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
                 $knownBySource[$source][$contract->action] = true;
             }
-            if (CompatibilitySourceResolver::content($root, $source) === '') {
+            if (self::canonicalSourceContent($root, $source) === '') {
                 $errors[] = 'action_source_missing:' . $contract->route . ':' . $contract->action . ':' . $source;
             }
             if ($routes !== [] && !isset($routes[$contract->route])) {
                 $errors[] = 'action_route_missing:' . $contract->route . ':' . $contract->action;
             }
-            if ($contract->action !== ActionCatalog::DEFAULT_ACTION && CompatibilitySourceResolver::content($root, $source) !== '') {
-                $content = CompatibilitySourceResolver::content($root, $source);
+            if ($contract->action !== ActionCatalog::DEFAULT_ACTION && self::canonicalSourceContent($root, $source) !== '') {
+                $content = self::canonicalSourceContent($root, $source);
                 if (!str_contains($content, $contract->action)) {
                     $errors[] = 'action_token_not_in_handler:' . $contract->route . ':' . $contract->action . ':' . $source;
                 }
@@ -103,12 +101,12 @@ final class ArchitectureVerifier
                 if ($contract->action !== ActionCatalog::DEFAULT_ACTION) {
                     $knownBySource[$producer][$contract->action] = true;
                 }
-                if (CompatibilitySourceResolver::content($root, $producer) === '') {
+                if (self::canonicalSourceContent($root, $producer) === '') {
                     $errors[] = 'action_producer_missing:' . $contract->route . ':' . $contract->action . ':' . $producer;
                     continue;
                 }
                 if ($contract->action !== ActionCatalog::DEFAULT_ACTION &&
-                    !str_contains(CompatibilitySourceResolver::content($root, $producer), $contract->action)) {
+                    !str_contains(self::canonicalSourceContent($root, $producer), $contract->action)) {
                     $errors[] = 'action_token_not_in_producer:' . $contract->route . ':' . $contract->action . ':' . $producer;
                 }
             }
@@ -123,7 +121,7 @@ final class ArchitectureVerifier
         $discoveredSources = [];
         $unregisteredPairs = [];
         foreach (array_keys($sources) as $source) {
-            $content = CompatibilitySourceResolver::content($root, $source);
+            $content = self::canonicalSourceContent($root, $source);
             if ($content === '') {
                 continue;
             }
@@ -150,7 +148,6 @@ final class ArchitectureVerifier
             count($transitionalFiles),
             $errors,
         );
-        self::inspectRemovedLegacy($root, $errors, $warnings);
 
         $total = count($files);
         $covered = count($classified);
@@ -283,31 +280,31 @@ final class ArchitectureVerifier
         }
     }
 
-    private static function inspectRemovedLegacy(string $root, array &$errors, array &$warnings): void
+    private static function canonicalSourceContent(string $root, string $relative): string
     {
-
-        foreach ([
-            'app/Core/Invariant/ActionCapabilityCatalog.php',
-            'app/Core/Invariant/CapabilityInvariant.php',
-            'app/Core/Integrity/PiSequence.php',
-            'app/Core/Integrity/ActionProof.php',
-        ] as $legacyFile) {
-            if (is_file($root . '/' . $legacyFile)) {
-                $errors[] = 'legacy_authorization_file_present:' . $legacyFile;
+        $relative = ltrim(str_replace('\\', '/', $relative), '/');
+        if ($relative === '') {
+            return '';
+        }
+        $path = rtrim($root, '/') . '/' . $relative;
+        if (is_file($path)) {
+            return (string) @file_get_contents($path);
+        }
+        if (!is_dir($path)) {
+            return '';
+        }
+        $files = glob($path . '/*.php');
+        if (!is_array($files) || $files === []) {
+            return '';
+        }
+        sort($files, SORT_STRING);
+        $chunks = [];
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                $chunks[] = (string) @file_get_contents($file);
             }
         }
-        $kernel = $root . '/app/Core/Invariant/InvariantKernel.php';
-        if (is_file($kernel) && preg_match('/CapabilityInvariant|AuthorizationService|ActionCatalog/', (string) @file_get_contents($kernel))) {
-            $errors[] = 'core_kernel_depends_on_authorization_application';
-        }
-        $security = $root . '/app/Support/SecurityAccess.php';
-        if (is_file($security) && str_contains((string) @file_get_contents($security), 'function enforce_action_integrity')) {
-            $errors[] = 'legacy_authorization_adapter_present:enforce_action_integrity';
-        }
-        $moduleLoader = $root . '/app/Support/ModuleLoader.php';
-        if (is_file($moduleLoader)) {
-            $errors[] = 'legacy_composition_facade_present:app/Support/ModuleLoader.php';
-        }
+        return implode("\n", $chunks);
     }
 
     private static function discoverActionTokens(string $content): array

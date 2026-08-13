@@ -163,7 +163,7 @@ final class AdminPagesRuntimeOperations04
         foreach ($rows as $r) {
             $btn = $r["resolved_at"]
                 ? ""
-                : '<details class="inline"><summary class="ghost small cmdlike">' .
+                : '<details class="inline"><summary class="pagehead-control pagehead-control--secondary">' .
                     \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Resolver", "task_alt") .
                     '</summary><form method="post" class="compact">' .
                     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .

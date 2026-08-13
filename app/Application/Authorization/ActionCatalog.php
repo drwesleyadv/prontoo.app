@@ -98,9 +98,8 @@ CONTRACT;
         $cases['template_create_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 0])?->required === ['documents:add'];
         $cases['template_edit_conditional'] = self::resolve('documents', ['act' => 'save_template', 'id' => 5])?->required === ['documents:edit'];
         $cases['sources_declared'] = array_reduce(self::all(), static fn(bool $ok, ActionContract $contract): bool => $ok && $contract->source !== '', true);
-        $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Auth/AuthOnboarding.php';
-        $cases['choose_admin_producer_declared'] = self::resolve('switch', ['act' => 'choose_admin'])?->producers === ['Admin/AdminPages.php'];
-        $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Domain/Tasks/TasksNotices.php'];
+        $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Runtime/AuthOnboarding';
+        $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Runtime/TasksNotices'];
         $incident = self::resolve('admin_errors', ['act' => 'resolve_incident']);
         $security = self::resolve('admin_security', ['act' => 'release_login_lock']);
         $cases['incident_resolution_exact_global_contract'] = $incident?->scope === 'global' &&

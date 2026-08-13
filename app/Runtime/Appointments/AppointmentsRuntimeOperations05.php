@@ -1161,7 +1161,7 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $createTitle,
                     $createSubtitle,
-                    '<a class="ghost small cmdlike" href="' .
+                    '<a class="pagehead-control pagehead-control--secondary" href="' .
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
@@ -1186,7 +1186,7 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $noteTitle,
                     $noteSubtitle,
-                    '<a class="ghost small cmdlike" href="' .
+                    '<a class="pagehead-control pagehead-control--secondary" href="' .
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
@@ -1315,7 +1315,7 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                     $blockTitle,
                     $blockSubtitle,
-                    '<a class="ghost small cmdlike" href="' .
+                    '<a class="pagehead-control pagehead-control--secondary" href="' .
                         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                         '">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_view_day") .
@@ -1327,7 +1327,7 @@ final class AppointmentsRuntimeOperations05
         $headActions = "";
         if (in_array($role, ["recepcionista", "gerente"], true)) {
             $headActions .=
-                '<a class="primary small cmdlike" href="' .
+                '<a class="pagehead-control pagehead-control--primary" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $buildParams() + ["mode" => "create"]) .
                 '">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
@@ -1335,14 +1335,14 @@ final class AppointmentsRuntimeOperations05
         }
         if (in_array($role, ["recepcionista", "medico", "gerente"], true)) {
             $headActions .=
-                '<a class="ghost small cmdlike" href="' .
+                '<a class="pagehead-control pagehead-control--secondary" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $buildParams() + ["mode" => "block"]) .
                 '">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "<span>Bloquear horário</span></a>";
         }
         $headActions .=
-            '<a class="ghost small cmdlike" href="' .
+            '<a class="pagehead-control pagehead-control--secondary" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
                 $buildParams() + ["mode" => "note", "note_date" => $day],
@@ -1496,12 +1496,12 @@ final class AppointmentsRuntimeOperations05
             }
             if ($mode === "quick") {
                 if ($quickItems === "") {
-                    return '<button type="button" class="ghost small cmdlike agenda-row-actions-disabled" data-agenda-row-actions disabled aria-disabled="true">' .
+                    return '<button type="button" class="pagehead-control pagehead-control--secondary agenda-row-actions-disabled" data-agenda-row-actions disabled aria-disabled="true">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bolt") .
                         "<span>Ações</span></button>";
                 }
                 $modalId = "agenda-actions-modal-" . $id;
-                return '<span class="agenda-row-actions-wrap" data-agenda-row-actions><button type="button" class="ghost small cmdlike agenda-row-actions-open" data-agenda-actions-open="' .
+                return '<span class="agenda-row-actions-wrap" data-agenda-row-actions><button type="button" class="pagehead-control pagehead-control--secondary agenda-row-actions-open" data-agenda-actions-open="' .
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modalId) .
                     '" aria-haspopup="dialog" aria-controls="' .
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($modalId) .
@@ -1755,7 +1755,7 @@ final class AppointmentsRuntimeOperations05
                     $panel .
                     "</div>";
             }
-            return '<details class="agenda-item-actions compact-actions agenda-journey-actions"><summary class="ghost small cmdlike">' .
+            return '<details class="agenda-item-actions compact-actions agenda-journey-actions"><summary class="pagehead-control pagehead-control--secondary">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("more_horiz") .
                 '<span>Ações</span></summary><div class="agenda-action-panel agenda-action-panel-journey">' .
                 $panel .
@@ -1920,7 +1920,7 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
                     "<span>Remover bloqueio</span></button></form>";
                 $actions =
-                    '<details class="agenda-item-actions compact-actions"><summary class="ghost small cmdlike">' .
+                    '<details class="agenda-item-actions compact-actions"><summary class="pagehead-control pagehead-control--secondary">' .
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("more_horiz") .
                     '<span>Ações</span></summary><div class="agenda-action-panel"><div class="agenda-action-title">Ações do bloqueio</div>' .
                     $editForm .

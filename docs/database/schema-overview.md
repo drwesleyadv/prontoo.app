@@ -1,6 +1,6 @@
 # Visão geral do banco de dados
 
-O Prontoo usa MySQL como fonte relacional de verdade. A versão atual exige MySQL 8.0.30 ou superior e mantém um schema canônico de instalação limpa, identificado por `prontoo_1_7_20_6_clean_schema_r7_layer2_ledger`.
+O Prontoo usa MySQL como fonte relacional de verdade. A versão atual exige MySQL 8.0.30 ou superior e mantém um schema canônico de instalação limpa, identificado por `prontoo_clean_schema_r7_layer2_ledger`.
 
 ## Estrutura
 

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/compatibility-source.php';
+require_once __DIR__ . '/canonical-source.php';
 
 if (PHP_SAPI !== "cli") {
     http_response_code(404);
@@ -149,7 +149,7 @@ if ($guardPos === false || $bootstrapPos === false || $guardPos > $bootstrapPos)
     $errors[] = 'install_entry_guard_order';
 }
 
-$installer = compatibility_source($root, 'app/Install/Installer.php');
+$installer = canonical_source($root, ["app/Infrastructure/InstallInstaller/InstallInstallerInfrastructureOperations01.php", "app/Presentation/InstallInstaller/InstallInstallerPresentationOperations01.php", "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations01.php", "app/Runtime/InstallInstaller/InstallInstallerRuntimeOperations02.php"]);
 if (str_contains($installer, 'assertLocalEntry') ||
     !str_contains($installer, 'InstallAccess::assertInstallerEntry')) {
     $errors[] = 'installer_internal_guard';
@@ -210,12 +210,12 @@ foreach (['tools/architecture-check.php', 'tools/schema-check.php', 'tools/insta
     }
 }
 
-$securityAccessSource = compatibility_source($root, 'app/Support/SecurityAccess.php');
+$securityAccessSource = canonical_source($root, ["app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations01.php", "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations02.php", "app/Presentation/SecurityAccess/SecurityAccessPresentationOperations01.php", "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations01.php", "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations02.php", "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations03.php", "app/Runtime/SecurityAccess/SecurityAccessRuntimeOperations04.php", "app/Runtime/Tenant/SessionTenantAccess.php"]);
 if (!str_contains($securityAccessSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache/rate-limits")') ||
     !str_contains($securityAccessSource, 'flock($handle, LOCK_EX)')) {
     $errors[] = 'atomic_rate_limit_policy';
 }
-$authSecuritySource = compatibility_source($root, 'app/Auth/AuthOnboarding.php');
+$authSecuritySource = canonical_source($root, ["app/Infrastructure/AuthOnboarding/AuthOnboardingInfrastructureOperations01.php", "app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php"]);
 $authPersistenceSource = implode("\n", [
     (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentityAuthSqlCatalog03.php'),
     (string) file_get_contents($root . '/app/Infrastructure/Identity/IdentityAuthSqlCatalog04.php'),
@@ -289,7 +289,7 @@ if (str_contains($authSecuritySource, '\Prontoo\Infrastructure\SecurityAccess\Se
     str_contains($authSecuritySource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()')) {
     $errors[] = 'persistent_device_auth_surface';
 }
-$foundationAuthSource = compatibility_source($root, 'app/Support/Foundation.php');
+$foundationAuthSource = canonical_source($root, ["app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php", "app/Presentation/SupportFoundation/SupportFoundationPresentationOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php"]);
 if (str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()') ||
     !str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
     $errors[] = 'login_autotest_persistent_device_bypass';
@@ -321,7 +321,7 @@ foreach ($requiredMfaRoutes as $requiredRoute => [$handlerClass, $handlerMethod,
     }
 }
 
-$patientSecuritySource = compatibility_source($root, 'app/Domain/Patients/Patients.php');
+$patientSecuritySource = canonical_source($root, ["app/Domain/Patients/PatientsDomainOperations01.php", "app/Infrastructure/Patients/PatientsInfrastructureOperations01.php", "app/Presentation/Patients/PatientsPresentationOperations01.php", "app/Runtime/Patients/PatientComposition.php", "app/Runtime/Patients/PatientViewComposition.php", "app/Runtime/Patients/PatientsRuntimeOperations01.php", "app/Runtime/Patients/PatientsRuntimeOperations02.php", "app/Runtime/Patients/PatientsRuntimeOperations03.php", "app/Runtime/Patients/PatientsRuntimeOperations04.php", "app/Runtime/Patients/PatientsRuntimeOperations05.php", "app/Runtime/Patients/PatientsRuntimeOperations06.php", "app/Runtime/Patients/PatientsRuntimeOperations07.php"]);
 $patientPersistenceSource = (string) file_get_contents(
     $root . '/app/Infrastructure/Operational/PatientsSqlCatalog02.php',
 );
@@ -341,12 +341,12 @@ if (!str_contains($leadSecuritySource, "'operational.leads.01.page_lead_patient_
     !str_contains($leadPersistenceSource, 'WHERE u.person_id=p.id AND ur.clinic_id=?')) {
     $errors[] = 'lead_patient_lookup_tenant_policy';
 }
-$teamSecuritySource = compatibility_source($root, 'app/Domain/Permissions/UsersPermissions.php');
+$teamSecuritySource = canonical_source($root, ["app/Domain/UsersPermissions/UsersPermissionsDomainOperations01.php", "app/Presentation/UsersPermissions/UsersPermissionsPresentationOperations01.php", "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations01.php", "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations02.php", "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations03.php", "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php", "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php"]);
 if (!str_contains($teamSecuritySource, '!$alreadyLinked') ||
     !str_contains($teamSecuritySource, 'password_verify($pass')) {
     $errors[] = 'cross_clinic_credential_reuse_policy';
 }
-$documentSecuritySource = compatibility_source($root, 'app/Domain/Documents/Documents.php');
+$documentSecuritySource = canonical_source($root, ["app/Domain/Documents/DocumentHtmlPolicy.php", "app/Domain/Documents/DocumentIdentifierPolicy.php", "app/Domain/Documents/DocumentTemplatePolicy.php", "app/Domain/Documents/DocumentTypePolicy.php", "app/Domain/Documents/DocumentsDomainOperations02.php", "app/Presentation/Documents/DocumentsPresentationOperations01.php", "app/Runtime/Documents/DocumentsRuntimeOperations01.php", "app/Runtime/Documents/DocumentsRuntimeOperations02.php", "app/Runtime/Documents/DocumentsRuntimeOperations03.php", "app/Runtime/Documents/DocumentsRuntimeOperations04.php", "app/Runtime/Documents/DocumentsRuntimeOperations05.php", "app/Runtime/Documents/DocumentsRuntimeOperations06.php"]);
 if (!str_contains($documentSecuritySource, 'b|strong|i|em|u|p|br|div|ul|ol|li|h2|h3')) {
     $errors[] = 'document_html_attribute_allowlist_policy';
 }
@@ -357,7 +357,7 @@ if (!str_contains($gitignore, '/ssd/') ||
     !str_contains($gitignore, '/pdfs/')) {
     $errors[] = 'ssd_gitignore_policy';
 }
-$foundationSource = compatibility_source($root, 'app/Support/Foundation.php');
+$foundationSource = canonical_source($root, ["app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php", "app/Presentation/SupportFoundation/SupportFoundationPresentationOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php"]);
 if (!str_contains($foundationSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/ssd"') ||
     str_contains($foundationSource, '\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/storage"')) {
     $errors[] = 'ssd_storage_path_policy';

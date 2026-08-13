@@ -113,9 +113,21 @@ final class UiComponentsRuntimeOperations04
     ): string 
     {
     
+        $controlRole = match ($variant) {
+            'primary' => 'primary',
+            'danger', 'danger-soft' => 'danger',
+            default => 'secondary',
+        };
+        $controlExtra = match ($variant) {
+            'danger-soft' => 'pagehead-control--danger-soft',
+            'primary', 'ghost', 'secondary', 'danger' => '',
+            default => $variant,
+        };
         return '<details class="action-panel"><summary class="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($variant) .
-            ' small cmdlike">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                \Prontoo\Presentation\UiComponents\PageHeadControlPresentationOperations01::classes($controlRole, $controlExtra),
+            ) .
+            '">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label) .
             ($hint !== "" ? "<small>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($hint) . "</small>" : "") .
             "</summary>" .

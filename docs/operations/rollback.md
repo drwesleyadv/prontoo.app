@@ -1,10 +1,10 @@
 # Rollback
 
-Rollback precisa distinguir código, schema e estado persistente. Na release `1.8.11.2` não houve mudança de schema, o que torna reversão de código mais simples, mas essa condição deve ser conferida em cada release.
+Rollback precisa distinguir código, schema e estado persistente. A condição de mudança de schema deve ser conferida no contrato da release antes de qualquer reversão de código.
 
 ## Código
 
-Escolha um commit/release conhecido e validado, publique-o pelo mesmo canal de deployment e preserve `ssd/`. Não copie apenas um subconjunto de arquivos, porque o release contract depende de consistência entre código, manifests e fallbacks.
+Escolha um commit/release conhecido e validado, publique-o pelo mesmo canal de deployment e preserve `ssd/`. Não copie apenas um subconjunto de arquivos, porque o release contract depende de consistência entre código, manifests e metadados canônicos.
 
 ## Banco
 

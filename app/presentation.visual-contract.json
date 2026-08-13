@@ -1,13 +1,7 @@
 {
-    "version": "1.8.12.14",
-    "policy": "presentation-pagehead-control-primitive-v2",
+    "version": "1.8.13.8",
+    "policy": "presentation-pagehead-control-canonical-v3",
     "architecture_scope": "presentation_ui_adapter_contract",
-    "reference": {
-        "previous_release": "1.8.12.13",
-        "previous_visual_reference": "normal_shadow_reduction_v1",
-        "visual_reference": "raw_empty_rule_reduction_v1",
-        "functional_equivalence": "only_rules_with_no_raw_effect_are_removed_plus_computed_style_geometry_baseline_stable"
-    },
     "primitive": {
         "renderer": "Prontoo\\Presentation\\UiComponents\\PageHeadControlPresentationOperations01",
         "container": "pagehead-controls",
@@ -28,19 +22,11 @@
         "font_token": "--md-sys-typescale-label-medium",
         "font_weight": 700
     },
-    "compatibility": {
-        "legacy_input_policy": "legacy_role_classes_are_consumed_at_the_pagehead_boundary_and_never_reach_css_or_javascript_as_visual_authority",
-        "legacy_primary_small_cmdlike_inputs": 14,
-        "css_bridge_count": 0,
-        "javascript_bridge_count": 0,
-        "action_alias_token_count": 0
-    },
     "invariants": [
         "one_renderer_owns_pagehead_control_markup",
         "one_css_primitive_owns_direct_control_geometry",
         "navigation_primary_secondary_and_danger_differ_by_semantics_not_geometry",
-        "legacy_role_classes_may_enter_the_boundary_but_do_not_escape_it",
-        "pagehead_css_does_not_reference_primary_ghost_cmdlike_or_operation_chip_as_component_identity",
+        "pagehead_actions_enter_rendering_with_canonical_control_classes",
         "pagehead_javascript_uses_canonical_action_container",
         "runtime_ui_hotspot_is_reduced_below_500_lines",
         "read_only_changes_context_color_not_geometry",
@@ -48,92 +34,7 @@
         "mobile_touch_target_remains_42px",
         "route_specific_pagehead_control_identity_overrides_are_zero"
     ],
-    "metrics": {
-        "before": {
-            "css_lines": 15121,
-            "css_nonblank_lines": 14226,
-            "css_bytes": 801365,
-            "important_count": 4942,
-            "route_scope_count": 1107,
-            "duplicate_selector_headers": 711,
-            "legacy_primary_small_cmdlike_inputs": 14,
-            "legacy_pagehead_actions_css": 0,
-            "legacy_pagehead_operations_css": 0,
-            "legacy_operation_chip_css": 0,
-            "legacy_pagehead_actions_js": 0,
-            "pagehead_action_alias_tokens": 0,
-            "canonical_control_css_rules": 1,
-            "canonical_primary_css_rules": 1,
-            "canonical_secondary_css_rules": 1,
-            "canonical_nav_css_rules": 1,
-            "canonical_danger_css_rules": 1,
-            "canonical_renderer_runtime_calls": 2,
-            "renderer_lines": 112,
-            "runtime03_lines": 449,
-            "runtime03_dead_operation_menu": 0,
-            "route_pagehead_identity_overrides": 0,
-            "duplicate_selector_list_entries": 0,
-            "factorable_route_scope_groups": 0
-        },
-        "after": {
-            "css_lines": 15072,
-            "css_nonblank_lines": 14186,
-            "css_bytes": 799541,
-            "important_count": 4942,
-            "route_scope_count": 1091,
-            "duplicate_selector_headers": 708,
-            "legacy_primary_small_cmdlike_inputs": 14,
-            "legacy_pagehead_actions_css": 0,
-            "legacy_pagehead_operations_css": 0,
-            "legacy_operation_chip_css": 0,
-            "legacy_pagehead_actions_js": 0,
-            "pagehead_action_alias_tokens": 0,
-            "canonical_control_css_rules": 1,
-            "canonical_primary_css_rules": 1,
-            "canonical_secondary_css_rules": 1,
-            "canonical_nav_css_rules": 1,
-            "canonical_danger_css_rules": 1,
-            "canonical_renderer_runtime_calls": 2,
-            "renderer_lines": 112,
-            "runtime03_lines": 449,
-            "runtime03_dead_operation_menu": 0,
-            "route_pagehead_identity_overrides": 0,
-            "duplicate_selector_list_entries": 0,
-            "factorable_route_scope_groups": 0
-        },
-        "delta": {
-            "css_lines": -49,
-            "css_nonblank_lines": -40,
-            "css_bytes": -1824,
-            "important_count": 0,
-            "route_scope_count": -16,
-            "duplicate_selector_headers": -3,
-            "legacy_primary_small_cmdlike_inputs": 0,
-            "legacy_pagehead_actions_css": 0,
-            "legacy_pagehead_operations_css": 0,
-            "legacy_operation_chip_css": 0,
-            "legacy_pagehead_actions_js": 0,
-            "pagehead_action_alias_tokens": 0,
-            "canonical_control_css_rules": 0,
-            "canonical_primary_css_rules": 0,
-            "canonical_secondary_css_rules": 0,
-            "canonical_nav_css_rules": 0,
-            "canonical_danger_css_rules": 0,
-            "canonical_renderer_runtime_calls": 0,
-            "renderer_lines": 0,
-            "runtime03_lines": 0,
-            "runtime03_dead_operation_menu": 0,
-            "route_pagehead_identity_overrides": 0,
-            "duplicate_selector_list_entries": 0,
-            "factorable_route_scope_groups": 0
-        }
-    },
     "exact": {
-        "legacy_pagehead_actions_css": 0,
-        "legacy_pagehead_operations_css": 0,
-        "legacy_operation_chip_css": 0,
-        "legacy_pagehead_actions_js": 0,
-        "pagehead_action_alias_tokens": 0,
         "canonical_control_css_rules": 1,
         "canonical_primary_css_rules": 1,
         "canonical_secondary_css_rules": 1,
@@ -141,47 +42,25 @@
         "canonical_danger_css_rules": 1,
         "canonical_renderer_runtime_calls": 2,
         "runtime03_dead_operation_menu": 0,
-        "route_pagehead_identity_overrides": 0
+        "route_pagehead_identity_overrides": 0,
+        "noncanonical_pagehead_action_inputs": 0,
+        "noncanonical_pagehead_css_tokens": 0,
+        "noncanonical_pagehead_js_tokens": 0,
+        "noncanonical_pagehead_alias_tokens": 0
     },
     "debt_budget": {
         "important_count": 4942,
         "route_scope_count": 1091,
         "duplicate_selector_headers": 708,
-        "legacy_primary_small_cmdlike_inputs": 14,
         "runtime03_lines": 449,
         "duplicate_selector_list_entries": 0,
         "factorable_route_scope_groups": 0
     },
     "delivery": {
         "artifact": "public/assets/presentation.css",
-        "retired_artifact": "public/assets/design-system.css",
-        "migration_reference_sha256": "662840adb1acfb8a2f2efcd54102d3ee1e8fcfedd54c0773fb1676a95107a561",
         "current_sha256": "dd66556404d1f2bf7e93b43128d1d90c39c46d2dbee61b3c0aeedaf0174c6cc4",
         "current_bytes": 799541,
         "deterministic_source": true,
-        "observable_ux_contract": "app/presentation.ux-baseline.json",
-        "byte_identical_to_migration_reference": false
-    },
-    "proofs": {
-        "important_shadow_reduction": {
-            "policy": "earlier_identical_important_same_context_selector_property_value_is_inert_when_later_reassertion_exists",
-            "formal_candidates_before": 141,
-            "formal_candidates_removed": 141,
-            "distinct_reasserted_keys": 133,
-            "unparsed_historical_important_occurrences_preserved": 17
-        },
-        "normal_shadow_reduction": {
-            "formal_candidates_before": 82,
-            "formal_candidates_removed": 82,
-            "distinct_reasserted_keys": 82
-        },
-        "empty_rule_reduction": {
-            "top_dead_rules": 24,
-            "qualified_dead": 17,
-            "container_dead": 7,
-            "route_scopes_removed": 16,
-            "important_removed": 0,
-            "remaining_dead_nodes": 0
-        }
+        "observable_ux_contract": "app/presentation.ux-baseline.json"
     }
 }

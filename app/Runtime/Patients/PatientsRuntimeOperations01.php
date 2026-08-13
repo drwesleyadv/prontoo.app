@@ -398,7 +398,7 @@ final class PatientsRuntimeOperations01
                         : "");
                 if ($canManage) {
                     $html .=
-                        '<details class="guardian-edit"><summary class="ghost small cmdlike">' .
+                        '<details class="guardian-edit"><summary class="pagehead-control pagehead-control--secondary">' .
                         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Alterar", "edit") .
                         "</summary>" .
                         \Prontoo\Runtime\Patients\PatientsRuntimeOperations01::patient_guardian_form_html($g, "Salvar responsável") .
@@ -416,7 +416,7 @@ final class PatientsRuntimeOperations01
             $html .=
                 '<details class="patient-guardian-new" ' .
                 (!$guardians && $minor ? "open" : "") .
-                '><summary class="primary small cmdlike">' .
+                '><summary class="pagehead-control pagehead-control--primary">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label(
                     $guardians
                         ? "Adicionar responsável"

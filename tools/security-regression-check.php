@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/compatibility-source.php';
+require_once __DIR__ . '/canonical-source.php';
 require_once dirname(__DIR__) . "/app/Runtime/Autoload/ProntooAutoloader.php";
 \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::configureDataPort(
     new class implements \Prontoo\Application\Identity\IdentityDataPort {
@@ -292,7 +292,7 @@ security_regression_assert(
     "Retenção canônica não preservou Visualizações e Velocidade de forma coerente.",
 );
 
-$authSource = compatibility_source(dirname(__DIR__), "app/Auth/AuthOnboarding.php");
+$authSource = canonical_source(dirname(__DIR__), ["app/Infrastructure/AuthOnboarding/AuthOnboardingInfrastructureOperations01.php", "app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations01.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations02.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations04.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations05.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations06.php", "app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php"]);
 $cronSource = (string) file_get_contents(
     dirname(__DIR__) . "/cron/maestro.php",
 );
