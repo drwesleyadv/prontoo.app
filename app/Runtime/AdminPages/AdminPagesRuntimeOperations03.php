@@ -136,7 +136,7 @@ final class AdminPagesRuntimeOperations03
             ? (string) PRONTOO_ASSET_REV
             : (string) PRONTOO_VERSION;
     $overviewCards =
-        '<div class="two wide global-telemetry-grid" style="margin-bottom:24px">' .
+        '<div class="wide global-telemetry-grid" style="margin-bottom:24px">' .
         \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html() .
         '</div>';
     $statusHeader =

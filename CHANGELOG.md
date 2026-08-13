@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.13.5 — Grade responsiva dos KPIs de telemetria
+
+- organiza os quatro KPIs do Painel do Desenvolvedor em uma única linha no desktop e em grade 2×2 em mobile e tablet.
+- aplica a mesma composição responsiva à página pública de Status.
+- remove a dependência da primitive two nesses dois containers para impedir a queda global para uma coluna abaixo de 980 px.
+- preserva métricas fontes tendências e cálculos de telemetria.
+- mantém banco e schema inalterados.
+
 ## 1.8.13.4 — Latência de rotas e banco nos gráficos operacionais
 
 - substitui Landing Page no gráfico de 24 horas pelo tempo médio ponderado das consultas preparadas ao banco de dados.

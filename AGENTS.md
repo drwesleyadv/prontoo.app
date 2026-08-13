@@ -105,9 +105,9 @@ Não introduza estilos inline para contornar o build nem duplique componentes ca
 
 ### Contrato atual da telemetria global
 
-Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status devem aparecer em `2 colunas × 2 linhas` em viewport ampla e cair para uma coluna no breakpoint responsivo existente.
+Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status usam um contrato responsivo próprio: em viewport acima de 980 px aparecem em uma única linha com quatro colunas; em 980 px ou menos aparecem em grade `2 colunas × 2 linhas`. Não devem cair para uma coluna em mobile.
 
-No Painel do Desenvolvedor, os quatro cards são filhos diretos de `.admin-telemetry-card`; não reintroduza wrapper intermediário para agrupá-los. A própria Telemetria usa a primitive `two`, e o título usa `wide` para ocupar as duas colunas. No Status público, o wrapper `two wide global-telemetry-grid` permanece porque compõe os KPIs como bloco independente antes do gráfico de desempenho. Não combine `two` no mesmo elemento com `stats-grid` ou `admin-overview-kpis`, pois o `auto-fit` dessas classes pode anular a grade 2×2.
+No Painel do Desenvolvedor, os quatro cards são filhos diretos de `.admin-telemetry-card`; não reintroduza wrapper intermediário para agrupá-los. A própria `.admin-telemetry-card` é a grade semântica, e o título usa `wide` para ocupar todas as colunas. No Status público, o wrapper `wide global-telemetry-grid` permanece como bloco independente antes do gráfico de desempenho. Não reintroduza a primitive `two` nesses dois containers, pois ela carrega o breakpoint global de uma coluna e conflita com este contrato 4×1/2×2.
 
 Os gráficos de performance `Últimas 24 horas` e `Últimos 30 dias` compartilham a mesma semântica de latência em milissegundos: `Rotas` é a série primária, verde escuro e pintada ao fundo; `Banco de dados` é a série secundária, verde mais claro e pintada à frente. A latência de banco representa o tempo médio ponderado de execução de prepared statements pelo PDO (`soma das durações / quantidade de consultas`), nunca média de médias. `speed.json` persiste somente contagem e duração agregadas por page load; SQL e parâmetros não são persistidos. Períodos anteriores ao início desta coleta permanecem sem amostra e não podem ser preenchidos artificialmente com zero.
 
