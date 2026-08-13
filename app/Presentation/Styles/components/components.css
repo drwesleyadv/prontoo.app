@@ -1413,8 +1413,8 @@ main :is([data-ds-card-kind="pill"],.pill,.status,.badge-soft,.global-compact-pi
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-outline-variant))!important;
   background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))!important;
   color:var(--md-sys-color-primary)!important;
-  border-radius:var(--md-sys-shape-corner-full)!important;
-  font-weight:800!important;
+  border-radius:var(--md-sys-shape-corner-full);
+  font-weight:800;
 }
 main [data-ds-search-scope="1"]{
   border:1px solid var(--pt-ds-surface-line)!important;
@@ -3307,11 +3307,11 @@ body.public .signup-ds-actions .ghost{
 }
 :where(.ds-kpi-card,.patient-kpi-card,.stat-card,.kpi-card,.doc-ds-metric.patient-kpi-card.kpi-card){
   min-height:var(--ds-kpi-min-height)!important;
-  border-radius:20px!important;
+  border-radius:20px;
   padding:14px 15px!important;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-outline-variant))!important;
-  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 2%))!important;
-  box-shadow:none!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-outline-variant));
+  background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 2%));
+  box-shadow:none;
 }
 :where(.ds-list-row,.ds-person-row,.doc-ds-row,.doc-issued-row,.doc-model-row){
   border-radius:var(--ds-row-radius);
@@ -5072,7 +5072,7 @@ body:not(.public) .onboarding-tip-card{
 .cmdbar,
 .context-bar,
 .module-bar{
-  align-items:center!important;
+  align-items:center;
   gap:10px!important;
 }
 .card > h2,
@@ -5121,7 +5121,7 @@ body:not(.public) .onboarding-tip-card{
 .pill,
 .status-pill,
 .badge{
-  line-height:1!important;
+  line-height:1;
   display:inline-flex!important;
   align-items:center!important;
   gap:6px!important;
