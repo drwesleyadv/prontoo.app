@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.12.23 — Redução contratada de prioridades em primitives visuais
+
+- remove 8 ocorrências de !important em primitives já cobertas pelo contrato observável oficial.
+- reduz o budget de !important de 4.889 para 4.881.
+- mantém estáveis as 396 superfícies Chromium em desktop e mobile.
+- mantém route scopes em 1.091 sem ampliar seletores.
+- mantém banco e schema inalterados.
+
 ## 1.8.12.22 — Novo lote de prioridades visuais contratadas
 
 - reduz 5 ocorrências de !important formalmente comprovadas, de 4894 para 4889.
