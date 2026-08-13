@@ -1,0 +1,133 @@
+name: Temporary Telemetry Reconcile
+
+on:
+  push:
+    branches:
+      - agent/admin-telemetry-direct-cards
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Build final tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/tmp-admin-telemetry-reconcile.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          from datetime import datetime
+
+          def replace_once(path, old, new):
+              file = Path(path)
+              source = file.read_text()
+              if source.count(old) != 1:
+                  raise SystemExit(f"contract drift: {path}: expected one match, found {source.count(old)}")
+              file.write_text(source.replace(old, new, 1))
+
+          replace_once(
+              'app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php',
+              '''        return '<div class="two wide global-telemetry-grid"' .\n            ($linked ? "" : ' style="margin-bottom:24px"') .\n            ">" .\n            $cards .\n            "</div>";''',
+              '''        return $cards;''',
+          )
+          replace_once(
+              'app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php',
+              '''    $overviewCards = \\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html();''',
+              '''    $overviewCards =\n        '<div class="two wide global-telemetry-grid" style="margin-bottom:24px">' .\n        \\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html() .\n        '</div>';''',
+          )
+          replace_once(
+              'app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php',
+              '''        $telemetry =\n            '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .\n            \\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true) .\n            "</div>";''',
+              '''        $telemetry = \\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true);''',
+          )
+          replace_once(
+              'app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php',
+              '''                "<h2>Telemetria do sistema</h2>" . $telemetry,\n                "admin-telemetry-card",''',
+              '''                '<h2 class="wide">Telemetria do sistema</h2>' . $telemetry,\n                "admin-telemetry-card two",''',
+          )
+          replace_once('README.md', 'A versão canônica é `1.8.13.2`', 'A versão canônica é `1.8.13.3`')
+          replace_once('AGENTS.md', '- baseline auditada: `1.8.13.2`;', '- baseline auditada: `1.8.13.3`;')
+          replace_once(
+              'AGENTS.md',
+              '''Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status devem aparecer em `2 colunas × 2 linhas` em viewport ampla e cair para uma coluna no breakpoint responsivo existente. O wrapper interno canônico usa `two wide global-telemetry-grid`.\n\nNão combine `two` no mesmo elemento com `stats-grid` ou `admin-overview-kpis`: o selector canônico dessas classes aplica `auto-fit` depois de `.two` e pode anular a grade 2×2. O Painel pode manter um wrapper externo com hooks de `stats-grid/admin-overview-kpis`.''',
+              '''Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status devem aparecer em `2 colunas × 2 linhas` em viewport ampla e cair para uma coluna no breakpoint responsivo existente.\n\nNo Painel do Desenvolvedor, os quatro cards são filhos diretos de `.admin-telemetry-card`; não reintroduza wrapper intermediário para agrupá-los. A própria Telemetria usa a primitive `two`, e o título usa `wide` para ocupar as duas colunas. No Status público, o wrapper `two wide global-telemetry-grid` permanece porque compõe os KPIs como bloco independente antes do gráfico de desempenho. Não combine `two` no mesmo elemento com `stats-grid` ou `admin-overview-kpis`, pois o `auto-fit` dessas classes pode anular a grade 2×2.''',
+          )
+
+          path = Path('version.json')
+          version = json.loads(path.read_text())
+          if version.get('version') != '1.8.13.2' or version.get('release') != '1.8.13.2':
+              raise SystemExit('canonical version drift')
+          timestamp = '2026-08-13T09:51:00-04:00'
+          version['version'] = '1.8.13.3'
+          version['release'] = '1.8.13.3'
+          version['generated_at_unix'] = 1786629060
+          version['generated_at'] = timestamp
+          version['updated_at'] = timestamp
+          version['build'] = '1.8.13.3-admin-telemetry-direct-cards'
+          version['database_changes'] = False
+          version['schema_changes'] = False
+          version['logic_changes'] = True
+          version['visual_changes'] = True
+          version['documentation_changes'] = True
+          version['functional_equivalence_policy'] = 'intentional_dom_flattening_admin_telemetry_without_kpi_math_change'
+          version['notes'] = 'Telemetria do Painel do Desenvolvedor sem wrapper intermediário: cards passam a ser filhos diretos do container principal, preservando grade 2×2 e cálculos.'
+          version['changelog'] = {
+              'title': 'Telemetria do Painel sem wrapper intermediário',
+              'items': [
+                  'remove o container intermediário que agrupava os quatro KPIs dentro de Telemetria do sistema no Painel do Desenvolvedor',
+                  'mantém os quatro cards como filhos diretos do card principal e preserva a composição 2 colunas × 2 linhas com responsividade existente',
+                  'preserva no Status público o wrapper independente dos KPIs, sem alterar cálculos, fontes ou tendências de telemetria',
+                  'atualiza os guardrails agênticos para impedir a reintrodução do wrapper removido',
+                  'mantém banco e schema inalterados',
+              ],
+          }
+          version['previous_version'] = '1.8.13.2'
+          version['deployment_sync_id'] = 'github-prontoo-1.8.13.3-admin-telemetry-direct-cards'
+          version['deployment_sync_requested_at'] = timestamp
+          version['rewrite_scope'] = 'admin_developer_telemetry_dom_flattening_only'
+          version['release_date'] = '2026-08-13'
+          version['release_version_last_transition'] = '1.8.13.2->1.8.13.3'
+          path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
+          PY
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/telemetry-json-source-contract-check
+          php tools/presentation-visual-contract-check
+          php tools/quality-gate
+          test ! -e .github/workflows/tmp-admin-telemetry-reconcile.yml
+          git diff --check
+      - name: Package reconciled files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/reconciled
+          git diff --name-only --diff-filter=ACMRT HEAD | while IFS= read -r file; do
+            mkdir -p "/tmp/reconciled/$(dirname "$file")"
+            cp "$file" "/tmp/reconciled/$file"
+          done
+          printf '%s\n' "$(git diff --name-only --diff-filter=ACMRT HEAD)" > /tmp/reconciled-files.txt
+          tar -C /tmp/reconciled -czf /tmp/reconciled.tar.gz .
+      - name: Upload reconciled tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: reconciled-1.8.13.3
+          path: |
+            /tmp/reconciled.tar.gz
+            /tmp/reconciled-files.txt
+          if-no-files-found: error
