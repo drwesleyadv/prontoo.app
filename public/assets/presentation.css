@@ -729,8 +729,8 @@ main{
 
 :root{--role-h:0px;}
 .rolebar{display:none!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important;}
-.cmdbar{top:var(--top-h)!important;}
-@media(max-width:640px){:root{--role-h:0px;}.cmdbar{top:var(--top-h)!important;}}
+.cmdbar{top:var(--top-h);}
+@media(max-width:640px){:root{--role-h:0px;}.cmdbar{top:var(--top-h);}}
 
 
 
@@ -3250,10 +3250,10 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 
 
 .cmdbar{
-  gap:8px!important;
+  gap:8px;
   scroll-behavior:smooth;
   scroll-padding-inline:calc((100vw - 42px) / 2);
-  justify-content:flex-start!important;
+  justify-content:flex-start;
 }
 .cmdbar .cmd{
   width:42px!important;
@@ -3990,8 +3990,8 @@ main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pil
 main [data-ds-card-kind="card"],
 main [data-ds-surface="card"]{
   border:1px solid var(--pt-ds-surface-line)!important;
-  border-radius:var(--pt-ds-surface-radius)!important;
-  background:var(--pt-ds-surface-bg)!important;
+  border-radius:var(--pt-ds-surface-radius);
+  background:var(--pt-ds-surface-bg);
   box-shadow:var(--pt-ds-surface-shadow)!important;
   overflow:clip;
 }
@@ -4019,10 +4019,10 @@ main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list
   box-shadow:0 8px 22px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset!important;
 }
 main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card){
-  min-width:0!important;
+  min-width:0;
   border:1px solid var(--pt-ds-surface-line)!important;
   border-radius:var(--pt-ds-surface-radius-compact)!important;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 3%),var(--md-sys-color-surface-container-lowest))!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 3%),var(--md-sys-color-surface-container-lowest));
   box-shadow:0 7px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.68) inset!important;
 }
 main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card) :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,
