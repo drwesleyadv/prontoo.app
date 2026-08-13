@@ -11688,9 +11688,9 @@ body[data-route="procedures"] .procedure-route-hero-copy p{
 }
 body[data-route="procedures"] .procedure-route-summary{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:10px!important;
-  padding:0!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  padding:0;
   background:transparent;
   border:0;
   box-shadow:none;
@@ -11817,7 +11817,7 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
 }
 @media(max-width:720px){
   body[data-route="procedures"] .procedure-route-form-panel{padding:12px;border-radius:24px;}
-  body[data-route="procedures"] .procedure-route-hero{grid-template-columns:auto minmax(0,1fr);padding:14px!important;}
+  body[data-route="procedures"] .procedure-route-hero{grid-template-columns:auto minmax(0,1fr);padding:14px;}
   body[data-route="procedures"] .procedure-route-hero .agenda-quick-back{grid-column:1 / -1!important;justify-self:start!important;}
   body[data-route="procedures"] .procedure-route-summary,
   body[data-route="procedures"] .procedure-route-form .agenda-quick-grid,
@@ -13401,7 +13401,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
 }
 @media(max-width:640px){
   body[data-route="patient"] .patient-tabs-shell{
-    padding:10px!important;
+    padding:10px;
     border-radius:24px!important;
   }
   body[data-route="patient"] .patient-tab-nav{

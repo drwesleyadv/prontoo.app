@@ -32,7 +32,7 @@
     "delivery_sha256_matches_reference": false
   },
   "visual_debt_budget": {
-    "important_count_max": 4894,
+    "important_count_max": 4889,
     "route_scope_count_max": 1091,
     "policy": "observable_ux_stable_and_visual_debt_may_only_decrease",
     "duplicate_selector_headers_max": 708,
@@ -230,9 +230,9 @@
       "layer": "routes",
       "responsibility": "patient",
       "concern": "patient",
-      "sha256": "c424f36a5811258717f87c5b90e53a030d92428b29a0d21234efae6bfad43a3b",
-      "bytes": 13138,
-      "important_count": 146,
+      "sha256": "421f729d3045b304f217a267243b71b95b16ae5d626771038c7767fea05bf748",
+      "bytes": 13128,
+      "important_count": 145,
       "route_scope_count": 69
     },
     {
@@ -240,9 +240,9 @@
       "layer": "routes",
       "responsibility": "procedures",
       "concern": "procedures",
-      "sha256": "ade48fcb569cd000222a7b8660f11bdc5be6932d6b5624e778a0d3a6c8adad4a",
-      "bytes": 8490,
-      "important_count": 108,
+      "sha256": "16fe9aba44fc104ceed26f111b5343e8cbb16392154f70e062d245fc6435ef7a",
+      "bytes": 8450,
+      "important_count": 104,
       "route_scope_count": 39
     },
     {
@@ -8421,9 +8421,9 @@
       "order": 901,
       "source": "routes/procedures.css",
       "offset": 0,
-      "bytes": 8490,
-      "sha256": "ade48fcb569cd000222a7b8660f11bdc5be6932d6b5624e778a0d3a6c8adad4a",
-      "important_count": 108,
+      "bytes": 8450,
+      "sha256": "16fe9aba44fc104ceed26f111b5343e8cbb16392154f70e062d245fc6435ef7a",
+      "important_count": 104,
       "route_scope_count": 39
     },
     {
@@ -8898,9 +8898,9 @@
       "order": 954,
       "source": "routes/patient.css",
       "offset": 2531,
-      "bytes": 10607,
-      "sha256": "23e45adbe1fb7c3302c9cead304e0c50ce6a4eba57c820c47844de108eac7bd4",
-      "important_count": 143,
+      "bytes": 10597,
+      "sha256": "4d6c10e9c7fbf7aff65b740ceb9cca96c0d26d7a4b374f0f6b22284d6bc0f02a",
+      "important_count": 142,
       "route_scope_count": 57
     },
     {
@@ -9957,8 +9957,8 @@
     "alias_required_until_runtime_urls_are_migrated": true
   },
   "artifact_contract": {
-    "sha256": "e9b948762cd360f738eb88cbe891281ce53aabc3940d1a28e88d6f8291056d38",
-    "bytes": 799061,
+    "sha256": "821989f45fd3ddf65e6ea157e8007d4682e4e9587f344ecd83caba728491cdea",
+    "bytes": 799011,
     "lines": 15072,
     "deterministic_source_required": true
   },
@@ -9985,7 +9985,7 @@
     "unparsed_historical_important_occurrences_preserved": 17,
     "removed_declarations": 141,
     "distinct_reasserted_keys": 133,
-    "remaining_important_count": 4894
+    "remaining_important_count": 4889
   },
   "normal_shadow_reduction": {
     "policy": "earlier_identical_normal_same_context_selector_property_value_is_inert_when_later_reassertion_exists",
@@ -10003,11 +10003,11 @@
   },
   "contracted_priority_reduction": {
     "policy": "priority_is_removed_only_when_full_computed_style_and_geometry_contract_is_invariant",
-    "removed_declarations": 48,
-    "patient_removed": 22,
-    "procedures_removed": 26,
+    "removed_declarations": 53,
+    "patient_removed": 23,
+    "procedures_removed": 30,
     "financial_removed": 0,
-    "remaining_important_count": 4894,
+    "remaining_important_count": 4889,
     "asserted_surfaces": 396
   }
 }
