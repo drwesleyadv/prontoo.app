@@ -1,10 +1,10 @@
 {
-    "version": "1.8.12.21",
-    "release": "1.8.12.21",
-    "generated_at_unix": 1786581963,
-    "generated_at": "2026-08-12T20:46:03-04:00",
-    "updated_at": "2026-08-12T20:46:03-04:00",
-    "build": "1.8.12.21-presentation-contracted-priority-adaptive",
+    "version": "1.8.12.22",
+    "release": "1.8.12.22",
+    "generated_at_unix": 1786582305,
+    "generated_at": "2026-08-12T20:51:45-04:00",
+    "updated_at": "2026-08-12T20:51:45-04:00",
+    "build": "1.8.12.22-presentation-contracted-priority-adaptive",
     "asset_version": "1.7.15.11",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Lote adaptativo de 8 prioridades CSS rebaixado somente após prova individual e combinada nas 396 superfícies Chromium; nenhum comportamento visual publicado foi alterado.",
+    "notes": "Lote adaptativo de 5 prioridades CSS rebaixado somente após prova individual e combinada nas 396 superfícies Chromium; nenhum comportamento visual publicado foi alterado.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "previous_version": "1.8.12.20",
+    "previous_version": "1.8.12.21",
     "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
@@ -41,8 +41,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.12.21-presentation-contracted-priority-adaptive",
-    "deployment_sync_requested_at": "2026-08-12T20:46:03-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.12.22-presentation-contracted-priority-adaptive",
+    "deployment_sync_requested_at": "2026-08-12T20:51:45-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -352,11 +352,11 @@
     "changelog": {
         "title": "Novo lote de prioridades visuais contratadas",
         "items": [
-            "reduz 8 ocorrências de !important formalmente comprovadas, de 4902 para 4894",
+            "reduz 5 ocorrências de !important formalmente comprovadas, de 4894 para 4889",
             "mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile",
             "mantém route scopes em 1.091 sem ampliar o alcance de seletores",
             "mantém banco e schema inalterados",
-            "ratcheta o budget de !important para 4894 sem ampliar qualquer outro budget visual"
+            "ratcheta o budget de !important para 4889 sem ampliar qualquer outro budget visual"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
