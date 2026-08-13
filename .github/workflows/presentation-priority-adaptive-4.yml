@@ -1,0 +1,101 @@
+name: Presentation Priority Adaptive 4
+on:
+  push:
+    branches: [agent/presentation-priority-adaptive-4]
+    paths: [.github/workflows/presentation-priority-adaptive-4.yml]
+permissions:
+  contents: write
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Validate current contracts
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+      - name: Setup Chromium
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Audit remaining direct priorities and prove a small batch
+        run: |
+          cat > adaptive-priority-audit.mjs <<'NODE'
+          import { chromium } from 'playwright'; import fs from 'node:fs';
+          const artifactPath='public/assets/presentation.css';
+          const fixture=fs.readFileSync('tests/presentation/ux-fixture.html','utf8'), css=fs.readFileSync(artifactPath,'utf8');
+          const domains={
+            financial:{file:'app/Presentation/Styles/routes/financial.css',route:'financial',selectors:{'body[data-route="financial"] .finance-workspace':'finance-workspace','body[data-route="financial"] .finance-operation-guides':'finance-guides','body[data-route="financial"] .finance-form-stack':'finance-form-stack','body[data-route="financial"] .finance-operation-row':'finance-row'}},
+            patient:{file:'app/Presentation/Styles/routes/patient.css',route:'patient',selectors:{'body[data-route="patient"] .patient-hero':'patient-hero','body[data-route="patient"] .patient-tabs-shell':'patient-tabs-shell','body[data-route="patient"] .patient-tab-nav':'patient-tab-nav','body[data-route="patient"] .patient-panel':'patient-panel','body[data-route="patient"] .patient-data-list':'patient-data-list'}},
+            procedures:{file:'app/Presentation/Styles/routes/procedures.css',route:'procedures',selectors:{'body[data-route="procedures"] .procedure-route-card.card':'procedure-card','body[data-route="procedures"] .procedure-route-form-panel':'procedure-form-panel','body[data-route="procedures"] .procedure-route-hero':'procedure-hero','body[data-route="procedures"] .procedure-route-summary':'procedure-summary','body[data-route="procedures"] .procedure-route-form':'procedure-form'}}};
+          const norm=v=>v.replace(/\s+/g,' ').trim(), compact=v=>v.replace(/\s+/g,'').trim();
+          const candidates=[];
+          for(const [domain,cfg] of Object.entries(domains)){const source=fs.readFileSync(cfg.file,'utf8'); const rr=/([^{}]+)\{([^{}]*)\}/gms; let r; while((r=rr.exec(source))){const selector=norm(r[1]); if(!(selector in cfg.selectors))continue; const dr=/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g; let d; while((d=dr.exec(r[2])))candidates.push({domain,file:cfg.file.replace('app/Presentation/Styles/',''),route:cfg.route,selector,target:cfg.selectors[selector],property:d[1].trim(),value:d[2].trim()});}}
+          function demote(text,c){let n=0; const out=text.replace(/([^{}]+)\{([^{}]*)\}/gms,(full,s,b)=>{if(norm(s)!==c.selector)return full; const nb=b.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g,(decl,p,v)=>{if(p.trim()!==c.property||compact(v)!==compact(c.value))return decl;n++;return decl.replace(/\s*!important/,'');});return full.slice(0,full.indexOf('{')+1)+nb+'}';});return {out,n};}
+          const props=['display','position','top','zIndex','boxSizing','width','height','minWidth','minHeight','maxWidth','maxHeight','paddingTop','paddingRight','paddingBottom','paddingLeft','marginTop','marginRight','marginBottom','marginLeft','gap','rowGap','columnGap','borderTopWidth','borderRightWidth','borderBottomWidth','borderLeftWidth','borderTopStyle','borderRightStyle','borderBottomStyle','borderLeftStyle','borderTopColor','borderRightColor','borderBottomColor','borderLeftColor','borderTopLeftRadius','borderTopRightRadius','borderBottomRightRadius','borderBottomLeftRadius','backgroundColor','backgroundImage','color','boxShadow','opacity','visibility','overflow','overflowX','overflowY','fontFamily','fontSize','fontWeight','lineHeight','letterSpacing','textAlign','whiteSpace','alignItems','justifyContent','flexDirection','flexWrap','gridTemplateColumns','transform'];
+          const htmlWith=x=>{const h=fixture.replace(/<link\b[^>]*href=["'][^"']*public\/assets\/presentation\.css[^"']*["'][^>]*>/i,`<style>${x.replace(/<\/style/gi,'<\\/style')}</style>`);if(h===fixture)throw Error('stylesheet link missing');return h;};
+          const browser=await chromium.launch({headless:true}); const scenarios=[['desktop',1280,2200],['mobile',390,2400]];
+          async function snap(sc,c,text){const ctx=await browser.newContext({viewport:{width:sc[1],height:sc[2]},deviceScaleFactor:1}),page=await ctx.newPage(); await page.route('https://fonts.googleapis.com/**',r=>r.fulfill({status:200,contentType:'text/css',body:''}));await page.route('https://fonts.gstatic.com/**',r=>r.fulfill({status:204,body:''}));await page.setContent(htmlWith(text),{waitUntil:'load'});const x=await page.evaluate(({route,target,props})=>{Object.assign(document.body.dataset,{route}); const vars={'--clinic-identity-accent':'#2f6652','--clinic-identity-hover':'#295a48','--clinic-identity-pressed':'#244d40','--clinic-identity-on-accent':'#fff','--clinic-identity-readonly':'#52645a','--clinic-identity-readonly-hover':'#48584f','--clinic-identity-on-readonly':'#fff'};for(const [k,v] of Object.entries(vars))document.body.style.setProperty(k,v);const e=document.getElementById(target);if(!e)return null;const s=getComputedStyle(e),r=e.getBoundingClientRect();return {rect:[r.x,r.y,r.width,r.height].map(v=>Number(v.toFixed(3))),style:Object.fromEntries(props.map(p=>[p,s[p]]))};},{route:c.route,target:c.target,props});await ctx.close();return x;}
+          const safe=[],rejected=[]; try{for(const c of candidates){const d=demote(css,c);let ok=d.n===1;for(const sc of scenarios){const a=await snap(sc,c,css),b=await snap(sc,c,d.out);if(!a||JSON.stringify(a)!==JSON.stringify(b))ok=false;}(ok?safe:rejected).push(c);}}finally{await browser.close();}
+          safe.sort((a,b)=>({financial:0,patient:1,procedures:2}[a.domain]-{financial:0,patient:1,procedures:2}[b.domain]||a.selector.localeCompare(b.selector)||a.property.localeCompare(b.property)||a.value.localeCompare(b.value)));
+          const q={financial:safe.filter(x=>x.domain==='financial'),patient:safe.filter(x=>x.domain==='patient'),procedures:safe.filter(x=>x.domain==='procedures')},selected=[]; while(selected.length<8&&Object.values(q).some(a=>a.length)){for(const d of ['financial','patient','procedures']){if(selected.length>=8)break;if(q[d].length)selected.push(q[d].shift());}}
+          if(!selected.length){fs.writeFileSync('adaptive-priority-none.json',JSON.stringify({remaining:candidates.length,safe:0,rejected:rejected.length},null,2));throw Error('NO_SAFE_DIRECT_PRIORITY_CANDIDATES');}
+          let combined=css;for(const c of selected){const d=demote(combined,c);if(d.n!==1)throw Error('combined occurrence mismatch');combined=d.out;}
+          fs.writeFileSync(artifactPath,combined);fs.writeFileSync('adaptive-priority-selected.json',JSON.stringify(selected,null,2));
+          console.log(JSON.stringify({remaining:candidates.length,individually_safe:safe.length,rejected:rejected.length,selected:selected.length,important_before:(css.match(/!important/g)||[]).length,important_after:(combined.match(/!important/g)||[]).length,selected_items:selected},null,2));
+          NODE
+          node --check adaptive-priority-audit.mjs
+          node adaptive-priority-audit.mjs
+          node tools/presentation-ux-contract.mjs --check
+      - name: Materialize proven batch in owners and release
+        run: |
+          cat > adaptive-priority-materialize.mjs <<'NODE'
+          import fs from 'node:fs';import crypto from 'node:crypto';import {execFileSync} from 'node:child_process';
+          const sourceRoot='app/Presentation/Styles',mp=`${sourceRoot}/styles.manifest.json`,ap='public/assets/presentation.css',vp='version.json';
+          const m=JSON.parse(fs.readFileSync(mp,'utf8')), sel=JSON.parse(fs.readFileSync('adaptive-priority-selected.json','utf8'));const norm=v=>v.replace(/\s+/g,' ').trim(),compact=v=>v.replace(/\s+/g,'').trim(),sha=b=>crypto.createHash('sha256').update(b).digest('hex'),occ=(t,n)=>t.split(n).length-1,key=c=>`${c.file}\0${c.selector}\0${c.property}\0${compact(c.value)}`;
+          function transform(text,file,counts){let out=text;for(const c of sel.filter(x=>x.file===file)){let n=0;out=out.replace(/([^{}]+)\{([^{}]*)\}/gms,(full,s,b)=>{if(norm(s)!==c.selector)return full;const nb=b.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+?)\s*!important\s*;?/g,(decl,p,v)=>{if(p.trim()!==c.property||compact(v)!==compact(c.value))return decl;n++;return decl.replace(/\s*!important/,'');});return full.slice(0,full.indexOf('{')+1)+nb+'}';});if(counts)counts.set(key(c),(counts.get(key(c))||0)+n);}return out;}
+          const originals=new Map(),transformed=new Map(),whole=new Map();for(const s of m.sources){const b=fs.readFileSync(`${sourceRoot}/${s.path}`);originals.set(s.path,b);transformed.set(s.path,Buffer.from(transform(b.toString(),s.path,whole)));}for(const c of sel)if((whole.get(key(c))||0)!==1)throw Error(`source occurrence ${key(c)}`);
+          const oldOff=new Map([...originals.keys()].map(k=>[k,0])),newOff=new Map([...originals.keys()].map(k=>[k,0])),rebuilt=new Map([...originals.keys()].map(k=>[k,[]])),slice=new Map(),chunks=[];
+          for(const seg of m.sequence){const o=originals.get(seg.source);if(seg.offset!==oldOff.get(seg.source))throw Error('offset');const raw=o.subarray(seg.offset,seg.offset+seg.bytes);if(raw.length!==seg.bytes||sha(raw)!==seg.sha256)throw Error('hash');const next=Buffer.from(transform(raw.toString(),seg.source,slice));seg.offset=newOff.get(seg.source);seg.bytes=next.length;seg.sha256=sha(next);const t=next.toString();seg.important_count=occ(t,'!important');seg.route_scope_count=occ(t,'body[data-route=');oldOff.set(seg.source,oldOff.get(seg.source)+raw.length);newOff.set(seg.source,newOff.get(seg.source)+next.length);rebuilt.get(seg.source).push(next);chunks.push(next);}
+          for(const c of sel)if((slice.get(key(c))||0)!==1)throw Error(`slice occurrence ${key(c)}`);
+          let imp=0,routes=0;for(const s of m.sources){const b=transformed.get(s.path);if(!Buffer.concat(rebuilt.get(s.path)).equals(b))throw Error(`rebuild ${s.path}`);fs.writeFileSync(`${sourceRoot}/${s.path}`,b);const t=b.toString();s.sha256=sha(b);s.bytes=b.length;s.important_count=occ(t,'!important');s.route_scope_count=occ(t,'body[data-route=');imp+=s.important_count;routes+=s.route_scope_count;}
+          const artifact=Buffer.concat(chunks);fs.writeFileSync(ap,artifact);const before=Number(m.visual_debt_budget.important_count_max);if(imp!==before-sel.length)throw Error(`important delta ${before}->${imp}`);if(routes!==1091)throw Error(`route scopes ${routes}`);m.visual_debt_budget.important_count_max=imp;m.artifact_contract.sha256=sha(artifact);m.artifact_contract.bytes=artifact.length;m.artifact_contract.lines=occ(artifact.toString(),'\n')+(artifact.length?1:0);if(m.important_shadow_reduction)m.important_shadow_reduction.remaining_important_count=imp;
+          const prev=m.contracted_priority_reduction||{};const counts={financial:0,patient:0,procedures:0};for(const c of sel)counts[c.domain]++;m.contracted_priority_reduction={policy:'priority_is_removed_only_when_full_computed_style_and_geometry_contract_is_invariant',removed_declarations:Number(prev.removed_declarations||0)+sel.length,patient_removed:Number(prev.patient_removed||0)+counts.patient,procedures_removed:Number(prev.procedures_removed||0)+counts.procedures,financial_removed:Number(prev.financial_removed||0)+counts.financial,remaining_important_count:imp,asserted_surfaces:396};fs.writeFileSync(mp,JSON.stringify(m,null,2)+'\n');
+          const v=JSON.parse(fs.readFileSync(vp,'utf8')),parts=v.version.split('.').map(Number),previous=v.version;parts[3]++;const release=parts.join('.'),env={...process.env,TZ:'America/Cuiaba'},now=execFileSync('date',['--iso-8601=seconds'],{encoding:'utf8',env}).trim(),unix=Number(execFileSync('date',['+%s'],{encoding:'utf8',env}).trim());Object.assign(v,{version:release,release,previous_version:previous,build:`${release}-presentation-contracted-priority-adaptive`,generated_at_unix:unix,generated_at:now,updated_at:now,release_date:execFileSync('date',['+%F'],{encoding:'utf8',env}).trim(),deployment_sync_id:`github-prontoo-${release}-presentation-contracted-priority-adaptive`,deployment_sync_requested_at:now,database_changes:false,schema_changes:false,logic_changes:true,visual_changes:false,documentation_changes:true,functional_equivalence_policy:'computed_style_contract_stable_for_adaptive_contracted_css_priority_reduction',notes:`Lote adaptativo de ${sel.length} prioridades CSS rebaixado somente após prova individual e combinada nas 396 superfícies Chromium; nenhum comportamento visual publicado foi alterado.`});v.changelog={title:'Novo lote de prioridades visuais contratadas',items:[`reduz ${sel.length} ocorrências de !important formalmente comprovadas, de ${before} para ${imp}`,'mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile','mantém route scopes em 1.091 sem ampliar o alcance de seletores','mantém banco e schema inalterados',`ratcheta o budget de !important para ${imp} sem ampliar qualquer outro budget visual`]};fs.writeFileSync(vp,JSON.stringify(v,null,4)+'\n');console.log(JSON.stringify({release,previous,selected:sel.length,important_before:before,important_after:imp,bytes:artifact.length,domains:counts},null,2));
+          NODE
+          node --check adaptive-priority-materialize.mjs
+          node adaptive-priority-materialize.mjs
+          rm -f adaptive-priority-audit.mjs adaptive-priority-materialize.mjs adaptive-priority-selected.json adaptive-priority-none.json .github/workflows/presentation-priority-adaptive-4.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate final state
+        run: |
+          set -euo pipefail
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          node tools/presentation-ux-contract.mjs --check
+      - name: Publish validated ordinary delta
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/pub.mjs <<'NODE'
+          import fs from 'node:fs';import {execFileSync} from 'node:child_process';const token=process.env.GITHUB_TOKEN,repo=process.env.GITHUB_REPOSITORY,head=process.env.GITHUB_SHA,branch='agent/presentation-priority-adaptive-4',api='https://api.github.com/repos/'+repo;async function rq(method,p,body){const r=await fetch(api+p,{method,headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)}),t=await r.text();if(!r.ok)throw Error(`${method} ${p} ${r.status}: ${t}`);return t?JSON.parse(t):{};}const changed=execFileSync('git',['diff','--name-only','HEAD','--','.'],{encoding:'utf8'}).split('\n').map(x=>x.trim()).filter(Boolean),paths=[...new Set(changed)].filter(p=>!p.startsWith('.github/workflows/')).sort();if(!paths.length)throw Error('no changes');const ref=await rq('GET','/git/ref/heads/'+branch);if(ref.object.sha!==head)throw Error('branch advanced');const parent=await rq('GET','/git/commits/'+head),entries=[];for(const p of paths){const line=execFileSync('git',['ls-tree','HEAD','--',p],{encoding:'utf8'}).trim(),mode=line?line.split(/\s+/)[0]:'100644';if(!fs.existsSync(p)){entries.push({path:p,mode,type:'blob',sha:null});continue;}const b=await rq('POST','/git/blobs',{content:fs.readFileSync(p).toString('base64'),encoding:'base64'});entries.push({path:p,mode,type:'blob',sha:b.sha});}const tree=await rq('POST','/git/trees',{base_tree:parent.tree.sha,tree:entries}),commit=await rq('POST','/git/commits',{message:'refactor(presentation): demote fourth contracted priority batch',tree:tree.sha,parents:[head]});await rq('PATCH','/git/refs/heads/'+branch,{sha:commit.sha,force:false});console.log(JSON.stringify({commit:commit.sha,files:paths},null,2));
+          NODE
+          node /tmp/pub.mjs
