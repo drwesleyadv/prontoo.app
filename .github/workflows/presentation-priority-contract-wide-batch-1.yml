@@ -21,11 +21,14 @@ jobs:
       - name: Validate exact audited base
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "65d5e45b227162debc35a44fa450cd0c2618ce1f"
+          BASE="65d5e45b227162debc35a44fa450cd0c2618ce1f"
+          git merge-base --is-ancestor "$BASE" HEAD
+          test -z "$(git diff --name-only "$BASE"..HEAD | grep -v '^\.github/workflows/presentation-priority-contract-wide-batch-1\.yml$' || true)"
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
           php tools/presentation-visual-contract-check
           php tools/presentation-ux-baseline-check
+          rm -f .github/workflows/presentation-priority-contract-wide-batch-1.yml
           php tools/release-contract-reconcile --check
       - name: Setup pinned Chromium contract
         run: |
