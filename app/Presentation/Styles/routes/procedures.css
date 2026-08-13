@@ -20,12 +20,12 @@ body[data-route="procedures"] .procedure-route-form-panel::before{
   opacity:.72;
 }
 body[data-route="procedures"] .procedure-route-hero{
-  display:grid!important;
-  grid-template-columns:auto minmax(0,1fr) auto!important;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
   align-items:center;
-  gap:14px!important;
+  gap:14px;
   padding:16px!important;
-  border-radius:26px!important;
+  border-radius:26px;
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));
   background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest));
 }
