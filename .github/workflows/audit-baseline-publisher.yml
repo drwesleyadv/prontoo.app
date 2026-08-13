@@ -10,11 +10,10 @@ permissions:
 
 jobs:
   publish:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - name: Checkout audit branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: audit/baseline-1.8.13.2
@@ -28,422 +27,84 @@ jobs:
           tools: none
           extensions: pdo_mysql, mbstring
 
-      - name: Apply audited baseline changes
+      - name: Apply audited baseline and reconcile release
         shell: bash
         run: |
           set -euo pipefail
-          python3 <<'PY'
-          from pathlib import Path
-          import json
-
-          root = Path('.')
-
-          runtime_path = root / 'app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php'
-          runtime = runtime_path.read_text()
-          old = '''return '<div class="stats-grid admin-overview-kpis two wide"' .'''
-          new = '''return '<div class="two wide global-telemetry-grid"' .'''
-          if runtime.count(old) != 1:
-              raise SystemExit('canonical telemetry wrapper not found exactly once')
-          runtime_path.write_text(runtime.replace(old, new, 1))
-
-          agents = '''# AGENTS.md — Guardrails para agentes no Prontoo
-
-Este arquivo é o ponto de entrada operacional para qualquer IA agêntica ou automação que altere o repositório. O objetivo é permitir mudanças pequenas e verificáveis sem reabrir decisões arquiteturais já consolidadas.
-
-## 1. Ordem de autoridade
-
-Antes de alterar código, considere as fontes nesta ordem:
-
-1. contratos executáveis e gates em `tools/`;
-2. `version.json`, fonte canônica da release;
-3. `app/architecture.manifest.json`, budgets e políticas arquiteturais;
-4. `app/application.test-contract.json`, caracterização de Application;
-5. `app/Presentation/Styles/styles.manifest.json`, contrato da fonte CSS;
-6. `CONTRIBUTING.md` e documentação em `docs/`;
-7. código existente e padrões locais.
-
-Se prosa e contrato executável divergirem, preserve o contrato e corrija a documentação. Nunca altere um gate apenas para fazer uma mudança passar sem antes demonstrar que o contrato está errado.
-
-## 2. Baseline e ambiente
-
-- branch de integração: `prontoo`;
-- baseline auditada: `1.8.13.2`;
-- PHP: família `8.4`, com mínimo `8.4.0`;
-- MySQL: `8.0.30` ou superior;
-- aplicação: monólito modular PHP;
-- política de manutenção: sem refatoração estrutural autônoma; prefira o menor diff que resolva produto, segurança, operação, desempenho ou manutenção objetiva;
-- banco e schema são congelados salvo escopo explícito de mudança de schema.
-
-Nunca presuma compatibilidade com outra família de PHP, outro banco ou outra branch principal.
-
-## 3. Modelo arquitetural obrigatório
-
-A direção conceitual é:
-
-`Runtime -> Application -> Domain`, com `Infrastructure` implementando mecanismos e `Presentation` renderizando saída. Composition roots conectam ports a adapters.
-
-Responsabilidades:
-
-- `Runtime`: HTTP, sessão, contexto, roteamento, coordenação e adaptação de entrada;
-- `Application`: sequência dos casos de uso, services e ports;
-- `Domain`: regras, políticas e invariantes de negócio;
-- `Infrastructure`: PDO, filesystem, integrações, persistência e mecanismos concretos;
-- `Presentation`: HTML, formatação, componentes visuais e CSS.
-
-No Runtime, os budgets estruturais perigosos são zero: não introduza SQL de negócio, PDO direto, fronteiras transacionais de caso de uso, `OperationGateway` nem adapters concretos fora dos composition roots. Não mova responsabilidade entre camadas por conveniência local.
-
-Hotspots e dívidas existentes são ratchets: podem diminuir, não crescer. Ao tocar Runtime classificado como hotspot, respeite `tools/runtime-refactor-on-touch-check`.
-
-## 4. Isolamento por consultório e autorização
-
-O Prontoo é multi-tenant. Toda operação clínica, financeira, documental ou administrativa que pertença a um consultório deve carregar e validar o contexto de `clinic_id` pelo caminho já existente.
-
-Regras obrigatórias:
-
-- não remova filtros ou guardas de tenant para simplificar consultas;
-- não aceite `clinic_id`, identidade, papel ou escopo do cliente como prova de autorização;
-- use o contexto autenticado e as APIs de permissão existentes;
-- operações globais do Desenvolvedor devem ser explicitamente globais, nunca resultado de ausência acidental de escopo;
-- não contorne `SqlScopeGuard`, evidências de isolamento ou contratos de escopo;
-- um bloqueio do guard é evidência de prevenção, não autorização para relaxar a regra;
-- mudanças de permissão devem permanecer server-side e auditáveis.
-
-Qualquer dúvida sobre escopo deve ser tratada como risco de vazamento entre consultórios.
-
-## 5. Segurança, sessão e auditoria
-
-Preserve os contratos vigentes:
-
-- autenticação por senha seguida do fluxo MFA tri-state fail-closed;
-- MFA obrigatório para Desenvolvedor e ciclo de reautenticação dos demais conforme política vigente;
-- expiração por inatividade de 3600 segundos;
-- mutações HTTP protegidas por CSRF;
-- logout e revogação global não podem ser enfraquecidos;
-- origem de auditoria, ator, horário, IP e agente não podem ser substituídos por dados públicos não confiáveis;
-- envelopes diferidos assinados devem ser revalidados;
-- segredos, comprovantes, PDFs, imagens e telemetria persistente não devem migrar para diretórios públicos.
-
-Storage persistente canônico: `ssd/`, incluindo `ssd/pdfs`, `ssd/img` e `ssd/telemetry`. Não versione conteúdo operacional de `ssd/`.
-
-Leia `docs/security/threat-model.md` antes de mudanças em autenticação, autorização, sessão, instalação, auditoria ou dados sensíveis.
-
-## 6. Banco e integridade
-
-A baseline usa schema limpo e exige banco vazio para instalação limpa. Runtime não é local de evolução oportunista de DDL.
-
-- não adicione `ALTER`, `CREATE` ou correções de schema em rotas normais;
-- preserve o contrato de schema e a política de mutação por CI/CLI;
-- respeite `Seq` não nulo e único e os contratos de ledger/auditoria;
-- mudanças financeiras devem manter atomicidade, idempotência e rastreabilidade existentes;
-- não aumente budgets de consultas para acomodar regressão sem justificativa demonstrável.
-
-Para qualquer mudança de persistência, leia `docs/database/` e execute os gates MySQL aplicáveis.
-
-## 7. Presentation e UX
-
-A fonte visual canônica está em `app/Presentation/Styles/`. `public/assets/presentation.css` é artefato gerado: nunca o edite isoladamente.
-
-Fluxo para CSS:
-
-1. altere o owner file semântico correto;
-2. preserve a ordem de cascade do `styles.manifest.json`;
-3. não aumente budgets de `!important` nem scopes de rota;
-4. execute `php tools/presentation-css-build --lint` e `--check` após gerar/reconciliar o artefato conforme o fluxo do projeto;
-5. execute os contratos visuais/UX aplicáveis.
-
-Não introduza estilos inline para contornar o build, nem duplique componentes canônicos por rota.
-
-### Contrato atual da telemetria global
-
-Os quatro KPIs de telemetria do Painel do Desenvolvedor e do Status devem aparecer em `2 colunas × 2 linhas` em viewport ampla e cair para uma coluna no breakpoint responsivo existente. O wrapper interno canônico usa `two wide global-telemetry-grid`.
-
-Não combine `two` no mesmo elemento com `stats-grid` ou `admin-overview-kpis`: o selector canônico dessas classes aplica `auto-fit` depois de `.two` e pode anular a grade 2×2. O Painel pode manter um wrapper externo com hooks de `stats-grid/admin-overview-kpis`.
-
-## 8. Release e versionamento
-
-`version.json` é a única fonte canônica de versão. O formato é `1.mês.dia.sequência`; a sequência inicia em 1 e reinicia em novo dia de publicação.
-
-Para uma release:
-
-1. faça bump explícito em `version.json` (`version`, `release`, `previous_version`, `build`, timestamps, flags e `changelog`);
-2. não edite fallbacks, `app/update.manifest.json` ou `app/architecture.manifest.json` de forma independente;
-3. execute `php tools/release-contract-reconcile --write`;
-4. confirme com `php tools/release-contract-reconcile --check`;
-5. verifique que `CHANGELOG.md`, fallbacks e hashes derivados convergiram.
-
-Uma alteração rastreada sem reconciliação de release não está pronta para merge.
-
-## 9. Sequência de trabalho para agentes
-
-Antes de editar:
-
-1. leia este arquivo, `CONTRIBUTING.md`, `version.json` e os docs da área;
-2. procure a implementação e os testes existentes antes de criar abstração nova;
-3. identifique tenant, permissão, transação, audit trail e superfície de Presentation afetados;
-4. confirme se o arquivo é hotspot ou owner canônico;
-5. defina o menor escopo reversível.
-
-Durante a edição:
-
-- preserve nomes e contratos públicos salvo requisito explícito;
-- reutilize ports, composition roots, helpers e componentes existentes;
-- não faça limpeza lateral não solicitada;
-- não altere banco/schema em microajustes;
-- não adicione comentários inline como substituto de arquitetura; o projeto adota documentação, tipos, nomes, testes e ADRs.
-
-Antes do merge:
-
-- revise o diff por mudança acidental;
-- execute `php tools/quality-gate --fast` e, para mudança relevante, `php tools/quality-gate`;
-- execute `php tools/release-contract-reconcile --check`;
-- execute `php tools/documentation-check.php` quando documentação mudar;
-- execute gates específicos de schema, MySQL, segurança, Presentation ou Runtime conforme a área;
-- só trate a tarefa como concluída quando os checks de PR aplicáveis estiverem verdes.
-
-## 10. Ações proibidas sem requisito explícito
-
-- refatoração arquitetural ampla ou renomeação em massa;
-- mudança de schema/banco em tarefa visual ou documental;
-- relaxar tenant guard, autorização, MFA, CSRF, sessão ou auditoria;
-- aumentar budgets/ratchets para silenciar falhas;
-- editar artefatos gerados sem a fonte canônica;
-- editar manifests derivados ou fallbacks manualmente como fonte de verdade;
-- adicionar dependência externa quando o projeto já possui primitive equivalente;
-- usar dados de produção em testes ou versionar `ssd/`;
-- introduzir `!important`, selector de rota ou exceção inline apenas para vencer cascade;
-- apagar teste/gate para fazer CI passar.
-
-## 11. Mapa rápido
-
-- `app/Runtime/`: entrada e coordenação;
-- `app/Application/`: casos de uso e ports;
-- `app/Domain/`: regras e invariantes;
-- `app/Infrastructure/`: mecanismos concretos;
-- `app/Presentation/`: renderização e fontes visuais;
-- `app/architecture.manifest.json`: contrato arquitetural executável;
-- `app/application.test-contract.json`: caracterização de Application;
-- `app/Presentation/Styles/styles.manifest.json`: contrato CSS;
-- `tools/`: quality gates e reconciliadores;
-- `docs/architecture/`: modelo e fronteiras;
-- `docs/security/`: ameaças e controles;
-- `docs/database/`: schema e integridade;
-- `docs/testing/`: estratégia e gates;
-- `docs/operations/`: deploy, incidentes e execução;
-- `docs/audits/`: auditorias e baselines publicadas.
-
-## 12. Definition of Done
-
-Uma mudança está pronta quando o comportamento pedido é observável, o diff é mínimo, tenant/segurança/integridade permanecem preservados, budgets não cresceram, artefatos derivados estão reconciliados, documentação corresponde ao estado mergeado e a CI aplicável passa sem exceções improvisadas.
-'''
-          (root / 'AGENTS.md').write_text(agents)
-
-          readme = '''# Prontoo
-
-Prontoo é uma aplicação web em PHP para a operação cotidiana de consultórios e clínicas pequenas. Organiza pacientes, agenda, documentos, tarefas, equipe, financeiro e rotinas operacionais em uma interface direta, com contratos explícitos para proteger dados clínicos, financeiros, identidades e permissões.
-
-## Estado atual
-
-A baseline canônica e auditada é `1.8.13.2`, executada exclusivamente na família PHP 8.4 e com MySQL 8.0.30 ou superior. A arquitetura está em modo de manutenção: não se abre novo ciclo de refatoração sem invariante quebrada, risco material ou requisito de produto que a estrutura atual não consiga absorver.
-
-A regra central é: **Runtime coordena; Application expressa casos de uso; Domain contém regras; Infrastructure implementa mecanismos; Presentation renderiza saída**. As dependências perigosas são verificadas por contratos executáveis.
-
-## O que está protegido por contrato
-
-No Runtime, SQL de negócio, PDO direto, transações de caso de uso, `OperationGateway` e adapters concretos fora dos composition roots têm orçamento zero. Dívidas residuais são ratchets monotônicos: podem diminuir, não crescer. Isolamento por consultório, autorização, autenticação/MFA, auditoria, integridade de schema, budgets de consultas e Presentation também possuem gates próprios.
-
-## Onde começar
-
-- `AGENTS.md`: guardrails operacionais obrigatórios para IA agêntica e automações;
-- `docs/index.md`: mapa da documentação;
-- `docs/architecture/overview.md`: modelo mental da arquitetura;
-- `docs/architecture/layers.md`: responsabilidades por camada;
-- `docs/security/threat-model.md`: ameaças e controles;
-- `docs/testing/strategy.md`: malha de verificação;
-- `CONTRIBUTING.md`: fluxo de contribuição e release.
-
-## Fonte de verdade
-
-Documentação explica intenção. O comportamento normativo está nos contratos executáveis, especialmente `version.json`, `app/architecture.manifest.json`, `app/application.test-contract.json`, `app/Presentation/Styles/styles.manifest.json` e verificadores em `tools/`. Em caso de divergência, preserve o contrato executável e atualize a documentação.
-'''
-          (root / 'README.md').write_text(readme)
-
-          contributing = '''# Contribuindo com o Prontoo
-
-Contribuir com o Prontoo significa preservar comportamento e invariantes enquanto o produto evolui. A arquitetura está consolidada; mudanças devem resolver necessidade real de produto, segurança, operação ou manutenção e evitar refatorações autônomas sem benefício mensurável.
-
-## Antes de alterar
-
-Humanos e agentes devem ler `AGENTS.md`. Ele reúne os guardrails operacionais, a ordem de autoridade, regras de tenant, segurança, banco, Presentation e release. Documentos específicos da área continuam normativos como explicação, sempre subordinados aos contratos executáveis.
-
-## Ambiente
-
-Use PHP 8.4 e MySQL 8.0.30 ou superior. Não presuma compatibilidade com outra família de PHP. A branch de integração é `prontoo`.
-
-## Fluxo de mudança
-
-Crie branch curta a partir de `prontoo`, implemente o menor escopo coerente, execute gates aplicáveis e abra PR. O merge só deve ocorrer com `Documentation Contract`, `Architecture Contract` e demais checks disparados em estado verde.
-
-Mudanças em Runtime devem respeitar a direção de dependências. SQL, PDO e fronteiras transacionais de caso de uso não pertencem a input adapters. Se um arquivo Runtime estiver classificado como hotspot, qualquer alteração deve respeitar os ratchets verificados por `tools/runtime-refactor-on-touch-check`.
-
-## Testes e contratos
-
-Comece por `php tools/quality-gate --fast`. Para mudanças relevantes, execute `php tools/quality-gate` e os smokes específicos. Alterações de persistência precisam respeitar budgets MySQL e schema contract. Alterações visuais precisam respeitar os manifests e gates de Presentation.
-
-A documentação é validada por `tools/documentation-check.php`; links locais quebrados e ADRs inválidos falham a CI. O projeto adota ausência de comentários de código inline: explicação durável pertence a nomes, tipos, testes, ADRs e documentação.
-
-## Release e metadados
-
-`version.json` é a fonte canônica de versão. Faça o bump explícito somente nela e use `php tools/release-contract-reconcile --write` para atualizar fallbacks, changelog, manifests e hashes derivados. Confirme com `--check`. Não edite esses derivados como fontes independentes.
-
-## Critério de qualidade
-
-Uma contribuição está pronta quando o comportamento desejado é verificável, tenant/segurança/integridade continuam verdadeiros, a dívida arquitetural não aumentou, artefatos derivados convergiram e a documentação descreve exatamente o estado que será mergeado.
-'''
-          (root / 'CONTRIBUTING.md').write_text(contributing)
-
-          docs_index = '''# Documentação do Prontoo
-
-Esta documentação descreve o Prontoo na arquitetura consolidada e na baseline auditada `1.8.13.2`. Ela oferece o modelo mental necessário para localizar responsabilidades e operar o sistema sem depender de conhecimento oral.
-
-## Entrada para agentes
-
-Qualquer IA agêntica ou automação que pretenda editar o repositório deve começar por `../AGENTS.md`. Esse documento reúne guardrails operacionais, ordem de autoridade, regras de tenant, segurança, banco, Presentation, release e Definition of Done.
-
-## Leitura recomendada
-
-Depois de `AGENTS.md`, leia `architecture/overview.md` e `architecture/layers.md`. Em seguida escolha a trilha correspondente: `domain/` para negócio, `security/` para controles, `operations/` para execução e incidentes, `database/` para integridade, `performance/` para budgets e telemetria e `testing/` para verificação.
-
-## Arquitetura vigente
-
-`architecture/overview.md`, `layers.md`, `dependencies.md`, `runtime-boundary.md`, `responsibility-map.md`, `data-flow.md` e os diagramas C4 textuais são a referência explicativa principal. `architecture/MAINTENANCE.md` registra por que o projeto permanece em manutenção arquitetural em vez de reabrir refatoração estrutural.
-
-Documentos `phase-*`, auditorias de consolidação e conformidade PHP são históricos. Use-os para contexto, não como instrução de migração atual.
-
-## Baseline auditada
-
-`audits/BASELINE-1.8.13.2.md` registra a auditoria que promoveu `1.8.13.2` a baseline, incluindo a correção determinística da grade 2×2 dos quatro KPIs globais e a consolidação dos guardrails para agentes.
-
-## Regra de autoridade
-
-A documentação é secundária aos contratos executáveis. `version.json` define release; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `app/Presentation/Styles/styles.manifest.json` define a fonte CSS; `tools/` contém os gates. Se prosa e gate divergirem, preserve o gate e atualize a prosa.
-
-## Vocabulário
-
-Termos como Runtime, port, adapter, composition root, ratchet, tenant, action ledger, Maestro e geração de sessão estão definidos em `glossary.md`.
-'''
-          (root / 'docs/index.md').write_text(docs_index)
-
-          audit = '''# Baseline auditada 1.8.13.2
-
-Data: 2026-08-13  
-Baseline examinada: `1.8.13.1` (`c2b1aa3df681fd447560d8f79277fafa2e70c6ad`)  
-Resultado: promovida a `1.8.13.2` após microajustes e reconciliação dos contratos.
-
-## Escopo
-
-A auditoria revisou o estado mais recente com foco em regressões pequenas, consistência entre código e documentação e segurança para manutenção por agentes. Não houve alteração de banco ou schema e não foi aberto novo ciclo de refatoração arquitetural.
-
-## Achados corrigidos
-
-### Grade dos KPIs globais
-
-A release `1.8.13.1` pretendia exibir quatro cards de telemetria em 2 colunas × 2 linhas. O wrapper interno, porém, combinava `two` com `stats-grid` e `admin-overview-kpis`. No cascade canônico, as duas últimas classes recebem `grid-template-columns: repeat(auto-fit, minmax(180px, 1fr))` depois de `.two`, anulando a garantia 2×2 em viewport ampla.
-
-A baseline `1.8.13.2` mantém o mesmo renderer compartilhado e troca somente os hooks conflitantes do wrapper interno por `two wide global-telemetry-grid`. Assim:
-
-- desktop amplo: 2 colunas e 2 linhas para os quatro cards;
-- breakpoint responsivo vigente: 1 coluna;
-- Painel do Desenvolvedor mantém o wrapper externo e os hooks de telemetria;
-- Status reutiliza o mesmo renderer;
-- nenhum CSS inline, novo `!important`, selector de rota ou aumento de dívida visual é introduzido.
-
-### Documentação de versão
-
-O `README.md` ainda declarava `1.8.11.2` como versão canônica. A referência foi atualizada para a baseline auditada.
-
-### Operação por IA agêntica
-
-O repositório possuía documentação arquitetural robusta, mas faltava um ponto de entrada único que explicasse a um agente como decidir o que é fonte de verdade e quais invariantes não podem ser relaxadas. `AGENTS.md` passa a registrar a ordem de autoridade, fronteiras arquiteturais, isolamento por consultório, segurança, banco, Presentation, release, gates e Definition of Done.
-
-## Invariantes preservadas
-
-- PHP 8.4 e MySQL 8.0.30+;
-- nenhuma mudança de banco ou schema;
-- sem SQL/PDO/transação de caso de uso novos no Runtime;
-- isolamento por consultório e permissões inalterados;
-- autenticação, MFA, sessão, CSRF e auditoria inalterados;
-- cálculos e fontes dos KPIs inalterados;
-- fonte CSS e budgets visuais inalterados;
-- manifests e hashes derivados reconciliados pelo tooling canônico.
-
-## Critério de baseline
-
-`1.8.13.2` é a baseline para trabalhos posteriores. Agentes devem iniciar por `AGENTS.md`, usar `version.json` como versão canônica, respeitar os manifests executáveis e não reutilizar `1.8.13.1` como base para novas mudanças.
-'''
-          audit_path = root / 'docs/audits/BASELINE-1.8.13.2.md'
-          audit_path.parent.mkdir(parents=True, exist_ok=True)
-          audit_path.write_text(audit)
-
-          version_path = root / 'version.json'
-          version = json.loads(version_path.read_text())
-          version['previous_version'] = '1.8.13.1'
-          version['version'] = '1.8.13.2'
-          version['release'] = '1.8.13.2'
-          version['generated_at_unix'] = 1786627295
-          version['generated_at'] = '2026-08-13T09:21:35-04:00'
-          version['updated_at'] = '2026-08-13T09:21:35-04:00'
-          version['build'] = '1.8.13.2-audited-baseline-agentic-guardrails'
-          version['database_changes'] = False
-          version['schema_changes'] = False
-          version['logic_changes'] = True
-          version['visual_changes'] = True
-          version['documentation_changes'] = True
-          version['functional_equivalence_policy'] = 'intentional_visual_fix_telemetry_two_by_two_without_business_logic_change'
-          version['notes'] = 'Baseline auditada: corrige a grade 2x2 dos quatro KPIs globais sem alterar CSS ou cálculos e consolida guardrails operacionais para IA agêntica.'
-          version['rewrite_scope'] = 'admin_status_telemetry_layout_and_agentic_documentation_only'
-          version['deployment_sync_id'] = 'github-prontoo-1.8.13.2-audited-baseline-agentic-guardrails'
-          version['deployment_sync_requested_at'] = '2026-08-13T09:21:35-04:00'
-          version['release_date'] = '2026-08-13'
-          version['changelog'] = {
-              'title': 'Baseline auditada e guardrails para agentes',
-              'items': [
-                  'corrige a composição dos quatro KPIs de telemetria para 2 colunas × 2 linhas em viewport ampla, preservando a queda responsiva para uma coluna',
-                  'remove do wrapper interno a combinação de classes cujo auto-fit anulava a intenção da grade two, sem alterar CSS, cálculos ou fontes de telemetria',
-                  'atualiza README, índice documental e guia de contribuição para a baseline vigente',
-                  'adiciona AGENTS.md com ordem de autoridade, invariantes de arquitetura, tenant, segurança, banco, Presentation, release e checklist de merge para IA agêntica',
-                  'mantém banco e schema inalterados'
-              ]
-          }
-          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
-          PY
-
-      - name: Reconcile deterministic release outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          php tools/release-contract-reconcile --write
           rm -f .github/workflows/audit-baseline-publisher.yml
+          php -r '
+          $p="app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php";
+          $s=file_get_contents($p);
+          $old="stats-grid admin-overview-kpis two wide";
+          $new="two wide global-telemetry-grid";
+          if (substr_count($s,$old)!==1) { fwrite(STDERR,"telemetry wrapper contract drift\n"); exit(1); }
+          file_put_contents($p,str_replace($old,$new,$s,$count),LOCK_EX);
+          if ($count!==1) { exit(1); }
+          '
+          php -r '
+          $p="README.md";
+          $s=file_get_contents($p);
+          if (substr_count($s,"1.8.11.2")!==1) { fwrite(STDERR,"README version drift\n"); exit(1); }
+          $s=str_replace("1.8.11.2","1.8.13.2",$s);
+          $needle="- `docs/index.md`: mapa de toda a documentação.";
+          if (substr_count($s,$needle)!==1) { fwrite(STDERR,"README map drift\n"); exit(1); }
+          $s=str_replace($needle,"- `AGENTS.md`: guardrails operacionais para IA agêntica e automações;\n".$needle,$s);
+          file_put_contents($p,$s,LOCK_EX);
+          '
+          php -r '
+          $p="CONTRIBUTING.md";
+          $s=file_get_contents($p);
+          $needle="## Ambiente";
+          if (substr_count($s,$needle)!==1) { fwrite(STDERR,"CONTRIBUTING structure drift\n"); exit(1); }
+          $block="## Antes de alterar\n\nHumanos e agentes devem ler `AGENTS.md`. Ele reúne a ordem de autoridade, invariantes arquiteturais, regras de tenant, segurança, banco, Presentation, release e Definition of Done.\n\n";
+          $s=str_replace($needle,$block.$needle,$s);
+          file_put_contents($p,$s,LOCK_EX);
+          '
+          php -r '
+          $p="docs/index.md";
+          $s=file_get_contents($p);
+          $needle="## Leitura recomendada";
+          if (substr_count($s,$needle)!==1) { fwrite(STDERR,"docs index structure drift\n"); exit(1); }
+          $block="## Entrada para agentes\n\nQualquer IA agêntica ou automação que pretenda editar o repositório deve começar por `../AGENTS.md`. Esse documento reúne guardrails operacionais, ordem de autoridade, regras de tenant, segurança, banco, Presentation, release e Definition of Done. A baseline vigente está registrada em `audits/BASELINE-1.8.13.2.md`.\n\n";
+          $s=str_replace($needle,$block.$needle,$s);
+          file_put_contents($p,$s,LOCK_EX);
+          '
+          php tools/release-version --write --date=2026-08-13 --timestamp=2026-08-13T09:30:00-04:00 --expected-current=1.8.13.1
+          php -r '
+          $p="version.json";
+          $v=json_decode(file_get_contents($p),true,512,JSON_THROW_ON_ERROR);
+          $v["build"]="1.8.13.2-audited-baseline-agentic-guardrails";
+          $v["database_changes"]=false;
+          $v["schema_changes"]=false;
+          $v["logic_changes"]=true;
+          $v["visual_changes"]=true;
+          $v["documentation_changes"]=true;
+          $v["functional_equivalence_policy"]="intentional_visual_fix_telemetry_two_by_two_without_business_logic_change";
+          $v["notes"]="Baseline auditada: corrige a grade 2×2 dos quatro KPIs globais sem alterar CSS, cálculos ou fontes e consolida guardrails operacionais para IA agêntica.";
+          $v["changelog"]=["title"=>"Baseline auditada e guardrails para agentes","items"=>["corrige a composição dos quatro KPIs de telemetria para 2 colunas × 2 linhas em viewport ampla, preservando a queda responsiva para uma coluna","remove do wrapper interno a combinação de classes cujo auto-fit anulava a intenção da grade two, sem alterar CSS, cálculos ou fontes de telemetria","atualiza README, índice documental e guia de contribuição para a baseline vigente","adiciona AGENTS.md com ordem de autoridade, invariantes de arquitetura, tenant, segurança, banco, Presentation, release e checklist de merge para IA agêntica","mantém banco e schema inalterados"]];
+          $v["deployment_sync_id"]="github-prontoo-1.8.13.2-audited-baseline-agentic-guardrails";
+          $v["deployment_sync_requested_at"]="2026-08-13T09:30:00-04:00";
+          $v["rewrite_scope"]="admin_status_telemetry_layout_and_agentic_documentation_only";
+          file_put_contents($p,json_encode($v,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL,LOCK_EX);
+          '
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
-
-      - name: Validate audited scope
-        shell: bash
-        run: |
-          set -euo pipefail
-          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php
+          php tools/presentation-css-build --check
           php tools/documentation-check.php
           php tools/code-comment-check.php
-          php tools/presentation-css-build --check
-          php tools/quality-gate --fast
+          php tools/quality-gate
 
-      - name: Commit reconciled baseline
+      - name: Commit audited baseline
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git status --short
-          test -n "$(git status --porcelain)"
+          if git diff --cached --name-only | grep -Fq '.github/workflows/audit-baseline-publisher.yml'; then
+            echo 'Temporary workflow leaked into final diff.' >&2
+            exit 1
+          fi
+          git diff --cached --check
           git commit -m 'chore(release): publish audited baseline 1.8.13.2'
           git push origin HEAD:audit/baseline-1.8.13.2
