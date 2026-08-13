@@ -360,7 +360,7 @@ body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{bord
 
 body.scope-global .global-telemetry-grid{
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:10px!important;
 }
 body.scope-global .admin-overview-kpis .stat-card{

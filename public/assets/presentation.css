@@ -5119,7 +5119,7 @@ body.scope-global .priority-actions > h2{
 }
 body.scope-global .global-telemetry-grid{
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:10px!important;
 }
 body.scope-global .admin-overview-kpis .stat-card{
@@ -5234,7 +5234,6 @@ body.scope-global .admin-signup-lock small{
   }
 }
 @media (max-width:680px){
-  body.scope-global .global-telemetry-grid,
   body.scope-global .admin-clinic-attention-grid{
     grid-template-columns:minmax(0,1fr)!important;
   }
@@ -15071,7 +15070,7 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 @media(max-width:640px){.pagehead-control{min-height:var(--pt-pagehead-control-mobile-height);padding-inline:var(--pt-pagehead-control-mobile-padding-inline)}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]) span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:none}.pagehead-controls--navigation .pagehead-control--nav:not(.is-active):not([aria-current]){width:42px;padding-inline:0}.pagehead-controls--navigation .pagehead-control--nav.is-active,.pagehead-controls--navigation .pagehead-control--nav[aria-current]{max-width:min(72vw,220px)}}
 
 @media(max-width:980px){
-  body.scope-global main :is(.global-telemetry-grid,.admin-telemetry-card){
+  body.scope-global main .admin-telemetry-card{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
@@ -15083,7 +15082,6 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}
 
-.global-telemetry-grid,
 body.scope-global .admin-telemetry-card{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
