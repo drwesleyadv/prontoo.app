@@ -85,8 +85,16 @@ file_put_contents(
     LOCK_EX,
 );
 
-exec('git rm --cached --quiet -- tools/tmp-audit-baseline-1-8-13-2.php', $output, $exitCode);
-if ($exitCode !== 0) {
-    fwrite(STDERR, "Failed to untrack temporary reconciler\n");
+$cleanupCommand = 'git rm --cached --quiet --ignore-unmatch -- .github/workflows/audit-baseline-publisher.yml .github/workflows/audit-baseline-finalizer.yml tools/tmp-audit-baseline-1-8-13-2.php';
+exec($cleanupCommand, $cleanupOutput, $cleanupExitCode);
+if ($cleanupExitCode !== 0) {
+    fwrite(STDERR, "Failed to stage temporary audit tooling cleanup\n");
+    exit(1);
+}
+
+$commitCommand = "git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'ci: remove temporary audit tooling'";
+exec($commitCommand, $commitOutput, $commitExitCode);
+if ($commitExitCode !== 0) {
+    fwrite(STDERR, "Failed to commit temporary audit tooling cleanup\n");
     exit(1);
 }
