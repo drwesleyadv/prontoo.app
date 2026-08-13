@@ -78,7 +78,7 @@ body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions
 body[data-route="patient"] .patient-tabs-shell{
   display:grid;
   gap:14px;
-  padding:12px!important;
+  padding:12px;
   border-radius:28px!important;
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
@@ -292,7 +292,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
     border-radius:24px!important;
   }
   body[data-route="patient"] .patient-tab-nav{
-    padding:3px!important;
+    padding:3px;
     gap:6px;
   }
   body[data-route="patient"] .patient-tab-nav > label{

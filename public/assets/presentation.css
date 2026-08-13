@@ -11654,7 +11654,7 @@ body[data-route="procedures"] .procedure-route-hero{
   grid-template-columns:auto minmax(0,1fr) auto;
   align-items:center;
   gap:14px;
-  padding:16px!important;
+  padding:16px;
   border-radius:26px;
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));
   background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest));
@@ -11687,13 +11687,13 @@ body[data-route="procedures"] .procedure-route-hero-copy p{
   font:var(--md-sys-typescale-body-medium)!important;
 }
 body[data-route="procedures"] .procedure-route-summary{
-  display:grid!important;
+  display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:10px!important;
   padding:0!important;
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
+  background:transparent;
+  border:0;
+  box-shadow:none;
 }
 body[data-route="procedures"] .procedure-route-summary > span{
   display:grid!important;
@@ -11817,7 +11817,7 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
 }
 @media(max-width:720px){
   body[data-route="procedures"] .procedure-route-form-panel{padding:12px;border-radius:24px;}
-  body[data-route="procedures"] .procedure-route-hero{grid-template-columns:auto minmax(0,1fr)!important;padding:14px!important;}
+  body[data-route="procedures"] .procedure-route-hero{grid-template-columns:auto minmax(0,1fr);padding:14px!important;}
   body[data-route="procedures"] .procedure-route-hero .agenda-quick-back{grid-column:1 / -1!important;justify-self:start!important;}
   body[data-route="procedures"] .procedure-route-summary,
   body[data-route="procedures"] .procedure-route-form .agenda-quick-grid,
@@ -13191,7 +13191,7 @@ body[data-route="patient"] :is(.patient-hero-actions,.pagehead-controls--actions
 body[data-route="patient"] .patient-tabs-shell{
   display:grid;
   gap:14px;
-  padding:12px!important;
+  padding:12px;
   border-radius:28px!important;
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
@@ -13405,7 +13405,7 @@ body[data-route="patient"] .patient-tab-icon-symbol-grid{
     border-radius:24px!important;
   }
   body[data-route="patient"] .patient-tab-nav{
-    padding:3px!important;
+    padding:3px;
     gap:6px;
   }
   body[data-route="patient"] .patient-tab-nav > label{

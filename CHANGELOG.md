@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.12.21 — Novo lote de prioridades visuais contratadas
+
+- reduz 8 ocorrências de !important formalmente comprovadas, de 4902 para 4894.
+- mantém estáveis as 396 superfícies do contrato Chromium em desktop e mobile.
+- mantém route scopes em 1.091 sem ampliar o alcance de seletores.
+- mantém banco e schema inalterados.
+- ratcheta o budget de !important para 4894 sem ampliar qualquer outro budget visual.
+
 ## 1.8.12.20 — Novo lote de prioridades visuais contratadas
 
 - reduz 8 ocorrências de !important formalmente comprovadas, de 4910 para 4902.
