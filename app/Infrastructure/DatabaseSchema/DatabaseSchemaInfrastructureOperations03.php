@@ -156,7 +156,7 @@ final class DatabaseSchemaInfrastructureOperations03
     
         $revision = defined("PRONTOO_SCHEMA_REV")
             ? PRONTOO_SCHEMA_REV
-            : "prontoo_1_7_20_6_clean_schema_r7_layer2_ledger";
+            : "prontoo_clean_schema_r7_layer2_ledger";
         $statement = \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::pdo()->prepare(
             "INSERT INTO pi_meta (meta_key,meta_value,updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value),updated_at=VALUES(updated_at)",
         );
@@ -234,15 +234,7 @@ final class DatabaseSchemaInfrastructureOperations03
     
     }
 
-    public static function schema_apply_pending_release_migrations(): void
-    
-    {
-    
-        return;
-    
-    }
-
-    public static function db_assert_tables(array $tables, string $domain): void
+public static function db_assert_tables(array $tables, string $domain): void
     
     {
     

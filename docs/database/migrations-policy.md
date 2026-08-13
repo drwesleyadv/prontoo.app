@@ -4,7 +4,7 @@ O Prontoo trabalha com um schema canônico limpo. O runtime não possui autoriza
 
 ## Regra
 
-DDL só pode ocorrer em caminhos explicitamente autorizados de instalação, ferramentas de engenharia ou CI. `version.json` declara se uma release possui mudanças de banco/schema. A `1.8.11.2` não possui.
+DDL só pode ocorrer em caminhos explicitamente autorizados de instalação, ferramentas de engenharia ou CI. `version.json` declara se a release canônica possui mudanças de banco/schema.
 
 ## Por que
 

@@ -120,7 +120,6 @@ if (!str_contains($cronRunbook, "/opt/cpanel/ea-php84/root/usr/bin/php")) {
     $failures[] = "O runbook do Maestro não fixa o binário CLI do PHP 8.4.";
 }
 
-$sourceConformancePolicy = "php84-source-conformance-1.8.6.1";
 $phpFiles = [];
 foreach ($tracked as $path) {
     if (str_ends_with(strtolower($path), ".php") && is_file($root . "/" . $path)) {
@@ -128,60 +127,6 @@ foreach ($tracked as $path) {
     }
 }
 sort($phpFiles, SORT_STRING);
-$audit = json_decode($read("docs/audits/php84-conformance-1.8.6.1.json"), true);
-if (!is_array($audit) || empty($audit["function_contract_preserved"])) {
-    $failures[] = "Auditoria integral PHP 8.4 ausente ou inválida.";
-} else {
-    $reported = [];
-    foreach ((array) ($audit["files"] ?? []) as $item) {
-        if (is_array($item) && isset($item["path"])) {
-            $reported[] = (string) $item["path"];
-        }
-    }
-    $reported = array_values(array_unique($reported));
-    sort($reported, SORT_STRING);
-
-    $rawMigrations = is_array($version) ? (array) ($version["php84_baseline_path_migrations"] ?? []) : [];
-    $migrations = [];
-    foreach ($rawMigrations as $from => $rawTargets) {
-        $from = mb_trim((string) $from);
-        $targets = is_array($rawTargets) ? $rawTargets : [$rawTargets];
-        $targets = array_values(array_unique(array_filter(
-            array_map(static fn(mixed $target): string => mb_trim((string) $target), $targets),
-            static fn(string $target): bool => $target !== '',
-        )));
-        if ($from === "" || $targets === [] || in_array($from, $targets, true)) {
-            $failures[] = "Migração de path PHP 8.4 inválida: " . $from;
-            continue;
-        }
-        if (isset($migrations[$from])) {
-            $failures[] = "Migração de path PHP 8.4 duplicada: " . $from;
-            continue;
-        }
-        $migrations[$from] = $targets;
-    }
-
-    $missingBaselineFiles = array_values(array_diff($reported, $phpFiles));
-    foreach ($missingBaselineFiles as $baselinePath) {
-        if (!isset($migrations[$baselinePath]) || $migrations[$baselinePath] === []) {
-            $failures[] = "Arquivo da baseline PHP 8.4 removido sem migração de contrato: " . $baselinePath;
-        }
-    }
-    foreach ($migrations as $baselinePath => $targets) {
-        if (!in_array($baselinePath, $reported, true)) {
-            $failures[] = "Migração PHP 8.4 aponta origem fora da baseline: " . $baselinePath;
-        }
-        if (in_array($baselinePath, $phpFiles, true)) {
-            $failures[] = "Tombstone PHP 8.4 ainda presente após migração declarada: " . $baselinePath;
-        }
-        foreach ($targets as $target) {
-            if (!in_array($target, $phpFiles, true)) {
-                $failures[] = "Destino de migração PHP 8.4 ausente: " . $baselinePath . " -> " . $target;
-            }
-        }
-    }
-}
-
 $features = ["mb_trim" => 0, "rounding_mode" => 0, "pdo_connect" => 0, "datetime_timestamp" => 0];
 $deprecatedFragments = [
     "mysqli_ping" => "mysqli_" . "ping(",

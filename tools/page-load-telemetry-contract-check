@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/compatibility-source.php';
+require_once __DIR__ . '/canonical-source.php';
 
 $telemetryContractRoot = dirname(__DIR__);
 require_once $telemetryContractRoot . "/app/Runtime/Autoload/ProntooAutoloader.php";
@@ -112,7 +112,7 @@ foreach (["index.php", "install.php", "br/index.php"] as $path) {
         "marco inicial deve anteceder o primeiro require: " . $path,
     );
 }
-$telemetryContractSource = compatibility_source($telemetryContractRoot, "app/Support/Telemetry.php");
+$telemetryContractSource = canonical_source($telemetryContractRoot, ["app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations01.php", "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php", "app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php", "app/Runtime/SupportTelemetry/SupportTelemetryRuntimeOperations01.php"]);
 foreach ([
     "prontoo.telemetria.pagina.v2",
     "views.json",

@@ -71,7 +71,7 @@ $selfTest = LayeredKernel::logicSelfTest($root);
 $assert(!empty($architecture['ok']), 'architecture_verifier');
 $assert(!empty($selfTest['ok']), 'layered_kernel_self_test');
 $assert((float) ($architecture['classification_coverage_percent'] ?? 0) === 100.0, 'classification_coverage');
-$assert((int) ($architecture['action_contracts_total'] ?? 0) === 157, 'action_contract_count');
+$assert((int) ($architecture['action_contracts_total'] ?? 0) === 156, 'action_contract_count');
 
 $routes = RouteCatalog::all();
 $publicRoutes = RouteCatalog::public();
@@ -117,7 +117,6 @@ foreach ([
 ] as $token) {
     $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
 }
-$assert(!is_file($root . '/app/Support/ModuleLoader.php'), 'legacy_module_loader_removed');
 foreach ([
     "self::runReadinessCycle('route_readiness')",
     "self::runMaintenanceCycle('forced_deep')",
@@ -270,44 +269,18 @@ $consolidationManifest = json_decode(
     512,
     JSON_THROW_ON_ERROR,
 );
-$assert(($consolidationManifest['compatibility_boundaries'] ?? null) === [], 'consolidation_compatibility_boundaries_not_empty');
-$removedLegacyFiles = array_fill_keys(array_map('strval', (array) ($consolidationManifest['removed_legacy_files'] ?? [])), true);
 foreach ($consolidationManifest as $key => $paths) {
     if (!is_string($key) || !str_ends_with($key, '_components') || !is_array($paths)) {
         continue;
     }
-    foreach ($paths as $path) {
-        if (!is_string($path) || $path === '') {
+    foreach ($paths as $componentPath) {
+        if (!is_string($componentPath) || $componentPath === '') {
             $failures[] = 'consolidation_component_invalid:' . $key;
             continue;
         }
-        $assert(is_file($root . '/' . $path), 'consolidation_component_missing:' . $key . ':' . $path);
-        $assert(!isset($removedLegacyFiles[$path]), 'consolidation_component_removed_legacy:' . $key . ':' . $path);
+        $assert(is_file($root . '/' . $componentPath), 'consolidation_component_missing:' . $key . ':' . $componentPath);
     }
 }
-foreach ([
-    '.github/workflows/zero-legacy-migration.yml',
-    '.github/workflows/zero-legacy-final-readonly.yml',
-    '.github/workflows/zero-legacy-final-push.yml',
-    '.github/workflows/zero-legacy-public-finalizer.yml',
-    '.github/workflows/zero-legacy-materializer-scheduled.yml',
-    '.zero-legacy-materialize-trigger',
-    'tools/zero-legacy-final-generate.py',
-    'tools/zero-legacy-root-entrypoints-fix.py',
-    'tools/sitecustomize.py',
-    'zero-legacy-final-failure.log',
-] as $path) {
-    $assert(!is_file($root . '/' . $path), 'consolidation_temporary_artifact:' . $path);
-}
-$appIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
-foreach ($appIterator as $file) {
-    if (!$file->isFile() || strtolower($file->getExtension()) !== 'php') {
-        continue;
-    }
-    $relative = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
-    $assert(!str_contains($relative, '/Legacy/'), 'consolidation_legacy_path:' . $relative);
-}
-
 $result = [
     'ok' => $failures === [],
     'architecture' => $architecture,

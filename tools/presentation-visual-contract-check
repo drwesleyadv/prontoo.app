@@ -118,12 +118,10 @@ $metrics = [
     'duplicate_selector_headers' => count(array_filter($selectors, static fn(int $count): bool => $count > 1)),
     'duplicate_selector_list_entries' => $duplicateSelectorListEntries,
     'factorable_route_scope_groups' => $factorableRouteScopeGroups,
-    'legacy_primary_small_cmdlike_inputs' => substr_count($php, 'primary small cmdlike'),
-    'legacy_pagehead_actions_css' => substr_count($css, '.pagehead-actions'),
-    'legacy_pagehead_operations_css' => substr_count($css, '.pagehead-operations'),
-    'legacy_operation_chip_css' => substr_count($css, '.operation-chip'),
-    'legacy_pagehead_actions_js' => substr_count($js, '.pagehead-actions'),
-    'pagehead_action_alias_tokens' => substr_count($css, '--pt-pagehead-action-'),
+    'noncanonical_pagehead_action_inputs' => substr_count($php, 'cmdlike') + substr_count($renderer, 'actionFragment') + substr_count($renderer, 'private const LEGACY'),
+    'noncanonical_pagehead_css_tokens' => substr_count($css, '.pagehead-actions') + substr_count($css, '.pagehead-operations') + substr_count($css, '.operation-chip'),
+    'noncanonical_pagehead_js_tokens' => substr_count($js, '.pagehead-actions'),
+    'noncanonical_pagehead_alias_tokens' => substr_count($css, '--pt-pagehead-action-'),
     'canonical_control_css_rules' => substr_count($css, '.pagehead-control{min-height:var(--pt-pagehead-control-height)'),
     'canonical_primary_css_rules' => substr_count($css, '.pagehead-control--primary{'),
     'canonical_secondary_css_rules' => substr_count($css, '.pagehead-control--secondary{'),
@@ -161,7 +159,7 @@ foreach ([
         $failures[] = ['rule' => 'canonical_css_missing', 'needle' => $needle];
     }
 }
-foreach (["private const ROLES = ['nav', 'primary', 'secondary', 'danger'];", 'pagehead-control', 'actionFragment', 'pageHead'] as $needle) {
+foreach (["private const ROLES = ['nav', 'primary', 'secondary', 'danger'];", 'pagehead-control', 'pageHead'] as $needle) {
     if (!str_contains($renderer, $needle)) {
         $failures[] = ['rule' => 'renderer_missing', 'needle' => $needle];
     }

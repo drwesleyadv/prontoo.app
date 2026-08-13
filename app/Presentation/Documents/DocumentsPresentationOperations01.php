@@ -148,7 +148,7 @@ final class DocumentsPresentationOperations01
         $modeClass = preg_replace("/[^a-z0-9_-]/i", "", (string) $mode) ?: "print";
         return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
-            '</title><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+            '</title><link rel="stylesheet" href="/public/assets/presentation.css?v=' .
             rawurlencode(
                 defined("PRONTOO_ASSET_REV") ? PRONTOO_ASSET_REV : PRONTOO_VERSION,
             ) .

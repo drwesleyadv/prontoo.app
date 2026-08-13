@@ -11,7 +11,7 @@ final class FinancialActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $financial = 'Domain/Financial/Financial.php';
+        $financial = 'Runtime/Financial';
 
         $definitions->add('financial', ['cash_open', 'cash_keep_closed', 'cash_receipt', 'cash_payment', 'cash_close'], 'clinic', $financial, ['financial:edit'], ['financial:cashier'], [], 'financial_operational');
         $definitions->add('financial', ['drawer_create', 'bank_account'], 'clinic', $financial, ['financial:add'], ['financial:add']);

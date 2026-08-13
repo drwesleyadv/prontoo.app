@@ -264,7 +264,7 @@ final class AdminPagesRuntimeOperations08
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionLabel) .
                 "</b></span>";
             $actions =
-                '<a class="ghost small cmdlike clinic-actions-summary" href="' .
+                '<a class="pagehead-control pagehead-control--secondary clinic-actions-summary" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics", ["clinic_id" => $id])) .
                 '" aria-label="Abrir gestão do consultório">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .

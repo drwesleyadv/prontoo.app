@@ -12,7 +12,7 @@ final class SchedulingActionDefinitions implements ActionDefinitionSource
     {
         $definitions = new ActionDefinitionCollection();
         $leads = 'Runtime/Leads/LeadsRuntimeOperations02.php';
-        $appointments = 'Domain/Appointments/Appointments.php';
+        $appointments = 'Runtime/Appointments';
 
         $definitions->add('leads', ['__default__', 'save'], 'clinic', $leads, ['leads:add'], ['leads:add']);
         $definitions->add('leads', 'update', 'clinic', $leads, ['leads:edit'], ['leads:edit']);

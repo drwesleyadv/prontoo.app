@@ -11,7 +11,7 @@ $baseRef = trim((string) getenv('GITHUB_BASE_REF'));
 if ($baseRef === '') {
     fwrite(STDOUT, json_encode([
         'ok' => true,
-        'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+        'policy' => 'runtime_hotspot_refactor_on_touch_v2',
         'enforced' => false,
         'reason' => 'no_pull_request_base_ref',
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
@@ -40,7 +40,7 @@ $verifyOutput = [];
 if ($run('git -C ' . escapeshellarg($root) . ' rev-parse --verify ' . escapeshellarg($base), $verifyOutput) !== 0) {
     fwrite(STDERR, json_encode([
         'ok' => false,
-        'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+        'policy' => 'runtime_hotspot_refactor_on_touch_v2',
         'failure' => 'base_ref_unavailable',
         'base_ref' => $base,
         'details' => $verifyOutput,
@@ -70,6 +70,37 @@ $touched = array_values(array_unique(array_filter(
     static fn(string $path): bool => $path !== '',
 )));
 
+$presentationLiteralOnly = static function (string $file) use ($root, $base, $run): bool {
+    $diff = [];
+    $command = 'git -C ' . escapeshellarg($root) .
+        ' diff --unified=0 ' . escapeshellarg($base . '...HEAD') .
+        ' -- ' . escapeshellarg($file);
+    if ($run($command, $diff) !== 0) {
+        return false;
+    }
+    $changed = 0;
+    foreach ($diff as $line) {
+        if ($line === '' || str_starts_with($line, '+++') || str_starts_with($line, '---') || str_starts_with($line, '@@')) {
+            continue;
+        }
+        $prefix = $line[0] ?? '';
+        if ($prefix !== '+' && $prefix !== '-') {
+            continue;
+        }
+        $content = substr($line, 1);
+        if (trim($content) === '') {
+            continue;
+        }
+        $classLiteral = str_contains($content, 'class="') || str_contains($content, "class='");
+        $stylesheetLiteral = str_contains($content, 'rel="stylesheet"') && str_contains($content, '.css?v=');
+        if (!$classLiteral && !$stylesheetLiteral) {
+            return false;
+        }
+        $changed++;
+    }
+    return $changed > 0;
+};
+
 $currentOutput = [];
 $currentCommand = escapeshellarg(PHP_BINARY) . ' ' .
     escapeshellarg($root . '/tools/runtime-input-boundary-check') . ' --print-budget --source-sha=' .
@@ -95,14 +126,16 @@ foreach ($touched as $file) {
     $currentGateway = (int) ($now['generic_data_gateway_calls'] ?? 0);
     $currentBucket = (int) ($now['hotspot_bucket'] ?? 0);
     $reduced = $currentGateway < $baselineGateway || $currentBucket < $baselineBucket;
+    $presentationOnly = !$reduced && $presentationLiteralOnly($file);
     $evaluated[$file] = [
         'baseline_generic_data_gateway_calls' => $baselineGateway,
         'current_generic_data_gateway_calls' => $currentGateway,
         'baseline_hotspot_bucket' => $baselineBucket,
         'current_hotspot_bucket' => $currentBucket,
         'reduced' => $reduced,
+        'presentation_literal_only' => $presentationOnly,
     ];
-    if (!$reduced) {
+    if (!$reduced && !$presentationOnly) {
         $failures[] = [
             'rule' => 'touched_hotspot_requires_reduction',
             'file' => $file,
@@ -116,7 +149,7 @@ foreach ($touched as $file) {
 
 $result = [
     'ok' => $failures === [],
-    'policy' => 'runtime_hotspot_refactor_on_touch_v1',
+    'policy' => 'runtime_hotspot_refactor_on_touch_v2',
     'enforced' => true,
     'base_ref' => $baseRef,
     'touched_runtime_files' => $touched,

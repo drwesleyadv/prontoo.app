@@ -1,6 +1,6 @@
 # Telemetria de performance
 
-A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetry/views.json` para Visualizações, `ssd/telemetry/speed.json` para latência e `ssd/telemetry/database.json` para variação de Registros. `speed.json` reúne a duração do page load e, a partir da release 1.8.13.4, a quantidade e a duração acumulada das consultas preparadas executadas pelo PDO durante esse page load.
+A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetry/views.json` para Visualizações, `ssd/telemetry/speed.json` para latência e `ssd/telemetry/database.json` para variação de Registros. `speed.json` reúne a duração do page load e, a quantidade e a duração acumulada das consultas preparadas executadas pelo PDO durante esse page load.
 
 ## Janelas móveis
 
@@ -8,13 +8,13 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 `Volume` usa os 30 intervalos móveis de 24 horas imediatamente anteriores ao mesmo timestamp. Cada bucket contém totais: verde escuro para carregamentos de página e verde claro para consultas ao banco. Status e Painel do Desenvolvedor compartilham exatamente estas séries e atualizam a cada 60 segundos enquanto a página está visível.
 
-As duas séries são áreas sem contorno. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente. Ausência histórica de instrumentação de consultas permanece sem amostra e não é convertida em zero.
+As duas séries são áreas sem contorno. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente. Ausência de instrumentação de consultas permanece sem amostra e não é convertida em zero.
 
 ## Tempo médio de consulta ao banco
 
 A medição ocorre no `PDOStatement::execute()` da conexão canônica e não inclui guards de autorização, integridade ou formatação executados fora do driver. Cada page load persiste somente `database_query_count` e `database_query_duration_ns`. O valor de um bucket é ponderado pela quantidade real de consultas: soma de todas as durações SQL dividida pelo total de consultas daquele bucket. SQL, parâmetros, resultados e dados clínicos não integram a telemetria.
 
-A coleta de latência e contagem de consultas de banco começa na release 1.8.13.4. Eventos anteriores permanecem sem amostra de banco; ausência histórica não é convertida em `0 ms`, não é tratada como `0 consultas` e não recebe backfill estimado.
+Eventos sem instrumentação de banco permanecem sem amostra; ausência de instrumentação não é convertida em `0 ms`, não é tratada como `0 consultas` e não recebe preenchimento estimado.
 
 ## Higienização
 

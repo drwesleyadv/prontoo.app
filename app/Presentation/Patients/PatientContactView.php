@@ -15,7 +15,7 @@ final class PatientContactView
         callable $addressFields,
         callable $formActions,
     ): string {
-        return '<details class="patient-edit patient-contact-edit"><summary class="primary small cmdlike">' .
+        return '<details class="patient-edit patient-contact-edit"><summary class="pagehead-control pagehead-control--primary">' .
             $actionLabel('Atualizar contato', 'contact_phone') .
             '</summary><form method="post" class="compact patient-record-form">' .
             $csrfField() .

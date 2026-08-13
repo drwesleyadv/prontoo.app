@@ -437,14 +437,14 @@ final class FinancialRuntimeOperations10
         $version = defined("PRONTOO_VERSION") ? PRONTOO_VERSION : (string) time();
         $back = is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'href']) ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("financial") : "/?r=financial";
         if (!\Prontoo\Runtime\Financial\FinancialRuntimeOperations10::financial_cash_debug_details_enabled()) {
-            echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Minha Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+            echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Minha Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/presentation.css?v=' .
                 rawurlencode($version) .
                 '"></head><body class="app"><main><section class="auth widebox finance-alert-card"><h1>Não foi possível concluir a ação da Gaveta</h1><p>O erro foi registrado no log técnico do sistema. Tente novamente após revisar a conexão e, se persistir, informe o horário da tentativa ao suporte.</p><p><a class="primary" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($back) .
                 '">Voltar à Gaveta</a></p></section></main></body></html>';
             exit();
         }
-        echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Erro técnico da Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/design-system.css?v=' .
+        echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Erro técnico da Gaveta · Prontoo</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#334155"><link rel="stylesheet" href="/public/assets/presentation.css?v=' .
             rawurlencode($version) .
             '"></head><body class="app"><main><section class="auth widebox finance-alert-card"><h1>Erro técnico da Gaveta</h1><p>Modo debug ativo. Copie todo o conteúdo abaixo para análise técnica.</p><textarea class="tech-debug-copy" rows="22" readonly onclick="this.select()">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($debug) .

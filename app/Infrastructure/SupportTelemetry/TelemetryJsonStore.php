@@ -24,7 +24,6 @@ final class TelemetryJsonStore
             return false;
         }
         try {
-            self::migrateLegacyLocked((int) ($event["fim_unix_us"] ?? 0));
             $views = self::payloadRead(
                 SupportTelemetryInfrastructureOperations01::telemetry_views_file(),
                 self::viewsSchema(),
@@ -81,7 +80,6 @@ final class TelemetryJsonStore
             return [];
         }
         try {
-            self::migrateLegacyLocked($nowUnixUs);
             $views = self::payloadRead(
                 SupportTelemetryInfrastructureOperations01::telemetry_views_file(),
                 self::viewsSchema(),
@@ -172,7 +170,6 @@ final class TelemetryJsonStore
             return 0;
         }
         try {
-            self::migrateLegacyLocked($nowUnixUs);
             $views = self::payloadRead(
                 SupportTelemetryInfrastructureOperations01::telemetry_views_file(),
                 self::viewsSchema(),
@@ -312,92 +309,6 @@ final class TelemetryJsonStore
             "database_query_duration_ns" => max(0, (int) ($event["database_query_duration_ns"] ?? 0)),
             "sucesso" => (bool) ($event["sucesso"] ?? false),
         ];
-    }
-
-    private static function legacyEvents(?int $nowUnixUs = null): array
-    {
-        $file = SupportTelemetryInfrastructureOperations01::telemetry_legacy_file();
-        if (!is_file($file)) {
-            return [];
-        }
-        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $minimumUnixUs = $nowUnixUs -
-            SupportTelemetryInfrastructureOperations01::telemetry_retention_microseconds();
-        $events = [];
-        $seen = [];
-        $handle = @fopen($file, "rb");
-        if (!is_resource($handle)) {
-            return [];
-        }
-        try {
-            if (!@flock($handle, LOCK_SH)) {
-                return [];
-            }
-            while (($line = fgets($handle)) !== false) {
-                $decoded = json_decode(mb_trim($line), true);
-                $event = is_array($decoded)
-                    ? SupportTelemetryInfrastructureOperations01::telemetry_normalize_event($decoded)
-                    : null;
-                if ($event === null ||
-                    (int) ($event["fim_unix_us"] ?? 0) < $minimumUnixUs) {
-                    continue;
-                }
-                $id = (string) ($event["evento_id"] ?? "");
-                if ($id !== "" && isset($seen[$id])) {
-                    continue;
-                }
-                if ($id !== "") {
-                    $seen[$id] = true;
-                }
-                $events[] = $event;
-            }
-        } finally {
-            @flock($handle, LOCK_UN);
-            @fclose($handle);
-        }
-        return $events;
-    }
-
-    private static function migrateLegacyLocked(?int $nowUnixUs = null): void
-    {
-        $viewsFile = SupportTelemetryInfrastructureOperations01::telemetry_views_file();
-        $speedFile = SupportTelemetryInfrastructureOperations01::telemetry_speed_file();
-        if (is_file($viewsFile) && is_file($speedFile)) {
-            return;
-        }
-        $legacy = self::legacyEvents($nowUnixUs);
-        $views = [];
-        $speed = [];
-        foreach ($legacy as $event) {
-            $views[] = self::viewEvent($event);
-            $speed[] = self::speedEvent($event);
-        }
-        $updated = (new DateTimeImmutable(
-            "now",
-            SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz(),
-        ))->format(DateTimeImmutable::ATOM);
-        if (!is_file($viewsFile)) {
-            if (!self::payloadWrite($viewsFile, [
-                "schema" => self::viewsSchema(),
-                "timezone" => "America/Cuiaba",
-                "retention_days" => 31,
-                "updated_at_local" => $updated,
-                "events" => $views,
-            ])) {
-                throw new RuntimeException("Falha ao migrar Visualizações para JSON canônico.");
-            }
-        }
-        if (!is_file($speedFile)) {
-            if (!self::payloadWrite($speedFile, [
-                "schema" => self::speedSchema(),
-                "timezone" => "America/Cuiaba",
-                "retention_days" => 31,
-                "updated_at_local" => $updated,
-                "events" => $speed,
-            ])) {
-                throw new RuntimeException("Falha ao migrar Velocidade para JSON canônico.");
-            }
-        }
     }
 
     private static function lockExclusive()

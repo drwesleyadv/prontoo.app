@@ -11,7 +11,7 @@
         "app/Runtime/Operational/OperationalComposition.php": "wires scoped operational use cases to the PDO catalog repository"
     },
     "structural_sql_exceptions": {
-        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen compatibility execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
+        "app/Runtime/DatabaseSchema/DatabaseSchemaRuntimeOperations01.php": "frozen structural execution boundary for schema readiness and guarded query dispatch; still counted as structural debt and not authorized to grow"
     },
     "persistence_helpers": {
         "Prontoo\\Runtime\\DatabaseSchema\\DatabaseSchemaRuntimeOperations01": [

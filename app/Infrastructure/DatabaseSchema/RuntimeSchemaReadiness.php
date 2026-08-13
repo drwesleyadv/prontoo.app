@@ -21,10 +21,7 @@ final class RuntimeSchemaReadiness
         if (self::$validated || !SupportFoundationInfrastructureOperations01::has_cfg()) {
             return;
         }
-        DatabaseSchemaInfrastructureOperations03::schema_apply_pending_release_migrations();
-        $expectedRevision = defined('PRONTOO_SCHEMA_REV')
-            ? PRONTOO_SCHEMA_REV
-            : 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger';
+        $expectedRevision = (string) PRONTOO_SCHEMA_REV;
         $revision = self::metaValue('schema_revision');
         $contract = self::metaValue('schema_contract_hash');
         if (!hash_equals($expectedRevision, $revision)) {

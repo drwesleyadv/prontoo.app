@@ -4,7 +4,6 @@ Esta documentação descreve o Prontoo como ele existe na arquitetura consolidad
 
 ## Entrada para agentes
 
-Qualquer IA agêntica ou automação que pretenda editar o repositório deve começar por `../AGENTS.md`. Esse documento reúne guardrails operacionais, ordem de autoridade, regras de tenant, segurança, banco, Presentation, release e Definition of Done. A baseline vigente está registrada em `audits/BASELINE-1.8.13.2.md`.
 
 ## Leitura recomendada
 

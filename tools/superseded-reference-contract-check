@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit(1); }
+$root = dirname(__DIR__);
+$version = json_decode((string) file_get_contents($root . '/version.json'), true, 512, JSON_THROW_ON_ERROR);
+$current = (string) ($version['version'] ?? '');
+$forbidden = [
+    'design-system.css', 'CompatibilitySourceResolver', 'compatibility-source.php', 'compatibility_source(',
+    'architecture_source_path_migrations', 'php84_baseline_path_migrations', 'previous_version',
+    'release_version_last_transition', 'PRONTOO_PREVIOUS_VERSION', 'page-loads.jsonl',
+    'database-record-counts.json', 'telemetry_legacy_file', 'migrateLegacyLocked', 'legacyEvents',
+];
+$failures = [];
+$tracked = [];
+exec('git -C ' . escapeshellarg($root) . ' ls-files', $tracked, $status);
+if ($status !== 0) { fwrite(STDERR, "superseded-reference-contract: git ls-files failed\n"); exit(1); }
+foreach ($tracked as $relative) {
+    if ($relative === 'tools/superseded-reference-contract-check' || str_starts_with($relative, '.git/')) continue;
+    $path = $root . '/' . $relative;
+    if (!is_file($path) || filesize($path) > 3000000) continue;
+    $source = @file_get_contents($path);
+    if (!is_string($source) || str_contains($source, "\0")) continue;
+    foreach ($forbidden as $token) {
+        if (str_contains($source, $token)) $failures[] = $relative . ':' . $token;
+    }
+    $extension = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
+    if (in_array($extension, ['md', 'json'], true) && preg_match_all('/\\b1\\.[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]+\\b/', $source, $matches)) {
+        foreach (array_unique((array) ($matches[0] ?? [])) as $literal) {
+            if ($literal !== $current) $failures[] = $relative . ':superseded_release_literal:' . $literal;
+        }
+    }
+}
+if ($failures !== []) {
+    fwrite(STDERR, "Referências superadas ainda presentes:\n- " . implode("\n- ", array_values(array_unique($failures))) . "\n");
+    exit(1);
+}
+echo json_encode(['ok'=>true,'policy'=>'canonical-current-state-only','current_release'=>$current,'forbidden_tokens'=>count($forbidden)], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE), PHP_EOL;

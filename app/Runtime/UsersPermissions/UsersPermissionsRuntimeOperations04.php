@@ -418,7 +418,7 @@ final class UsersPermissionsRuntimeOperations04
             $newParams["f"] = $filter;
         }
         $headAction =
-            '<a class="primary small cmdlike" href="' .
+            '<a class="pagehead-control pagehead-control--primary" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("users", $newParams) .
             '">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo Colaborador", "person_add") .

@@ -11,9 +11,8 @@ final class AuthActionDefinitions implements ActionDefinitionSource
     public function definitions(): array
     {
         $definitions = new ActionDefinitionCollection();
-        $auth = 'Auth/AuthOnboarding.php';
-        $subscription = 'Domain/Clinic/SubscriptionSettings.php';
-        $admin = 'Admin/AdminPages.php';
+        $auth = 'Runtime/AuthOnboarding';
+        $subscription = 'Runtime/SubscriptionSettings';
 
         $definitions->add('login', '__default__', 'public', $auth, [], ['session:authenticate']);
         $definitions->add('login', 'mfa_verify', 'public', $auth, [], ['session:mfa']);
@@ -23,7 +22,6 @@ final class AuthActionDefinitions implements ActionDefinitionSource
         $definitions->add('mobile_web_access', '__default__', 'public', $auth, [], ['session:mobile_probe']);
         $definitions->add('logout', '__default__', 'authenticated', $auth, ['session:self'], ['session:logout']);
         $definitions->add('switch', '__default__', 'authenticated', $auth, ['session:self'], ['session:environment']);
-        $definitions->add('switch', 'choose_admin', 'authenticated', $auth, ['session:self'], ['session:environment'], [], 'matrix', null, [$admin]);
         $definitions->add(
             'profile',
             [

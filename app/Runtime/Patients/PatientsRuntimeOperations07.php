@@ -772,7 +772,7 @@ final class PatientsRuntimeOperations07
                 $docEmitParams["appointment_id"] = $docEmitAppointmentId;
             }
             $patientDocForm =
-                '<div class="patient-empty-action patient-doc-create patient-doc-external-cta"><a class="primary small cmdlike" href="' .
+                '<div class="patient-empty-action patient-doc-create patient-doc-external-cta"><a class="pagehead-control pagehead-control--primary" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("documents", $docEmitParams) .
                 '">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Emitir Primeiro Documento", "description") .
@@ -1109,7 +1109,7 @@ final class PatientsRuntimeOperations07
             $ic = (string) $tab["icon_name"];
             $editOptions = $extraTypeOptions;
             $html =
-                '<details class="care-edit"><summary class="ghost small cmdlike">' .
+                '<details class="care-edit"><summary class="pagehead-control pagehead-control--secondary">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Alterar", "edit") .
                 '</summary><form method="post" class="compact">' .
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
@@ -1286,7 +1286,7 @@ final class PatientsRuntimeOperations07
                     '" readonly aria-readonly="true" tabindex="-1" autocomplete="off">'
                 : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("birth_date", "date", $p["birth_date"], "required");
         $patientEdit =
-            '<details class="patient-edit"><summary class="primary small cmdlike">' .
+            '<details class="patient-edit"><summary class="pagehead-control pagehead-control--primary">' .
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Alterar cadastro", "edit") .
             '</summary><form method="post" class="compact patient-record-form">' .
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
@@ -1384,7 +1384,7 @@ final class PatientsRuntimeOperations07
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($tab["label"]) .
                 "</h2><p>Anotações desta aba, em ordem de inclusão.</p></div><span>" .
                 $count .
-                ' anotação(ões)</span></div><details class="patient-inline-note"><summary class="ghost small cmdlike">' .
+                ' anotação(ões)</span></div><details class="patient-inline-note"><summary class="pagehead-control pagehead-control--secondary">' .
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Nova anotação nesta aba", "edit_note") .
                 "</summary>" .
                 $annotationForm($rt, "Salvar em " . (string) $tab["label"]) .

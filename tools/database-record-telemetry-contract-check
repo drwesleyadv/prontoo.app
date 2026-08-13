@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/compatibility-source.php';
+require_once __DIR__ . '/canonical-source.php';
 
 $root = dirname(__DIR__);
 require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
