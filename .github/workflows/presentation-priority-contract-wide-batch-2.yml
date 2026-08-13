@@ -46,31 +46,33 @@ jobs:
           import re
           p=Path('contract-wide-materialize.mjs')
           s=p.read_text()
-          selected="""const selected = [
-  {source:'components/components.css', sourceByteOffset:121190, sequenceOrder:371, selector:'main pill primitive', property:'border-radius', value:'var(--md-sys-shape-corner-full)'},
-  {source:'components/components.css', sourceByteOffset:121219, sequenceOrder:371, selector:'main pill primitive', property:'font-weight', value:'800'},
-  {source:'components/components.css', sourceByteOffset:217062, sequenceOrder:703, selector:'kpi card primitive', property:'border-radius', value:'20px'},
-  {source:'components/components.css', sourceByteOffset:217209, sequenceOrder:703, selector:'kpi card primitive', property:'border', value:'contracted-border'},
-  {source:'components/components.css', sourceByteOffset:217401, sequenceOrder:703, selector:'kpi card primitive', property:'background', value:'contracted-gradient'},
-  {source:'components/components.css', sourceByteOffset:217430, sequenceOrder:703, selector:'kpi card primitive', property:'box-shadow', value:'none'},
-  {source:'components/components.css', sourceByteOffset:309476, sequenceOrder:958, selector:'.cmdbar,.context-bar,.module-bar', property:'align-items', value:'center'},
-  {source:'components/components.css', sourceByteOffset:310605, sequenceOrder:964, selector:'.pill,.status-pill,.badge', property:'line-height', value:'1'}
-];"""
+          selected='\n'.join([
+              'const selected = [',
+              "  {source:'components/components.css', sourceByteOffset:121190, sequenceOrder:371, selector:'main pill primitive', property:'border-radius', value:'var(--md-sys-shape-corner-full)'},",
+              "  {source:'components/components.css', sourceByteOffset:121219, sequenceOrder:371, selector:'main pill primitive', property:'font-weight', value:'800'},",
+              "  {source:'components/components.css', sourceByteOffset:217062, sequenceOrder:703, selector:'kpi card primitive', property:'border-radius', value:'20px'},",
+              "  {source:'components/components.css', sourceByteOffset:217209, sequenceOrder:703, selector:'kpi card primitive', property:'border', value:'contracted-border'},",
+              "  {source:'components/components.css', sourceByteOffset:217401, sequenceOrder:703, selector:'kpi card primitive', property:'background', value:'contracted-gradient'},",
+              "  {source:'components/components.css', sourceByteOffset:217430, sequenceOrder:703, selector:'kpi card primitive', property:'box-shadow', value:'none'},",
+              "  {source:'components/components.css', sourceByteOffset:309476, sequenceOrder:958, selector:'.cmdbar,.context-bar,.module-bar', property:'align-items', value:'center'},",
+              "  {source:'components/components.css', sourceByteOffset:310605, sequenceOrder:964, selector:'.pill,.status-pill,.badge', property:'line-height', value:'1'}",
+              '];'
+          ])
           s,n=re.subn(r"const selected = \[\n.*?\n\];",selected,s,count=1,flags=re.S)
           assert n==1
           replacements=[
-            ("version.version !== '1.8.12.22'","version.version !== '1.8.12.23'"),
-            ("important_count_max) !== 4889","important_count_max) !== 4881"),
-            ("count(oldArtifact, '!important') !== 4889","count(oldArtifact, '!important') !== 4881"),
-            ("importantCount !== 4881 || count(artifact, '!important') !== 4881","importantCount !== 4873 || count(artifact, '!important') !== 4873"),
-            ("release !== '1.8.12.23'","release !== '1.8.12.24'"),
-            ("Primeiro lote fixture-wide: 8 prioridades CSS removidas","Segundo lote fixture-wide: 8 prioridades CSS removidas"),
-            ("4.889 para 4.881","4.881 para 4.873"),
-            ("important_before:4889","important_before:4881")
+              ("version.version !== '1.8.12.22'","version.version !== '1.8.12.23'"),
+              ("important_count_max) !== 4889","important_count_max) !== 4881"),
+              ("count(oldArtifact, '!important') !== 4889","count(oldArtifact, '!important') !== 4881"),
+              ("importantCount !== 4881 || count(artifact, '!important') !== 4881","importantCount !== 4873 || count(artifact, '!important') !== 4873"),
+              ("release !== '1.8.12.23'","release !== '1.8.12.24'"),
+              ("Primeiro lote fixture-wide: 8 prioridades CSS removidas","Segundo lote fixture-wide: 8 prioridades CSS removidas"),
+              ("4.889 para 4.881","4.881 para 4.873"),
+              ("important_before:4889","important_before:4881")
           ]
           for old,new in replacements:
-            assert old in s, old
-            s=s.replace(old,new,1)
+              assert old in s, old
+              s=s.replace(old,new,1)
           p.write_text(s)
           PY
           node --check contract-wide-materialize.mjs
