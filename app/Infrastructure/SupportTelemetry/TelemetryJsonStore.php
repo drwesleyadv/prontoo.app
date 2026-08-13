@@ -141,6 +141,8 @@ final class TelemetryJsonStore
                 "database_query_duration_ns" => is_array($speedRow)
                     ? max(0, (int) ($speedRow["database_query_duration_ns"] ?? 0))
                     : 0,
+                "database_query_instrumented" => is_array($speedRow) &&
+                    array_key_exists("database_query_count", $speedRow),
                 "database_query_observed" => is_array($speedRow) &&
                     array_key_exists("database_query_count", $speedRow) &&
                     (int) ($speedRow["database_query_count"] ?? 0) > 0,

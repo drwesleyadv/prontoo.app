@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.13.7 — Velocidade e Volume na telemetria operacional
+
+- Velocidade usa 1440 buckets móveis de um minuto.
+- Rotas e Banco são áreas sem contorno em verde escuro e claro.
+- Volume usa 30 buckets móveis de 24 horas.
+- Volume conta page loads e soma consultas ao banco.
+- Status e Painel compartilham a mesma composição.
+- banco e schema permanecem inalterados.
+
 ## 1.8.13.6 — Correção do owner da grade de telemetria
 
 - corrige a regra canônica que ainda forçava três colunas no desktop da página de Status.

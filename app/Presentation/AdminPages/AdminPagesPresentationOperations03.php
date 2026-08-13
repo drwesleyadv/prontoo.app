@@ -48,9 +48,10 @@ final class AdminPagesPresentationOperations03
         if (!in_array($valueType, ["ms", "count"], true)) {
             $valueType = "ms";
         }
-        if (!in_array($visualMode, ["default", "latency"], true)) {
+        if (!in_array($visualMode, ["default", "latency", "telemetry"], true)) {
             $visualMode = "default";
         }
+        $countSummaryMode = (string) ($presentation["count_summary_mode"] ?? "average");
         $recentPoints = max(1, (int) ($presentation["recent_points"] ?? 5));
         $middlePoints = max(1, (int) ($presentation["middle_points"] ?? 31));
         $comparisonPoints = max(0, (int) ($presentation["comparison_points"] ?? 0));
@@ -287,7 +288,7 @@ final class AdminPagesPresentationOperations03
             $recentValues = array_slice($loadValues, -$recentPoints);
             $recentValue = $valueType === "count"
                 ? ($recentValues
-                    ? array_sum($recentValues) / count($recentValues)
+                    ? ($countSummaryMode === "sum" ? array_sum($recentValues) : array_sum($recentValues) / count($recentValues))
                     : 0.0)
                 : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
                     $loadSeries,
@@ -296,7 +297,7 @@ final class AdminPagesPresentationOperations03
             $middleValues = array_slice($loadValues, -$middlePoints);
             $middleValue = $valueType === "count"
                 ? ($middleValues
-                    ? array_sum($middleValues) / count($middleValues)
+                    ? ($countSummaryMode === "sum" ? array_sum($middleValues) : array_sum($middleValues) / count($middleValues))
                     : 0.0)
                 : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
                     $loadSeries,
@@ -305,7 +306,7 @@ final class AdminPagesPresentationOperations03
         }
         $overallValue = $valueType === "count"
             ? (count($loadValues) > 0
-                ? array_sum($loadValues) / count($loadValues)
+                ? ($countSummaryMode === "sum" ? array_sum($loadValues) : array_sum($loadValues) / count($loadValues))
                 : 0.0)
             : \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_recent_average(
                 $loadSeries,

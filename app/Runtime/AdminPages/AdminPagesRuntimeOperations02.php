@@ -190,9 +190,9 @@ final class AdminPagesRuntimeOperations02
         return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d();
     }
 
-    public static function admin_global_metric_series_30d(string $metric): array
+    public static function admin_global_volume_series_30d(string $metric): array
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_latency_series_30d($metric);
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d($metric);
     }
 
     public static function admin_maestro_health_time_label(?string $value): string
@@ -297,44 +297,16 @@ final class AdminPagesRuntimeOperations02
     {
         $route24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("route");
         $database24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("database");
-        $route30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_30d("route");
-        $database30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_30d("database");
+        $pageLoads30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_volume_series_30d("page_load");
+        $databaseQueries30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_volume_series_30d("database_queries");
         return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="5min">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
-                "Últimas 24 horas",
-                $route24h,
-                $database24h,
-                "speed",
-                [
-                    "primary_label" => "Rotas",
-                    "secondary_label" => "Banco de dados",
-                    "value_type" => "ms",
-                    "visual_mode" => "latency",
-                    "recent_points" => 5,
-                    "middle_points" => 30,
-                    "recent_title" => "Tempo médio das rotas nos últimos 5 minutos",
-                    "middle_title" => "Tempo médio das rotas nos últimos 30 minutos",
-                    "overall_title" => "Tempo médio das rotas nas últimas 24 horas",
-                    "summary_lead" => "tempo médio das rotas e das consultas preparadas ao banco de dados.",
-                ],
+                "Velocidade", $route24h, $database24h, "speed",
+                ["primary_label" => "Rotas", "secondary_label" => "Banco de dados", "value_type" => "ms", "visual_mode" => "telemetry", "recent_points" => 5, "middle_points" => 30, "recent_title" => "Tempo médio das rotas nos últimos 5 minutos", "middle_title" => "Tempo médio das rotas nos últimos 30 minutos", "overall_title" => "Tempo médio das rotas nas últimas 24 horas", "summary_lead" => "cada ponto representa um minuto móvel; verde escuro é o tempo médio de carregamento de rotas e verde claro é o tempo médio das consultas ao banco."],
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
-                "Últimos 30 dias",
-                $route30d,
-                $database30d,
-                "calendar_month",
-                [
-                    "primary_label" => "Rotas",
-                    "secondary_label" => "Banco de dados",
-                    "value_type" => "ms",
-                    "visual_mode" => "latency",
-                    "recent_points" => 1,
-                    "middle_points" => 7,
-                    "recent_title" => "Tempo médio das rotas nas últimas 24 horas",
-                    "middle_title" => "Tempo médio das rotas nos últimos 7 dias",
-                    "overall_title" => "Tempo médio das rotas nos últimos 30 dias",
-                    "summary_lead" => "tempo médio das rotas e das consultas preparadas ao banco de dados.",
-                ],
+                "Volume", $pageLoads30d, $databaseQueries30d, "monitoring",
+                ["primary_label" => "Carregamentos de página", "secondary_label" => "Consultas ao banco de dados", "value_type" => "count", "visual_mode" => "telemetry", "count_summary_mode" => "sum", "recent_points" => 1, "middle_points" => 7, "recent_title" => "Carregamentos de página nas últimas 24 horas", "middle_title" => "Carregamentos de página nos últimos 7 dias", "overall_title" => "Carregamentos de página nos últimos 30 dias", "summary_lead" => "cada ponto representa um intervalo móvel de 24 horas; verde escuro é o total de carregamentos de página e verde claro é o total de consultas ao banco."],
             ) .
             "</div>";
     }

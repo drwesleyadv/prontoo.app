@@ -130,6 +130,39 @@ final class SupportTelemetryInfrastructureOperations02
 
 
 
+    public static function telemetry_volume_series_30d(
+        string $metric,
+        ?int $nowUnixUs = null,
+    ): array {
+        $metric = in_array($metric, ["page_load", "database_queries"], true) ? $metric : "page_load";
+        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        $nowUnixUs = max(1, $nowUnixUs);
+        $bucketUs = 86400 * 1000000;
+        $bucketCount = 30;
+        $windowStartUs = $nowUnixUs - $bucketCount * $bucketUs;
+        $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
+        $buckets = [];
+        for ($index = 0; $index < $bucketCount; $index++) {
+            $startUs = $windowStartUs + $index * $bucketUs;
+            $endUs = $startUs + $bucketUs;
+            $start = (new DateTimeImmutable("@" . intdiv($startUs, 1000000)))->setTimezone($timezone);
+            $end = (new DateTimeImmutable("@" . intdiv($endUs, 1000000)))->setTimezone($timezone);
+            $buckets[$index] = ["ts" => intdiv($startUs, 1000000), "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end), "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"), "value" => 0, "observed" => $metric === "page_load", "period" => $index < 15 ? "previous" : "current"];
+        }
+        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
+            if ($finishedUs < $windowStartUs || $finishedUs >= $nowUnixUs) continue;
+            $index = intdiv($finishedUs - $windowStartUs, $bucketUs);
+            if ($index < 0 || $index >= $bucketCount) continue;
+            if ($metric === "page_load") { $buckets[$index]["value"]++; continue; }
+            if (empty($event["database_query_instrumented"])) continue;
+            $buckets[$index]["observed"] = true;
+            $buckets[$index]["value"] += max(0, (int) ($event["database_query_count"] ?? 0));
+        }
+        return array_values($buckets);
+    }
+
+
     public static function telemetry_latency_series_24h(
         string $metric,
         ?int $nowUnixUs = null,

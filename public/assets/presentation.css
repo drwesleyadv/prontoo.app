@@ -15076,9 +15076,13 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 }
 
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}
+.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-response{fill:#347963;opacity:.5}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}
+.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-load{stroke:none}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}
+.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-response{stroke:none}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}
 
