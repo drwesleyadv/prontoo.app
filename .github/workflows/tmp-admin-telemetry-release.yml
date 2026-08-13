@@ -59,13 +59,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ -e .github/workflows/tmp-admin-telemetry-release.yml ]; then
+            echo 'Temporary workflow still exists after cleanup.' >&2
+            exit 1
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          if git diff --cached --name-only | grep -Fq '.github/workflows/tmp-admin-telemetry-release.yml'; then
-            echo 'Temporary workflow leaked into final diff.' >&2
-            exit 1
-          fi
           git diff --cached --check
           git commit -m 'chore(release): publish 1.8.13.1'
           git push origin HEAD:agent/admin-telemetry-two-by-two
