@@ -1,0 +1,271 @@
+name: Presentation Priority Contract Wide Batch 1
+on:
+  push:
+    branches: [agent/presentation-priority-contract-wide-batch-1]
+    paths: [.github/workflows/presentation-priority-contract-wide-batch-1.yml]
+permissions:
+  contents: write
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Validate exact audited base
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = "65d5e45b227162debc35a44fa450cd0c2618ce1f"
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/release-contract-reconcile --check
+      - name: Setup pinned Chromium contract
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock playwright@1.59.1
+          npx playwright install --with-deps chromium
+      - name: Materialize exact proven offsets
+        run: |
+          cat > contract-wide-materialize.mjs <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import { execFileSync } from 'node:child_process';
+
+          const root = 'app/Presentation/Styles';
+          const manifestPath = `${root}/styles.manifest.json`;
+          const artifactPath = 'public/assets/presentation.css';
+          const versionPath = 'version.json';
+          const token = Buffer.from('!important');
+          const selected = [
+            {source:'components/components.css', sourceByteOffset:68480, sequenceOrder:199, selector:'.cmdbar', property:'top', value:'var(--top-h)'},
+            {source:'states/responsive.css', sourceByteOffset:8328, sequenceOrder:200, selector:'.cmdbar', property:'top', value:'var(--top-h)'},
+            {source:'components/components.css', sourceByteOffset:109017, sequenceOrder:319, selector:'.cmdbar', property:'gap', value:'8px'},
+            {source:'components/components.css', sourceByteOffset:109133, sequenceOrder:319, selector:'.cmdbar', property:'justify-content', value:'flex-start'},
+            {source:'components/components.css', sourceByteOffset:117146, sequenceOrder:366, selector:'main card surface primitive', property:'border-radius', value:'var(--pt-ds-surface-radius)'},
+            {source:'components/components.css', sourceByteOffset:117194, sequenceOrder:366, selector:'main card surface primitive', property:'background', value:'var(--pt-ds-surface-bg)'},
+            {source:'components/components.css', sourceByteOffset:118289, sequenceOrder:371, selector:'main compact KPI primitive', property:'min-width', value:'0'},
+            {source:'components/components.css', sourceByteOffset:118600, sequenceOrder:371, selector:'main compact KPI primitive', property:'background', value:'contracted-gradient'}
+          ];
+          const sha = buffer => crypto.createHash('sha256').update(buffer).digest('hex');
+          const count = (buffer, needle) => buffer.toString('utf8').split(needle).length - 1;
+          const removeOffsets = (buffer, offsets) => {
+            let out = buffer;
+            for (const offset of [...offsets].sort((a,b)=>b-a)) {
+              if (!out.subarray(offset, offset + token.length).equals(token)) throw new Error(`token mismatch at ${offset}`);
+              out = Buffer.concat([out.subarray(0, offset), out.subarray(offset + token.length)]);
+            }
+            return out;
+          };
+
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const version = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+          const oldArtifact = fs.readFileSync(artifactPath);
+          if (version.version !== '1.8.12.22') throw new Error(`unexpected version ${version.version}`);
+          if (Number(manifest.visual_debt_budget.important_count_max) !== 4889) throw new Error('unexpected important budget');
+          if (count(oldArtifact, '!important') !== 4889) throw new Error('unexpected artifact important count');
+
+          const originals = new Map();
+          for (const source of manifest.sources) {
+            const buffer = fs.readFileSync(`${root}/${source.path}`);
+            if (buffer.length !== source.bytes || sha(buffer) !== source.sha256) throw new Error(`source contract drift ${source.path}`);
+            originals.set(source.path, buffer);
+          }
+
+          const artifactStarts = new Map();
+          let artifactCursor = 0;
+          for (const segment of manifest.sequence) {
+            artifactStarts.set(segment.order, artifactCursor);
+            artifactCursor += segment.bytes;
+          }
+          if (artifactCursor !== oldArtifact.length) throw new Error('artifact byte contract drift');
+
+          const assigned = new Set();
+          for (let i = 0; i < selected.length; i++) {
+            const candidate = selected[i];
+            const source = originals.get(candidate.source);
+            if (!source) throw new Error(`missing source ${candidate.source}`);
+            if (!source.subarray(candidate.sourceByteOffset, candidate.sourceByteOffset + token.length).equals(token)) throw new Error(`source token drift ${i}`);
+            const segment = manifest.sequence.find(seg => seg.source === candidate.source && candidate.sourceByteOffset >= seg.offset && candidate.sourceByteOffset < seg.offset + seg.bytes);
+            if (!segment || segment.order !== candidate.sequenceOrder) throw new Error(`sequence mapping drift ${i}`);
+            const artifactOffset = artifactStarts.get(segment.order) + (candidate.sourceByteOffset - segment.offset);
+            if (!oldArtifact.subarray(artifactOffset, artifactOffset + token.length).equals(token)) throw new Error(`artifact mapping drift ${i}`);
+          }
+
+          const transformed = new Map();
+          for (const [sourcePath, buffer] of originals) {
+            const offsets = selected.filter(c => c.source === sourcePath).map(c => c.sourceByteOffset);
+            transformed.set(sourcePath, removeOffsets(buffer, offsets));
+          }
+
+          const oldOffsets = new Map([...originals.keys()].map(path => [path, 0]));
+          const newOffsets = new Map([...originals.keys()].map(path => [path, 0]));
+          const rebuilt = new Map([...originals.keys()].map(path => [path, []]));
+          const chunks = [];
+
+          for (const segment of manifest.sequence) {
+            const sourceBuffer = originals.get(segment.source);
+            if (segment.offset !== oldOffsets.get(segment.source)) throw new Error(`non-contiguous source sequence ${segment.source}#${segment.order}`);
+            const raw = sourceBuffer.subarray(segment.offset, segment.offset + segment.bytes);
+            if (raw.length !== segment.bytes || sha(raw) !== segment.sha256) throw new Error(`segment contract drift ${segment.order}`);
+            const local = [];
+            selected.forEach((candidate, index) => {
+              if (candidate.source !== segment.source) return;
+              if (candidate.sourceByteOffset >= segment.offset && candidate.sourceByteOffset < segment.offset + segment.bytes) {
+                local.push(candidate.sourceByteOffset - segment.offset);
+                if (assigned.has(index)) throw new Error(`candidate assigned twice ${index}`);
+                assigned.add(index);
+              }
+            });
+            const next = removeOffsets(raw, local);
+            segment.offset = newOffsets.get(segment.source);
+            segment.bytes = next.length;
+            segment.sha256 = sha(next);
+            segment.important_count = count(next, '!important');
+            segment.route_scope_count = count(next, 'body[data-route=');
+            oldOffsets.set(segment.source, oldOffsets.get(segment.source) + raw.length);
+            newOffsets.set(segment.source, newOffsets.get(segment.source) + next.length);
+            rebuilt.get(segment.source).push(next);
+            chunks.push(next);
+          }
+          if (assigned.size !== selected.length) throw new Error(`not all candidates assigned: ${assigned.size}/${selected.length}`);
+
+          let importantCount = 0;
+          let routeScopeCount = 0;
+          for (const source of manifest.sources) {
+            const next = transformed.get(source.path);
+            const fromSegments = Buffer.concat(rebuilt.get(source.path));
+            if (!fromSegments.equals(next)) throw new Error(`rebuild mismatch ${source.path}`);
+            fs.writeFileSync(`${root}/${source.path}`, next);
+            source.sha256 = sha(next);
+            source.bytes = next.length;
+            source.important_count = count(next, '!important');
+            source.route_scope_count = count(next, 'body[data-route=');
+            importantCount += source.important_count;
+            routeScopeCount += source.route_scope_count;
+          }
+
+          const artifact = Buffer.concat(chunks);
+          if (importantCount !== 4881 || count(artifact, '!important') !== 4881) throw new Error(`unexpected important result ${importantCount}`);
+          if (routeScopeCount !== 1091 || count(artifact, 'body[data-route=') !== 1091) throw new Error(`route scope drift ${routeScopeCount}`);
+          if (artifact.length !== oldArtifact.length - selected.length * token.length) throw new Error('artifact byte delta mismatch');
+          fs.writeFileSync(artifactPath, artifact);
+
+          manifest.visual_debt_budget.important_count_max = importantCount;
+          manifest.artifact_contract.sha256 = sha(artifact);
+          manifest.artifact_contract.bytes = artifact.length;
+          manifest.artifact_contract.lines = count(artifact, '\n') + (artifact.length ? 1 : 0);
+          if (manifest.important_shadow_reduction) manifest.important_shadow_reduction.remaining_important_count = importantCount;
+          const previousReduction = manifest.contracted_priority_reduction || {};
+          manifest.contracted_priority_reduction = {
+            ...previousReduction,
+            policy:'priority_is_removed_only_when_full_computed_style_and_geometry_contract_is_invariant',
+            removed_declarations:Number(previousReduction.removed_declarations || 0) + selected.length,
+            fixture_wide_removed:Number(previousReduction.fixture_wide_removed || 0) + selected.length,
+            remaining_important_count:importantCount,
+            asserted_surfaces:396
+          };
+          fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+
+          const previous = version.version;
+          const parts = previous.split('.').map(Number);
+          parts[3] += 1;
+          const release = parts.join('.');
+          if (release !== '1.8.12.23') throw new Error(`unexpected release ${release}`);
+          const env = {...process.env, TZ:'America/Cuiaba'};
+          const now = execFileSync('date', ['--iso-8601=seconds'], {encoding:'utf8', env}).trim();
+          const unix = Number(execFileSync('date', ['+%s'], {encoding:'utf8', env}).trim());
+          Object.assign(version, {
+            version:release,
+            release,
+            previous_version:previous,
+            build:`${release}-presentation-fixture-wide-priority-reduction`,
+            generated_at_unix:unix,
+            generated_at:now,
+            updated_at:now,
+            release_date:execFileSync('date', ['+%F'], {encoding:'utf8', env}).trim(),
+            deployment_sync_id:`github-prontoo-${release}-presentation-fixture-wide-priority-reduction`,
+            deployment_sync_requested_at:now,
+            database_changes:false,
+            schema_changes:false,
+            logic_changes:true,
+            visual_changes:false,
+            documentation_changes:true,
+            functional_equivalence_policy:'full_396_surface_computed_style_and_geometry_contract_stable_for_fixture_wide_priority_reduction',
+            notes:'Primeiro lote fixture-wide: 8 prioridades CSS removidas por offsets exatos após prova individual e combinada nas 396 superfícies Chromium; nenhum comportamento visual publicado foi alterado.'
+          });
+          version.changelog = {
+            title:'Redução contratada de prioridades em primitives visuais',
+            items:[
+              'remove 8 ocorrências de !important em primitives já cobertas pelo contrato observável oficial',
+              'reduz o budget de !important de 4.889 para 4.881',
+              'mantém estáveis as 396 superfícies Chromium em desktop e mobile',
+              'mantém route scopes em 1.091 sem ampliar seletores',
+              'mantém banco e schema inalterados'
+            ]
+          };
+          fs.writeFileSync(versionPath, JSON.stringify(version, null, 4) + '\n');
+          console.log(JSON.stringify({release, previous, important_before:4889, important_after:importantCount, route_scope_count:routeScopeCount, artifact_bytes:artifact.length, artifact_sha256:sha(artifact), selected}, null, 2));
+          NODE
+          node --check contract-wide-materialize.mjs
+          node contract-wide-materialize.mjs
+          rm -f contract-wide-materialize.mjs .github/workflows/presentation-priority-contract-wide-batch-1.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Validate final materialized state
+        run: |
+          set -euo pipefail
+          php tools/release-version
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-ux-baseline-check
+          php tools/quality-gate
+          node tools/presentation-ux-contract.mjs --check
+      - name: Publish validated ordinary delta
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          cat > publish-delta.mjs <<'NODE'
+          import fs from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const token = process.env.GITHUB_TOKEN;
+          const repo = process.env.GITHUB_REPOSITORY;
+          const head = process.env.GITHUB_SHA;
+          const branch = process.env.GITHUB_REF_NAME;
+          const api = `https://api.github.com/repos/${repo}`;
+          async function request(method, path, body) {
+            const response = await fetch(api + path, {method, headers:{Authorization:`Bearer ${token}`,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}, body:body===undefined?undefined:JSON.stringify(body)});
+            const text = await response.text();
+            if (!response.ok) throw new Error(`${method} ${path} ${response.status}: ${text}`);
+            return text ? JSON.parse(text) : {};
+          }
+          const changed = execFileSync('git', ['diff','--name-only','HEAD','--','.'], {encoding:'utf8'}).split('\n').map(x=>x.trim()).filter(Boolean);
+          const paths = [...new Set(changed)].filter(path => !path.startsWith('.github/workflows/')).sort();
+          if (!paths.length) throw new Error('no ordinary changes to publish');
+          const encodedBranch = branch.replaceAll('/', '%2F');
+          const ref = await request('GET', `/git/ref/heads/${encodedBranch}`);
+          if (ref.object.sha !== head) throw new Error(`branch advanced ${ref.object.sha} != ${head}`);
+          const parent = await request('GET', `/git/commits/${head}`);
+          const entries = [];
+          for (const path of paths) {
+            const line = execFileSync('git', ['ls-tree','HEAD','--',path], {encoding:'utf8'}).trim();
+            const mode = line ? line.split(/\s+/)[0] : '100644';
+            if (!fs.existsSync(path)) { entries.push({path,mode,type:'blob',sha:null}); continue; }
+            const blob = await request('POST','/git/blobs',{content:fs.readFileSync(path).toString('base64'),encoding:'base64'});
+            entries.push({path,mode,type:'blob',sha:blob.sha});
+          }
+          const tree = await request('POST','/git/trees',{base_tree:parent.tree.sha,tree:entries});
+          const commit = await request('POST','/git/commits',{message:'refactor(presentation): demote fixture-wide contracted priority batch',tree:tree.sha,parents:[head]});
+          await request('PATCH',`/git/refs/heads/${encodedBranch}`,{sha:commit.sha,force:false});
+          console.log(JSON.stringify({commit:commit.sha,files:paths},null,2));
+          NODE
+          node publish-delta.mjs
