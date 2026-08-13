@@ -84,3 +84,9 @@ file_put_contents(
     json_encode($version, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . PHP_EOL,
     LOCK_EX,
 );
+
+exec('git rm --cached --quiet -- tools/tmp-audit-baseline-1-8-13-2.php', $output, $exitCode);
+if ($exitCode !== 0) {
+    fwrite(STDERR, "Failed to untrack temporary reconciler\n");
+    exit(1);
+}
