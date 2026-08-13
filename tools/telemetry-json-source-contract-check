@@ -20,15 +20,21 @@ $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnb
 $presentation3 = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $speedGeometry = (string) file_get_contents($root . '/app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php');
 $css = (string) file_get_contents($root . '/public/assets/presentation.css');
-foreach (['"primary_label" => "Rotas"', '"secondary_label" => "Banco de dados"', '"Últimas 24 horas"', '"Últimos 30 dias"', '"visual_mode" => "latency"'] as $token) {
-    $assert(str_contains($admin2, $token), 'gráficos de latência perderam ' . $token);
+foreach (["\"Velocidade\"", "\"Volume\"", "\"visual_mode\" => \"telemetry\""] as $token) {
+    $assert(str_contains($admin2, $token), 'gráficos compartilhados perderam ' . $token);
 }
 $assert(
     str_contains($admin2, 'admin_global_metric_series_24h("route")') &&
     str_contains($admin2, 'admin_global_metric_series_24h("database")') &&
-    str_contains($admin2, 'admin_global_metric_series_30d("route")') &&
-    str_contains($admin2, 'admin_global_metric_series_30d("database")'),
-    'gráficos de 24h e 30d devem compartilhar Rotas e Banco de dados',
+    str_contains($admin2, 'admin_global_volume_series_30d("page_load")') &&
+    str_contains($admin2, 'admin_global_volume_series_30d("database_queries")'),
+    'Velocidade deve usar latência por minuto e Volume deve usar contagens por dia',
+);
+$assert(
+    str_contains($admin2, '"primary_label" => "Carregamentos de página"') &&
+    str_contains($admin2, '"secondary_label" => "Consultas ao banco de dados"') &&
+    str_contains($admin2, '"count_summary_mode" => "sum"'),
+    'Volume deve exibir totais de carregamentos e consultas',
 );
 $assert(
     !str_contains($admin2, '"secondary_label" => "Landing Page"') &&
@@ -60,6 +66,7 @@ $assert(
 $assert(
     str_contains($telemetryStoreSource, '"database_query_count"') &&
     str_contains($telemetryStoreSource, '"database_query_duration_ns"') &&
+    str_contains($telemetryStoreSource, '"database_query_instrumented"') &&
     str_contains($telemetryStoreSource, '"database_query_observed"') &&
     !str_contains($telemetryStoreSource, 'database_query_sql') &&
     !str_contains($telemetryStoreSource, 'database_query_params'),
@@ -163,12 +170,12 @@ $requestWavePos = strpos($login, 'data-wave-series="requests"');
 $recordWavePos = strpos($login, 'data-wave-series="records"');
 $assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');
 foreach ([
-    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
-    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
-    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-load{stroke:#1f6f56}',
-    '.metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-line-response{stroke:#347963}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-load{stroke:none}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-response{stroke:none}',
 ] as $latencyVisualToken) {
-    $assert(str_contains($css, $latencyVisualToken), 'hierarquia visual de latência divergente: ' . $latencyVisualToken);
+    $assert(str_contains($css, $latencyVisualToken), 'hierarquia visual de Velocidade/Volume divergente: ' . $latencyVisualToken);
 }
 foreach ([
     '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#347963;opacity:.5}',

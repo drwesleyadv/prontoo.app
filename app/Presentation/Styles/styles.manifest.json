@@ -140,8 +140,8 @@
       "layer": "components",
       "responsibility": "components",
       "concern": "components",
-      "sha256": "707d07aac979ef9d05a8b08b792ee823428491768d5e0fd6f75dbb25ed8994a6",
-      "bytes": 337143,
+      "sha256": "c545bc9235e9df1784e17dc322b43e0db1f7b207f0d267b9178720288ca8d4d1",
+      "bytes": 337547,
       "important_count": 1637,
       "route_scope_count": 0
     },
@@ -9951,8 +9951,8 @@
       "order": 1071,
       "source": "components/components.css",
       "offset": 336433,
-      "bytes": 710,
-      "sha256": "34f2932aabaa43278bf0eff3ee2cbecd9f0ead4d94baf972f5a91ce1f4ae6049",
+      "bytes": 1114,
+      "sha256": "c68e92c3887583793fc276c0634be29eeee4c1d9e7a2e4e1adce2aadeb080a63",
       "important_count": 0,
       "route_scope_count": 0
     }
@@ -9966,8 +9966,8 @@
     "alias_required_until_runtime_urls_are_migrated": true
   },
   "artifact_contract": {
-    "sha256": "a182bb8c7a7cc7c61b6912260442e8b56447858df7caf1be3239d8eff83863e2",
-    "bytes": 799648,
+    "sha256": "907ca2d1f202bff3bcd6df0687383294e429e76e01f734767723c02b63c570c4",
+    "bytes": 800052,
     "lines": 15072,
     "deterministic_source_required": true
   },
