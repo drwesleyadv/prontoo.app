@@ -22,12 +22,12 @@ body[data-route="procedures"] .procedure-route-form-panel::before{
 body[data-route="procedures"] .procedure-route-hero{
   display:grid!important;
   grid-template-columns:auto minmax(0,1fr) auto!important;
-  align-items:center!important;
+  align-items:center;
   gap:14px!important;
   padding:16px!important;
   border-radius:26px!important;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant))!important;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest))!important;
+  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest));
 }
 body[data-route="procedures"] .procedure-route-hero-icon{
   width:52px!important;
@@ -186,7 +186,7 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
   border-radius:999px!important;
 }
 @media(max-width:720px){
-  body[data-route="procedures"] .procedure-route-form-panel{padding:12px!important;border-radius:24px;}
+  body[data-route="procedures"] .procedure-route-form-panel{padding:12px;border-radius:24px;}
   body[data-route="procedures"] .procedure-route-hero{grid-template-columns:auto minmax(0,1fr)!important;padding:14px!important;}
   body[data-route="procedures"] .procedure-route-hero .agenda-quick-back{grid-column:1 / -1!important;justify-self:start!important;}
   body[data-route="procedures"] .procedure-route-summary,
