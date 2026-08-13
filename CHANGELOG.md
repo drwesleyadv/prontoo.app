@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## 1.8.13.6 — Correção do owner da grade de telemetria
+
+- corrige a regra canônica que ainda forçava três colunas no desktop da página de Status.
+- mantém quatro KPIs na mesma linha acima de 980 px no Status e no Painel do Desenvolvedor.
+- impede a regressão antiga para uma coluna abaixo de 680 px preservando grade 2x2 no mobile.
+- remove a disputa entre o contrato responsivo da telemetria e os seletores legados de cascade.
+- amplia o contrato Playwright existente para validar computed style em 1280 px e 390 px nas duas superfícies.
+- preserva métricas cálculos banco e schema.
+
 ## 1.8.13.5 — Grade responsiva dos KPIs de telemetria
 
 - organiza os quatro KPIs do Painel do Desenvolvedor em uma única linha no desktop e em grade 2×2 em mobile e tablet.

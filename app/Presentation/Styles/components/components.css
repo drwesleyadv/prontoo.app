@@ -5421,7 +5421,6 @@ body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-te
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-load{fill:#1f6f56}
 .metric-dual-time-chart[data-metric-visual="latency"] .metric-chart-dot-response{fill:#347963}
 
-.global-telemetry-grid,
 body.scope-global .admin-telemetry-card{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));

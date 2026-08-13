@@ -138,4 +138,46 @@ if (expected !== normalized) {
   process.stderr.write(`presentation-ux-contract: computed-style drift ${differences.slice(0, 40).join(', ')}\n`);
   process.exit(1);
 }
+const telemetryCss = fs.readFileSync(path.join(root, 'public/assets/presentation.css'), 'utf8').replace(/^@import[^;]+;\s*/m, '');
+const telemetryCards = tag => Array.from({ length: 4 }, (_, index) => `<${tag} class="stat-card telemetry-kpi-card"><span class="material-symbols-rounded">speed</span><div><b>${index + 1}</b><span>KPI</span></div></${tag}>`).join('');
+const telemetryFixtures = {
+  status: `<body class="public scope-global status-public"><main id="conteudo"><div id="telemetry-layout-target" class="wide global-telemetry-grid">${telemetryCards('article')}</div></main></body>`,
+  developer: `<body class="scope-global"><main id="conteudo"><section id="telemetry-layout-target" class="card admin-telemetry-card"><h2 class="wide">Telemetria do sistema</h2>${telemetryCards('a')}</section></main></body>`
+};
+const telemetryExpectations = [
+  { width: 1280, columns: 4, rows: 1 },
+  { width: 390, columns: 2, rows: 2 }
+];
+const telemetryBrowser = await chromium.launch({ headless: true });
+try {
+  for (const [surface, markup] of Object.entries(telemetryFixtures)) {
+    for (const expectedLayout of telemetryExpectations) {
+      const context = await telemetryBrowser.newContext({ viewport: { width: expectedLayout.width, height: 900 }, deviceScaleFactor: 1 });
+      const page = await context.newPage();
+      await page.setContent(`<style>${telemetryCss}</style>${markup}`, { waitUntil: 'load' });
+      const result = await page.evaluate(() => {
+        const target = document.getElementById('telemetry-layout-target');
+        const cards = Array.from(target.children).filter(element => element.classList.contains('telemetry-kpi-card'));
+        return {
+          columns: getComputedStyle(target).gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length,
+          tops: cards.map(element => Math.round(element.getBoundingClientRect().top))
+        };
+      });
+      const rows = [...new Set(result.tops)].length;
+      if (result.columns !== expectedLayout.columns || rows !== expectedLayout.rows) {
+        throw new Error(`telemetry layout ${surface} ${expectedLayout.width}px: expected ${expectedLayout.columns} columns/${expectedLayout.rows} rows, got ${result.columns}/${rows}: ${result.tops.join(',')}`);
+      }
+      if (expectedLayout.rows === 1 && !result.tops.every(top => top === result.tops[0])) {
+        throw new Error(`telemetry layout ${surface} desktop cards are not in one row`);
+      }
+      if (expectedLayout.rows === 2 && !(result.tops[0] === result.tops[1] && result.tops[2] === result.tops[3] && result.tops[2] > result.tops[0])) {
+        throw new Error(`telemetry layout ${surface} mobile cards are not 2x2: ${result.tops.join(',')}`);
+      }
+      await context.close();
+    }
+  }
+} finally {
+  await telemetryBrowser.close();
+}
+process.stdout.write('presentation-ux-contract: telemetry status/developer 1280=4x1 390=2x2\n');
 process.stdout.write(`presentation-ux-contract: ${scenarios.length} scenarios x ${targets.length} targets stable\n`);
