@@ -366,10 +366,7 @@ final class AdminPagesRuntimeOperations06
             ];
         }
         $charts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
-        $telemetry =
-            '<div class="stats-grid admin-overview-kpis global-telemetry-grid">' .
-            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true) .
-            "</div>";
+        $telemetry = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true);
         $actionsCard = $actions
             ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 "<h2>Ações recomendadas</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions),
@@ -379,8 +376,8 @@ final class AdminPagesRuntimeOperations06
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Desenvolvedor Prontoo", "") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                "<h2>Telemetria do sistema</h2>" . $telemetry,
-                "admin-telemetry-card",
+                '<h2 class="wide">Telemetria do sistema</h2>' . $telemetry,
+                "admin-telemetry-card two",
             ) .
             $charts .
             $actionsCard;

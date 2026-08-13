@@ -118,11 +118,7 @@ final class AdminPagesRuntimeOperations03
                     ? (float) $variations["landing_requests_pct"]
                     : null,
             );
-        return '<div class="two wide global-telemetry-grid"' .
-            ($linked ? "" : ' style="margin-bottom:24px"') .
-            ">" .
-            $cards .
-            "</div>";
+        return $cards;
     }
 
     public static function page_status(): void
@@ -139,7 +135,10 @@ final class AdminPagesRuntimeOperations03
         $assetRevision = defined("PRONTOO_ASSET_REV")
             ? (string) PRONTOO_ASSET_REV
             : (string) PRONTOO_VERSION;
-    $overviewCards = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html();
+    $overviewCards =
+        '<div class="two wide global-telemetry-grid" style="margin-bottom:24px">' .
+        \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html() .
+        '</div>';
     $statusHeader =
         '<header class="status-page-header">' .
         '<span class="status-page-icon" aria-hidden="true">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("monitor_heart") . "</span>" .

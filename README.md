@@ -4,7 +4,7 @@ Prontoo é uma aplicação web em PHP para a operação cotidiana de consultóri
 
 ## Estado atual
 
-A versão canônica é `1.8.13.2`, executada exclusivamente na família PHP 8.4 e com MySQL 8.0.30 ou superior. A arquitetura foi consolidada em `1.8.11.1`; desde então o projeto opera em modo de manutenção arquitetural: não se abre um novo ciclo de refatoração sem invariante quebrada ou risco material de produto.
+A versão canônica é `1.8.13.3`, executada exclusivamente na família PHP 8.4 e com MySQL 8.0.30 ou superior. A arquitetura foi consolidada em `1.8.11.1`; desde então o projeto opera em modo de manutenção arquitetural: não se abre um novo ciclo de refatoração sem invariante quebrada ou risco material de produto.
 
 A regra central é simples: **o Runtime coordena; Application expressa casos de uso; Domain contém regras; Infrastructure implementa mecanismos; Presentation renderiza saída**. As dependências perigosas são verificadas por código, não por convenção informal.
 

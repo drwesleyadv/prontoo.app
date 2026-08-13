@@ -1,5 +1,13 @@
 # Histórico de versões
 
+## 1.8.13.3 — Telemetria do Painel sem wrapper intermediário
+
+- remove o container intermediário que agrupava os quatro KPIs dentro de Telemetria do sistema no Painel do Desenvolvedor.
+- mantém os quatro cards como filhos diretos do card principal e preserva a composição 2 colunas × 2 linhas com responsividade existente.
+- preserva no Status público o wrapper independente dos KPIs, sem alterar cálculos, fontes ou tendências de telemetria.
+- atualiza os guardrails agênticos para impedir a reintrodução do wrapper removido.
+- mantém banco e schema inalterados.
+
 ## 1.8.13.2 — Baseline auditada e guardrails para agentes
 
 - corrige a composição dos quatro KPIs de telemetria para 2 colunas × 2 linhas em viewport ampla, preservando a queda responsiva para uma coluna.
