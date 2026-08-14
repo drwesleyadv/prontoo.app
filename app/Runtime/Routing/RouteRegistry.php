@@ -12,7 +12,7 @@ final class RouteRegistry
         'status' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_status', true, false, ['GET'], []],
         'login' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::class, 'page_login', true, false, ['*'], []],
         'login_telemetry_wave' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_telemetry_tombstone', true, true, ['GET'], []],
-        'login_autotest' => [\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'page_login_autotest', true, false, ['GET'], []],
+        'login_autotest' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_login_autotest', true, false, ['GET'], []],
         'mfa' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class, 'page_mfa', true, false, ['*'], []],
         'mobile_web_access' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_mobile_web_access', true, false, ['GET'], []],
         'goal_status' => [\Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class, 'page_goal_status', false, true, [], ['financial']],
