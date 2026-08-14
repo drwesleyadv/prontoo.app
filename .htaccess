@@ -1,6 +1,7 @@
 Options -Indexes
 DirectoryIndex index.php
 FileETag None
+ErrorDocument 404 /public/errors/404.html
 
 <FilesMatch "\.(?:md|sql|log|bak|tmp|zip|tar|gz|jsonl|lock|ini|sig|pem)$">
     Require all denied
@@ -66,6 +67,14 @@ FileETag None
         Header set Content-Type "application/json; charset=utf-8"
     </Files>
 
+    <Files "404.html">
+        Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header always set Pragma "no-cache"
+        Header always set Expires "0"
+        Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+        Header always set Content-Type "text/html; charset=utf-8"
+    </Files>
+
     <FilesMatch "\.(?:css|js|png|svg|ico|webp)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
@@ -115,4 +124,3 @@ FileETag None
    php_value upload_max_filesize 20M
    php_flag zlib.output_compression Off
 </IfModule>
-
