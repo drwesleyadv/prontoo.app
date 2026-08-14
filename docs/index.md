@@ -1,9 +1,12 @@
 # Documentação do Prontoo
 
-Esta documentação descreve o Prontoo como ele existe na arquitetura consolidada. O objetivo não é reproduzir o código em prosa, mas oferecer um modelo mental que permita entender decisões, localizar responsabilidades e operar o sistema sem depender de conhecimento oral.
+Esta documentação descreve exclusivamente o estado canônico atualmente suportado do Prontoo.
 
-## Entrada para agentes
+## Baseline canônica
 
+A única baseline mantida, suportada e publicável na árvore corrente é `1.8.14.1`. Versões anteriores não são conservadas como documentação paralela, pacote, asset versionado ou snapshot dentro da árvore de trabalho. Quando for necessário investigar evolução ou regressões, o histórico Git é a fonte de rastreabilidade.
+
+Migrações de banco, marcadores de schema e compatibilidades estritamente necessárias ao runtime ou ao processo de atualização podem registrar estados técnicos anteriores. Esses elementos são mecanismos operacionais e não constituem baselines suportadas.
 
 ## Leitura recomendada
 
@@ -11,13 +14,13 @@ Comece por `architecture/overview.md` e `architecture/layers.md`. Em seguida, es
 
 ## Arquitetura vigente
 
-Os documentos `architecture/overview.md`, `layers.md`, `dependencies.md`, `runtime-boundary.md`, `responsibility-map.md`, `data-flow.md` e os diagramas C4 textuais são a referência explicativa principal. `architecture/MAINTENANCE.md` explica por que o projeto não está em novo ciclo de refatoração.
-
-Documentos `phase-*`, auditorias de consolidação e conformidade PHP são históricos. Eles foram reescritos para registrar o que cada etapa acrescentou ao estado final, não para orientar novas migrações.
+Os documentos de `architecture/` e os ADRs de `adr/` descrevem a arquitetura consolidada. A documentação corrente deve explicar apenas o estado vigente; relatórios de fases, snapshots de versões substituídas e auditorias históricas não permanecem na árvore canônica.
 
 ## Regra de autoridade
 
-A documentação é secundária aos contratos executáveis. `version.json` define release; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `tools/` contém os gates. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
+A documentação é secundária aos contratos executáveis. `version.json` define a release canônica; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `tools/` contém os gates. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
+
+O gate `tools/superseded-reference-contract-check` impede a reintrodução de releases literais substituídas em documentação e manifests e também protege a política de árvore sem artefatos históricos de release.
 
 ## Vocabulário
 
