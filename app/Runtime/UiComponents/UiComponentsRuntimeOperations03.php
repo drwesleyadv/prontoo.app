@@ -21,40 +21,11 @@ final class UiComponentsRuntimeOperations03
         }
         $parent = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::context_parent_for_route($current, $c);
         if (($c["scope"] ?? "") === "global") {
-            $alertView = (string) ($_GET["view"] ?? "received");
-            if (!in_array($alertView, ["received", "sent"], true)) {
-                $alertView = "received";
-            }
-            return match ($parent) {
-                "admin_painel" => [
-                    ["admin_painel", "Desenvolvedor", "space_dashboard"],
-                    ["admin_operations", "Operação", "account_tree"],
-                ],
-                "admin_clinics" => [
-                    ["admin_clinics", "Consultórios", "home_health"],
-                    ["admin_people", "Usuários", "groups"],
-                ],
-                "admin_health" => [["admin_health", "Incidentes", "crisis_alert"]],
-                "admin_alerts" => [
-                    ["admin_alerts", "Recebidos", "inbox", ["view" => "received"]],
-                    ["admin_alerts", "Enviados", "outbox", ["view" => "sent"]],
-                    [
-                        "admin_alerts",
-                        "Novo aviso",
-                        "add_comment",
-                        ["view" => $alertView, "compose" => "1"],
-                    ],
-                ],
-                "admin_maintenance" => [
-                    ["admin_maintenance", "Manutenção", "construction"],
-                    ["admin_global_notices", "Avisos globais", "campaign"],
-                    ["admin_deleted", "Excluídos", "restore_from_trash"],
-                ],
-                "admin_settings" => [
-                    ["admin_settings", "Configurações", "settings"],
-                ],
-                default => [],
-            };
+            return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_global_operation_specs(
+                $current,
+                $parent,
+                (string) ($_GET["view"] ?? "received"),
+            );
         }
         $role = (string) ($c["role"] ?? "");
         $cashLabel = $role === "recepcionista" ? "Caixa" : "Painel";
@@ -233,7 +204,7 @@ final class UiComponentsRuntimeOperations03
         $current = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
         $params = $_GET;
         if ($current === "admin_painel") {
-            return "network_ping";
+            return "space_dashboard";
         }
         if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
             if (

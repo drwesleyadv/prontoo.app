@@ -52,7 +52,7 @@ final class RouteRegistry
         'audit' => [\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations05::class, 'page_audit', false, false, [], []],
         'settings' => [\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations03::class, 'page_settings', false, false, [], []],
         'admin_painel' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::class, 'page_admin_painel', false, false, [], []],
-        'admin_stats' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::class, 'page_admin_stats', false, false, [], []],
+        'admin_administration' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::class, 'page_admin_administration', false, false, [], []],
         'admin_clinics' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations08::class, 'page_admin_clinics', false, false, [], []],
         'admin_onboarding' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations04::class, 'page_admin_onboarding', false, false, [], []],
         'admin_users' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::class, 'page_admin_users', false, false, [], []],

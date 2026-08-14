@@ -91,9 +91,11 @@ $assert(
     'cards de telemetria perderam a apresentação minimalista da variação',
 );
 $assert(
-    str_contains($admin6, 'admin_telemetry_kpi_cards_html(true)') &&
+    !str_contains($admin6, 'admin_telemetry_kpi_cards_html(') &&
+    !str_contains($admin6, 'admin_performance_card_html(') &&
+    str_contains($admin9, 'admin_telemetry_kpi_cards_html()') &&
     str_contains($admin3, 'admin_telemetry_kpi_cards_html()'),
-    'Painel do Desenvolvedor e Status devem compartilhar o renderer minimalista dos KPIs',
+    'Visão geral deve permanecer sem telemetria detalhada e Observabilidade deve usar o renderer canônico dos KPIs',
 );
 $positiveTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(12.34);
 $negativeTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(-8.0);
@@ -158,8 +160,10 @@ $assert(
 );
 $assert(
     str_contains($admin6, 'page_admin_painel()') &&
-    str_contains($admin6, 'admin_performance_card_html()'),
-    'Painel do Desenvolvedor deixou de consumir o gráfico canônico de 30 dias',
+    !str_contains($admin6, 'admin_performance_card_html(') &&
+    str_contains($admin9, 'page_admin_performance()') &&
+    str_contains($admin9, 'admin_performance_card_html()'),
+    'Visão geral deve ser orientada a decisões e Observabilidade deve consumir o gráfico canônico de 30 dias',
 );
 $assert(
     str_contains($admin3, 'page_status()') &&

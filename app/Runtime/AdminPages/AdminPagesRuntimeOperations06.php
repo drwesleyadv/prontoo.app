@@ -33,31 +33,6 @@ final class AdminPagesRuntimeOperations06
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
-            if ($act === "goal") {
-                $goalContext = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
-                $cid = (int) ($goalContext["clinic_id"] ?? 0);
-                $uid = (int) ($goalContext["user"]["id"] ?? 0);
-                if ($cid <= 0 || $uid <= 0) {
-                    throw new RuntimeException(
-                        "A meta mensal exige um consultório ativo.",
-                    );
-                }
-                $target = \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["target"] ?? "0"));
-                $share = isset($_POST["share_with_team"]) ? 1 : 0;
-                $base = (string) ($_POST["base_metric"] ?? "efetivada");
-                if (!in_array($base, ["prevista", "efetivada"], true)) {
-                    $base = "efetivada";
-                }
-                $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $goalContext);
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.01', [$cid, $month, $target, $base, $share, $uid], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("meta_financeira_salva", "financeiro", $cid, [
-                    "valor" => $target,
-                    "base" => $base,
-                    "compartilhar" => $share,
-                ]);
-                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Meta mensal atualizada.");
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("financial", ["tab" => "meta"]);
-            }
             if (
                 in_array(
                     $act,
@@ -365,24 +340,62 @@ final class AdminPagesRuntimeOperations06
                     "Revise dados do consultório, cargos, procedimentos e agenda.",
             ];
         }
-        $charts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
-        $telemetry = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true);
-        $actionsCard = $actions
-            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                "<h2>Ações recomendadas</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions),
-                "priority-actions",
-            )
-            : "";
+
+        foreach ($actions as &$action) {
+            if (!empty($action["html"])) {
+                continue;
+            }
+            $targetRoute = match ((string) ($action["time"] ?? "")) {
+                "Erros" => "admin_errors",
+                "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
+                "Assinaturas" => "admin_clinics",
+                "Onboarding" => "admin_onboarding",
+                default => "",
+            };
+            if ($targetRoute !== "") {
+                $action["html"] =
+                    '<a class="ghost small" href="' .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($targetRoute) .
+                    '">' .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir", "arrow_forward") .
+                    "</a>";
+            }
+        }
+        unset($action);
+
+        $overview = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_overview_html(
+            [
+                "actions" => $actions,
+                "checks" => $checks,
+                "locks" => $locks,
+                "scope_violations" => $scopeViolations24h,
+                "read_only" => $readOnly,
+                "trial_ending" => $trialEnding,
+                "onboarding_pending" => $onboardingPending,
+            ],
+            static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
+            static fn(string $label, string $icon): string => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label, $icon),
+        );
         $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Desenvolvedor Prontoo", "") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                '<h2 class="wide">Telemetria do sistema</h2>' . $telemetry,
-                "admin-telemetry-card",
-            ) .
-            $charts .
-            $actionsCard;
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Desenvolvedor Prontoo", $body);
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Visão geral", "") .
+            $overview;
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Visão geral · Desenvolvedor", $body);
     
+    }
+
+
+    public static function page_admin_administration(): void
+
+    {
+
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_administration");
+        $content = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_administration_tools_html(
+            static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
+        );
+        $body =
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Administração", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($content, "developer-administration-card");
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Administração · Desenvolvedor", $body);
     }
 
     public static function page_admin_people(): void
@@ -428,11 +441,4 @@ final class AdminPagesRuntimeOperations06
     
     }
 
-    public static function page_admin_stats(): void
-    
-    {
-    
-        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
-    
-    }
 }

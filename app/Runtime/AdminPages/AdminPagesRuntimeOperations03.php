@@ -334,10 +334,11 @@ final class AdminPagesRuntimeOperations03
     
     }
 
+
     public static function page_admin_health(): void
-    
+
     {
-    
+
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_health");
         $dbOk = false;
         try {
@@ -349,8 +350,6 @@ final class AdminPagesRuntimeOperations03
         $errors24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_errors_24h", 120, 'read.admin_pages.03.page_admin_health.02', [], []);
         $locks = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_locks", 60, 'read.admin_pages.03.page_admin_health.03', [], []);
         $scope24h = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_scope_actionable_24h_v2_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 120, 'read.admin_pages.03.page_admin_health.04', [], []);
-        $trialing = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_trialing_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.05', [], []);
-        $readonly = (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("kpi_readonly_model_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), PRONTOO_ADMIN_CACHE_TTL, 'read.admin_pages.03.page_admin_health.06', [], []);
         $recent = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "model_excluded"], [], 80);
         $bad = 0;
         foreach ($recent as $r) {
@@ -362,120 +361,58 @@ final class AdminPagesRuntimeOperations03
         if (empty($chainStatus["ok"])) {
             $bad++;
         }
-        $severity =
-            !$dbOk || $openErrors > 0 || $bad > 0 || $scope24h > 0
-                ? "Atenção"
-                : "Estável";
+        $severity = !$dbOk || $bad > 0
+            ? "Crítico"
+            : (($openErrors > 0 || $locks > 0 || $scope24h > 0) ? "Atenção" : "Operacional");
         $summary =
             '<div class="stats-grid admin-health-compact-kpis">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
-                "Estado",
-                $severity,
-                $severity === "Estável" ? "verified" : "crisis_alert",
-                $dbOk ? "banco responde" : "banco indisponível",
-            ) .
-            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
-                "Erros abertos",
-                $openErrors,
-                "bug_report",
-                $errors24h . " nas últimas 24h",
-                "admin_errors",
-            ) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Estado", $severity, $severity === "Operacional" ? "verified" : "crisis_alert", $dbOk ? "banco responde" : "banco indisponível") .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card("Erros abertos", $openErrors, "bug_report", $errors24h . " nas últimas 24h", "admin_errors") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Bloqueios", $locks, "lock_clock", "login ativo") .
-            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card(
-                "Escopo 24h",
-                $scope24h,
-                "policy",
-                "operações bloqueadas",
-                "admin_security",
-            ) .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
-                "Integridade",
-                $bad,
-                "verified_user",
-                "amostra de auditoria",
-            ) .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Somente leitura", $readonly, "lock", "consultórios") .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::stat_link_card("Escopo 24h", $scope24h, "policy", "operações bloqueadas", "admin_security") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Integridade", $bad, "verified_user", "auditoria e cadeia") .
             "</div>";
         $items = [
             [
                 "icon" => $dbOk ? "check_circle" : "warning",
                 "time" => "Banco",
                 "title" => $dbOk ? "Conexão operacional" : "Conexão com atenção",
-                "body" => "Verificação leve com SELECT 1.",
-                "meta" =>
-                    "Diagnóstico consolidado no próprio painel de Incidentes.",
+                "body" => "Verificação leve da conectividade essencial da plataforma.",
+                "meta" => "Use Diagnósticos quando a causa precisar ser aprofundada.",
+                "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_diagnostics") . '">' . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Diagnosticar", "troubleshoot") . "</a>",
             ],
             [
                 "icon" => $openErrors ? "bug_report" : "check_circle",
                 "time" => "Erros",
                 "title" => $openErrors . " erro(s) aberto(s)",
                 "body" => $errors24h . " registro(s) nas últimas 24 horas.",
-                "meta" =>
-                    "Abra a central de erros apenas quando precisar investigar arquivo, linha e rota.",
-                "html" =>
-                    '<a class="ghost small" href="' .
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_errors") .
-                    '">' .
-                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver erros", "bug_report") .
-                    "</a>",
-            ],
-            [
-                "icon" => $bad ? "gpp_bad" : "verified_user",
-                "time" => "Integridade",
-                "title" => $bad . " anotação(ões) recentes com assinatura alterada",
-                "body" =>
-                    "Amostra de atividades recentes, descontando consultórios isentos do Desenvolvedor.",
-                "meta" => \Prontoo\Core\Metrics\GlobalMetricScope::countNote(),
-                "html" =>
-                    '<a class="ghost small" href="' .
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") .
-                    '">' .
-                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver integridade", "verified_user") .
-                    "</a>",
+                "meta" => "A central de erros preserva arquivo, linha e rota para investigação.",
+                "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_errors") . '">' . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver erros", "bug_report") . "</a>",
             ],
             [
                 "icon" => $locks ? "lock_clock" : "shield",
                 "time" => "Segurança",
                 "title" => $locks . " bloqueio(s) de login ativo(s)",
-                "body" =>
-                    "Bloqueios temporários de entrada permanecem visíveis em leitura única.",
-                "meta" =>
-                    "Use a tela dedicada só para liberar ou auditar tentativas.",
-                "html" =>
-                    '<a class="ghost small" href="' .
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") .
-                    '">' .
-                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver segurança", "security") .
-                    "</a>",
+                "body" => "Bloqueios de acesso e evidências de isolamento permanecem no mesmo domínio técnico.",
+                "meta" => $scope24h . " operação(ões) de escopo bloqueada(s) nas últimas 24h.",
+                "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") . '">' . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver segurança", "security") . "</a>",
             ],
             [
-                "icon" => "home_health",
-                "time" => "Consultórios",
-                "title" =>
-                    $trialing .
-                    " trial(s) em curso · " .
-                    $readonly .
-                    " em somente leitura",
-                "body" => "Assinaturas e adoção ficam no painel de Consultórios.",
-                "meta" =>
-                    "Acompanhamento financeiro e operacional sem nova tela de incidente.",
-                "html" =>
-                    '<a class="ghost small" href="' .
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics") .
-                    '">' .
-                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver consultórios", "home_health") .
-                    "</a>",
+                "icon" => $bad ? "gpp_bad" : "verified_user",
+                "time" => "Integridade",
+                "title" => $bad === 0 ? "Cadeia de auditoria consistente" : $bad . " sinal(is) de integridade exigem revisão",
+                "body" => "Amostra de atividades e encadeamento de auditoria são avaliados em conjunto.",
+                "meta" => \Prontoo\Core\Metrics\GlobalMetricScope::countNote(),
+                "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") . '">' . \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Ver integridade", "verified_user") . "</a>",
             ],
         ];
         $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Incidentes", "") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Confiabilidade", "") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($summary, "admin-health-compact-card") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                "<h2>Sinais principais</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items),
+                "<h2>Sinais técnicos</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items),
                 "admin-health-events-card",
             );
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Incidentes", $body);
-    
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Confiabilidade · Desenvolvedor", $body);
     }
 }
