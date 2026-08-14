@@ -64,8 +64,16 @@ if (substr_count($testFastSource, $credentialOld) !== 1) {
     throw new RuntimeException('Credential hook test signature drift');
 }
 $testFastSource = str_replace($credentialOld, $credentialNew, $testFastSource);
-$expectOld = "    [['rotate', 91], ['retire', 91]],\n    $credentialHooks,\n    'application.identity_credentials.session_revocation',";
-$expectNew = "    [['rotate', 91]],\n    $credentialHooks,\n    'application.identity_credentials.session_revocation',";
+$expectOld = <<<'PHP'
+    [['rotate', 91], ['retire', 91]],
+    $credentialHooks,
+    'application.identity_credentials.session_revocation',
+PHP;
+$expectNew = <<<'PHP'
+    [['rotate', 91]],
+    $credentialHooks,
+    'application.identity_credentials.session_revocation',
+PHP;
 if (substr_count($testFastSource, $expectOld) !== 1) {
     throw new RuntimeException('Credential hook expectation drift');
 }
