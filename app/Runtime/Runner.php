@@ -37,11 +37,10 @@ final class Runner
                 'role' => (string) ($_SESSION['role_code'] ?? ''),
             ]);
             \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_route_identify($route);
-            $publicTelemetry = $route === 'login_telemetry_wave';
-            $publicStatus = $route === 'status' || $publicTelemetry;
             $publicHome = false;
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);
-            if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && !$installMode && !$publicHome) {
+            $publicCompatibility = in_array($route, ['status', 'login_telemetry_wave'], true);
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::headers_secure(false);
+            if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && !$installMode && !$publicHome && !$publicCompatibility) {
                 throw new \ProntooHttpError(
                     503,
                     is_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path('install.lock'))
@@ -57,22 +56,18 @@ final class Runner
             );
             $isPost = $method === 'POST';
             if ($isPost) {
-                if ($route !== 'login_autotest') {
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::check_csrf();
-                } elseif (empty($_SESSION['csrf'])) {
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::csrf();
-                }
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::check_csrf();
             }
             if ($route === 'onboarding' &&
                 (int) ($_SESSION['clinic_id'] ?? 0) > 0 &&
                 is_callable([\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'ensure_clinic_trial_active'])) {
                 \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::ensure_clinic_trial_active((int) $_SESSION['clinic_id'], true);
             }
-            $context = $publicStatus || $publicHome || $route === 'logout' ? [] : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
-            if (!$publicTelemetry) {
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::enforce_read_only($context, $route);
-            }
-            if ($route !== 'logout' && !$publicTelemetry) {
+            $context = $publicCompatibility || $publicHome || $route === 'logout'
+                ? []
+                : \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::enforce_read_only($context, $route);
+            if ($route !== 'logout' && !$publicCompatibility) {
                 LayeredKernel::enforceAction($route, $method, $_POST, $context);
             }
             if ($isPost) {
@@ -86,8 +81,8 @@ final class Runner
                     \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_dismiss();
                 }
             }
-            if (!$publicStatus &&
-                !$publicHome &&
+            if (!$publicHome &&
+                !$publicCompatibility &&
                 is_callable([\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::class, 'maintenance_active']) &&
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::maintenance_active() &&
                 (!$context || ($context['scope'] ?? '') !== 'global') &&
@@ -134,7 +129,7 @@ final class Runner
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect('financial');
             }
             RuntimeModuleComposition::loader()->loadRouteModules($route);
-            if ($route !== 'logout' && !$publicStatus) {
+            if ($route !== 'logout' && !$publicCompatibility) {
                 RuntimeBootCoordinator::flushIntegrityBeforeRender();
             }
             $effectiveRoute = in_array($route, RouteCatalog::all(), true) ? $route : 'home';

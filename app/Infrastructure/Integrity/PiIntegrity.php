@@ -600,21 +600,33 @@ final class PiIntegrity
 
     private static function secret(): string
     {
+        $secret = '';
         try {
             if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()) {
                 $statement = self::pdo()->query("SELECT meta_value FROM pi_meta WHERE meta_key='app_secret' LIMIT 1");
                 $value = $statement ? $statement->fetchColumn() : false;
-                if (is_string($value) && trim($value) !== '') {
-                    return $value;
+                if (is_string($value)) {
+                    $secret = trim($value);
                 }
             }
         } catch (\Throwable) {
         }
-        try {
-            return (string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()['secret'] ?? 'prontoo-integrity');
-        } catch (\Throwable) {
-            return 'prontoo-integrity';
+        if (strlen($secret) < 32) {
+            try {
+                $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
+                    ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
+                    : [];
+                $secret = trim((string) ($config['secret'] ?? ''));
+            } catch (\Throwable) {
+                $secret = '';
+            }
         }
+        if (strlen($secret) < 32) {
+            throw new \RuntimeException(
+                'Segredo criptográfico da instalação indisponível para a integridade.',
+            );
+        }
+        return $secret;
     }
 
     private static function logOnce(string $stage, \Throwable $error): void

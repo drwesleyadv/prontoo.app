@@ -85,8 +85,26 @@ foreach (['login', 'login_telemetry_wave', 'logout', 'status'] as $route) {
 foreach (['login_telemetry_wave', 'patient_lookup', 'goal_status'] as $route) {
     $assert(in_array($route, $jsonRoutes, true), 'json_route_catalog:' . $route);
 }
+$telemetryRoute = \Prontoo\Runtime\Routing\RouteRegistry::definition('login_telemetry_wave');
+$assert(
+    $telemetryRoute !== null &&
+        $telemetryRoute->handlerClass === \Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class &&
+        $telemetryRoute->handlerMethod === 'page_public_telemetry_tombstone' &&
+        $telemetryRoute->isPublicLight('GET'),
+    'telemetry_public_tombstone_only',
+);
+$statusRoute = \Prontoo\Runtime\Routing\RouteRegistry::definition('status');
+$assert(
+    $statusRoute !== null &&
+        $statusRoute->handlerClass === \Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class &&
+        $statusRoute->handlerMethod === 'page_public_status' &&
+        $statusRoute->isPublicLight('GET'),
+    'status_public_without_metrics',
+);
 $assert(RouteCatalog::isPublicLight('login', 'POST'), 'login_public_light');
-$assert(RouteCatalog::isPublicLight('status', 'GET'), 'status_public_light');
+$assert(RouteCatalog::isPublicLight('login_autotest', 'GET'), 'login_autotest_get_public_light');
+$assert(!RouteCatalog::isPublicLight('login_autotest', 'POST'), 'login_autotest_post_not_light');
+$assert(RouteCatalog::isPublicLight('status', 'GET'), 'status_get_public_light');
 $assert(!RouteCatalog::isPublicLight('status', 'POST'), 'status_post_not_light');
 $assert(RouteCatalog::wantsJson('patient_lookup', ''), 'patient_lookup_json');
 $assert(RouteCatalog::wantsJson('patients', 'application/json'), 'accept_json');
@@ -96,6 +114,8 @@ $bootSource = (string) file_get_contents($root . '/app/Runtime/Boot/RuntimeBootC
 $patientCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientComposition.php');
 $patientViewCompositionSource = (string) file_get_contents($root . '/app/Runtime/Patients/PatientViewComposition.php');
 $financialCompositionSource = (string) file_get_contents($root . '/app/Runtime/Financial/FinancialComposition.php');
+$publicWebSource = (string) file_get_contents($root . '/app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php');
+$loginSource = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php');
 
 foreach ([
     'RuntimeBootCoordinator::bootDatabaseForRoute(',
@@ -114,8 +134,20 @@ foreach ([
     'PdoPatientTabCommandRepository',
     'PdoPatientRevenueReceiptRepository',
     'PatientContactView::editForm(',
+    '$publicTelemetry =',
+    '$publicStatus =',
 ] as $token) {
     $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
+}
+$assert(!str_contains($loginSource, 'login_telemetry_wave_html()'), 'login_has_no_public_telemetry');
+$assert(str_contains($publicWebSource, '"telemetry_public" => false'), 'public_telemetry_tombstone_flag');
+foreach ([
+    'telemetry_route_requests_series_20d',
+    'telemetry_database_record_series_30d',
+    'telemetry_comparative_summary',
+    'PRONTOO_VERSION',
+] as $token) {
+    $assert(!str_contains($publicWebSource, $token), 'public_web_forbidden:' . $token);
 }
 foreach ([
     "self::runReadinessCycle('route_readiness')",
@@ -261,7 +293,6 @@ try {
     $failures[] = 'patient_revenue_forbidden_role';
 } catch (InvalidArgumentException) {
 }
-
 
 $consolidationManifest = json_decode(
     (string) file_get_contents($root . '/app/architecture.manifest.json'),

@@ -16,14 +16,13 @@ if (!is_string($app) ||
     mb_trim((string) ($match[1] ?? '')) !== $assetRevision) {
     throw new RuntimeException('Fallback de assets divergente.');
 }
-$assets = [
+foreach ([
     'app-icon-' . $assetRevision . '.png',
     'prontoo-mark-' . $assetRevision . '.png',
     'favicon-' . $assetRevision . '.png',
     'favicon-' . $assetRevision . '.ico',
     'pix-' . $assetRevision . '.svg',
-];
-foreach ($assets as $assetFile) {
+] as $assetFile) {
     if (!is_file($root . '/public/assets/' . $assetFile)) {
         throw new RuntimeException('Asset público ausente: ' . $assetFile);
     }
@@ -32,23 +31,12 @@ $css = (string) @file_get_contents($root . '/public/assets/presentation.css');
 if (!str_contains($css, 'pix-' . $assetRevision . '.svg')) {
     throw new RuntimeException('CSS diverge do asset_version.');
 }
-$javascript = (string) @file_get_contents($root . '/public/assets/app.js');
-foreach ([
-    'let needsInitialRefresh = false;',
-    'needsInitialRefresh = true;',
-    'if (needsInitialRefresh) refresh(true);',
-    'endpoint.searchParams.set("r", "login_telemetry_wave");',
-    'renderLoginTelemetryWave(wrap, payload);',
-] as $contract) {
-    if (!str_contains($javascript, $contract)) {
-        throw new RuntimeException('Contrato JavaScript das faixas ausente: ' . $contract);
-    }
-}
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $routeRegistry = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteRegistry.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
-$authRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
+$loginRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php');
+$publicRuntime = (string) @file_get_contents($root . '/app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php');
 foreach ([
     'RouteRegistry::names()',
     'RouteRegistry::publicNames()',
@@ -59,21 +47,47 @@ foreach ([
         throw new RuntimeException('RouteCatalog não deriva do registry unificado: ' . $contract);
     }
 }
-$telemetrySpec = "'login_telemetry_wave' => [\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations07::class, 'page_login_telemetry_wave', true, true, ['*'], []]";
-if (!str_contains($routeRegistry, $telemetrySpec)) {
-    throw new RuntimeException('Rota das faixas diverge do registry unificado.');
+foreach ([
+    "'status' => [\\Prontoo\\Runtime\\PublicWeb\\PublicWebRuntimeOperations01::class, 'page_public_status', true, false, ['GET'], []]",
+    "'login_telemetry_wave' => [\\Prontoo\\Runtime\\PublicWeb\\PublicWebRuntimeOperations01::class, 'page_public_telemetry_tombstone', true, true, ['GET'], []]",
+    "'login_autotest' => [\\Prontoo\\Runtime\\PublicWeb\\PublicWebRuntimeOperations01::class, 'page_public_login_autotest', true, false, ['GET'], []]",
+] as $routeContract) {
+    if (!str_contains($routeRegistry, $routeContract)) {
+        throw new RuntimeException('Superfície pública não está neutralizada: ' . $routeContract);
+    }
+}
+if (str_contains($loginRuntime, 'login_telemetry_wave_html()')) {
+    throw new RuntimeException('Login público não pode renderizar telemetria.');
 }
 foreach ([
-    "\$publicTelemetry = \$route === 'login_telemetry_wave';",
-    "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
-    '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);',
-    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations04::ctx();",
-    'if (!$publicTelemetry) {',
-    "if (\$route !== 'logout' && !\$publicTelemetry) {",
-    "if (\$route !== 'logout' && !\$publicStatus) {",
-] as $contract) {
-    if (!str_contains($runner, $contract)) {
-        throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
+    '$publicTelemetry =',
+    '$publicStatus =',
+    'headers_secure($publicStatus)',
+] as $forbidden) {
+    if (str_contains($runner, $forbidden)) {
+        throw new RuntimeException('Exceção pública de telemetria ainda presente no Runner: ' . $forbidden);
+    }
+}
+foreach ([
+    'telemetry_route_requests_series_20d',
+    'telemetry_database_record_series_30d',
+    'telemetry_comparative_summary',
+    'prontoo_login_selftest_light',
+    'PRONTOO_VERSION',
+    'Prontoo operacional',
+    'serviço está disponível',
+] as $forbidden) {
+    if (str_contains($publicRuntime, $forbidden)) {
+        throw new RuntimeException('Sinal operacional público proibido: ' . $forbidden);
+    }
+}
+foreach ([
+    '"telemetry_public" => false',
+    'http_response_code(404)',
+    '"auto_login" => false',
+] as $required) {
+    if (!str_contains($publicRuntime, $required)) {
+        throw new RuntimeException('Contrato público neutralizado ausente: ' . $required);
     }
 }
 if (!str_contains($moduleCatalog, 'RouteRegistry::definition($route)')) {
@@ -91,25 +105,10 @@ foreach ([
         throw new RuntimeException('Runner não consome o runtime nativo diretamente: ' . $contract);
     }
 }
-if (!str_contains($authRuntime, 'public static function page_login_telemetry_wave(): void')) {
-    throw new RuntimeException('Endpoint JSON nativo das faixas ausente.');
-}
-foreach ([
-    'body.has-telemetry-mountains .login-telemetry-wave{',
-    'display:block;',
-    'height:15vh;',
-    'pointer-events:none;',
-    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
-] as $contract) {
-    if (!str_contains($css, $contract)) {
-        throw new RuntimeException('Contrato CSS das faixas ausente: ' . $contract);
-    }
-}
 echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
-    'assets_verified' => count($assets),
-    'authenticated_initial_refresh' => true,
-    'telemetry_route_registered' => true,
-    'telemetry_route_public_json' => true,
+    'public_telemetry' => false,
+    'public_status_signal' => false,
+    'public_login_autotest_signal' => false,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
