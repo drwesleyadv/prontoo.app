@@ -1,5 +1,5 @@
 {
-    "version": "1.8.13.8",
+    "version": "1.8.13.9",
     "policy": "presentation-pagehead-control-canonical-v3",
     "architecture_scope": "presentation_ui_adapter_contract",
     "primitive": {
@@ -49,7 +49,7 @@
         "noncanonical_pagehead_alias_tokens": 0
     },
     "debt_budget": {
-        "important_count": 4942,
+        "important_count": 4873,
         "route_scope_count": 1091,
         "duplicate_selector_headers": 708,
         "runtime03_lines": 449,
@@ -58,8 +58,8 @@
     },
     "delivery": {
         "artifact": "public/assets/presentation.css",
-        "current_sha256": "dd66556404d1f2bf7e93b43128d1d90c39c46d2dbee61b3c0aeedaf0174c6cc4",
-        "current_bytes": 799541,
+        "current_sha256": "b7d974e3a1349d6240970f0b3cb30ad736de1a2d3b443c45399b4f5f18d8ed27",
+        "current_bytes": 800050,
         "deterministic_source": true,
         "observable_ux_contract": "app/presentation.ux-baseline.json"
     }

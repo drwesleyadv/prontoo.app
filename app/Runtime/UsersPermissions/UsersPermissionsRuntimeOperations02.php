@@ -34,7 +34,7 @@ final class UsersPermissionsRuntimeOperations02
             return;
         }
         try {
-            $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.clinic_enable_roles_from_active_user_links.01', [$uid], [])->fetchAll();
+            $rows = self::auditRemediationDataService()->result('identity.permissions02.clinic_enable_roles_from_active_user_links.01', [$uid], [])->fetchAll();
             $byClinic = [];
             foreach ($rows as $r) {
                 $cid = (int) ($r["clinic_id"] ?? 0);
@@ -106,7 +106,7 @@ final class UsersPermissionsRuntimeOperations02
         if ($cid <= 0 || $uid <= 0) {
             return [];
         }
-        $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.active_role_codes_for_user_in_clinic.01', [$uid, $cid], [])->fetchAll(PDO::FETCH_COLUMN);
+        $rows = self::auditRemediationDataService()->result('identity.permissions02.active_role_codes_for_user_in_clinic.01', [$uid, $cid], [])->fetchAll(PDO::FETCH_COLUMN);
         return array_values(array_unique(array_map("strval", $rows ?: [])));
     
     }
@@ -122,12 +122,12 @@ final class UsersPermissionsRuntimeOperations02
             return null;
         }
         if ($preferRoleId && $preferRoleId > 0) {
-            $r = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.permissions02.preferred_active_role_link_for_user.01', [$preferRoleId, $uid, $cid], []);
+            $r = self::auditRemediationDataService()->row('identity.permissions02.preferred_active_role_link_for_user.01', [$preferRoleId, $uid, $cid], []);
             if ($r) {
                 return $r;
             }
         }
-        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.permissions02.preferred_active_role_link_for_user.02', [$uid, $cid], []) ?:
+        return self::auditRemediationDataService()->row('identity.permissions02.preferred_active_role_link_for_user.02', [$uid, $cid], []) ?:
             null;
     
     }
@@ -157,7 +157,6 @@ final class UsersPermissionsRuntimeOperations02
         );
         try {
             $newGeneration = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
             if ((int) ($_SESSION["uid"] ?? 0) === $uid) {
                 $_SESSION["user_auth_generation"] = $newGeneration;
             }
@@ -243,7 +242,7 @@ final class UsersPermissionsRuntimeOperations02
     
     {
     
-        $links = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.team_options.01', [$cid], [])->fetchAll();
+        $links = self::auditRemediationDataService()->result('identity.permissions02.team_options.01', [$cid], [])->fetchAll();
         $users = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map(
             "users_status",
             \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($links, "user_id"),
@@ -268,7 +267,7 @@ final class UsersPermissionsRuntimeOperations02
         if (!$roles) {
             return [];
         }
-        $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result(
+        $rows = self::auditRemediationDataService()->result(
             'identity.permissions02.clinic_role_user_ids.01',
             array_merge([$cid], $roles),
             ['role_count' => count($roles)],
@@ -434,7 +433,7 @@ final class UsersPermissionsRuntimeOperations02
             $stored = [];
             try {
                 foreach (
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.permission_rules_for_role.01', [$cid, $role], [])->fetchAll()
+                    self::auditRemediationDataService()->result('identity.permissions02.permission_rules_for_role.01', [$cid, $role], [])->fetchAll()
                     as $row
                 ) {
                     $stored[(string) $row["action_key"]][(string) $row["operation_key"]] =
@@ -518,9 +517,9 @@ final class UsersPermissionsRuntimeOperations02
                 if ($role === "gerente" && $supported) {
                     $allowed = true;
                 }
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.persist_permission_rules.01', [$cid, $role, $module, $op, $allowed ? 1 : 0], []);
+                self::auditRemediationDataService()->result('identity.permissions02.persist_permission_rules.01', [$cid, $role, $module, $op, $allowed ? 1 : 0], []);
             }
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.permissions02.persist_permission_rules.02', [$cid, $role, $module, $view ? 1 : 0], []);
+            self::auditRemediationDataService()->result('identity.permissions02.persist_permission_rules.02', [$cid, $role, $module, $view ? 1 : 0], []);
         }
         unset(
             $GLOBALS["PRONTOO_PERMISSION_BASE_MATRIX_CACHE"][
@@ -529,4 +528,9 @@ final class UsersPermissionsRuntimeOperations02
         );
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }

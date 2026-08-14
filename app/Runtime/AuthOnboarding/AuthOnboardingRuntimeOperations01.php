@@ -37,8 +37,8 @@ final class AuthOnboardingRuntimeOperations01
         }
         $key = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::onboarding_tip_key($c, $route);
         try {
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->ensureOnboardingTipsSchema();
-            return (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.onboarding_tip_dismissed.01', [$uid, $key], []) > 0;
+            self::auditRemediationDataService()->ensureOnboardingTipsSchema();
+            return (int) self::auditRemediationDataService()->scalar('identity.auth01.onboarding_tip_dismissed.01', [$uid, $key], []) > 0;
         } catch (Throwable $e) {
             error_log("[Prontoo onboarding tip read] " . $e->getMessage());
             return false;
@@ -55,8 +55,8 @@ final class AuthOnboardingRuntimeOperations01
         $key = mb_substr(mb_trim((string) ($_POST["tip_key"] ?? "")), 0, 120);
         if ($uid > 0 && $key !== "") {
             try {
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->ensureOnboardingTipsSchema();
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.onboarding_tip_dismiss.01', [$uid, $key], []);
+                self::auditRemediationDataService()->ensureOnboardingTipsSchema();
+                self::auditRemediationDataService()->result('identity.auth01.onboarding_tip_dismiss.01', [$uid, $key], []);
             } catch (Throwable $e) {
                 error_log("[Prontoo onboarding tip dismiss] " . $e->getMessage());
             }
@@ -256,7 +256,7 @@ final class AuthOnboardingRuntimeOperations01
             if (!is_string($payload)) {
                 return;
             }
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.login_last_credential_remember.01', [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), $payload], []);
+            self::auditRemediationDataService()->result('identity.auth01.login_last_credential_remember.01', [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid), $payload], []);
             if (
                 is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_file']) &&
                 is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_safe_key'])
@@ -288,7 +288,7 @@ final class AuthOnboardingRuntimeOperations01
         }
         try {
             return \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_normalize(
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar(
+                self::auditRemediationDataService()->scalar(
                     'identity.auth01.login_last_credential_from_meta.01',
                     [\Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_last_credential_key($uid)],
                     [],
@@ -346,9 +346,8 @@ final class AuthOnboardingRuntimeOperations01
         $scope = (string) ($credential["scope"] ?? "clinic");
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::session_harden_after_login($uid, $verifiedUserGeneration);
         $_SESSION["uid"] = $uid;
-        unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+        unset($_SESSION["pending_login_uid"]);
         \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         if ($scope === "global") {
             $_SESSION["scope"] = "global";
             unset(
@@ -422,27 +421,27 @@ final class AuthOnboardingRuntimeOperations01
         try {
             $isDeveloper =
                 $knownDeveloper ||
-                (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.01', [$uid], []) === 1;
+                (int) self::auditRemediationDataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.01', [$uid], []) === 1;
             if (!$isDeveloper) {
                 return false;
             }
             $ready =
-                (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.02', [$marker], []) ?? "") === "1";
+                (string) (self::auditRemediationDataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.02', [$marker], []) ?? "") === "1";
             if ($ready) {
                 return true;
             }
             $locked =
-                (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.03', [$lockName], []) === 1;
+                (int) self::auditRemediationDataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.03', [$lockName], []) === 1;
             if (!$locked) {
                 return false;
             }
             $ready =
-                (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.04', [$marker], []) ?? "") === "1";
+                (string) (self::auditRemediationDataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.04', [$marker], []) ?? "") === "1";
             if ($ready) {
                 return true;
             }
             $deleted = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_all_json_files();
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth01.developer_first_login_clear_json_cache.05', [$marker, time()], []);
+            self::auditRemediationDataService()->result('identity.auth01.developer_first_login_clear_json_cache.05', [$marker, time()], []);
             \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("cache_instalacao_limpo", "plataforma", null, [
                 "arquivos_json_removidos" => $deleted,
                 "primeiro_login_desenvolvedor" => true,
@@ -458,7 +457,7 @@ final class AuthOnboardingRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.06', [$lockName], []);
+                    self::auditRemediationDataService()->scalar('identity.auth01.developer_first_login_clear_json_cache.06', [$lockName], []);
                 } catch (Throwable $e) {
                     error_log(
                         "[Prontoo first developer login unlock] " .
@@ -503,7 +502,7 @@ final class AuthOnboardingRuntimeOperations01
             return null;
         }
         $uid = (int) $pending["uid"];
-        $user = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth01.mfa_pending_login_user.01', [$uid], []);
+        $user = self::auditRemediationDataService()->row('identity.auth01.mfa_pending_login_user.01', [$uid], []);
         if (
             !$user ||
             !hash_equals(
@@ -517,4 +516,9 @@ final class AuthOnboardingRuntimeOperations01
         return $user;
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }

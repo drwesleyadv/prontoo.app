@@ -335,55 +335,6 @@ final class SecurityAccessInfrastructureOperations01
     
     }
 
-    public static function device_cookie_name(): string
-    
-    {
-    
-        return "PRONTOO_DEVICE";
-    
-    }
-
-    public static function device_session_lifetime_seconds(): int
-    
-    {
-    
-        return 86400;
-    
-    }
-
-    public static function device_session_cookie_ttl_seconds(): int
-    
-    {
-    
-        return 2592000;
-    
-    }
-
-    public static function device_hash_is_valid(string $hash): bool
-    
-    {
-    
-        return (bool) preg_match('/^[a-f0-9]{64}$/', $hash);
-    
-    }
-
-    public static function device_login_fields(): string
-    
-    {
-    
-        return '<input type="hidden" name="device_hash" value="" data-device-hash><input type="hidden" name="device_label" value="" data-device-label><input type="hidden" name="device_platform" value="" data-device-platform><input type="hidden" name="device_meta" value="" data-device-meta>';
-    
-    }
-
-    public static function device_cookie_pack(int $uid, string $deviceHash, string $token): string
-    
-    {
-    
-        return $uid . "." . $deviceHash . "." . $token;
-    
-    }
-
-
     public static function tenant_scoped_tables(): array
     
     {

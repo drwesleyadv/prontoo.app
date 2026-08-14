@@ -34,7 +34,7 @@ final class SupportFoundationRuntimeOperations01
         if ($userId > 0 && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val'])) {
             try {
                 $tz =
-                    (string) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.app_global_admin_timezone.01', ["global_admin_timezone_user_" . $userId], []) ?:
+                    (string) (self::auditRemediationDataService()->scalar('operational.support_foundation.01.app_global_admin_timezone.01', ["global_admin_timezone_user_" . $userId], []) ?:
                     "");
                 if ($tz !== "") {
                     return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
@@ -48,7 +48,7 @@ final class SupportFoundationRuntimeOperations01
         if (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && is_callable([\Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::class, 'val'])) {
             try {
                 $tz =
-                    (string) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.app_global_admin_timezone.02', ["global_admin_timezone_default"], []) ?:
+                    (string) (self::auditRemediationDataService()->scalar('operational.support_foundation.01.app_global_admin_timezone.02', ["global_admin_timezone_default"], []) ?:
                     "");
                 if ($tz !== "") {
                     return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
@@ -82,7 +82,7 @@ final class SupportFoundationRuntimeOperations01
             }
             try {
                 $tz =
-                    (string) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.app_context_timezone.01', [$clinicId], []) ?:
+                    (string) (self::auditRemediationDataService()->scalar('operational.support_foundation.01.app_context_timezone.01', [$clinicId], []) ?:
                     "America/Cuiaba");
                 return $cache[$clinicId] = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_timezone_safe($tz);
             } catch (Throwable $e) {
@@ -335,7 +335,7 @@ final class SupportFoundationRuntimeOperations01
             if ($cid !== null && $cid > 0) {
                 $params[] = $cid;
             }
-            $name = mb_trim((string) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.patient_display_name.01', $params, ['tenantScoped' => count($params) === 2]) ?: ""));
+            $name = mb_trim((string) (self::auditRemediationDataService()->scalar('operational.support_foundation.01.patient_display_name.01', $params, ['tenantScoped' => count($params) === 2]) ?: ""));
             return $name !== "" ? $name : "paciente #" . $patientLinkId;
         } catch (Throwable $e) {
             error_log("[Prontoo patient display name] " . $e->getMessage());
@@ -402,15 +402,8 @@ final class SupportFoundationRuntimeOperations01
     }
 
     public static function is_https(): bool
-    
     {
-    
-        if (function_exists("security_https_active")) {
-            return \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
-        }
-        return (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
-            (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
-    
+        return \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     }
 
     public static function request_host(): string
@@ -467,13 +460,9 @@ final class SupportFoundationRuntimeOperations01
         if (!$http || $status >= 500) {
             error_log(
                 "[Prontoo fatal] " .
-                    (function_exists("privacy_sanitize_error_message")
-                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 240)
-                        : $e->getMessage()) .
+                    \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 240) .
                     " in " .
-                    (function_exists("privacy_log_file_label")
-                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
-                        : basename($e->getFile())) .
+                    \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile()) .
                     ":" .
                     $e->getLine(),
             );
@@ -533,7 +522,7 @@ final class SupportFoundationRuntimeOperations01
     
         $ttl = max(0, $ttl);
         if ($ttl <= 0) {
-            return \Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.cached_val.01', $p, ['query' => $query] + $context);
+            return self::auditRemediationDataService()->scalar('operational.support_foundation.01.cached_val.01', $p, ['query' => $query] + $context);
         }
         $ck =
             "sql_" .
@@ -556,7 +545,7 @@ final class SupportFoundationRuntimeOperations01
                 "warm",
                 $ck,
                 $ttl,
-                 fn() => \Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.cached_val.02', $p, ['query' => $query] + $context),
+                 fn() => self::auditRemediationDataService()->scalar('operational.support_foundation.01.cached_val.02', $p, ['query' => $query] + $context),
                 ["sql"],
             );
         }
@@ -564,7 +553,7 @@ final class SupportFoundationRuntimeOperations01
         if ($cached !== null) {
             return $cached;
         }
-        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set($ck, \Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.cached_val.03', $p, ['query' => $query] + $context));
+        return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_set($ck, self::auditRemediationDataService()->scalar('operational.support_foundation.01.cached_val.03', $p, ['query' => $query] + $context));
     
     }
 
@@ -573,7 +562,7 @@ final class SupportFoundationRuntimeOperations01
     {
     
         try {
-            \Prontoo\Runtime\Operational\OperationalComposition::platform()->result('operational.support_foundation.01.counter_inc.01', [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name), $by], []);
+            self::auditRemediationDataService()->result('operational.support_foundation.01.counter_inc.01', [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name), $by], []);
         } catch (Throwable $e) {
             error_log("[Prontoo counter_inc] " . $e->getMessage());
         }
@@ -585,11 +574,16 @@ final class SupportFoundationRuntimeOperations01
     {
     
         try {
-            return (int) (\Prontoo\Runtime\Operational\OperationalComposition::platform()->scalar('operational.support_foundation.01.counter_get.01', [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name)], []) ?? $fallback);
+            return (int) (self::auditRemediationDataService()->scalar('operational.support_foundation.01.counter_get.01', [\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::counter_key($name)], []) ?? $fallback);
         } catch (Throwable $e) {
             error_log("[Prontoo counter_get] " . $e->getMessage());
             return $fallback;
         }
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\Operational\OperationalComposition::platform();
+    }
+
 }

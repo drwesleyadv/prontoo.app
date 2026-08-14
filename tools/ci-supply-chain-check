@@ -1,0 +1,52 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit(1);
+}
+$root = dirname(__DIR__);
+$checkout = '11d5960a326750d5838078e36cf38b85af677262';
+$setupNode = '49933ea5288caeca8642d1e84afbd3f7d6820020';
+$setupPhp = 'f3e473d116dcccaddc5834248c87452386958240';
+$mysql = 'mysql:8.0.43@sha256:3e646bcda0d9448ffa3d2024eef04e1bca95528ec19b9e8b76749da9d97d4a10';
+$workflows = [
+    'architecture' => (string) file_get_contents($root . '/.github/workflows/architecture.yml'),
+    'documentation' => (string) file_get_contents($root . '/.github/workflows/documentation.yml'),
+    'presentation' => (string) file_get_contents($root . '/.github/workflows/presentation-ux.yml'),
+];
+$failures = [];
+foreach ($workflows as $name => $source) {
+    if (preg_match('/uses:\s+[^\s]+@v\d+/i', $source) === 1) {
+        $failures[] = $name . ':floating_action_tag';
+    }
+    if (!str_contains($source, 'actions/checkout@' . $checkout)) {
+        $failures[] = $name . ':checkout_pin';
+    }
+}
+foreach (['architecture', 'documentation'] as $name) {
+    if (!str_contains($workflows[$name], 'shivammathur/setup-php@' . $setupPhp)) {
+        $failures[] = $name . ':setup_php_pin';
+    }
+}
+if (!str_contains($workflows['presentation'], 'actions/setup-node@' . $setupNode)) {
+    $failures[] = 'presentation:setup_node_pin';
+}
+if (!str_contains($workflows['architecture'], 'image: ' . $mysql)) {
+    $failures[] = 'architecture:mysql_digest';
+}
+if (!str_contains($workflows['presentation'], 'npm ci --ignore-scripts') || str_contains($workflows['presentation'], '--no-package-lock')) {
+    $failures[] = 'presentation:lockfile_install';
+}
+$package = json_decode((string) file_get_contents($root . '/package.json'), true, 512, JSON_THROW_ON_ERROR);
+$lock = json_decode((string) file_get_contents($root . '/package-lock.json'), true, 512, JSON_THROW_ON_ERROR);
+if (($package['devDependencies']['playwright'] ?? '') !== '1.59.1' || ($lock['packages']['node_modules/playwright']['version'] ?? '') !== '1.59.1') {
+    $failures[] = 'playwright:version_lock';
+}
+$result = [
+    'ok' => $failures === [],
+    'policy' => 'immutable-ci-supply-chain-v1',
+    'failures' => $failures,
+];
+fwrite($failures === [] ? STDOUT : STDERR, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
+exit($failures === [] ? 0 : 1);

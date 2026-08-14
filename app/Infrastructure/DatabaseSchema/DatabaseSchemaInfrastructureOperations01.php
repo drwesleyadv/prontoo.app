@@ -283,9 +283,7 @@ final class DatabaseSchemaInfrastructureOperations01
     
     {
     
-        $message = function_exists("privacy_sanitize_error_message")
-            ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($error, 220)
-            : mb_substr($error->getMessage(), 0, 220);
+        $message = \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($error, 220);
         $sample = preg_replace("/\s+/", " ", trim($sql)) ?? trim($sql);
         error_log("[Prontoo SQL] {$message} | " . mb_substr($sample, 0, 420));
     

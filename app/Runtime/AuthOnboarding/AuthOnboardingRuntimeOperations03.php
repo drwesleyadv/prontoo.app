@@ -33,7 +33,7 @@ final class AuthOnboardingRuntimeOperations03
     
     {
     
-        unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+        unset($_SESSION["pending_login_uid"]);
         $wantsJson = RouteCatalog::wantsJson(
             "login",
             (string) ($_SERVER["HTTP_ACCEPT"] ?? ""),
@@ -194,7 +194,7 @@ final class AuthOnboardingRuntimeOperations03
             $wait = 2;
             try {
                 $loginAttemptLocked =
-                    (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth03.page_login.01', [$loginAttemptLock], []) === 1;
+                    (int) self::auditRemediationDataService()->scalar('identity.auth03.page_login.01', [$loginAttemptLock], []) === 1;
                 if ($loginAttemptLocked) {
                     $wait = max(
                         $cpf ? \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::login_lock($cpf) : 0,
@@ -204,7 +204,7 @@ final class AuthOnboardingRuntimeOperations03
                         $loginAttemptState = "locked";
                     } else {
                         $person = $cpfValid
-                            ? \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth03.page_login.02', [$cpf], [])
+                            ? self::auditRemediationDataService()->row('identity.auth03.page_login.02', [$cpf], [])
                             : null;
                         $userRow = $person;
                         $passwordValid = $person && $userRow
@@ -233,7 +233,7 @@ final class AuthOnboardingRuntimeOperations03
             } finally {
                 if ($loginAttemptLocked) {
                     try {
-                        \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth03.page_login.03', [$loginAttemptLock], []);
+                        self::auditRemediationDataService()->scalar('identity.auth03.page_login.03', [$loginAttemptLock], []);
                     } catch (Throwable $unlockError) {
                         error_log(
                             "[Prontoo login attempt unlock] " .
@@ -543,10 +543,15 @@ final class AuthOnboardingRuntimeOperations03
             return;
         }
         try {
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth03.login_locks_cleanup_maybe.01', [], []);
+            self::auditRemediationDataService()->result('identity.auth03.login_locks_cleanup_maybe.01', [], []);
         } catch (Throwable $e) {
             error_log("[Prontoo login lock cleanup] " . $e->getMessage());
         }
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }

@@ -376,7 +376,6 @@ final class SecurityAccessRuntimeOperations04
         try {
             if ((int) $uid > 0) {
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate((int) $uid);
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user((int) $uid);
             }
         } catch (Throwable $e) {
             error_log("[Prontoo access guard revocation] " . $e->getMessage());

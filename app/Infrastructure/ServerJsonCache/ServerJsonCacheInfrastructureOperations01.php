@@ -49,14 +49,7 @@ final class ServerJsonCacheInfrastructureOperations01
         if (!is_dir($resolved) && !@mkdir($resolved, 0750, true) && !is_dir($resolved)) {
             return $resolved;
         }
-        if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($resolved);
-        } else {
-            $deny = $resolved . "/.htaccess";
-            if (!is_file($deny)) {
-                @file_put_contents($deny, "Require all denied\n", LOCK_EX);
-            }
-        }
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($resolved);
         return $resolved;
     
     }
@@ -74,9 +67,7 @@ final class ServerJsonCacheInfrastructureOperations01
         if (!is_dir($dir) && !@mkdir($dir, 0750, true) && !is_dir($dir)) {
             return $resolved[$category] = $dir;
         }
-        if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
-        }
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         return $resolved[$category] = $dir;
     
     }
@@ -208,9 +199,7 @@ final class ServerJsonCacheInfrastructureOperations01
             !is_dir($generationDir)) {
             return $generationDir . "/" . $key . ".json";
         }
-        if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($generationDir);
-        }
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($generationDir);
         return $generationDir . "/" . $key . ".json";
     
     }
