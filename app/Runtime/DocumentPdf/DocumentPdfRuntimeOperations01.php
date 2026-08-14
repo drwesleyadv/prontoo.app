@@ -120,17 +120,16 @@ final class DocumentPdfRuntimeOperations01
     
     {
     
-        $seed =
-            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string("app_key", "") ?:
-            \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_config_string("app_secret", "") ?:
-            (string) (getenv("PRONTOO_APP_KEY") ?: getenv("APP_KEY") ?: "");
-        if ($seed === "") {
-            $seed =
-                (dirname(__DIR__, 2) . '/Domain/Documents') .
-                "|" .
-                (defined("PRONTOO_VERSION") ? PRONTOO_VERSION : "prontoo");
+        $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
+            ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
+            : [];
+        $seed = mb_trim((string) ($config["secret"] ?? ""));
+        if (strlen($seed) < 32) {
+            throw new RuntimeException(
+                "Segredo criptográfico da instalação indisponível para proteger o PDF.",
+            );
         }
-        return hash("sha256", $seed . "|document-pdf-token");
+        return hash_hmac("sha256", "prontoo|document-pdf-token|v2", $seed);
     
     }
 
@@ -192,7 +191,6 @@ final class DocumentPdfRuntimeOperations01
                 "[Prontoo recoverable " . __FUNCTION__ . "] " . $e->getMessage(),
             );
         }
-    
     }
 
     public static function document_pdf_absolute_path(string $fileName): string
@@ -204,7 +202,6 @@ final class DocumentPdfRuntimeOperations01
             throw new RuntimeException("Nome de PDF inválido.");
         }
         return \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir() . "/" . $fileName;
-    
     }
 
     public static function document_pdf_register_file(
@@ -238,7 +235,6 @@ final class DocumentPdfRuntimeOperations01
         } catch (Throwable $e) {
             error_log("[Prontoo document_pdf_register_file] " . $e->getMessage());
         }
-    
     }
 
     public static function document_pdf_create_file(array $c, array $doc): string
@@ -312,7 +308,6 @@ final class DocumentPdfRuntimeOperations01
         @chmod($path . ".json", 0640);
         \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_register_file($c, $doc, $path, $name, $generatedAt);
         return $path;
-    
     }
 
     public static function document_pdf_catalog_row(string $fileName): ?array
@@ -350,7 +345,6 @@ final class DocumentPdfRuntimeOperations01
             }
         }
         return null;
-    
     }
 
     public static function document_pdf_send_file(string $path, string $downloadName): void
@@ -376,7 +370,6 @@ final class DocumentPdfRuntimeOperations01
         }
         readfile($path);
         exit();
-    
     }
 
     public static function page_document_pdf_file(): void
@@ -513,6 +506,5 @@ final class DocumentPdfRuntimeOperations01
         }
         echo \Prontoo\Presentation\Documents\DocumentsPresentationOperations01::document_print_document_shell_html($doc, true, "pdf");
         exit();
-    
     }
 }
