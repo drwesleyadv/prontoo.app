@@ -121,12 +121,17 @@ jobs:
           git grep -n '1\.8\.13\.8' -- '*.md' '*.json' && exit 1 || true
           php tools/global-audit-contract-check
           php tools/ci-supply-chain-check
-      - name: Publish validated remediation branch
+      - name: Publish validated non-workflow changes
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'Wesley Ferreira'
           git config user.email '48494254+drwesleyadv@users.noreply.github.com'
+          git restore --source="$GITHUB_SHA" --staged --worktree -- \
+            .github/workflows/architecture.yml \
+            .github/workflows/documentation.yml \
+            .github/workflows/presentation-ux.yml \
+            .github/workflows/tmp-global-audit-remediation.yml
           git add -A
           if git diff --cached --quiet; then
             echo 'No remediation changes to publish.'
