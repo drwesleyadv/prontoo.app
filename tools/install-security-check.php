@@ -245,12 +245,26 @@ if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600\s*;/', $pronto
     !str_contains($prontooSecuritySource, 'PRONTOO_AUTH_POLICY_GENERATION')) {
     $errors[] = 'session_idle_or_policy_generation';
 }
-if (!preg_match('/function\s+device_session_auto_login\(\):\s*bool\s*\{.*?return\s+false\s*;\s*\}/s', $securityAccessSource) ||
-    !str_contains($securityAccessSource, 'setcookie(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_cookie_name(), "",') ||
-    !str_contains($securityAccessSource, 'security_retire_persistent_devices_for_user') ||
-    !str_contains($securityAccessSource, 'user_auth_generation_rotate') ||
-    !str_contains($securityAccessSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
-    $errors[] = 'persistent_device_retirement_policy';
+$retiredDeviceTokens = [
+    'PRONTOO_DEVICE',
+    'pending_device_login',
+    'device_session_auto_login',
+    'device_session_remember_after_login',
+    'device_session_update_current_context',
+    'device_session_enforce_current',
+    'device_session_revoke_current',
+    'device_cookie_name',
+    'security_clear_legacy_device_cookie',
+    'security_retire_persistent_devices_for_user',
+    'security_session_generation_enforce',
+];
+foreach ($retiredDeviceTokens as $retiredDeviceToken) {
+    if (str_contains($securityAccessSource . $authSecuritySource, $retiredDeviceToken)) {
+        $errors[] = 'retired_persistent_device_surface:' . $retiredDeviceToken;
+    }
+}
+if (!str_contains($securityAccessSource, 'user_auth_generation_rotate')) {
+    $errors[] = 'auth_generation_revocation_missing';
 }
 foreach ([
     'aes-256-gcm',
@@ -285,14 +299,12 @@ foreach ([
         $errors[] = 'auth_flow_policy:' . $requiredAuthFlow;
     }
 }
-if (str_contains($authSecuritySource, '\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::device_login_fields(') ||
-    str_contains($authSecuritySource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()')) {
-    $errors[] = 'persistent_device_auth_surface';
-}
+
 $foundationAuthSource = canonical_source($root, ["app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php", "app/Presentation/SupportFoundation/SupportFoundationPresentationOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations01.php", "app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php"]);
-if (str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::device_session_auto_login()') ||
-    !str_contains($foundationAuthSource, '\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();')) {
-    $errors[] = 'login_autotest_persistent_device_bypass';
+foreach ($retiredDeviceTokens as $retiredDeviceToken) {
+    if (str_contains($foundationAuthSource, $retiredDeviceToken)) {
+        $errors[] = 'retired_persistent_device_foundation_surface:' . $retiredDeviceToken;
+    }
 }
 
 $authDefinitionSource = (string) file_get_contents(

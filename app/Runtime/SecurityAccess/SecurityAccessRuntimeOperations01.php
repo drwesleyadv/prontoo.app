@@ -30,13 +30,8 @@ final class SecurityAccessRuntimeOperations01
     
     {
     
-        if (function_exists("security_disable_runtime_error_display")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_disable_runtime_error_display();
-        }
-        if (
-            function_exists("security_storage_deny_file") &&
-            is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])
-        ) {
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_disable_runtime_error_display();
+        if (is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'storage_path'])) {
             $storageGuardRoot = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("cache");
             $storageGuardVersion = defined("PRONTOO_VERSION")
                 ? PRONTOO_VERSION
@@ -88,10 +83,7 @@ final class SecurityAccessRuntimeOperations01
         ini_set("session.use_strict_mode", "1");
         ini_set("session.use_only_cookies", "1");
         ini_set("session.cookie_httponly", "1");
-        $secure = function_exists("security_https_active")
-            ? \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
-            : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
-                (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
+        $secure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
         session_name("PRONTOO");
         session_set_cookie_params([
             "lifetime" => 0,
@@ -103,7 +95,6 @@ final class SecurityAccessRuntimeOperations01
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         $now = time();
         if (empty($_SESSION["born"])) {
             $_SESSION["born"] = $now;
@@ -188,12 +179,7 @@ final class SecurityAccessRuntimeOperations01
             header("Pragma: no-cache");
             header("Expires: 0");
         }
-        if (
-            function_exists("security_https_active")
-                ? \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()
-                : (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
-                    (string) ($_SERVER["SERVER_PORT"] ?? "") === "443"
-        ) {
+        if (\Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active()) {
             header(
                 "Strict-Transport-Security: max-age=31536000; includeSubDomains",
             );

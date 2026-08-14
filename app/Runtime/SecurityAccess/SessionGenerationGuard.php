@@ -49,8 +49,6 @@ final class SessionGenerationGuard
         if (!$queued) {
             error_log('[Prontoo auth generation audit] Evento de sessão obsoleta não pôde ser enfileirado.');
         }
-
-        SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::secure_session_destroy();
         if (!headers_sent()) {
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');

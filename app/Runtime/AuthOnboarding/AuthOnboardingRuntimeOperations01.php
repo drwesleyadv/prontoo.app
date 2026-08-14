@@ -346,9 +346,8 @@ final class AuthOnboardingRuntimeOperations01
         $scope = (string) ($credential["scope"] ?? "clinic");
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::session_harden_after_login($uid, $verifiedUserGeneration);
         $_SESSION["uid"] = $uid;
-        unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+        unset($_SESSION["pending_login_uid"]);
         \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::mfa_pending_login_clear();
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         if ($scope === "global") {
             $_SESSION["scope"] = "global";
             unset(

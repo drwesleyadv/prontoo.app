@@ -31,6 +31,9 @@ $gateway = $json('app/architecture.gateway-budget.json');
 $application = $json('app/application.test-contract.json');
 $queries = $json('app/query.budgets.json');
 $failures = [];
+if (array_key_exists('runtime_input_boundary_metrics', $manifest)) {
+    $failures[] = 'duplicate_runtime_input_boundary_metrics';
+}
 
 $requiredZero = [
     'runtime_business_sql',

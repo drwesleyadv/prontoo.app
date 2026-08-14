@@ -47,7 +47,6 @@ final class UserCredentialService
         string $targetName,
         Closure $passwordHash,
         Closure $rotateAuthGeneration,
-        Closure $retirePersistentDevices,
         Closure $audit,
     ): void {
         $this->data->atomic(function () use (
@@ -56,7 +55,6 @@ final class UserCredentialService
             $targetName,
             $passwordHash,
             $rotateAuthGeneration,
-            $retirePersistentDevices,
             $audit,
         ): void {
             $this->data->result(
@@ -64,7 +62,6 @@ final class UserCredentialService
                 [(string) $passwordHash($newPassword), $userId],
             );
             $rotateAuthGeneration($userId);
-            $retirePersistentDevices($userId);
             $audit('senha_redefinida', 'usuario', $userId, [
                 'target_name' => $targetName,
                 'audit_body' =>

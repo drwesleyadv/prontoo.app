@@ -1,10 +1,10 @@
 # Versão canônica
 
-## 1.8.13.8 — Sanitização do estado canônico
+## 1.8.13.9 — Remediação da auditoria global
 
-- remove aliases e caminhos mantidos apenas para releases superadas.
-- faz Presentation entregar somente public/assets/presentation.css.
-- substitui resolução compatível de fontes por caminhos canônicos explícitos e fail-closed.
-- remove mapas de migração de paths e baseline histórica do contrato PHP 8.4.
-- remove importação de arquivos antigos de telemetria e mantém somente views.json e speed.json.
-- mantém banco schema comportamento funcional e contratos de segurança inalterados.
+- executa diretamente os hardenings canônicos de storage, HTTPS e sanitização de erros sem guards globais inertes.
+- remove a API PHP aposentada de dispositivo persistente e mantém revogação de sessões pela geração canônica de autenticação.
+- mantém pi_user_devices apenas como estrutura congelada de schema, sem mecanismo ativo no runtime.
+- elimina métricas Runtime duplicadas do manifesto e mantém o budget monotônico como fonte verificável.
+- fixa GitHub Actions e MySQL por identidade imutável e instala Playwright a partir de lockfile.
+- remove resíduos documentais e fortalece contratos anti-regressão da auditoria global.

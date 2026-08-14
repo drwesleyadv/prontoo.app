@@ -60,12 +60,6 @@ final class IdentitySecuritySqlCatalog02
             'identity.security02.user_auth_generation_rotate.01' => (
                 "INSERT INTO pi_meta (meta_key,meta_value) VALUES (?,?) ON DUPLICATE KEY UPDATE meta_value=VALUES(meta_value)"
             ),
-            'identity.security02.security_retire_persistent_devices_for_user.01' => (
-                "UPDATE pi_user_devices SET revoked_at=COALESCE(revoked_at,NOW()), logout_at=COALESCE(logout_at,NOW()), token_hash=SHA2(CONCAT(token_hash,':retired:',id),256), updated_at=NOW() WHERE user_id=? AND (revoked_at IS NULL OR logout_at IS NULL)"
-            ),
-            'identity.security02.device_session_context_payload.01' => (
-                "SELECT clinic_id,role_code FROM pi_user_roles WHERE id=? LIMIT 1"
-            ),
             default => throw new RuntimeException('Operação SQL de identidade desconhecida.'),
         };
     }

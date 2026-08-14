@@ -108,6 +108,8 @@ $run('runtime-thinning-contract', 'tools/runtime-thinning-check');
 $run('performance-budget-contract', 'tools/performance-budget-check');
 $run('query-budget-contract', 'tools/query-budget-contract-check');
 $run('architecture-consolidation-contract', 'tools/architecture-consolidation-check');
+$run('global-audit-contract', 'tools/global-audit-contract-check');
+$run('ci-supply-chain-contract', 'tools/ci-supply-chain-check');
 $run('operation-gateway-budget', 'tools/operation-gateway-budget-check');
 $run('presentation-visual-contract', 'tools/presentation-visual-contract-check');
 $run('presentation-css-source-contract', 'tools/presentation-css-build', ['--lint']);

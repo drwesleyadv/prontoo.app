@@ -26,14 +26,6 @@ final class SecurityAccessRuntimeOperations03
     {
     }
 
-    public static function device_session_revoke_current(): void
-    
-    {
-    
-        $uid = (int) ($_SESSION["uid"] ?? 0);
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
-    
-    }
 
     public static function scope_violation_evidence_payload(string $sql, string $detail): string
     

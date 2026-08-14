@@ -402,15 +402,8 @@ final class SupportFoundationRuntimeOperations01
     }
 
     public static function is_https(): bool
-    
     {
-    
-        if (function_exists("security_https_active")) {
-            return \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
-        }
-        return (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off") ||
-            (string) ($_SERVER["SERVER_PORT"] ?? "") === "443";
-    
+        return \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     }
 
     public static function request_host(): string
@@ -467,13 +460,9 @@ final class SupportFoundationRuntimeOperations01
         if (!$http || $status >= 500) {
             error_log(
                 "[Prontoo fatal] " .
-                    (function_exists("privacy_sanitize_error_message")
-                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 240)
-                        : $e->getMessage()) .
+                    \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 240) .
                     " in " .
-                    (function_exists("privacy_log_file_label")
-                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
-                        : basename($e->getFile())) .
+                    \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile()) .
                     ":" .
                     $e->getLine(),
             );

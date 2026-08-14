@@ -157,7 +157,6 @@ final class UsersPermissionsRuntimeOperations02
         );
         try {
             $newGeneration = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($uid);
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($uid);
             if ((int) ($_SESSION["uid"] ?? 0) === $uid) {
                 $_SESSION["user_auth_generation"] = $newGeneration;
             }

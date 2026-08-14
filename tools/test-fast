@@ -901,15 +901,12 @@ $credentialService->changePassword(
     static function (int $userId) use (&$credentialHooks): void {
         $credentialHooks[] = ['rotate', $userId];
     },
-    static function (int $userId) use (&$credentialHooks): void {
-        $credentialHooks[] = ['retire', $userId];
-    },
     static function (...$arguments) use (&$credentialAudit): void {
         $credentialAudit[] = $arguments;
     },
 );
 $same(
-    [['rotate', 91], ['retire', 91]],
+    [['rotate', 91]],
     $credentialHooks,
     'application.identity_credentials.session_revocation',
 );

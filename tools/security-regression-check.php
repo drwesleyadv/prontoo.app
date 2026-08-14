@@ -111,15 +111,6 @@ function val(string $sql, array $params = []): mixed
     return null;
 }
 
-function security_storage_deny_file(string $dir): void
-{
-    if (!is_dir($dir)) {
-        mkdir($dir, 0750, true);
-    }
-    file_put_contents($dir . "/.htaccess", "Require all denied\n");
-    file_put_contents($dir . "/index.html", "");
-}
-
 function security_regression_assert(bool $condition, string $message): void
 {
     if (!$condition) {

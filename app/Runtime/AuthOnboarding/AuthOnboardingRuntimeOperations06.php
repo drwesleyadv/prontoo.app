@@ -443,8 +443,6 @@ final class AuthOnboardingRuntimeOperations06
                                 \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::password_hash_secure($plain),
                             static fn(int $userId): int =>
                                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::user_auth_generation_rotate($userId),
-                            static fn(int $userId): mixed =>
-                                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_retire_persistent_devices_for_user($userId),
                             static fn(...$arguments): bool =>
                                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                                     ...$arguments,

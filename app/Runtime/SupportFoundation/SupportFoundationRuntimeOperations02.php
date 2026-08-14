@@ -53,7 +53,6 @@ final class SupportFoundationRuntimeOperations02
         $checks = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::prontoo_login_selftest_light();
         $auto = false;
         $redirect = "";
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations02::security_clear_legacy_device_cookie();
         if (is_callable([\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::class, 'platform_login_loaded_audit'])) {
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_login_loaded_audit($checks, $auto);
         } elseif (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
@@ -302,19 +301,13 @@ final class SupportFoundationRuntimeOperations02
     
     {
     
-        $message = function_exists("privacy_sanitize_error_message")
-            ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 900)
-            : mb_substr($e->getMessage(), 0, 900);
-        $file = function_exists("privacy_log_file_label")
-            ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile())
-            : basename($e->getFile());
+        $message = \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($e, 900);
+        $file = \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_log_file_label($e->getFile());
         $dir = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs");
         if (!is_dir($dir)) {
             @mkdir($dir, 0750, true);
         }
-        if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
-        }
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         $line =
             "[" .
             date("c") .
@@ -366,9 +359,7 @@ final class SupportFoundationRuntimeOperations02
         } catch (Throwable $ignored) {
             error_log(
                 "[Prontoo error_event] " .
-                    (function_exists("privacy_sanitize_error_message")
-                        ? \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($ignored, 240)
-                        : $ignored->getMessage()),
+                    \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::privacy_sanitize_error_message($ignored, 240),
             );
         }
     

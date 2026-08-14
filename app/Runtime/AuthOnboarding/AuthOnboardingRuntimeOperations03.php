@@ -33,7 +33,7 @@ final class AuthOnboardingRuntimeOperations03
     
     {
     
-        unset($_SESSION["pending_login_uid"], $_SESSION["pending_device_login"]);
+        unset($_SESSION["pending_login_uid"]);
         $wantsJson = RouteCatalog::wantsJson(
             "login",
             (string) ($_SERVER["HTTP_ACCEPT"] ?? ""),

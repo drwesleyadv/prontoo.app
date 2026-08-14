@@ -71,9 +71,7 @@ final class DeferredAuditInfrastructureOperations01
             if (!is_dir($dir) || !is_writable($dir)) {
                 return false;
             }
-            if (function_exists("security_storage_deny_file")) {
-                \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
-            }
+            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
             $temporary = tempnam($dir, ".pending-");
             if (
                 !is_string($temporary) ||

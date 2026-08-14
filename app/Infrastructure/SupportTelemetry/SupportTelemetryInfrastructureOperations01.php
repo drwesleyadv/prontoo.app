@@ -158,16 +158,7 @@ final class SupportTelemetryInfrastructureOperations01
             return false;
         }
         @chmod($dir, 0750);
-        if (function_exists("security_storage_deny_file")) {
-            \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
-        } else {
-            if (!is_file($dir . "/.htaccess")) {
-                @file_put_contents($dir . "/.htaccess", "Require all denied\n", LOCK_EX);
-            }
-            if (!is_file($dir . "/index.html")) {
-                @file_put_contents($dir . "/index.html", "", LOCK_EX);
-            }
-        }
+        \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file($dir);
         return is_writable($dir);
     
     }
