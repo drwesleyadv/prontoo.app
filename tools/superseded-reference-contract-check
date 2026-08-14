@@ -16,6 +16,22 @@ exec('git -C ' . escapeshellarg($root) . ' ls-files', $tracked, $status);
 if ($status !== 0) { fwrite(STDERR, "superseded-reference-contract: git ls-files failed\n"); exit(1); }
 foreach ($tracked as $relative) {
     if ($relative === 'tools/superseded-reference-contract-check' || str_starts_with($relative, '.git/')) continue;
+
+    if (preg_match_all('/\\b1\\.[0-9]{1,2}\\.[0-9]{1,2}\\.[0-9]+\\b/', $relative, $pathMatches)) {
+        foreach (array_unique((array) ($pathMatches[0] ?? [])) as $literal) {
+            if ($literal !== $current) $failures[] = $relative . ':superseded_release_path:' . $literal;
+        }
+    }
+    if (preg_match('#^docs/(?:.*/)?phase-[^/]+#i', $relative)) {
+        $failures[] = $relative . ':historical_phase_document';
+    }
+    if (preg_match('#^docs/(?:archive|archives|history|historical|legacy)/#i', $relative)) {
+        $failures[] = $relative . ':historical_document_directory';
+    }
+    if (preg_match('/\\.(?:zip|tgz|tar|tar\\.gz)$/i', $relative)) {
+        $failures[] = $relative . ':tracked_release_archive';
+    }
+
     $path = $root . '/' . $relative;
     if (!is_file($path) || filesize($path) > 3000000) continue;
     $source = @file_get_contents($path);
@@ -31,7 +47,14 @@ foreach ($tracked as $relative) {
     }
 }
 if ($failures !== []) {
-    fwrite(STDERR, "Referências superadas ainda presentes:\n- " . implode("\n- ", array_values(array_unique($failures))) . "\n");
+    fwrite(STDERR, "Referências ou artefatos superados ainda presentes:\n- " . implode("\n- ", array_values(array_unique($failures))) . "\n");
     exit(1);
 }
-echo json_encode(['ok'=>true,'policy'=>'canonical-current-state-only','current_release'=>$current,'forbidden_tokens'=>count($forbidden)], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE), PHP_EOL;
+echo json_encode([
+    'ok'=>true,
+    'policy'=>'canonical-current-state-only',
+    'current_release'=>$current,
+    'forbidden_tokens'=>count($forbidden),
+    'historical_release_paths_forbidden'=>true,
+    'tracked_release_archives_forbidden'=>true,
+], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE), PHP_EOL;
