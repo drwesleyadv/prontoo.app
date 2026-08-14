@@ -179,18 +179,42 @@ extract_html_csrf() {
 }
 
 STEP="status"
+grep -Fq 'ErrorDocument 404 /public/errors/404.html' "$ROOT/.htaccess"
+grep -Fq 'width:min(520px,100%);grid-template-columns:minmax(0,1fr);gap:0;align-items:stretch;' "$ROOT/public/errors/404.html"
+grep -Fq 'Esta página não está por aqui' "$ROOT/public/errors/404.html"
+grep -Fq 'O link pode ter mudado ou o endereço pode estar incompleto.' "$ROOT/public/errors/404.html"
+grep -Fq 'Você pode voltar ao Prontoo e continuar normalmente.' "$ROOT/public/errors/404.html"
 curl -sS -D "$TMP/status.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" -o "$TMP/status.body"
 assert_status "$TMP/status.headers" 404 "status"
 grep -Eqi '^Content-Type: text/html; charset=utf-8' "$TMP/status.headers"
 grep -Fq 'class="public has-top-shell"' "$TMP/status.body"
 grep -Fq 'class="auth login-card login-shell"' "$TMP/status.body"
-grep -Fq 'Página não encontrada' "$TMP/status.body"
+grep -Fq 'Esta página não está por aqui' "$TMP/status.body"
 grep -Fq '/public/assets/presentation.css' "$TMP/status.body"
 grep -Fq 'Voltar ao Prontoo' "$TMP/status.body"
+if grep -Fq 'O endereço informado não está disponível.' "$TMP/status.body"; then
+  printf 'http runtime smoke: public 404 retained unfriendly legacy copy\n' >&2
+  exit 1
+fi
 if grep -Eqi 'prontoo-version|data-app-version|Versão:|telemetry|health|runtime' "$TMP/status.body"; then
   printf 'http runtime smoke: public 404 leaked operational or version signal\n' >&2
   exit 1
 fi
+
+STEP="unknown-route"
+curl -sS -D "$TMP/unknown-route.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=definitely_not_a_prontoo_route" -o "$TMP/unknown-route.body"
+assert_status "$TMP/unknown-route.headers" 404 "unknown-route"
+grep -Fq 'Esta página não está por aqui' "$TMP/unknown-route.body"
+
+STEP="installer-closed-404"
+curl -sS -D "$TMP/install-404.headers" "${COMMON_HEADERS[@]}" "${BASE_URL}install.php" -o "$TMP/install-404.body"
+assert_status "$TMP/install-404.headers" 404 "installer-closed-404"
+grep -Fq 'Esta página não está por aqui' "$TMP/install-404.body"
+
+STEP="landing-asset-404"
+curl -sS -D "$TMP/landing-404.headers" "${COMMON_HEADERS[@]}" "${BASE_URL}br/index.php?asset=does-not-exist" -o "$TMP/landing-404.body"
+assert_status "$TMP/landing-404.headers" 404 "landing-asset-404"
+grep -Fq 'Esta página não está por aqui' "$TMP/landing-404.body"
 
 STEP="login-get"
 curl -sS -D "$TMP/login-get.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=login" -o "$TMP/login-get.body"

@@ -40,6 +40,10 @@ final class Runner
             $publicHome = false;
             $publicCompatibility = in_array($route, ['status', 'login_telemetry_wave'], true);
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::headers_secure(false);
+            if (!in_array($route, RouteCatalog::all(), true)) {
+                \Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::page_public_status();
+                return;
+            }
             if (!\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg() && !$installMode && !$publicHome && !$publicCompatibility) {
                 throw new \ProntooHttpError(
                     503,
@@ -154,6 +158,10 @@ final class Runner
                     'found' => false,
                     'message' => JsonResponder::failureMessage($routeForError, $status, $error),
                 ], $status);
+                return;
+            }
+            if ($status === 404) {
+                \Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::page_public_status();
                 return;
             }
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_fail($error);
