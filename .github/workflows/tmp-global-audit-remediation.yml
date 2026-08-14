@@ -1,0 +1,52 @@
+name: Temporary Global Audit Remediation
+
+on:
+  push:
+    branches:
+      - agent/global-audit-remediation-1-8-13-9
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Inventory retired authentication surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          for token in \
+            device_cookie_name \
+            device_session_lifetime_seconds \
+            device_session_cookie_ttl_seconds \
+            device_hash_is_valid \
+            device_login_fields \
+            device_cookie_pack \
+            device_secure_cookie \
+            device_cookie_set \
+            device_cookie_clear \
+            device_token_hash \
+            device_fallback_hash \
+            device_client_hash_from_post \
+            device_login_payload_from_post \
+            device_cookie_unpack \
+            device_session_context_payload \
+            device_session_remember_after_login \
+            device_session_update_current_context \
+            device_session_enforce_current \
+            device_session_auto_login \
+            security_clear_legacy_device_cookie \
+            security_retire_persistent_devices_for_user \
+            security_session_generation_enforce; do
+            echo "===== ${token} ====="
+            git grep -n "${token}" -- '*.php' '*.js' '*.md' '*.json' || true
+          done
+      - name: Inventory hardening compatibility guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          git grep -n -E 'security_disable_runtime_error_display|security_storage_deny_file|function_exists' -- app tools || true
