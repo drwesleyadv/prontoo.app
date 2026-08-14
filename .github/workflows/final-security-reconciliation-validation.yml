@@ -1,0 +1,103 @@
+name: Final Security Reconciliation Validation
+
+on:
+  push:
+    branches:
+      - agent/reconcile-security-release-1-8-14-1
+
+permissions:
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;dbname=prontoo_schema;charset=utf8mb4
+  PRONTOO_SCHEMA_USER: root
+  PRONTOO_SCHEMA_PASS: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.0.43@sha256:3e646bcda0d9448ffa3d2024eef04e1bca95528ec19b9e8b76749da9d97d4a10
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Remove temporary workflow from validation tree
+        run: git rm .github/workflows/final-security-reconciliation-validation.yml
+      - name: Engineering quality gate
+        run: php tools/quality-gate
+      - name: Schema contract
+        run: php tools/schema-check.php
+      - name: MySQL query budget
+        run: php tools/mysql-query-budget-check
+      - name: Installer security
+        run: |
+          php tools/install-security-check.php
+          php tools/install-window-contract-check
+      - name: Login post-password runtime regression
+        run: php tools/login-post-password-runtime-check
+      - name: Login/logout global revocation smoke
+        run: bash tools/login-logout-http-smoke
+      - name: Maestro runtime regression
+        run: php tools/maestro-runtime-regression-check
+      - name: Critical runtime smoke matrix
+        run: php tools/critical-runtime-smoke-check
+      - name: HTTP front-controller smoke
+        run: bash tools/http-runtime-smoke-check
+      - name: Publish validated final tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "ci: remove final validation workflow"
+          test -z "$(git status --porcelain)"
+          git push origin HEAD:agent/reconcile-security-release-1-8-14-1
+
+  presentation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Remove temporary workflow from validation tree
+        run: rm .github/workflows/final-security-reconciliation-validation.yml
+      - name: Setup Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Install pinned browser contract
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Verify computed-style UX baseline
+        run: node tools/presentation-ux-contract.mjs --check
