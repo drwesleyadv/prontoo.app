@@ -1,0 +1,1 @@
+SessionGenerationGuard temporary normalization marker
