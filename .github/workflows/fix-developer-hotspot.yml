@@ -32,6 +32,7 @@ jobs:
           python3 tools/tmp-developer-presentation-budget.py
           python3 tools/tmp-developer-css-dedupe.py
           python3 tools/tmp-developer-css-source-sync.py
+          python3 tools/tmp-developer-observability-contract.py
       - name: Remove temporary execution files
         shell: bash
         run: |
@@ -39,15 +40,18 @@ jobs:
           rm -f tools/tmp-developer-presentation-budget.py
           rm -f tools/tmp-developer-css-dedupe.py
           rm -f tools/tmp-developer-css-source-sync.py
+          rm -f tools/tmp-developer-observability-contract.py
           rm -f .github/workflows/fix-developer-hotspot.yml
       - name: Validate and reconcile
         shell: bash
         run: |
           set -euo pipefail
           php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php >/dev/null
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php >/dev/null
           php -l app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php >/dev/null
           php -l app/Presentation/AdminPages/AdminPagesPresentationOperations01.php >/dev/null
           php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php >/dev/null
+          php -l tools/telemetry-json-source-contract-check >/dev/null
           php tools/presentation-css-build --write
           php tools/presentation-css-build --check
           php tools/release-contract-reconcile --write
