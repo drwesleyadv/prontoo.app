@@ -51,11 +51,16 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Remove temporary workflow and reconcile contracts
+      - name: Remove superseded material and reconcile contracts
         shell: bash
         run: |
           set -euo pipefail
           rm .github/workflows/baseline-cleanup-materialize.yml
+          rm docs/architecture/phase-1-refactoring.md
+          rm docs/architecture/phase-2-presentation-boundaries.md
+          rm docs/architecture/phase-3-read-use-cases.md
+          rm docs/architecture/phase-4-transactional-commands.md
+          rm docs/architecture/phase-5-critical-financial-command.md
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
       - name: Validate baseline-only policy and quality gate
