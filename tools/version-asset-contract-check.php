@@ -32,23 +32,12 @@ $css = (string) @file_get_contents($root . '/public/assets/presentation.css');
 if (!str_contains($css, 'pix-' . $assetRevision . '.svg')) {
     throw new RuntimeException('CSS diverge do asset_version.');
 }
-$javascript = (string) @file_get_contents($root . '/public/assets/app.js');
-foreach ([
-    'let needsInitialRefresh = false;',
-    'needsInitialRefresh = true;',
-    'if (needsInitialRefresh) refresh(true);',
-    'endpoint.searchParams.set("r", "login_telemetry_wave");',
-    'renderLoginTelemetryWave(wrap, payload);',
-] as $contract) {
-    if (!str_contains($javascript, $contract)) {
-        throw new RuntimeException('Contrato JavaScript das faixas ausente: ' . $contract);
-    }
-}
 $runner = (string) @file_get_contents($root . '/app/Runtime/Runner.php');
 $routeCatalog = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteCatalog.php');
 $routeRegistry = (string) @file_get_contents($root . '/app/Runtime/Routing/RouteRegistry.php');
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
-$authRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
+$loginRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php');
+$autotestRuntime = (string) @file_get_contents($root . '/app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php');
 foreach ([
     'RouteRegistry::names()',
     'RouteRegistry::publicNames()',
@@ -59,22 +48,37 @@ foreach ([
         throw new RuntimeException('RouteCatalog não deriva do registry unificado: ' . $contract);
     }
 }
-$telemetrySpec = "'login_telemetry_wave' => [\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations07::class, 'page_login_telemetry_wave', true, true, ['*'], []]";
-if (!str_contains($routeRegistry, $telemetrySpec)) {
-    throw new RuntimeException('Rota das faixas diverge do registry unificado.');
+if (str_contains($routeRegistry, "'login_telemetry_wave' =>")) {
+    throw new RuntimeException('Telemetria de login não pode permanecer registrada como rota HTTP.');
+}
+$statusSpec = "'status' => [\\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations09::class, 'page_admin_performance', false, false, [], []]";
+if (!str_contains($routeRegistry, $statusSpec)) {
+    throw new RuntimeException('Rota status deve apontar para o painel privado de performance.');
+}
+if (str_contains($loginRuntime, 'login_telemetry_wave_html()')) {
+    throw new RuntimeException('Login público não pode renderizar telemetria.');
 }
 foreach ([
-    "\$publicTelemetry = \$route === 'login_telemetry_wave';",
-    "\$publicStatus = \$route === 'status' || \$publicTelemetry;",
-    '\\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::headers_secure($publicStatus);',
-    "\$context = \$publicStatus || \$publicHome || \$route === 'logout' ? [] : \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations04::ctx();",
-    'if (!$publicTelemetry) {',
-    "if (\$route !== 'logout' && !\$publicTelemetry) {",
-    "if (\$route !== 'logout' && !\$publicStatus) {",
-] as $contract) {
-    if (!str_contains($runner, $contract)) {
-        throw new RuntimeException('Contrato de execução das faixas ausente: ' . $contract);
+    "\$publicTelemetry =",
+    "\$publicStatus =",
+    "headers_secure(\$publicStatus)",
+] as $forbidden) {
+    if (str_contains($runner, $forbidden)) {
+        throw new RuntimeException('Exceção pública de telemetria ainda presente no Runner: ' . $forbidden);
     }
+}
+foreach ([
+    "REQUEST_METHOD"] as $contract) {
+    if (!str_contains($autotestRuntime, $contract)) {
+        throw new RuntimeException('Autoteste de login sem restrição de método.');
+    }
+}
+if (!str_contains($autotestRuntime, 'security_ip_bucket("login_autotest")')) {
+    throw new RuntimeException('Autoteste de login sem limite independente por IP.');
+}
+if (str_contains($autotestRuntime, 'platform_login_loaded_audit(') ||
+    str_contains($autotestRuntime, 'login_autoteste_leve')) {
+    throw new RuntimeException('Autoteste público não pode gravar auditoria por chamada.');
 }
 if (!str_contains($moduleCatalog, 'RouteRegistry::definition($route)')) {
     throw new RuntimeException('Catálogo modular não deriva da definição unificada de rota.');
@@ -91,25 +95,11 @@ foreach ([
         throw new RuntimeException('Runner não consome o runtime nativo diretamente: ' . $contract);
     }
 }
-if (!str_contains($authRuntime, 'public static function page_login_telemetry_wave(): void')) {
-    throw new RuntimeException('Endpoint JSON nativo das faixas ausente.');
-}
-foreach ([
-    'body.has-telemetry-mountains .login-telemetry-wave{',
-    'display:block;',
-    'height:15vh;',
-    'pointer-events:none;',
-    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
-] as $contract) {
-    if (!str_contains($css, $contract)) {
-        throw new RuntimeException('Contrato CSS das faixas ausente: ' . $contract);
-    }
-}
 echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
     'assets_verified' => count($assets),
-    'authenticated_initial_refresh' => true,
-    'telemetry_route_registered' => true,
-    'telemetry_route_public_json' => true,
+    'public_telemetry' => false,
+    'status_developer_only' => true,
+    'login_autotest_get_only' => true,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
