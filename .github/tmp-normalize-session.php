@@ -51,8 +51,16 @@ if (substr_count($helperSource, $helperOld) !== 1) {
     throw new RuntimeException('Remediation regex normalization drift');
 }
 $helperSource = str_replace($helperOld, $helperNew, $helperSource);
-$throwOld = '    if count != expected:\n        raise RuntimeError(f"{path}: expected {expected} regex replacements, found {count}: {pattern[:100]}")';
-$throwNew = '    if count != expected:\n        if path == "tools/install-security-check.php" and count == 0 and ("persistent_device_auth_surface" in pattern or "login_autotest_persistent_device_bypass" in pattern):\n            return\n        raise RuntimeError(f"{path}: expected {expected} regex replacements, found {count}: {pattern[:100]}")';
+$throwOld = <<<'PY'
+    if count != expected:
+        raise RuntimeError(f"{path}: expected {expected} regex replacements, found {count}: {pattern[:100]}")
+PY;
+$throwNew = <<<'PY'
+    if count != expected:
+        if path == "tools/install-security-check.php" and count == 0 and ("persistent_device_auth_surface" in pattern or "login_autotest_persistent_device_bypass" in pattern):
+            return
+        raise RuntimeError(f"{path}: expected {expected} regex replacements, found {count}: {pattern[:100]}")
+PY;
 if (substr_count($helperSource, $throwOld) !== 1) {
     throw new RuntimeException('Remediation mismatch guard drift');
 }
