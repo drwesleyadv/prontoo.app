@@ -70,6 +70,55 @@ $pixNew = 'replace(components, "pix-" + OLD + ".svg", "pix-" + NEW + ".svg", exp
 if (substr_count($helperSource, $pixOld) !== 1) {
     throw new RuntimeException('Pix remediation count drift');
 }
-file_put_contents($helperPath, str_replace($pixOld, $pixNew, $helperSource), LOCK_EX);
+$helperSource = str_replace($pixOld, $pixNew, $helperSource);
+$importOld = "import json\n";
+$importNew = "import json\nimport hashlib\n";
+if (substr_count($helperSource, $importOld) !== 1) {
+    throw new RuntimeException('Hashlib import insertion drift');
+}
+$helperSource = str_replace($importOld, $importNew, $helperSource);
+$printOld = 'print(json.dumps({"ok": True, "version": NEW, "policy": "global-audit-remediation-transform-v1"}, ensure_ascii=False))';
+$manifestBlock = <<<'PY'
+styles_manifest_path = "app/Presentation/Styles/styles.manifest.json"
+styles_manifest = json_file(styles_manifest_path)
+styles_source_root = ROOT / str(styles_manifest["source_root"])
+styles_source_data = {}
+for styles_source in styles_manifest["sources"]:
+    styles_relative = str(styles_source["path"])
+    styles_css = (styles_source_root / styles_relative).read_bytes()
+    styles_source["sha256"] = hashlib.sha256(styles_css).hexdigest()
+    styles_source["bytes"] = len(styles_css)
+    styles_source["important_count"] = styles_css.count(b"!important")
+    styles_source["route_scope_count"] = styles_css.count(b"body[data-route=")
+    styles_source_data[styles_relative] = styles_css
+styles_coverage = {styles_relative: 0 for styles_relative in styles_source_data}
+styles_artifact = bytearray()
+for styles_segment in styles_manifest["sequence"]:
+    styles_relative = str(styles_segment["source"])
+    styles_offset = int(styles_segment["offset"])
+    styles_bytes = int(styles_segment["bytes"])
+    if styles_relative not in styles_source_data or styles_offset != styles_coverage[styles_relative]:
+        raise RuntimeError("styles manifest sequence coverage drift")
+    styles_chunk = styles_source_data[styles_relative][styles_offset:styles_offset + styles_bytes]
+    if len(styles_chunk) != styles_bytes:
+        raise RuntimeError("styles manifest sequence slice drift")
+    styles_segment["sha256"] = hashlib.sha256(styles_chunk).hexdigest()
+    styles_segment["important_count"] = styles_chunk.count(b"!important")
+    styles_segment["route_scope_count"] = styles_chunk.count(b"body[data-route=")
+    styles_coverage[styles_relative] += styles_bytes
+    styles_artifact.extend(styles_chunk)
+for styles_relative, styles_css in styles_source_data.items():
+    if styles_coverage[styles_relative] != len(styles_css):
+        raise RuntimeError("styles manifest source coverage drift: " + styles_relative)
+styles_manifest["artifact_contract"]["sha256"] = hashlib.sha256(bytes(styles_artifact)).hexdigest()
+styles_manifest["artifact_contract"]["bytes"] = len(styles_artifact)
+write_json(styles_manifest_path, styles_manifest)
+
+PY;
+if (substr_count($helperSource, $printOld) !== 1) {
+    throw new RuntimeException('Styles manifest recalculation insertion drift');
+}
+$helperSource = str_replace($printOld, $manifestBlock . $printOld, $helperSource);
+file_put_contents($helperPath, $helperSource, LOCK_EX);
 
 unlink(__FILE__);
