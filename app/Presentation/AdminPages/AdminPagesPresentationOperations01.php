@@ -257,29 +257,27 @@ final class AdminPagesPresentationOperations01
     }
 
     public static function admin_nav_parent(string $route): string
-    
+
     {
-    
+
         return match ($route) {
-            "admin_stats", "admin_operations" => "admin_painel",
-            "admin_onboarding",
-            "admin_users",
-            "admin_people",
-            "admin_payment_proof"
-                => "admin_clinics",
+            "admin_onboarding", "admin_operations", "admin_payment_proof" => "admin_clinics",
             "admin_errors",
             "admin_diagnostics",
             "admin_integrity",
             "admin_security",
-            "admin_audit"
+            "admin_deleted"
                 => "admin_health",
+            "admin_users",
+            "admin_people",
+            "admin_alerts",
             "admin_global_notices",
-            "admin_deleted",
-            "admin_settings"
-                => "admin_maintenance",
+            "admin_maintenance",
+            "admin_settings",
+            "admin_audit"
+                => "admin_administration",
             default => $route,
         };
-    
     }
 
     public static function admin_global_timezone_options(): array

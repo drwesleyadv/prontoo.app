@@ -509,14 +509,14 @@ final class AdminPagesRuntimeOperations09
     
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
-                "Performance",
-                "Visão direta das requisições e dos tempos de rota nos últimos 10 dias.",
+                "Observabilidade",
+                "Métricas de requisição, latência e comportamento das rotas para investigação técnica.",
             ) .
             '<section class="admin-performance-screen">' .
             $stats .
             $routesCard .
             '</section>';
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Performance", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Observabilidade · Desenvolvedor", $body);
     
     }
 }

@@ -309,12 +309,11 @@ const PRONTOO_ROLES = [
     "gerente" => "Administrativo",
 ];
 const PRONTOO_ADMIN_ACTIONS = [
-    "admin_painel" => ["label" => "Desenvolvedor", "icon" => "space_dashboard"],
+    "admin_painel" => ["label" => "Visão geral", "icon" => "space_dashboard"],
     "admin_clinics" => ["label" => "Consultórios", "icon" => "home_health"],
-    "admin_health" => ["label" => "Incidentes", "icon" => "crisis_alert"],
-    "admin_performance" => ["label" => "Performance", "icon" => "speed"],
-    "admin_alerts" => ["label" => "Avisos", "icon" => "campaign"],
-    "admin_maintenance" => ["label" => "Manutenção", "icon" => "construction"],
+    "admin_health" => ["label" => "Confiabilidade", "icon" => "shield"],
+    "admin_performance" => ["label" => "Observabilidade", "icon" => "monitoring"],
+    "admin_administration" => ["label" => "Administração", "icon" => "tune"],
 ];
 class ProntooHttpError extends RuntimeException
 {

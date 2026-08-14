@@ -25,33 +25,44 @@ final class UiComponentsRuntimeOperations03
             if (!in_array($alertView, ["received", "sent"], true)) {
                 $alertView = "received";
             }
-            return match ($parent) {
-                "admin_painel" => [
-                    ["admin_painel", "Desenvolvedor", "space_dashboard"],
-                    ["admin_operations", "Operação", "account_tree"],
-                ],
-                "admin_clinics" => [
-                    ["admin_clinics", "Consultórios", "home_health"],
-                    ["admin_people", "Usuários", "groups"],
-                ],
-                "admin_health" => [["admin_health", "Incidentes", "crisis_alert"]],
-                "admin_alerts" => [
+            if ($current === "admin_alerts") {
+                return [
                     ["admin_alerts", "Recebidos", "inbox", ["view" => "received"]],
                     ["admin_alerts", "Enviados", "outbox", ["view" => "sent"]],
-                    [
-                        "admin_alerts",
-                        "Novo aviso",
-                        "add_comment",
-                        ["view" => $alertView, "compose" => "1"],
-                    ],
-                ],
-                "admin_maintenance" => [
+                    ["admin_alerts", "Novo aviso", "add_comment", ["view" => $alertView, "compose" => "1"]],
+                ];
+            }
+            if ($current === "admin_maintenance") {
+                return [
                     ["admin_maintenance", "Manutenção", "construction"],
-                    ["admin_global_notices", "Avisos globais", "campaign"],
-                    ["admin_deleted", "Excluídos", "restore_from_trash"],
-                ],
-                "admin_settings" => [
                     ["admin_settings", "Configurações", "settings"],
+                    ["admin_global_notices", "Avisos globais", "campaign"],
+                ];
+            }
+            return match ($parent) {
+                "admin_painel" => [["admin_painel", "Visão geral", "space_dashboard"]],
+                "admin_clinics" => [
+                    ["admin_clinics", "Consultórios", "home_health"],
+                    ["admin_onboarding", "Onboarding", "playlist_add_check"],
+                    ["admin_operations", "Operação", "account_tree"],
+                ],
+                "admin_health" => [
+                    ["admin_health", "Confiabilidade", "shield"],
+                    ["admin_errors", "Erros", "bug_report"],
+                    ["admin_security", "Segurança", "security"],
+                    ["admin_integrity", "Integridade", "verified_user"],
+                    ["admin_diagnostics", "Diagnósticos", "troubleshoot"],
+                    ["admin_deleted", "Recuperação", "restore_from_trash"],
+                ],
+                "admin_performance" => [["admin_performance", "Observabilidade", "monitoring"]],
+                "admin_administration" => [
+                    ["admin_administration", "Administração", "tune"],
+                    ["admin_people", "Usuários", "groups"],
+                    ["admin_alerts", "Comunicação", "campaign"],
+                    ["admin_global_notices", "Avisos globais", "notifications_active"],
+                    ["admin_maintenance", "Manutenção", "construction"],
+                    ["admin_settings", "Configurações", "settings"],
+                    ["admin_audit", "Auditoria", "history"],
                 ],
                 default => [],
             };
@@ -233,7 +244,7 @@ final class UiComponentsRuntimeOperations03
         $current = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
         $params = $_GET;
         if ($current === "admin_painel") {
-            return "network_ping";
+            return "space_dashboard";
         }
         if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
             if (

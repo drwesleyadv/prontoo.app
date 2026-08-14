@@ -33,31 +33,6 @@ final class AdminPagesRuntimeOperations06
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "");
-            if ($act === "goal") {
-                $goalContext = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx();
-                $cid = (int) ($goalContext["clinic_id"] ?? 0);
-                $uid = (int) ($goalContext["user"]["id"] ?? 0);
-                if ($cid <= 0 || $uid <= 0) {
-                    throw new RuntimeException(
-                        "A meta mensal exige um consultório ativo.",
-                    );
-                }
-                $target = \Prontoo\Domain\Financial\FinancialDomainOperations01::parse_money_cents((string) ($_POST["target"] ?? "0"));
-                $share = isset($_POST["share_with_team"]) ? 1 : 0;
-                $base = (string) ($_POST["base_metric"] ?? "efetivada");
-                if (!in_array($base, ["prevista", "efetivada"], true)) {
-                    $base = "efetivada";
-                }
-                $month = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_month_in_timezone($cid, $goalContext);
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.01', [$cid, $month, $target, $base, $share, $uid], []);
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("meta_financeira_salva", "financeiro", $cid, [
-                    "valor" => $target,
-                    "base" => $base,
-                    "compartilhar" => $share,
-                ]);
-                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Meta mensal atualizada.");
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("financial", ["tab" => "meta"]);
-            }
             if (
                 in_array(
                     $act,
@@ -365,24 +340,156 @@ final class AdminPagesRuntimeOperations06
                     "Revise dados do consultório, cargos, procedimentos e agenda.",
             ];
         }
-        $charts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
-        $telemetry = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html(true);
-        $actionsCard = $actions
-            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                "<h2>Ações recomendadas</h2>" . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions),
-                "priority-actions",
-            )
-            : "";
+
+        foreach ($actions as &$action) {
+            if (!empty($action["html"])) {
+                continue;
+            }
+            $targetRoute = match ((string) ($action["time"] ?? "")) {
+                "Erros" => "admin_errors",
+                "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
+                "Assinaturas" => "admin_clinics",
+                "Onboarding" => "admin_onboarding",
+                default => "",
+            };
+            if ($targetRoute !== "") {
+                $action["html"] =
+                    '<a class="ghost small" href="' .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($targetRoute) .
+                    '">' .
+                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir", "arrow_forward") .
+                    "</a>";
+            }
+        }
+        unset($action);
+
+        $auditChainOk = !empty(($checks["audit_chain"] ?? [])["ok"]);
+        $versionContractOk = !empty(($checks["version_contract"] ?? [])["ok"]);
+        $integrityOk = $auditChainOk && (int) ($checks["integrity_alerts"] ?? 0) === 0;
+        $securityOk = $locks === 0 && $scopeViolations24h === 0;
+        $critical = empty($checks["database"]) || empty($checks["storage"]) || !$auditChainOk || !$versionContractOk;
+        $state = $critical ? "Crítico" : ($actions ? "Atenção" : "Operacional");
+        $stateCopy = match ($state) {
+            "Crítico" => "Há uma condição estrutural que exige intervenção técnica.",
+            "Atenção" => "A plataforma está disponível, mas existem decisões ou sinais que merecem revisão.",
+            default => "Nenhuma condição relevante exige intervenção neste momento.",
+        };
+        $stateClass = match ($state) {
+            "Crítico" => "is-critical",
+            "Atenção" => "is-attention",
+            default => "is-operational",
+        };
+        $statusCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="developer-control-status"><div><span class="eyebrow">Estado do Prontoo</span><h2>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
+                '</h2><p>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($stateCopy) .
+                '</p><small>Atualizado em ' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(date("d/m/Y · H:i")) .
+                '</small></div><span class="developer-state-badge ' .
+                $stateClass .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($critical ? "crisis_alert" : ($actions ? "notification_important" : "verified")) .
+                '<span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
+                '</span></span></div>',
+            "developer-status-card",
+        );
+        $actionsBody = $actions
+            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions)
+            : '<div class="developer-empty-state">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
+                '<div><b>Nada precisa de você agora</b><p>Não há pendências ou sinais relevantes aguardando intervenção.</p></div></div>';
+        $actionsCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="section-head"><div><h2>Precisa de você</h2><p>Somente decisões e sinais que justificam intervenção.</p></div></div>' . $actionsBody,
+            "developer-actions-card",
+        );
+        $clinicStats =
+            '<div class="stats-grid developer-compact-stats">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Somente leitura", $readOnly, "lock", "consultórios") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Vencem em 7 dias", $trialEnding, "hourglass_top", "assinaturas") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Onboarding pendente", $onboardingPending, "playlist_add_check", "consultórios") .
+            "</div>";
+        $clinicsCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="section-head"><div><h2>Consultórios</h2><p>Ciclo de vida, adoção e situação comercial.</p></div></div>' .
+                $clinicStats .
+                '<a class="ghost small developer-domain-link" href="' .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_clinics") .
+                '">' .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir Consultórios", "arrow_forward") .
+                "</a>",
+            "developer-domain-card",
+        );
+        $platformStats =
+            '<div class="stats-grid developer-platform-stats">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Banco", !empty($checks["database"]) ? "Normal" : "Atenção", "database", "conectividade") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Storage", !empty($checks["storage"]) ? "Normal" : "Atenção", "folder", "persistência") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Integridade", $integrityOk ? "Normal" : "Atenção", "verified_user", "auditoria") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Segurança", $securityOk ? "Normal" : "Atenção", "shield", "acesso e escopo") .
+            "</div>";
+        $platformCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="section-head"><div><h2>Plataforma</h2><p>Confiabilidade resumida; detalhes aparecem apenas quando necessários.</p></div></div>' .
+                $platformStats .
+                '<a class="ghost small developer-domain-link" href="' .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_health") .
+                '">' .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir Confiabilidade", "arrow_forward") .
+                "</a>",
+            "developer-domain-card",
+        );
+        $observabilityCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="section-head"><div><h2>Observabilidade</h2><p>Latência, volume de requisições e comportamento das rotas ficam fora da visão diária e disponíveis para investigação.</p></div></div><a class="ghost small developer-domain-link" href="' .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_performance") .
+                '">' .
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir Observabilidade", "monitoring") .
+                "</a>",
+            "developer-observability-card",
+        );
         $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Desenvolvedor Prontoo", "") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                '<h2 class="wide">Telemetria do sistema</h2>' . $telemetry,
-                "admin-telemetry-card",
-            ) .
-            $charts .
-            $actionsCard;
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Desenvolvedor Prontoo", $body);
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Visão geral", "") .
+            $statusCard .
+            $actionsCard .
+            '<div class="developer-overview-grid">' . $clinicsCard . $platformCard . "</div>" .
+            $observabilityCard;
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Visão geral · Desenvolvedor", $body);
     
+    }
+
+
+    public static function page_admin_administration(): void
+
+    {
+
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_administration");
+        $tools = [
+            ["groups", "Usuários e pessoas", "Credenciais, vínculos e identidades administrativas da plataforma.", "admin_people"],
+            ["campaign", "Comunicação técnica", "Avisos entre perfis do Desenvolvedor e acompanhamento das mensagens recebidas.", "admin_alerts"],
+            ["notifications_active", "Avisos globais", "Comunicações institucionais exibidas nos ambientes dos consultórios.", "admin_global_notices"],
+            ["construction", "Manutenção", "Modo de manutenção e controles operacionais extraordinários.", "admin_maintenance"],
+            ["settings", "Configurações", "Parâmetros globais que não pertencem à operação cotidiana.", "admin_settings"],
+            ["history", "Auditoria", "Rastreabilidade administrativa e eventos relevantes da plataforma.", "admin_audit"],
+        ];
+        $grid = '<div class="developer-tool-grid">';
+        foreach ($tools as [$icon, $title, $description, $route]) {
+            $grid .=
+                '<a class="developer-tool-card" href="' .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route) .
+                '"><span class="developer-tool-icon">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
+                '</span><span><b>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
+                '</b><small>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+                '</small></span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>';
+        }
+        $grid .= "</div>";
+        $body =
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Administração", "") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                '<div class="section-head"><div><h2>Ferramentas administrativas</h2><p>Governança, comunicação e suporte ficam agrupados aqui para não competir com a operação diária.</p></div></div>' . $grid,
+                "developer-administration-card",
+            );
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Administração · Desenvolvedor", $body);
     }
 
     public static function page_admin_people(): void
@@ -428,11 +535,4 @@ final class AdminPagesRuntimeOperations06
     
     }
 
-    public static function page_admin_stats(): void
-    
-    {
-    
-        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
-    
-    }
 }
