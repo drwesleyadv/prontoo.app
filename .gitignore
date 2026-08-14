@@ -6,7 +6,7 @@
 # Persistência canônica da instalação
 /ssd/
 
-# Entradas legadas preservadas até a migração automática
+# Diretórios locais não canônicos
 /storage/
 /pdfs/
 
