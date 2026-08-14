@@ -44,7 +44,6 @@ final class FinancialRuntimeOperations10
                 (string) $r["name"];
         }
         return $out;
-    
     }
 
     public static function financial_office_destination_options(int $cid, int $uid = 0): array
@@ -76,7 +75,6 @@ final class FinancialRuntimeOperations10
             $out[(int) $r["id"]] = $label . ($detail !== "" ? " · " . $detail : "");
         }
         return $out;
-    
     }
 
     public static function financial_office_destination_belongs(int $cid, int $locationId): bool
@@ -88,7 +86,6 @@ final class FinancialRuntimeOperations10
         }
         return (int) (\Prontoo\Runtime\Financial\FinancialComposition::dataService()->scalar("financial.10.office_destination_belongs.01", [$locationId, $cid], []) ?:
             0) > 0;
-    
     }
 
     public static function financial_expected_appointment_revenue_options(int $cid): array
@@ -128,7 +125,6 @@ final class FinancialRuntimeOperations10
                 $status;
         }
         return $out;
-    
     }
 
     public static function financial_receive_expected_appointment_revenue(
@@ -172,7 +168,6 @@ final class FinancialRuntimeOperations10
                 'audit',
             ]),
         );
-    
     }
 
     public static function financial_tabs_html(array $tabs, string $active): string
@@ -194,7 +189,6 @@ final class FinancialRuntimeOperations10
                 "</span></a>";
         }
         return $h . "</nav>";
-    
     }
 
     public static function financial_cash_debug_details_enabled(): bool
@@ -202,7 +196,6 @@ final class FinancialRuntimeOperations10
     {
     
         return is_callable([\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::class, 'app_debug']) && \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_debug();
-    
     }
 
     public static function financial_cash_debug_error_html(): string
@@ -236,7 +229,6 @@ final class FinancialRuntimeOperations10
                 "</textarea>",
             "finance-alert-card",
         );
-    
     }
 
     public static function financial_cashier_pagehead_link(
@@ -267,7 +259,6 @@ final class FinancialRuntimeOperations10
             ' disabled" aria-disabled="true" tabindex="-1">' .
             $content .
             "</span>";
-    
     }
 
     public static function financial_cashier_pagehead_actions(
@@ -308,7 +299,6 @@ final class FinancialRuntimeOperations10
                 $active,
             ) .
             "</nav>";
-    
     }
 
     public static function financial_cashier_drawer_summary(
@@ -394,7 +384,6 @@ final class FinancialRuntimeOperations10
                 "</b></div></div></div>",
             "finance-dashboard-card cash-drawer-card",
         );
-    
     }
 
     public static function financial_cash_debug_failure_page(Throwable $e): void
@@ -416,13 +405,49 @@ final class FinancialRuntimeOperations10
                 is_array($ctx) ? $ctx : [],
                 (string) ($_POST["act"] ?? ""),
             )
-            : $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
+            : "PRONTOO_CAIXA_DEBUG" .
+                PHP_EOL .
+                "exception_class=" .
+                get_class($e) .
+                PHP_EOL .
+                "error_ref=" .
+                substr(
+                    hash(
+                        "sha256",
+                        get_class($e) .
+                            "|" .
+                            (string) $e->getCode() .
+                            "|" .
+                            $e->getMessage() .
+                            "|" .
+                            $e->getFile() .
+                            "|" .
+                            (string) $e->getLine(),
+                    ),
+                    0,
+                    24,
+                );
         if ($ctxErr) {
+            $debug .= PHP_EOL . "ctx_exception_class=" . get_class($ctxErr);
             $debug .=
-                PHP_EOL . PHP_EOL . "CTX_EXCEPTION_CLASS=" . get_class($ctxErr);
-            $debug .= PHP_EOL . "CTX_EXCEPTION_MESSAGE=" . $ctxErr->getMessage();
-            $debug .= PHP_EOL . "CTX_EXCEPTION_FILE=" . $ctxErr->getFile();
-            $debug .= PHP_EOL . "CTX_EXCEPTION_LINE=" . $ctxErr->getLine();
+                PHP_EOL .
+                "ctx_error_ref=" .
+                substr(
+                    hash(
+                        "sha256",
+                        get_class($ctxErr) .
+                            "|" .
+                            (string) $ctxErr->getCode() .
+                            "|" .
+                            $ctxErr->getMessage() .
+                            "|" .
+                            $ctxErr->getFile() .
+                            "|" .
+                            (string) $ctxErr->getLine(),
+                    ),
+                    0,
+                    24,
+                );
         }
         error_log(
             "[Prontoo caixa atendimento] " . str_replace(PHP_EOL, " | ", $debug),
