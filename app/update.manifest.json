@@ -33,7 +33,7 @@
         ".github/workflows/architecture.yml": "f9bdc1348d8dbc6a134c59e75212c17562a0a27103297108bb2df8636fea8a5b",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
         ".github/workflows/documentation.yml": "28c7143c638cd130cbf7d7dae153d68716012453915d686037ed80dea317ca72",
-        ".github/workflows/merged-branch-cleanup.yml": "0c2cefdf6562c8df20917b0b4a5f7f3fadb4128f195244a902abb876c066784f",
+        ".github/workflows/merged-branch-cleanup.yml": "c9945357af124eb841ea9cddfc68fe0a2bd263d6a97856f55bdd9f61d1059983",
         ".github/workflows/presentation-ux.yml": "b4e3b982fc40a0a4b2e56d0d1d54711e71693662ad6a2358e21ea5b20cc3a3dd",
         ".gitignore": "fe8839c6a3732103eebbc30e18fe60a7bf4a116292835d86476eb2d348440daa",
         ".htaccess": "6d49afaeb155bf0021e3b9365b298cf844e58ecce19f0fe60d12f0d82d5fd34e",

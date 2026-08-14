@@ -42,7 +42,14 @@ jobs:
               fi
               if [[ -n "$delete_reason" ]]; then
                 echo "Deleting ${branch}: ${delete_reason}"
-                git push origin --delete "$branch"
+                if ! git push origin --delete "$branch"; then
+                  git fetch --prune origin
+                  if git show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+                    echo "Deletion failed and ${branch} still exists remotely." >&2
+                    exit 1
+                  fi
+                  echo "Branch ${branch} is already absent; deletion is idempotently complete."
+                fi
               fi
             done < <(git for-each-ref --format='%(refname)' "refs/remotes/origin/${namespace}/*")
           done
