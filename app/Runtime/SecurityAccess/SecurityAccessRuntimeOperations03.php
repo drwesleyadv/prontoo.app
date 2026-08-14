@@ -392,10 +392,12 @@ final class SecurityAccessRuntimeOperations03
         } catch (Throwable) {
         }
         if (strlen($candidate) < 32) {
-            $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
-                ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
-                : [];
-            $candidate = mb_trim((string) ($config["secret"] ?? ""));
+            try {
+                $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg();
+                $candidate = mb_trim((string) ($config["secret"] ?? ""));
+            } catch (Throwable) {
+                $candidate = "";
+            }
         }
         if (strlen($candidate) < 32) {
             throw new RuntimeException(
@@ -405,6 +407,7 @@ final class SecurityAccessRuntimeOperations03
         $secret = $candidate;
         return $secret;
     
+    }
 
     public static function billing_state(array $clinic): array
     

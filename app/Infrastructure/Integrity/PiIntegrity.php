@@ -606,7 +606,7 @@ final class PiIntegrity
                 $statement = self::pdo()->query("SELECT meta_value FROM pi_meta WHERE meta_key='app_secret' LIMIT 1");
                 $value = $statement ? $statement->fetchColumn() : false;
                 if (is_string($value)) {
-                    $secret = trim($value);
+                    $secret = mb_trim($value);
                 }
             }
         } catch (\Throwable) {
@@ -616,7 +616,7 @@ final class PiIntegrity
                 $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
                     ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
                     : [];
-                $secret = trim((string) ($config['secret'] ?? ''));
+                $secret = mb_trim((string) ($config['secret'] ?? ''));
             } catch (\Throwable) {
                 $secret = '';
             }

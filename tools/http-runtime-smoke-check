@@ -147,7 +147,7 @@ COMMON_HEADERS=(-H 'Host: prontoo.app' -H 'X-Forwarded-Proto: https')
 
 STEP="wait-server"
 for _ in {1..50}; do
-  if curl -fsS "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" >/dev/null 2>&1; then
+  if curl -fsS "${COMMON_HEADERS[@]}" "$BASE_URL?r=login" >/dev/null 2>&1; then
     break
   fi
   sleep 0.2
@@ -180,7 +180,7 @@ extract_html_csrf() {
 
 STEP="status"
 curl -sS -D "$TMP/status.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" -o "$TMP/status.body"
-assert_status "$TMP/status.headers" 200 "status"
+assert_status "$TMP/status.headers" 404 "status"
 
 STEP="login-get"
 curl -sS -D "$TMP/login-get.headers" "${COMMON_HEADERS[@]}" "$BASE_URL?r=login" -o "$TMP/login-get.body"

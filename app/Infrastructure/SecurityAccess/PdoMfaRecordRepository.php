@@ -57,7 +57,7 @@ final class PdoMfaRecordRepository implements MfaRecordPort
             $value = $statement->fetchColumn();
             $statement->closeCursor();
             if (is_string($value)) {
-                $secret = trim($value);
+                $secret = mb_trim($value);
             }
         } catch (\Throwable) {
         }
@@ -65,7 +65,7 @@ final class PdoMfaRecordRepository implements MfaRecordPort
             $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
                 ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
                 : [];
-            $secret = trim((string) ($config['secret'] ?? ''));
+            $secret = mb_trim((string) ($config['secret'] ?? ''));
         }
         if (strlen($secret) < 32) {
             throw new \RuntimeException(
