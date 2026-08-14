@@ -608,7 +608,7 @@
         "tools/database-record-telemetry-contract-check": "fc333652572c9e6edebdb53e486a4c28598f7205ff6da91a9bbf5433b379c4a8",
         "tools/documentation-check.php": "fe513ae43e8dc3286760384799595fd6f17a99fe0ad9b74a3d1d3959509f2624",
         "tools/global-audit-contract-check": "099d6dae13b40c8b2679eb0ce8793a3c5510661dff1defd12308c12e347b102f",
-        "tools/http-runtime-smoke-check": "0d6b63a04e7dea7c7fe1bc7ae151a986fdde8db8932e8a26e9f8dcaef4375852",
+        "tools/http-runtime-smoke-check": "9e4bf4d253175361c7ba953031c2cf62189e52d75a5795eb0763bd8799a4195f",
         "tools/install-security-check.php": "90c6fa65149c3c2d95b6b65baff7bfafaafffd7225f5753198da1860bbb0ef6e",
         "tools/install-window-contract-check": "6b8a9f718e6d7cda40ee91753698013dd220098647d4252b5ac47144caa623e2",
         "tools/login-logout-http-smoke": "2dd1e2e278a3933ae62ffbfa3e06980ec9bd5791954358ebc1233a90e9743e04",
