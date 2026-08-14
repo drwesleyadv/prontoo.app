@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 25
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:8.0.43@sha256:3e646bcda0d9448ffa3d2024eef04e1bca95528ec19b9e8b76749da9d97d4a10
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: prontoo_schema
@@ -42,11 +42,11 @@ jobs:
           --health-retries=20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
       - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
           php-version: '8.4'
           coverage: none
