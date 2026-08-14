@@ -405,6 +405,7 @@ final class SecurityAccessRuntimeOperations03
         $secret = $candidate;
         return $secret;
     
+    }
 
     public static function billing_state(array $clinic): array
     
