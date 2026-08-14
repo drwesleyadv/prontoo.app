@@ -27,60 +27,8 @@ final class SupportFoundationRuntimeOperations02
     }
 
     public static function page_login_autotest(): void
-    
     {
-    
-        if (!headers_sent()) {
-            header("Content-Type: application/json; charset=utf-8");
-            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
-            header("X-Content-Type-Options: nosniff");
-        }
-        if ((string) ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
-            http_response_code(405);
-            header("Allow: GET");
-            echo json_encode(
-                [
-                    "ok" => false,
-                    "auto_login" => false,
-                    "redirect" => "",
-                    "version" => PRONTOO_VERSION,
-                    "mode" => "login_light",
-                ],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            );
-            exit();
-        }
-        if (
-            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_ip_bucket("login_autotest"), 20, 300) ||
-            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_autotest"), 30, 300)
-        ) {
-            http_response_code(429);
-            echo json_encode(
-                [
-                    "ok" => false,
-                    "auto_login" => false,
-                    "redirect" => "",
-                    "version" => PRONTOO_VERSION,
-                    "mode" => "login_light",
-                ],
-                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-            );
-            exit();
-        }
-        $checks = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::prontoo_login_selftest_light();
-        echo json_encode(
-            [
-                "ok" => !empty($checks["ok"]),
-                "auto_login" => false,
-                "redirect" => "",
-                "version" => PRONTOO_VERSION,
-                "mode" => $checks["mode"] ?? "login_light",
-                "maintenance_deferred" => true,
-            ],
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-        );
-        exit();
-    
+        \Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::page_public_login_autotest();
     }
 
     public static function person_signature_value(
