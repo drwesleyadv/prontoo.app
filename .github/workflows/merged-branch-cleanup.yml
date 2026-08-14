@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - name: Remove superseded pre-baseline branches
+      - name: Remove superseded historical branches
         shell: bash
         run: |
           set -euo pipefail
@@ -34,7 +34,11 @@ jobs:
               if git merge-base --is-ancestor "$ref" origin/prontoo; then
                 delete_reason="merged-into-canonical"
               elif ! git merge-base --is-ancestor "$BASELINE_SHA" "$ref"; then
-                delete_reason="pre-baseline-superseded"
+                case "$branch" in
+                  agent/*-1-8-13-*|agent/*probe*|agent/*diagnostic*|agent/*inventory*|agent/*issue-trigger*|agent/*publisher*|agent/*runner*|agent/zero-legacy-phase*|agent/presentation-priority-*|agent/presentation-important-audit|agent/register-zero-legacy-finalizer|archive/*|diagnostic/*)
+                    delete_reason="explicit-pre-baseline-history"
+                    ;;
+                esac
               fi
               if [[ -n "$delete_reason" ]]; then
                 echo "Deleting ${branch}: ${delete_reason}"
