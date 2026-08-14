@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.8.14.1 — Remediação pós-reauditoria global
+## 1.8.14.2 — Identidade visual da resposta 404
 
-- formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente de chegou para pronto para atendimento.
-- substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel.
-- torna atômica a criação da anotação clínica com o início da consulta por command tipado e reduz dívida do Runtime tocado.
-- adiciona contratos anti-regressão específicos para os dois defeitos funcionais encontrados na reauditoria.
-- adiciona limpeza segura de branches agent já incorporadas ao estado canônico e prepara proteção obrigatória da branch principal.
+- substitui a resposta textual 404 por uma página HTML alinhada ao shell público do Prontoo.
+- reutiliza tipografia, verde institucional, brandmark, card e controles visuais já adotados no login.
+- mantém o código HTTP 404, cache no-store, noindex e proteção nosniff.
+- preserva o contrato de privacidade sem expor versão, telemetria, runtime ou health signal na resposta.
+- amplia o smoke HTTP para validar simultaneamente identidade visual e ausência de sinal operacional público.
