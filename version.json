@@ -1,10 +1,10 @@
 {
-    "version": "1.8.14.1",
-    "release": "1.8.14.1",
-    "generated_at_unix": 1786714860,
-    "generated_at": "2026-08-14T09:41:00-04:00",
-    "updated_at": "2026-08-14T09:41:00-04:00",
-    "build": "1.8.14.1-global-audit-followup-remediation",
+    "version": "1.8.14.2",
+    "release": "1.8.14.2",
+    "generated_at_unix": 1786736460,
+    "generated_at": "2026-08-14T15:41:00-04:00",
+    "updated_at": "2026-08-14T15:41:00-04:00",
+    "build": "1.8.14.2-security-hardening-private-telemetry",
     "asset_version": "1.8.14.1",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -12,8 +12,8 @@
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": false,
-    "functional_equivalence_policy": "canonical_global_audit_followup_remediation_without_schema_change",
+    "visual_changes": true,
+    "functional_equivalence_policy": "canonical_security_hardening_private_telemetry_without_schema_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Fecha regressões funcionais da Jornada encontradas na reauditoria global, torna gravação clínica inicial atômica e reforça governança do repositório sem alterar schema.",
+    "notes": "Endurece segredos criptográficos, sanitiza diagnósticos financeiros, limita o autoteste público e remove toda exposição pública de telemetria operacional; métricas completas permanecem apenas no painel do Desenvolvedor.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.14.1-global-audit-followup-remediation",
-    "deployment_sync_requested_at": "2026-08-14T09:41:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.14.2-security-hardening-private-telemetry",
+    "deployment_sync_requested_at": "2026-08-14T15:41:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -54,6 +54,7 @@
             "speed": "ssd/telemetry/speed.json"
         }
     },
+    "public_telemetry_policy": "no_public_operational_metrics_status_is_data_free_and_legacy_wave_is_tombstone_developer_panel_only",
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
     "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_with_uncached_fallback_when_readiness_lock_cache_is_unavailable",
     "release_reconciliation_policy": "version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only",
@@ -84,13 +85,13 @@
         ]
     },
     "changelog": {
-        "title": "Remediação pós-reauditoria global",
+        "title": "Hardening de segurança e telemetria privada",
         "items": [
-            "formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente de chegou para pronto para atendimento",
-            "substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel",
-            "torna atômica a criação da anotação clínica com o início da consulta por command tipado e reduz dívida do Runtime tocado",
-            "adiciona contratos anti-regressão específicos para os dois defeitos funcionais encontrados na reauditoria",
-            "adiciona limpeza segura de branches agent já incorporadas ao estado canônico e prepara proteção obrigatória da branch principal"
+            "vincula tokens temporários de PDF exclusivamente ao segredo aleatório da instalação e elimina fallback determinístico",
+            "remove fallbacks criptográficos previsíveis do MFA, das assinaturas globais e da camada de integridade, com falha fechada quando o segredo canônico não pode ser provado",
+            "sanitiza diagnósticos financeiros para registrar apenas metadados técnicos, nomes de campos e referências hash, sem valores de POST, mensagens cruas ou stack trace",
+            "torna o autoteste de login somente GET, aplica limite independente por IP e cliente e elimina gravação de auditoria por chamada pública",
+            "suprime toda telemetria operacional pública: login sem gráficos, status sem métricas ou versão e endpoint legado de telemetria convertido em tombstone sem dados; métricas completas permanecem apenas no painel do Desenvolvedor"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
