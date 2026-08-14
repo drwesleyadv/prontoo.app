@@ -38,6 +38,7 @@ $routeRegistry = (string) @file_get_contents($root . '/app/Runtime/Routing/Route
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $loginRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php');
 $autotestRuntime = (string) @file_get_contents($root . '/app/Runtime/SupportFoundation/SupportFoundationRuntimeOperations02.php');
+$publicRuntime = (string) @file_get_contents($root . '/app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php');
 foreach ([
     'RouteRegistry::names()',
     'RouteRegistry::publicNames()',
@@ -48,12 +49,13 @@ foreach ([
         throw new RuntimeException('RouteCatalog não deriva do registry unificado: ' . $contract);
     }
 }
-if (str_contains($routeRegistry, "'login_telemetry_wave' =>")) {
-    throw new RuntimeException('Telemetria de login não pode permanecer registrada como rota HTTP.');
+$telemetrySpec = "'login_telemetry_wave' => [\\Prontoo\\Runtime\\PublicWeb\\PublicWebRuntimeOperations01::class, 'page_public_telemetry_tombstone', true, true, ['GET'], []]";
+if (!str_contains($routeRegistry, $telemetrySpec)) {
+    throw new RuntimeException('URL legado de telemetria deve apontar somente para o tombstone sem dados.');
 }
-$statusSpec = "'status' => [\\Prontoo\\Runtime\\AdminPages\\AdminPagesRuntimeOperations09::class, 'page_admin_performance', false, false, [], []]";
+$statusSpec = "'status' => [\\Prontoo\\Runtime\\PublicWeb\\PublicWebRuntimeOperations01::class, 'page_public_status', true, false, ['GET'], []]";
 if (!str_contains($routeRegistry, $statusSpec)) {
-    throw new RuntimeException('Rota status deve apontar para o painel privado de performance.');
+    throw new RuntimeException('Status público deve usar a superfície genérica sem métricas.');
 }
 if (str_contains($loginRuntime, 'login_telemetry_wave_html()')) {
     throw new RuntimeException('Login público não pode renderizar telemetria.');
@@ -67,11 +69,16 @@ foreach ([
         throw new RuntimeException('Exceção pública de telemetria ainda presente no Runner: ' . $forbidden);
     }
 }
-foreach ([
-    "REQUEST_METHOD"] as $contract) {
-    if (!str_contains($autotestRuntime, $contract)) {
-        throw new RuntimeException('Autoteste de login sem restrição de método.');
-    }
+if (!str_contains($publicRuntime, '"telemetry_public" => false') ||
+    str_contains($publicRuntime, 'telemetry_route_requests_series_20d') ||
+    str_contains($publicRuntime, 'telemetry_database_record_series_30d')) {
+    throw new RuntimeException('Superfície pública de telemetria contém dados ou fonte de métricas.');
+}
+if (str_contains($publicRuntime, 'PRONTOO_VERSION')) {
+    throw new RuntimeException('Status público não deve revelar a versão da aplicação.');
+}
+if (!str_contains($autotestRuntime, 'REQUEST_METHOD')) {
+    throw new RuntimeException('Autoteste de login sem restrição de método.');
 }
 if (!str_contains($autotestRuntime, 'security_ip_bucket("login_autotest")')) {
     throw new RuntimeException('Autoteste de login sem limite independente por IP.');
@@ -100,6 +107,6 @@ echo json_encode([
     'asset_version' => $assetRevision,
     'assets_verified' => count($assets),
     'public_telemetry' => false,
-    'status_developer_only' => true,
+    'public_status_metrics' => false,
     'login_autotest_get_only' => true,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
