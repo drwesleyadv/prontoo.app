@@ -76,17 +76,23 @@ $assert((int) ($architecture['action_contracts_total'] ?? 0) === 156, 'action_co
 $routes = RouteCatalog::all();
 $publicRoutes = RouteCatalog::public();
 $jsonRoutes = RouteCatalog::json();
-foreach (['home', 'login', 'login_telemetry_wave', 'patients', 'financial', 'status'] as $route) {
+foreach (['home', 'login', 'patients', 'financial', 'status'] as $route) {
     $assert(in_array($route, $routes, true), 'route_catalog:' . $route);
 }
-foreach (['login', 'login_telemetry_wave', 'logout', 'status'] as $route) {
+$assert(!in_array('login_telemetry_wave', $routes, true), 'telemetry_route_removed');
+foreach (['login', 'logout'] as $route) {
     $assert(in_array($route, $publicRoutes, true), 'public_route_catalog:' . $route);
 }
-foreach (['login_telemetry_wave', 'patient_lookup', 'goal_status'] as $route) {
+$assert(!in_array('status', $publicRoutes, true), 'status_not_public');
+$assert(!in_array('login_telemetry_wave', $publicRoutes, true), 'telemetry_not_public');
+foreach (['patient_lookup', 'goal_status'] as $route) {
     $assert(in_array($route, $jsonRoutes, true), 'json_route_catalog:' . $route);
 }
+$assert(!in_array('login_telemetry_wave', $jsonRoutes, true), 'telemetry_json_route_removed');
 $assert(RouteCatalog::isPublicLight('login', 'POST'), 'login_public_light');
-$assert(RouteCatalog::isPublicLight('status', 'GET'), 'status_public_light');
+$assert(RouteCatalog::isPublicLight('login_autotest', 'GET'), 'login_autotest_get_public_light');
+$assert(!RouteCatalog::isPublicLight('login_autotest', 'POST'), 'login_autotest_post_not_light');
+$assert(!RouteCatalog::isPublicLight('status', 'GET'), 'status_get_not_public_light');
 $assert(!RouteCatalog::isPublicLight('status', 'POST'), 'status_post_not_light');
 $assert(RouteCatalog::wantsJson('patient_lookup', ''), 'patient_lookup_json');
 $assert(RouteCatalog::wantsJson('patients', 'application/json'), 'accept_json');
@@ -114,6 +120,8 @@ foreach ([
     'PdoPatientTabCommandRepository',
     'PdoPatientRevenueReceiptRepository',
     'PatientContactView::editForm(',
+    '$publicTelemetry =',
+    '$publicStatus =',
 ] as $token) {
     $assert(!str_contains($runnerSource, $token), 'runner_forbidden:' . $token);
 }
@@ -261,7 +269,6 @@ try {
     $failures[] = 'patient_revenue_forbidden_role';
 } catch (InvalidArgumentException) {
 }
-
 
 $consolidationManifest = json_decode(
     (string) file_get_contents($root . '/app/architecture.manifest.json'),
