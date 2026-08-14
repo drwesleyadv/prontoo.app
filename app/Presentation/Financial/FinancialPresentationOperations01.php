@@ -134,7 +134,6 @@ final class FinancialPresentationOperations01
                 "</span></div>";
         }
         return $h . "</div>";
-    
     }
 
     public static function financial_cash_exception_debug(
@@ -144,45 +143,73 @@ final class FinancialPresentationOperations01
     ): string 
     {
     
-        $lines = [];
-        $lines[] = "PRONTOO_CAIXA_DEBUG";
-        $lines[] = "timestamp_utc=" . gmdate("c");
-        $lines[] = "route=" . (is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route']) ? \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route() : "indefinida");
-        $lines[] = "http_method=" . (string) ($_SERVER["REQUEST_METHOD"] ?? "");
-        $lines[] =
-            "action=" . ($act !== "" ? $act : (string) ($_POST["act"] ?? ""));
-        $lines[] = "clinic_id=" . (string) ($c["clinic_id"] ?? "");
-        $lines[] = "user_id=" . (string) ($c["user"]["id"] ?? "");
-        $lines[] =
-            "role=" . (string) ($c["role"] ?? ($_SESSION["role_code"] ?? ""));
-        $lines[] = "exception_class=" . get_class($e);
-        $lines[] = "exception_code=" . (string) $e->getCode();
-        $lines[] = "message=" . $e->getMessage();
-        $lines[] = "file=" . $e->getFile();
-        $lines[] = "line=" . (string) $e->getLine();
+        $route = is_callable([\Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::class, 'route'])
+            ? \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route()
+            : "indefinida";
+        $action = $act !== "" ? $act : (string) ($_POST["act"] ?? "");
+        $errorReference = substr(
+            hash(
+                "sha256",
+                get_class($e) .
+                    "|" .
+                    (string) $e->getCode() .
+                    "|" .
+                    $e->getMessage() .
+                    "|" .
+                    $e->getFile() .
+                    "|" .
+                    (string) $e->getLine(),
+            ),
+            0,
+            24,
+        );
+        $postFields = [];
+        foreach (array_keys($_POST) as $key) {
+            $key = preg_replace('/[^a-z0-9_\-\.]/i', "_", (string) $key) ?: "field";
+            if (!in_array($key, ["csrf", "_token", "password", "senha"], true)) {
+                $postFields[] = mb_substr($key, 0, 64);
+            }
+        }
+        $postFields = array_values(array_unique($postFields));
+        sort($postFields, SORT_STRING);
+        $lines = [
+            "PRONTOO_CAIXA_DEBUG",
+            "timestamp_utc=" . gmdate("c"),
+            "route=" . $route,
+            "http_method=" . (string) ($_SERVER["REQUEST_METHOD"] ?? ""),
+            "action=" . $action,
+            "clinic_id=" . (string) ($c["clinic_id"] ?? ""),
+            "user_id=" . (string) ($c["user"]["id"] ?? ""),
+            "role=" . (string) ($c["role"] ?? ($_SESSION["role_code"] ?? "")),
+            "exception_class=" . get_class($e),
+            "exception_code=" . (string) $e->getCode(),
+            "error_ref=" . $errorReference,
+            "post_fields=" . json_encode($postFields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            "php_version=" . PHP_VERSION,
+        ];
         if ($e->getPrevious()) {
             $p = $e->getPrevious();
             $lines[] = "previous_class=" . get_class($p);
             $lines[] = "previous_code=" . (string) $p->getCode();
-            $lines[] = "previous_message=" . $p->getMessage();
-            $lines[] = "previous_file=" . $p->getFile();
-            $lines[] = "previous_line=" . (string) $p->getLine();
+            $lines[] =
+                "previous_ref=" .
+                substr(
+                    hash(
+                        "sha256",
+                        get_class($p) .
+                            "|" .
+                            (string) $p->getCode() .
+                            "|" .
+                            $p->getMessage() .
+                            "|" .
+                            $p->getFile() .
+                            "|" .
+                            (string) $p->getLine(),
+                    ),
+                    0,
+                    24,
+                );
         }
-        $post = [];
-        foreach ($_POST as $k => $v) {
-            $key = (string) $k;
-            if (in_array($key, ["csrf", "_token", "password", "senha"], true)) {
-                continue;
-            }
-            $post[$key] = is_scalar($v) ? (string) $v : gettype($v);
-        }
-        $lines[] =
-            "post=" .
-            json_encode($post, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $lines[] = "php_version=" . PHP_VERSION;
-        $lines[] = "trace=";
-        $trace = explode("\n", $e->getTraceAsString());
-        $lines = array_merge($lines, array_slice($trace, 0, 12));
         return implode("\n", $lines);
     
     }
