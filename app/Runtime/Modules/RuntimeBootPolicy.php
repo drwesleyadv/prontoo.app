@@ -8,9 +8,7 @@ final class RuntimeBootPolicy
     private const SPECIALIZATION_POLICY = 'pi-v3-php-layered-runtime-route-loaded';
 
     private const PUBLIC_LIGHT_ROUTES = [
-        'status',
         'login',
-        'login_telemetry_wave',
         'login_autotest',
         'mfa',
         'mobile_web_access',
