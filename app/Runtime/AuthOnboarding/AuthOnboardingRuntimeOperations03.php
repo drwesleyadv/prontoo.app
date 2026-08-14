@@ -457,7 +457,6 @@ final class AuthOnboardingRuntimeOperations03
         $submitLabel = $mfaStage ? "Validar e entrar" : "Entrar";
         $submitIcon = $mfaStage ? "verified_user" : "hourglass_top";
         $form =
-            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_html() .
             '<section class="auth login-card login-shell"><div class="auth-titleline login-titleline"><div class="auth-brandmark" data-app-favicon-brandmark><img class="auth-brandmark-favicon" src="/public/assets/app-icon-' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(PRONTOO_ASSET_REV) .
             '.png" alt="" aria-hidden="true"></div><div><span class="eyebrow">Prontoo</span><h1>Meu Consultório</h1></div></div>' .
@@ -547,7 +546,6 @@ final class AuthOnboardingRuntimeOperations03
         } catch (Throwable $e) {
             error_log("[Prontoo login lock cleanup] " . $e->getMessage());
         }
-    
     }
     private static function auditRemediationDataService()
     {
