@@ -67,10 +67,56 @@ jobs:
               target.write_bytes(source.read_bytes())
               source.unlink()
 
-          css = Path('public/assets/presentation.css').read_bytes()
+          manifest_path = Path('app/Presentation/Styles/styles.manifest.json')
+          manifest = json.loads(manifest_path.read_text())
+          source_root = Path(manifest['source_root'])
+          source_data = {}
+          for source in manifest['sources']:
+              relative = source['path']
+              data = (source_root / relative).read_bytes()
+              source_data[relative] = data
+              source['sha256'] = hashlib.sha256(data).hexdigest()
+              source['bytes'] = len(data)
+              source['important_count'] = data.count(b'!important')
+              source['route_scope_count'] = data.count(b'body[data-route=')
+
+          built = bytearray()
+          next_offset = {relative: 0 for relative in source_data}
+          for segment in manifest['sequence']:
+              relative = segment['source']
+              offset = int(segment['offset'])
+              length = int(segment['bytes'])
+              if offset != next_offset[relative]:
+                  raise SystemExit(f'non-contiguous presentation slice: {relative}@{offset}')
+              chunk = source_data[relative][offset:offset + length]
+              if len(chunk) != length:
+                  raise SystemExit(f'presentation slice outside source: {relative}@{offset}')
+              segment['sha256'] = hashlib.sha256(chunk).hexdigest()
+              segment['important_count'] = chunk.count(b'!important')
+              segment['route_scope_count'] = chunk.count(b'body[data-route=')
+              next_offset[relative] += length
+              built.extend(chunk)
+          for relative, data in source_data.items():
+              if next_offset[relative] != len(data):
+                  raise SystemExit(f'presentation source coverage changed: {relative}')
+
+          manifest['artifact_contract']['sha256'] = hashlib.sha256(built).hexdigest()
+          manifest['artifact_contract']['bytes'] = len(built)
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+          PY
+      - name: Rebuild deterministic Presentation artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --write
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
           contract_path = Path('app/presentation.visual-contract.json')
+          css = Path('public/assets/presentation.css').read_bytes()
           contract = json.loads(contract_path.read_text())
-          contract['version'] = new
+          contract['version'] = '1.8.14.1'
           contract['delivery']['current_sha256'] = hashlib.sha256(css).hexdigest()
           contract['delivery']['current_bytes'] = len(css)
           contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=4) + '\n')
