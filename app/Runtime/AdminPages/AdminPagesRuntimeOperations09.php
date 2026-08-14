@@ -507,12 +507,19 @@ final class AdminPagesRuntimeOperations09
             "admin-performance-card",
         );
     
+        $telemetryCards =
+            '<div class="wide global-telemetry-grid">' .
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html() .
+            '</div>';
+        $telemetryCharts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Observabilidade",
                 "Métricas de requisição, latência e comportamento das rotas para investigação técnica.",
             ) .
             '<section class="admin-performance-screen">' .
+            $telemetryCards .
+            $telemetryCharts .
             $stats .
             $routesCard .
             '</section>';

@@ -138,8 +138,8 @@
             "layer": "components",
             "responsibility": "components",
             "concern": "components",
-            "sha256": "7b1119366b3b8d209f0b801582109d807b1e137d84c3e1365d933516e898890f",
-            "bytes": 337545,
+            "sha256": "8dbb5cb2bda7153143fc8ba5ba6a5b331ec53e2c2689f14480bb66a7cc7cde08",
+            "bytes": 340560,
             "important_count": 1637,
             "route_scope_count": 0
         },
@@ -9949,16 +9949,16 @@
             "order": 1071,
             "source": "components/components.css",
             "offset": 336431,
-            "bytes": 1114,
-            "sha256": "c68e92c3887583793fc276c0634be29eeee4c1d9e7a2e4e1adce2aadeb080a63",
+            "bytes": 4129,
+            "sha256": "b01da35d6ddf97067e12166cdb44daa80a549a00d673c7fb3ceddec246b50d37",
             "important_count": 0,
             "route_scope_count": 0
         }
     ],
     "artifact_contract": {
-        "sha256": "f720b7de8df2906701ae422e45c42b6662dd8eaafd7569b34007c94bfae61872",
-        "bytes": 800050,
-        "lines": 15072,
+        "sha256": "1f39298dd535862729f4114444dabcf4cccd394fe7b4bd264074bd6c95280f22",
+        "bytes": 803065,
+        "lines": 15095,
         "deterministic_source_required": true
     },
     "observable_ux_contract": {

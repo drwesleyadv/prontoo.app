@@ -21,51 +21,11 @@ final class UiComponentsRuntimeOperations03
         }
         $parent = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::context_parent_for_route($current, $c);
         if (($c["scope"] ?? "") === "global") {
-            $alertView = (string) ($_GET["view"] ?? "received");
-            if (!in_array($alertView, ["received", "sent"], true)) {
-                $alertView = "received";
-            }
-            if ($current === "admin_alerts") {
-                return [
-                    ["admin_alerts", "Recebidos", "inbox", ["view" => "received"]],
-                    ["admin_alerts", "Enviados", "outbox", ["view" => "sent"]],
-                    ["admin_alerts", "Novo aviso", "add_comment", ["view" => $alertView, "compose" => "1"]],
-                ];
-            }
-            if ($current === "admin_maintenance") {
-                return [
-                    ["admin_maintenance", "Manutenção", "construction"],
-                    ["admin_settings", "Configurações", "settings"],
-                    ["admin_global_notices", "Avisos globais", "campaign"],
-                ];
-            }
-            return match ($parent) {
-                "admin_painel" => [["admin_painel", "Visão geral", "space_dashboard"]],
-                "admin_clinics" => [
-                    ["admin_clinics", "Consultórios", "home_health"],
-                    ["admin_onboarding", "Onboarding", "playlist_add_check"],
-                    ["admin_operations", "Operação", "account_tree"],
-                ],
-                "admin_health" => [
-                    ["admin_health", "Confiabilidade", "shield"],
-                    ["admin_errors", "Erros", "bug_report"],
-                    ["admin_security", "Segurança", "security"],
-                    ["admin_integrity", "Integridade", "verified_user"],
-                    ["admin_diagnostics", "Diagnósticos", "troubleshoot"],
-                    ["admin_deleted", "Recuperação", "restore_from_trash"],
-                ],
-                "admin_performance" => [["admin_performance", "Observabilidade", "monitoring"]],
-                "admin_administration" => [
-                    ["admin_administration", "Administração", "tune"],
-                    ["admin_people", "Usuários", "groups"],
-                    ["admin_alerts", "Comunicação", "campaign"],
-                    ["admin_global_notices", "Avisos globais", "notifications_active"],
-                    ["admin_maintenance", "Manutenção", "construction"],
-                    ["admin_settings", "Configurações", "settings"],
-                    ["admin_audit", "Auditoria", "history"],
-                ],
-                default => [],
-            };
+            return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_global_operation_specs(
+                $current,
+                $parent,
+                (string) ($_GET["view"] ?? "received"),
+            );
         }
         $role = (string) ($c["role"] ?? "");
         $cashLabel = $role === "recepcionista" ? "Caixa" : "Painel";
