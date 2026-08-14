@@ -33,6 +33,7 @@ jobs:
           bash -n tools/http-runtime-smoke-check
           php tools/release-version
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
