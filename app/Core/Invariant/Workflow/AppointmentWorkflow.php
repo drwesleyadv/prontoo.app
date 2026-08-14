@@ -167,9 +167,9 @@ final class AppointmentWorkflow
             "rescheduled" => "reagendado",
         ];
         $transitions = [
-            "agendado" => ["confirmado", "chegou", "cancelado", "nao_compareceu", "reagendado"],
+            "agendado" => ["confirmado", "chegou", "em_atendimento", "cancelado", "nao_compareceu", "reagendado"],
             "confirmado" => ["chegou", "cancelado", "nao_compareceu", "reagendado"],
-            "chegou" => ["em_preparo"],
+            "chegou" => ["em_preparo", "pronto_atendimento"],
             "em_preparo" => ["pronto_atendimento"],
             "pronto_atendimento" => ["em_atendimento"],
             "em_atendimento" => ["atendimento_concluido"],
@@ -217,9 +217,36 @@ final class AppointmentWorkflow
             [8],
             $unsafeComplete,
         );
+        $taskSourcesComplete = true;
+        $taskSources = SqlExpression::whereAllowedValues(
+            "UPDATE pi_appointments SET status='pronto_atendimento' WHERE id=? AND clinic_id=? AND status IN ('chegou','em_preparo')",
+            "status",
+            [8, 4],
+            $taskSourcesComplete,
+        );
+        $clinicalStartSql = "UPDATE pi_appointments SET consultation_started_at=NOW(), status='em_atendimento' WHERE id=? AND clinic_id=? AND patient_link_id=? AND status IN ('agendado','pronto_atendimento')";
+        $clinicalAssignments = SqlExpression::assignments($clinicalStartSql);
+        $clinicalSourcesComplete = true;
+        $clinicalSources = SqlExpression::whereAllowedValues(
+            $clinicalStartSql,
+            "status",
+            [8, 4, 2],
+            $clinicalSourcesComplete,
+        );
         $cases = [
             "initial_agendado" => $machine->acceptsInitial("agendado"),
             "confirm_flow" => $machine->canTransition("agendado", "confirmado"),
+            "task_completion_fast_ready" =>
+                $taskSourcesComplete &&
+                $taskSources === ["chegou", "em_preparo"] &&
+                $machine->canTransition("chegou", "pronto_atendimento") &&
+                $machine->canTransition("em_preparo", "pronto_atendimento"),
+            "clinical_note_fast_start" =>
+                $clinicalSourcesComplete &&
+                $clinicalSources === ["agendado", "pronto_atendimento"] &&
+                !empty($clinicalAssignments["status"]["known_direct"]) &&
+                $machine->canTransition("agendado", "em_atendimento") &&
+                $machine->canTransition("pronto_atendimento", "em_atendimento"),
             "care_flow" => $machine->canTransition("em_atendimento", "atendimento_concluido"),
             "terminal_blocks_reopen" => !$machine->canTransition("finalizado", "agendado"),
             "alias_normalized" => $machine->canTransition("scheduled", "confirmed"),

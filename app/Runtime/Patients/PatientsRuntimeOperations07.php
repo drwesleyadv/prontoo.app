@@ -676,21 +676,19 @@ final class PatientsRuntimeOperations07
                     $appointmentForAudit = null;
                 }
             }
-            \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.26', [
-                    $cid,
-                    $id,
-                    $appointmentId > 0 ? $appointmentId : null,
-                    $type,
-                    $title,
-                    (int) $c["user"]["id"],
-                ], []);
-            $careId = \Prontoo\Runtime\Operational\OperationalComposition::patients()->lastInsertId();
-            \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.27', [$careId, $cid, $content], []);
-            if (
-                $appointmentForAudit &&
-                empty($appointmentForAudit["consultation_started_at"])
-            ) {
-                \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.07.page_patient.28', [$appointmentId, $cid, $id], []);
+            $careWrite = \Prontoo\Runtime\Operational\OperationalComposition::patientCareCommands()->createClinicalNote(
+                $cid,
+                $id,
+                $appointmentId > 0 ? $appointmentId : null,
+                $type,
+                $title,
+                $content,
+                (int) $c["user"]["id"],
+                (bool) ($appointmentForAudit && empty($appointmentForAudit["consultation_started_at"])),
+            );
+            $careId = (int) ($careWrite["care_id"] ?? 0);
+            $consultationStarted = !empty($careWrite["consultation_started"]);
+            if ($consultationStarted) {
                 $scheduled = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
                     $appointmentForAudit["start_at"],
                 );

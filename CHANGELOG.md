@@ -1,10 +1,9 @@
 # Versão canônica
 
-## 1.8.13.9 — Remediação da auditoria global
+## 1.8.14.1 — Remediação pós-reauditoria global
 
-- executa diretamente os hardenings canônicos de storage, HTTPS e sanitização de erros sem guards globais inertes.
-- remove a API PHP aposentada de dispositivo persistente e mantém revogação de sessões pela geração canônica de autenticação.
-- mantém pi_user_devices apenas como estrutura congelada de schema, sem mecanismo ativo no runtime.
-- elimina métricas Runtime duplicadas do manifesto e mantém o budget monotônico como fonte verificável.
-- fixa GitHub Actions e MySQL por identidade imutável e instala Playwright a partir de lockfile.
-- remove resíduos documentais e fortalece contratos anti-regressão da auditoria global.
+- formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente de chegou para pronto para atendimento.
+- substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel.
+- torna atômica a criação da anotação clínica com o início da consulta por command tipado e reduz dívida do Runtime tocado.
+- adiciona contratos anti-regressão específicos para os dois defeitos funcionais encontrados na reauditoria.
+- adiciona limpeza segura de branches agent já incorporadas ao estado canônico e prepara proteção obrigatória da branch principal.

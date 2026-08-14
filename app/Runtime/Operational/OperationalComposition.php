@@ -9,6 +9,7 @@ use Prontoo\Application\Operational\AuditWriteService;
 use Prontoo\Application\Operational\DocumentIssuanceService;
 use Prontoo\Application\Operational\InstallationAccountService;
 use Prontoo\Application\Operational\MaestroCommandService;
+use Prontoo\Application\Operational\PatientCareCommand;
 use Prontoo\Application\Operational\OperationalDataPort;
 use Prontoo\Application\Operational\OperationalDatabaseContextPort;
 use Prontoo\Application\Operational\OperationalSchemaPort;
@@ -25,6 +26,7 @@ final class OperationalComposition
     private static ?OperationalDatabaseContextPort $databaseContext = null;
     private static array $services = [];
     private static ?AppointmentCommandService $appointmentCommands = null;
+    private static ?PatientCareCommand $patientCareCommands = null;
     private static ?AuditWriteService $auditWrite = null;
     private static ?DocumentIssuanceService $documentIssuance = null;
     private static ?InstallationAccountService $installationAccount = null;
@@ -56,6 +58,11 @@ final class OperationalComposition
     public static function taskCommands(): TaskCommandService
     {
         return self::$taskCommands ??= new TaskCommandService(self::tasks());
+    }
+
+    public static function patientCareCommands(): PatientCareCommand
+    {
+        return self::$patientCareCommands ??= new PatientCareCommand(self::patients());
     }
 
     public static function patients(): OperationalUseCaseService
@@ -130,6 +137,7 @@ final class OperationalComposition
         self::$databaseContext = $databaseContext;
         self::$services = [];
         self::$appointmentCommands = null;
+        self::$patientCareCommands = null;
         self::$auditWrite = null;
         self::$documentIssuance = null;
         self::$installationAccount = null;

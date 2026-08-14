@@ -97,7 +97,7 @@ final class PatientsSqlCatalog07
                 "INSERT INTO pi_care_content (care_id,clinic_id,content) VALUES (?,?,?)"
             ),
             'operational.patients.07.page_patient.28' => (
-                "UPDATE pi_appointments SET consultation_started_at=NOW(), status=IF(status='agendado','em_atendimento',status), updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?"
+                "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), status='em_atendimento', updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=? AND status IN ('agendado','pronto_atendimento') AND consultation_started_at IS NULL AND consultation_finished_at IS NULL"
             ),
             'operational.patients.07.page_patient.29' => (
                 "SELECT id,start_at,end_at,status,reason,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE clinic_id=? AND patient_link_id=? ORDER BY start_at DESC LIMIT 20"
