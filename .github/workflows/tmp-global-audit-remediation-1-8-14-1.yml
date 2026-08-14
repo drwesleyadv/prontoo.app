@@ -1,0 +1,458 @@
+name: Temporary Global Audit Follow-up Remediation
+
+on:
+  push:
+    branches:
+      - agent/global-audit-remediation-1-8-14-1
+
+permissions:
+  contents: write
+
+jobs:
+  remediate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Apply audited follow-up remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              source = p.read_text()
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one replacement, found {count}")
+              p.write_text(source.replace(old, new, 1))
+
+          workflow_path = Path('app/Core/Invariant/Workflow/AppointmentWorkflow.php')
+          workflow = workflow_path.read_text()
+          workflow = workflow.replace(
+              '            "agendado" => ["confirmado", "chegou", "cancelado", "nao_compareceu", "reagendado"],',
+              '            "agendado" => ["confirmado", "chegou", "em_atendimento", "cancelado", "nao_compareceu", "reagendado"],',
+              1,
+          )
+          workflow = workflow.replace(
+              '            "chegou" => ["em_preparo"],',
+              '            "chegou" => ["em_preparo", "pronto_atendimento"],',
+              1,
+          )
+          workflow = workflow.replace(
+              '            "confirm_flow" => $machine->canTransition("agendado", "confirmado"),\n            "care_flow" => $machine->canTransition("em_atendimento", "atendimento_concluido"),',
+              '            "confirm_flow" => $machine->canTransition("agendado", "confirmado"),\n            "task_completion_fast_ready" => $machine->canTransition("chegou", "pronto_atendimento"),\n            "clinical_note_fast_start" => $machine->canTransition("agendado", "em_atendimento"),\n            "care_flow" => $machine->canTransition("em_atendimento", "atendimento_concluido"),',
+              1,
+          )
+          workflow_path.write_text(workflow)
+
+          replace_once(
+              'app/Infrastructure/Operational/PatientsSqlCatalog07.php',
+              '                "UPDATE pi_appointments SET consultation_started_at=NOW(), status=IF(status=\'agendado\',\'em_atendimento\',status), updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=?"',
+              '                "UPDATE pi_appointments SET consultation_started_at=COALESCE(consultation_started_at,NOW()), status=\'em_atendimento\', updated_at=NOW() WHERE id=? AND clinic_id=? AND patient_link_id=? AND status IN (\'agendado\',\'pronto_atendimento\') AND consultation_started_at IS NULL AND consultation_finished_at IS NULL"',
+          )
+
+          tasks_path = Path('app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php')
+          tasks = tasks_path.read_text()
+          start = tasks.index('    public static function workflow_on_appointment_finished(')
+          end = tasks.index('    public static function unread_notifications_count', start)
+          segment = tasks[start:end]
+          if '): void ' not in segment:
+              raise SystemExit('workflow_on_appointment_finished return type not found')
+          segment = segment.replace('): void ', '): bool ', 1)
+          segment = segment.replace('                return;\n', '                return false;\n')
+          if segment.count('return false;') < 3:
+              raise SystemExit('workflow_on_appointment_finished early failure returns incomplete')
+          segment = segment.replace(
+              '            ]);\n        } catch (Throwable $e) {',
+              '            ]);\n            return true;\n        } catch (Throwable $e) {',
+              1,
+          )
+          segment = segment.replace(
+              '            error_log(\n                "[Prontoo workflow appointment finished] " . $e->getMessage(),\n            );\n        }',
+              '            error_log(\n                "[Prontoo workflow appointment finished] " . $e->getMessage(),\n            );\n            return false;\n        }',
+              1,
+          )
+          tasks_path.write_text(tasks[:start] + segment + tasks[end:])
+
+          patient_path = Path('app/Runtime/Patients/PatientsRuntimeOperations07.php')
+          patient = patient_path.read_text()
+          old = '''            \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.26', [
+                    $cid,
+                    $id,
+                    $appointmentId > 0 ? $appointmentId : null,
+                    $type,
+                    $title,
+                    (int) $c["user"]["id"],
+                ], []);
+            $careId = \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->lastInsertId();
+            \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.27', [$careId, $cid, $content], []);
+            if (
+                $appointmentForAudit &&
+                empty($appointmentForAudit["consultation_started_at"])
+            ) {
+                \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.28', [$appointmentId, $cid, $id], []);
+                $scheduled = \\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
+                    $appointmentForAudit["start_at"],
+                );
+                $delay = $scheduled
+                    ? max(0, (int) floor((time() - $scheduled) / 60))
+                    : null;
+                \\Prontoo\\Runtime\\AuditActivity\\AuditActivityRuntimeOperations04::audit("consulta_iniciada", "consulta", $appointmentId, [
+                    "patient_name" => (string) $p["full_name"],
+                    "patient_link_id" => $id,
+                    "doctor_user_id" =>
+                        $appointmentForAudit["doctor_user_id"] ?? null,
+                    "start_at" => $appointmentForAudit["start_at"] ?? null,
+                    "end_at" => $appointmentForAudit["end_at"] ?? null,
+                    "reason" => $appointmentForAudit["reason"] ?? null,
+                    "audit_body" =>
+                        "A consulta foi iniciada" .
+                        ($delay !== null
+                            ? " com atraso registrado de " .
+                                \\Prontoo\\Domain\\Appointments\\AppointmentsDomainOperations01::format_minutes($delay) .
+                                " em relação ao horário agendado."
+                            : "."),
+                ]);
+            }
+'''
+          new = '''            $pdo = \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations01::pdo();
+            $ownsCareTransaction = !$pdo->inTransaction();
+            $consultationStarted = false;
+            if ($ownsCareTransaction) {
+                $pdo->beginTransaction();
+            }
+            try {
+                \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.26', [
+                        $cid,
+                        $id,
+                        $appointmentId > 0 ? $appointmentId : null,
+                        $type,
+                        $title,
+                        (int) $c["user"]["id"],
+                    ], []);
+                $careId = \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->lastInsertId();
+                \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.27', [$careId, $cid, $content], []);
+                if (
+                    $appointmentForAudit &&
+                    empty($appointmentForAudit["consultation_started_at"])
+                ) {
+                    $startStatement = \\Prontoo\\Runtime\\Operational\\OperationalComposition::patients()->result('operational.patients.07.page_patient.28', [$appointmentId, $cid, $id], []);
+                    $consultationStarted = $startStatement->rowCount() > 0;
+                }
+                if ($ownsCareTransaction) {
+                    $pdo->commit();
+                }
+            } catch (Throwable $careWriteError) {
+                if ($ownsCareTransaction && $pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $careWriteError;
+            }
+            if ($consultationStarted) {
+                $scheduled = \\Prontoo\\Infrastructure\\SupportFoundation\\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
+                    $appointmentForAudit["start_at"],
+                );
+                $delay = $scheduled
+                    ? max(0, (int) floor((time() - $scheduled) / 60))
+                    : null;
+                \\Prontoo\\Runtime\\AuditActivity\\AuditActivityRuntimeOperations04::audit("consulta_iniciada", "consulta", $appointmentId, [
+                    "patient_name" => (string) $p["full_name"],
+                    "patient_link_id" => $id,
+                    "doctor_user_id" =>
+                        $appointmentForAudit["doctor_user_id"] ?? null,
+                    "start_at" => $appointmentForAudit["start_at"] ?? null,
+                    "end_at" => $appointmentForAudit["end_at"] ?? null,
+                    "reason" => $appointmentForAudit["reason"] ?? null,
+                    "audit_body" =>
+                        "A consulta foi iniciada" .
+                        ($delay !== null
+                            ? " com atraso registrado de " .
+                                \\Prontoo\\Domain\\Appointments\\AppointmentsDomainOperations01::format_minutes($delay) .
+                                " em relação ao horário agendado."
+                            : "."),
+                ]);
+            }
+'''
+          if patient.count(old) != 1:
+              raise SystemExit(f'patient atomic-care block expected once, found {patient.count(old)}')
+          patient = patient.replace(old, new, 1)
+
+          old_finish = '''            if (
+                $appointmentForAudit &&
+                $role === "medico" &&
+                !empty($_POST["finish_appointment"]) &&
+                empty($appointmentForAudit["consultation_finished_at"])
+            ) {
+                \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                    $cid,
+                    $appointmentId,
+                    $id,
+                    (int) $c["user"]["id"],
+                    "anotacao_clinica",
+                );
+                \\Prontoo\\Runtime\\AuditActivity\\AuditActivityRuntimeOperations04::audit("consulta_concluida", "consulta", $appointmentId, [
+                    "patient_name" => (string) $p["full_name"],
+                    "patient_link_id" => $id,
+                    "doctor_user_id" =>
+                        $appointmentForAudit["doctor_user_id"] ?? null,
+                    "start_at" => $appointmentForAudit["start_at"] ?? null,
+                    "end_at" => $appointmentForAudit["end_at"] ?? null,
+                    "reason" => $appointmentForAudit["reason"] ?? null,
+                    "audit_body" =>
+                        "O profissional concluiu o atendimento e o horário real de fim foi registrado. A Recepção recebeu recado automático para finalizar a saída do paciente.",
+                ]);
+            }
+'''
+          new_finish = '''            $finishAppointmentSucceeded = null;
+            if (
+                $appointmentForAudit &&
+                $role === "medico" &&
+                !empty($_POST["finish_appointment"]) &&
+                empty($appointmentForAudit["consultation_finished_at"]) &&
+                ($consultationStarted || (string) ($appointmentForAudit["status"] ?? "") === "em_atendimento")
+            ) {
+                $finishAppointmentSucceeded = \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                    $cid,
+                    $appointmentId,
+                    $id,
+                    (int) $c["user"]["id"],
+                    "anotacao_clinica",
+                );
+                if ($finishAppointmentSucceeded) {
+                    \\Prontoo\\Runtime\\AuditActivity\\AuditActivityRuntimeOperations04::audit("consulta_concluida", "consulta", $appointmentId, [
+                        "patient_name" => (string) $p["full_name"],
+                        "patient_link_id" => $id,
+                        "doctor_user_id" =>
+                            $appointmentForAudit["doctor_user_id"] ?? null,
+                        "start_at" => $appointmentForAudit["start_at"] ?? null,
+                        "end_at" => $appointmentForAudit["end_at"] ?? null,
+                        "reason" => $appointmentForAudit["reason"] ?? null,
+                        "audit_body" =>
+                            "O profissional concluiu o atendimento e o horário real de fim foi registrado. A Recepção recebeu recado automático para finalizar a saída do paciente.",
+                    ]);
+                }
+            }
+'''
+          if patient.count(old_finish) != 1:
+              raise SystemExit(f'patient finish block expected once, found {patient.count(old_finish)}')
+          patient = patient.replace(old_finish, new_finish, 1)
+
+          old_active = '''                if (is_callable([\\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::class, 'workflow_on_appointment_finished'])) {
+                    \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                        $cid,
+                        $appointmentId,
+                        $id,
+                        (int) $c["user"]["id"],
+                        "ficha_atendimento",
+                    );
+                } else {
+'''
+          new_active = '''                if (is_callable([\\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::class, 'workflow_on_appointment_finished'])) {
+                    $finished = \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                        $cid,
+                        $appointmentId,
+                        $id,
+                        (int) $c["user"]["id"],
+                        "ficha_atendimento",
+                    );
+                    if (!$finished) {
+                        \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash(
+                            "A jornada foi atualizada por outra ação. Reabra a ficha e tente novamente.",
+                            "bad",
+                        );
+                        \\Prontoo\\Runtime\\SupportFoundation\\SupportFoundationRuntimeOperations01::redirect("patient", ["id" => $id]);
+                    }
+                } else {
+'''
+          if patient.count(old_active) != 1:
+              raise SystemExit(f'patient active finish block expected once, found {patient.count(old_active)}')
+          patient = patient.replace(old_active, new_active, 1)
+          patient = patient.replace(
+              '            \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash("Anotação incluída.");',
+              '            if ($finishAppointmentSucceeded === false) {\n                \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash(\n                    "Anotação incluída, mas o atendimento não pôde ser concluído porque a jornada mudou. Reabra a ficha e tente novamente.",\n                    "warn",\n                );\n            } else {\n                \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash("Anotação incluída.");\n            }',
+              1,
+          )
+          patient_path.write_text(patient)
+
+          appointments_path = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+          appointments = appointments_path.read_text()
+          old_agenda_finish = '''                    if (is_callable([\\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::class, 'workflow_on_appointment_finished'])) {
+                        \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                            $cid,
+                            $id,
+                            $patientId,
+                            $uidNow,
+                            "atalho_jornada",
+                        );
+                    } else {
+'''
+          new_agenda_finish = '''                    if (is_callable([\\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::class, 'workflow_on_appointment_finished'])) {
+                        $finished = \\Prontoo\\Runtime\\TasksNotices\\TasksNoticesRuntimeOperations02::workflow_on_appointment_finished(
+                            $cid,
+                            $id,
+                            $patientId,
+                            $uidNow,
+                            "atalho_jornada",
+                        );
+                        if (!$finished) {
+                            \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash(
+                                "A jornada foi atualizada por outra ação. Reabra o Painel e tente novamente.",
+                                "bad",
+                            );
+                            $postRedirect();
+                        }
+                    } else {
+'''
+          if appointments.count(old_agenda_finish) != 1:
+              raise SystemExit(f'agenda finish block expected once, found {appointments.count(old_agenda_finish)}')
+          appointments_path.write_text(appointments.replace(old_agenda_finish, new_agenda_finish, 1))
+
+          audit_path = Path('tools/global-audit-contract-check')
+          audit = audit_path.read_text()
+          audit = audit.replace(
+              "    'function_exists(\"privacy_log_file_label\")',\n];",
+              "    'function_exists(\"privacy_log_file_label\")',\n    \"status=IF(status='agendado','em_atendimento',status)\",\n];",
+              1,
+          )
+          marker = "$result = [\n"
+          assertions = '''$journey = (string) file_get_contents($root . '/app/Core/Invariant/Workflow/AppointmentWorkflow.php');
+          $patientSql = (string) file_get_contents($root . '/app/Infrastructure/Operational/PatientsSqlCatalog07.php');
+          $patientRuntime = (string) file_get_contents($root . '/app/Runtime/Patients/PatientsRuntimeOperations07.php');
+          $taskRuntime = (string) file_get_contents($root . '/app/Runtime/TasksNotices/TasksNoticesRuntimeOperations02.php');
+          foreach ([
+              'journey:task_completion_fast_ready' => str_contains($journey, '\"task_completion_fast_ready\"'),
+              'journey:clinical_note_fast_start' => str_contains($journey, '\"clinical_note_fast_start\"'),
+              'patient_sql:direct_em_atendimento' => str_contains($patientSql, \"status='em_atendimento'\") && str_contains($patientSql, \"status IN ('agendado','pronto_atendimento')\"),
+              'patient_runtime:atomic_care_transaction' => str_contains($patientRuntime, '$ownsCareTransaction') && str_contains($patientRuntime, '$pdo->rollBack()'),
+              'workflow_finish:explicit_outcome' => str_contains($taskRuntime, 'workflow_on_appointment_finished(') && str_contains($taskRuntime, '): bool'),
+          ] as $name => $ok) {
+              if (!$ok) {
+                  $failures[] = $name;
+              }
+          }
+          '''
+          if audit.count(marker) != 1:
+              raise SystemExit('global audit result marker not unique')
+          audit_path.write_text(audit.replace(marker, assertions + marker, 1))
+
+          cleanup = Path('.github/workflows/merged-branch-cleanup.yml')
+          cleanup.write_text('''name: Merged Agent Branch Cleanup
+
+          on:
+            push:
+              branches:
+                - prontoo
+
+          permissions:
+            contents: write
+
+          jobs:
+            cleanup:
+              runs-on: ubuntu-latest
+              timeout-minutes: 10
+              steps:
+                - name: Checkout canonical history
+                  uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+                  with:
+                    fetch-depth: 0
+                - name: Delete agent branches already merged into canonical
+                  shell: bash
+                  run: |
+                    set -euo pipefail
+                    git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+                    while IFS= read -r ref; do
+                      branch="${ref#refs/remotes/origin/}"
+                      [[ "$branch" == agent/* ]] || continue
+                      if git merge-base --is-ancestor "$ref" origin/prontoo; then
+                        git push origin --delete "$branch"
+                      fi
+                    done < <(git for-each-ref --format='%(refname)' 'refs/remotes/origin/agent/*')
+          ''')
+
+          version_path = Path('version.json')
+          version = json.loads(version_path.read_text())
+          version.update({
+              'version': '1.8.14.1',
+              'release': '1.8.14.1',
+              'generated_at_unix': 1786714860,
+              'generated_at': '2026-08-14T09:41:00-04:00',
+              'updated_at': '2026-08-14T09:41:00-04:00',
+              'build': '1.8.14.1-global-audit-followup-remediation',
+              'asset_version': '1.8.14.1',
+              'logic_changes': True,
+              'visual_changes': False,
+              'database_changes': False,
+              'schema_changes': False,
+              'documentation_changes': True,
+              'functional_equivalence_policy': 'canonical_global_audit_followup_remediation_without_schema_change',
+              'deployment_sync_id': 'github-prontoo-1.8.14.1-global-audit-followup-remediation',
+              'deployment_sync_requested_at': '2026-08-14T09:41:00-04:00',
+              'release_date': '2026-08-14',
+              'notes': 'Fecha regressões funcionais da Jornada encontradas na reauditoria global, torna gravação clínica inicial atômica e explicita resultado de conclusão de atendimento sem alterar schema.',
+              'changelog': {
+                  'title': 'Remediação pós-reauditoria global',
+                  'items': [
+                      'formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente chegou para pronto para atendimento',
+                      'substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel',
+                      'torna atômica a criação da anotação clínica com o início da consulta para impedir persistência parcial em caso de falha',
+                      'faz a conclusão do atendimento devolver resultado explícito e bloqueia auditorias ou mensagens de sucesso falsas',
+                      'adiciona contratos anti-regressão para os achados da reauditoria e limpeza segura de branches agent já incorporadas ao canônico',
+                  ],
+              },
+          })
+          version_path.write_text(json.dumps(version, ensure_ascii=False, indent=4) + '\n')
+          PY
+      - name: Remove temporary remediation workflow
+        shell: bash
+        run: rm .github/workflows/tmp-global-audit-remediation-1-8-14-1.yml
+      - name: Reconcile deterministic release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-contract-reconcile --write
+      - name: Validate final tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/quality-gate
+      - name: Publish validated remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix: close global audit follow-up findings'
+          git push origin HEAD:agent/global-audit-remediation-1-8-14-1
+      - name: Attempt canonical branch protection
+        shell: bash
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          payload='{"required_status_checks":{"strict":true,"contexts":["verify","validate","computed-style"]},"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null,"required_linear_history":false,"allow_force_pushes":false,"allow_deletions":false,"block_creations":false,"required_conversation_resolution":true,"lock_branch":false,"allow_fork_syncing":true}'
+          code=$(curl -sS -o /tmp/protection.json -w '%{http_code}' -L -X PUT \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/branches/prontoo/protection" \
+            -d "$payload")
+          cat /tmp/protection.json
+          echo "branch_protection_http=$code"
+          [[ "$code" == "200" ]]
