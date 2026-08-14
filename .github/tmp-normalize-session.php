@@ -79,6 +79,20 @@ if (substr_count($testFastSource, $expectOld) !== 1) {
 }
 file_put_contents($testFastPath, str_replace($expectOld, $expectNew, $testFastSource), LOCK_EX);
 
+$reconcilePath = $root . '/tools/release-contract-reconcile';
+$reconcileSource = (string) file_get_contents($reconcilePath);
+$reconcilePins = [
+    'uses: actions/checkout@v4' => 'uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262',
+    'uses: shivammathur/setup-php@v2' => 'uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240',
+];
+foreach ($reconcilePins as $old => $new) {
+    if (substr_count($reconcileSource, $old) !== 1) {
+        throw new RuntimeException('Release reconcile CI pin drift: ' . $old);
+    }
+    $reconcileSource = str_replace($old, $new, $reconcileSource);
+}
+file_put_contents($reconcilePath, $reconcileSource, LOCK_EX);
+
 $helperPath = __DIR__ . '/tmp-global-audit-remediation.py';
 $helperSource = (string) file_get_contents($helperPath);
 $helperOld = '    updated, count = re.subn(pattern, replacement, content, flags=flags)';
