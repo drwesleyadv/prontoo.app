@@ -10,6 +10,8 @@ use RuntimeException;
 
 final class RuntimeSchemaReadiness
 {
+    private const PERSISTED_SCHEMA_REVISION = 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger';
+
     private static bool $validated = false;
 
     private function __construct()
@@ -24,10 +26,11 @@ final class RuntimeSchemaReadiness
         $expectedRevision = (string) PRONTOO_SCHEMA_REV;
         $revision = self::metaValue('schema_revision');
         $contract = self::metaValue('schema_contract_hash');
-        if (!hash_equals($expectedRevision, $revision)) {
+        if (!self::revisionAccepted($revision, $expectedRevision)) {
             throw new RuntimeException('Revisão do banco incompatível com a aplicação.');
         }
-        if (!hash_equals(DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(), $contract)) {
+        $expectedContract = DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash();
+        if (!hash_equals($expectedContract, $contract)) {
             throw new RuntimeException('Contrato do banco incompatível com a aplicação.');
         }
         $ready = json_decode(
@@ -38,15 +41,18 @@ final class RuntimeSchemaReadiness
         );
         if (
             !is_array($ready) ||
-            !hash_equals($expectedRevision, (string) ($ready['revision'] ?? '')) ||
-            !hash_equals(
-                DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash(),
-                (string) ($ready['contract'] ?? ''),
-            )
+            !self::revisionAccepted((string) ($ready['revision'] ?? ''), $expectedRevision) ||
+            !hash_equals($expectedContract, (string) ($ready['contract'] ?? ''))
         ) {
             throw new RuntimeException('Marcador do schema instalado é inválido.');
         }
         self::$validated = true;
+    }
+
+    private static function revisionAccepted(string $revision, string $expectedRevision): bool
+    {
+        return hash_equals($expectedRevision, $revision) ||
+            hash_equals(self::PERSISTED_SCHEMA_REVISION, $revision);
     }
 
     private static function metaValue(string $key): string
