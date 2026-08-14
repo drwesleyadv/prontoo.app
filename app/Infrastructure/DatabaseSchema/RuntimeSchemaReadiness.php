@@ -41,7 +41,7 @@ final class RuntimeSchemaReadiness
         );
         if (
             !is_array($ready) ||
-            !hash_equals($revision, (string) ($ready['revision'] ?? '')) ||
+            !self::revisionAccepted((string) ($ready['revision'] ?? ''), $expectedRevision) ||
             !hash_equals($expectedContract, (string) ($ready['contract'] ?? ''))
         ) {
             throw new RuntimeException('Marcador do schema instalado é inválido.');
