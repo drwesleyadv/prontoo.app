@@ -60,6 +60,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          php .github/tmp-normalize-session.php
           python3 .github/tmp-global-audit-remediation.py
       - name: Generate deterministic Node lock
         shell: bash
@@ -71,7 +72,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/tmp-global-audit-remediation.py .github/workflows/tmp-global-audit-remediation.yml
+          rm -f .github/tmp-global-audit-remediation.py .github/tmp-normalize-session.php .github/sitecustomize.py .github/tmp-normalize-session.txt .github/workflows/tmp-global-audit-remediation.yml
+          rm -rf .github/__pycache__
           git add -A
       - name: Rebuild Presentation artifact
         shell: bash
