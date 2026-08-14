@@ -33,9 +33,26 @@ final class SupportFoundationRuntimeOperations02
         if (!headers_sent()) {
             header("Content-Type: application/json; charset=utf-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("X-Content-Type-Options: nosniff");
+        }
+        if ((string) ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
+            http_response_code(405);
+            header("Allow: GET");
+            echo json_encode(
+                [
+                    "ok" => false,
+                    "auto_login" => false,
+                    "redirect" => "",
+                    "version" => PRONTOO_VERSION,
+                    "mode" => "login_light",
+                ],
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            );
+            exit();
         }
         if (
-            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_autotest"), 90, 300)
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_ip_bucket("login_autotest"), 20, 300) ||
+            \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::security_rate_limit(\Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::security_client_bucket("login_autotest"), 30, 300)
         ) {
             http_response_code(429);
             echo json_encode(
@@ -51,27 +68,11 @@ final class SupportFoundationRuntimeOperations02
             exit();
         }
         $checks = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::prontoo_login_selftest_light();
-        $auto = false;
-        $redirect = "";
-        if (is_callable([\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::class, 'platform_login_loaded_audit'])) {
-            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_login_loaded_audit($checks, $auto);
-        } elseif (is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::class, 'audit'])) {
-            try {
-                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("login_autoteste_leve", "login", null, [
-                    "ok" => !empty($checks["ok"]) ? 1 : 0,
-                    "maintenance_deferred" => 1,
-                    "audit_body" =>
-                        "Autoteste leve do login concluído; diagnósticos e manutenção pesada ficam para depois da senha correta.",
-                ]);
-            } catch (Throwable $e) {
-                error_log("[Prontoo light login audit] " . $e->getMessage());
-            }
-        }
         echo json_encode(
             [
                 "ok" => !empty($checks["ok"]),
-                "auto_login" => $auto,
-                "redirect" => $redirect,
+                "auto_login" => false,
+                "redirect" => "",
                 "version" => PRONTOO_VERSION,
                 "mode" => $checks["mode"] ?? "login_light",
                 "maintenance_deferred" => true,
@@ -370,7 +371,6 @@ final class SupportFoundationRuntimeOperations02
     {
     
         \Prontoo\Runtime\DatabaseSchema\DatabaseSchemaRuntimeOperations01::ensure_runtime_schema_minimum();
-    
     }
 
     public static function person_common_profile_from_array(
@@ -410,7 +410,6 @@ final class SupportFoundationRuntimeOperations02
             "address_city" => $city ?: null,
             "address_city_ibge" => $cityIbge > 0 ? $cityIbge : null,
         ];
-    
     }
 
     public static function person_common_profile_update(int $personId, array $profile): void
@@ -463,6 +462,5 @@ final class SupportFoundationRuntimeOperations02
         } catch (Throwable $e) {
             error_log("[Prontoo pessoas perfil comum update] " . $e->getMessage());
         }
-    
     }
 }
