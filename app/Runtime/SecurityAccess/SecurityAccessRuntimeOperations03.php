@@ -323,7 +323,6 @@ final class SecurityAccessRuntimeOperations03
             }
         }
         return $sorted;
-    
     }
 
     public static function effective_allowed_modules_for_roles(int $cid, array $roles): array
@@ -350,7 +349,6 @@ final class SecurityAccessRuntimeOperations03
             error_log("[Prontoo effective permissions] " . $e->getMessage());
             return [];
         }
-    
     }
 
     public static function seed_permissions(int $clinicId): void
@@ -378,14 +376,35 @@ final class SecurityAccessRuntimeOperations03
     {
         
         static $secret = null;
-        if (is_string($secret) && $secret !== "") {
+        if (is_string($secret) && strlen($secret) >= 32) {
             return $secret;
         }
-        $secret = (string) (self::auditRemediationDataService()->scalar('identity.security03.secret_key.01', [], []) ??
-            (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()["secret"] ?? "prontoo"));
+        $candidate = '';
+        try {
+            $value = self::auditRemediationDataService()->scalar(
+                'identity.security03.secret_key.01',
+                [],
+                [],
+            );
+            if (is_string($value)) {
+                $candidate = mb_trim($value);
+            }
+        } catch (Throwable) {
+        }
+        if (strlen($candidate) < 32) {
+            $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
+                ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
+                : [];
+            $candidate = mb_trim((string) ($config["secret"] ?? ""));
+        }
+        if (strlen($candidate) < 32) {
+            throw new RuntimeException(
+                "Segredo criptográfico da instalação indisponível.",
+            );
+        }
+        $secret = $candidate;
         return $secret;
     
-    }
 
     public static function billing_state(array $clinic): array
     
@@ -528,7 +547,6 @@ final class SecurityAccessRuntimeOperations03
         );
         \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Assinatura pendente: regularize para alterar dados.", "bad");
         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect($route);
-    
     }
     private static function auditRemediationDataService()
     {
