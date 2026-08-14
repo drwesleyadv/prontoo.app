@@ -25,6 +25,7 @@ $forbidden = [
     'function_exists("security_https_active")',
     'function_exists("privacy_sanitize_error_message")',
     'function_exists("privacy_log_file_label")',
+    "status=IF(status='agendado','em_atendimento',status)",
 ];
 $files = [];
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
@@ -45,6 +46,21 @@ foreach ($files as $file) {
 $manifest = json_decode((string) file_get_contents($root . '/app/architecture.manifest.json'), true, 512, JSON_THROW_ON_ERROR);
 if (array_key_exists('runtime_input_boundary_metrics', (array) $manifest)) {
     $failures[] = 'app/architecture.manifest.json:runtime_input_boundary_metrics';
+}
+$journey = (string) file_get_contents($root . '/app/Core/Invariant/Workflow/AppointmentWorkflow.php');
+$patientSql = (string) file_get_contents($root . '/app/Infrastructure/Operational/PatientsSqlCatalog07.php');
+$patientRuntime = (string) file_get_contents($root . '/app/Runtime/Patients/PatientsRuntimeOperations07.php');
+$patientCommand = (string) file_get_contents($root . '/app/Application/Operational/PatientCareCommand.php');
+foreach ([
+    'journey:task_completion_fast_ready' => str_contains($journey, '"task_completion_fast_ready"'),
+    'journey:clinical_note_fast_start' => str_contains($journey, '"clinical_note_fast_start"'),
+    'patient_sql:direct_em_atendimento' => str_contains($patientSql, "status='em_atendimento'") && str_contains($patientSql, "status IN ('agendado','pronto_atendimento')"),
+    'patient_runtime:typed_atomic_command' => str_contains($patientRuntime, 'patientCareCommands()->createClinicalNote(') && !str_contains($patientRuntime, "operational.patients.07.page_patient.28"),
+    'patient_command:atomicity' => str_contains($patientCommand, '$this->data->atomic(') && str_contains($patientCommand, "operational.patients.07.page_patient.26") && str_contains($patientCommand, "operational.patients.07.page_patient.27") && str_contains($patientCommand, "operational.patients.07.page_patient.28"),
+] as $name => $ok) {
+    if (!$ok) {
+        $failures[] = $name;
+    }
 }
 $result = [
     'ok' => $failures === [],

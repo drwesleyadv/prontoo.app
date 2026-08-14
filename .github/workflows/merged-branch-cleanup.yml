@@ -1,0 +1,31 @@
+name: Merged Agent Branch Cleanup
+
+on:
+  push:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout canonical history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Delete agent branches already merged into canonical
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin '+refs/heads/*:refs/remotes/origin/*'
+          while IFS= read -r ref; do
+            branch="${ref#refs/remotes/origin/}"
+            [[ "$branch" == agent/* ]] || continue
+            if git merge-base --is-ancestor "$ref" origin/prontoo; then
+              git push origin --delete "$branch"
+            fi
+          done < <(git for-each-ref --format='%(refname)' 'refs/remotes/origin/agent/*')
