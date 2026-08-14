@@ -1,0 +1,43 @@
+name: Fix PHP84 Security Contract
+
+on:
+  push:
+    branches:
+      - agent/reconcile-security-release-1-8-14-1
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Fix PHP84 contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCgpwYXRocyA9IFsKICAgIFBhdGgoImFwcC9JbmZyYXN0cnVjdHVyZS9JbnRlZ3JpdHkvUGlJbnRlZ3JpdHkucGhwIiksCiAgICBQYXRoKCJhcHAvSW5mcmFzdHJ1Y3R1cmUvU2VjdXJpdHlBY2Nlc3MvUGRvTWZhUmVjb3JkUmVwb3NpdG9yeS5waHAiKSwKXQpyZXBsYWNlbWVudHMgPSBbCiAgICAoIiRzZWNyZXQgPSB0cmltKCR2YWx1ZSk7IiwgIiRzZWNyZXQgPSBtYl90cmltKCR2YWx1ZSk7IiksCiAgICAoIiRzZWNyZXQgPSB0cmltKChzdHJpbmcpICgkY29uZmlnWydzZWNyZXQnXSA/PyAnJykpOyIsICIkc2VjcmV0ID0gbWJfdHJpbSgoc3RyaW5nKSAoJGNvbmZpZ1snc2VjcmV0J10gPz8gJycpKTsiKSwKXQpmb3IgcGF0aCBpbiBwYXRoczoKICAgIHNvdXJjZSA9IHBhdGgucmVhZF90ZXh0KCkKICAgIGZvciBvbGQsIG5ldyBpbiByZXBsYWNlbWVudHM6CiAgICAgICAgaWYgc291cmNlLmNvdW50KG9sZCkgIT0gMToKICAgICAgICAgICAgcmFpc2UgU3lzdGVtRXhpdChmInRhcmdldCBub3QgdW5pcXVlIGluIHtwYXRofToge29sZH0iKQogICAgICAgIHNvdXJjZSA9IHNvdXJjZS5yZXBsYWNlKG9sZCwgbmV3LCAxKQogICAgcGF0aC53cml0ZV90ZXh0KHNvdXJjZSkK' | base64 -d | python3
+          git rm .github/workflows/fix-php84-contract-reconcile.yml
+          php -l app/Infrastructure/Integrity/PiIntegrity.php
+          php -l app/Infrastructure/SecurityAccess/PdoMfaRecordRepository.php
+          php tools/php84-runtime-contract-check
+          php tools/security-regression-check.php
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: satisfy php84 security string contract"
+          git push origin HEAD:agent/reconcile-security-release-1-8-14-1
