@@ -438,34 +438,6 @@ final class AdminPagesPresentationOperations03
     
     }
 
-    public static function admin_telemetry_variation_badge(?float $variation): string
-    {
-        if ($variation === null) {
-            return '<span class="telemetry-kpi-trend is-neutral is-pending" title="Aguardando base comparável" aria-label="Aguardando base comparável">⌛</span>';
-        }
-        if (abs($variation) < 0.05) {
-            return '<span class="telemetry-kpi-trend is-neutral" title="Sem variação em relação aos 15 dias anteriores" aria-label="Sem variação em relação aos 15 dias anteriores">0%</span>';
-        }
-        $positive = $variation > 0;
-        $compact = number_format(abs($variation), 1, ",", ".");
-        $compact = preg_replace('/,0$/', "", $compact) ?: "0";
-        $direction = $positive ? "▲" : "▼";
-        $description =
-            ($positive ? "Alta de " : "Queda de ") .
-            $compact .
-            "% em relação aos 15 dias anteriores";
-        return '<span class="telemetry-kpi-trend ' .
-            ($positive ? "is-positive" : "is-negative") .
-            '" title="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
-            '" aria-label="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
-            '"><span class="telemetry-kpi-trend-icon" aria-hidden="true">' .
-            $direction .
-            '</span><span class="telemetry-kpi-trend-rate">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($compact . "%") .
-            "</span></span>";
-    }
 
     public static function onboarding_score(array $r): array
     
@@ -633,41 +605,187 @@ final class AdminPagesPresentationOperations03
     
     }
 
+    public static function developer_clinic_directory_html(
+        array $rows,
+        string $view,
+        callable $href,
+        callable $dateLabel,
+    ): string {
+        $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
+        if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+            $view = "all";
+        }
+        $filterSpecs = [
+            "all" => ["Todos", "format_list_bulleted"],
+            "attention" => ["Atenção", "priority_high"],
+            "onboarding" => ["Onboarding", "playlist_add_check"],
+            "readonly" => ["Somente leitura", "lock"],
+            "expiring" => ["Vencendo", "event_upcoming"],
+        ];
+        $filters = '<nav class="notice-filter-chips lead-filter-chips ds-notice-filters" aria-label="Filtrar consultórios">';
+        foreach ($filterSpecs as $filterKey => [$filterLabel, $filterIcon]) {
+            $activeFilter = $view === $filterKey;
+            $filters .= '<a class="lead-chip ds-filter-chip ' .
+                ($activeFilter ? "active is-active" : "") .
+                '" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    (string) $href("admin_clinics", $filterKey === "all" ? [] : ["view" => $filterKey]),
+                ) .
+                '"' .
+                ($activeFilter ? ' aria-current="page"' : "") .
+                '>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($filterIcon) .
+                '<span class="lead-chip-label">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($filterLabel) .
+                '</span></a>';
+        }
+        $filters .= '</nav>';
+        $bodyRows = "";
+        $now = time();
+        foreach ($rows as $entry) {
+            $r = (array) ($entry["clinic"] ?? []);
+            $billing = (array) ($entry["billing"] ?? []);
+            $id = (int) ($r["id"] ?? 0);
+            $professionals = (int) ($entry["professionals"] ?? 0);
+            $collaborators = (int) ($entry["collaborators"] ?? 0);
+            $globalAdminOwned = !empty($entry["global_admin_owned"]);
+            $dueCandidate = mb_trim((string) ($billing["paid_until"] ?? ""));
+            if ($dueCandidate === "") {
+                $dueCandidate = mb_trim((string) ($billing["trial_ends_at"] ?? ""));
+            }
+            $dueTimestamp = $dueCandidate !== "" ? strtotime($dueCandidate) : false;
+            $expiresSoon = empty($billing["exempt"]) &&
+                $dueTimestamp !== false &&
+                $dueTimestamp >= $now &&
+                $dueTimestamp <= $now + 7 * 86400;
+            $onboardingPending = (int) ($r["onboarding_done"] ?? 0) !== 1;
+            $needsAttention = (int) ($r["active"] ?? 0) !== 1 || !empty($billing["read_only"]) || $onboardingPending || $expiresSoon;
+            $matchesFilter = match ($view) {
+                "attention" => $needsAttention,
+                "onboarding" => $onboardingPending,
+                "readonly" => !empty($billing["read_only"]),
+                "expiring" => $expiresSoon,
+                default => true,
+            };
+            if (!$matchesFilter) {
+                continue;
+            }
+            $attentionClass = "is-stable";
+            $attentionIcon = "verified";
+            $attentionLabel = "Ativo";
+            $attentionNote = "";
+            if ((int) ($r["active"] ?? 0) !== 1) {
+                $attentionClass = "is-muted";
+                $attentionIcon = "pause_circle";
+                $attentionLabel = "Inativo";
+                $attentionNote = "Consultório desativado";
+            } elseif (!empty($billing["exempt"])) {
+                $attentionClass = "is-exempt";
+                $attentionIcon = "workspace_premium";
+                $attentionLabel = "Isento";
+                $attentionNote = $globalAdminOwned
+                    ? "Isento do Desenvolvedor fora das estatísticas"
+                    : "Isento de cobrança";
+            } elseif (!empty($billing["read_only"])) {
+                $attentionClass = "is-critical";
+                $attentionIcon = "lock";
+                $attentionLabel = "Somente leitura";
+                $attentionNote = "Alterações temporariamente bloqueadas";
+            }
+            $attentionChip = '<span class="clinic-attention-chip ' .
+                $attentionClass .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
+                '<b>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionLabel) .
+                '</b></span>';
+            $actions = '<a class="pagehead-control pagehead-control--secondary clinic-actions-summary" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_clinics", ["clinic_id" => $id])) .
+                '" aria-label="Abrir gestão do consultório">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .
+                '<span>Gerenciar</span></a>';
+            $createdLabel = (string) $dateLabel($r["created_at"] ?? "");
+            $dueLabel = !empty($billing["exempt"])
+                ? "Isento"
+                : (mb_trim((string) ($billing["paid_until"] ?? "")) !== ""
+                    ? (string) $dateLabel($billing["paid_until"])
+                    : (!empty($billing["trial_active"])
+                        ? (string) $dateLabel($billing["trial_ends_at"] ?? "")
+                        : "Sem vencimento"));
+            $professionLabel = mb_trim((string) ($r["responsible_profession"] ?? "")) ?: "Área não informada";
+            $adminStatsNote = !empty($billing["exempt"]) && $globalAdminOwned
+                ? '<span class="ds-clinic-test-pill">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bar_chart_off") .
+                    '<span>Fora das estatísticas</span></span>'
+                : "";
+            $clinicMetrics = '<span class="ds-clinic-row-meta-chip">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event") .
+                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createdLabel) . '</b><small>Data Cadastro</small></span>' .
+                '<span class="ds-clinic-row-meta-chip">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
+                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $professionals) . '</b><small>Profissionais</small></span>' .
+                '<span class="ds-clinic-row-meta-chip">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
+                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $collaborators) . '</b><small>Colaboradores</small></span>' .
+                '<span class="ds-clinic-row-meta-chip ds-clinic-due-chip">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
+                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dueLabel) . '</b><small>Vencimento</small></span>';
+            $bodyRows .= '<article class="clinic-attention-item ds-clinic-list-item ds-clinic-list-item-inline ' .
+                $attentionClass .
+                '"><div class="ds-clinic-list-identity clinic-attention-main"><span class="clinic-attention-icon">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
+                '</span><span class="clinic-attention-copy"><strong>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($r["display_name"] ?? "Consultório")) .
+                '</strong><small>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(((int) ($r["active"] ?? 0) ? "Operando" : "Inativo") . " · " . $professionLabel) .
+                '</small></span></div><div class="clinic-attention-state ds-clinic-list-status">' .
+                $attentionChip .
+                ($attentionNote !== "" ? '<small>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionNote) . '</small>' : "") .
+                $adminStatsNote .
+                '</div><div class="ds-clinic-row-meta">' .
+                $clinicMetrics .
+                '</div><div class="clinic-attention-actions">' .
+                $actions .
+                '</div></article>';
+        }
+        $table = '<div class="clinic-attention-list">' .
+            ($bodyRows !== "" ? $bodyRows : '<div class="empty">Nenhum consultório corresponde a este filtro.</div>') .
+            '</div>';
+        $head = '<div class="admin-onboarding-head clinic-attention-head"><div><span class="eyebrow">Acompanhamento</span><h2>Consultórios</h2><p>Leitura compacta por status, data de cadastro, profissionais, colaboradores e vencimento.</p></div></div>';
+        $advanced = '<details class="form-panel developer-advanced-tools"><summary><span>Mais opções</span></summary><div class="developer-tool-grid"><a class="developer-tool-card" href="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_operations")) .
+            '"><span class="developer-tool-icon">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("insights") .
+            '</span><span><b>Indicadores do negócio</b><small>Adoção, operação e financeiro sob demanda.</small></span></a></div></details>';
+        return $head . $filters . $table . $advanced;
+    }
+
     public static function developer_overview_html(array $context, callable $href, callable $actionLabel): string
-
     {
-
         $actions = (array) ($context["actions"] ?? []);
-        $checks = (array) ($context["checks"] ?? []);
-        $locks = (int) ($context["locks"] ?? 0);
-        $scopeViolations = (int) ($context["scope_violations"] ?? 0);
-        $readOnly = (int) ($context["read_only"] ?? 0);
-        $trialEnding = (int) ($context["trial_ending"] ?? 0);
-        $onboardingPending = (int) ($context["onboarding_pending"] ?? 0);
-        $auditChainOk = !empty(($checks["audit_chain"] ?? [])["ok"]);
-        $versionContractOk = !empty(($checks["version_contract"] ?? [])["ok"]);
-        $integrityOk = $auditChainOk && (int) ($checks["integrity_alerts"] ?? 0) === 0;
-        $securityOk = $locks === 0 && $scopeViolations === 0;
-        $critical = empty($checks["database"]) || empty($checks["storage"]) || !$auditChainOk || !$versionContractOk;
-        $state = $critical ? "Crítico" : ($actions ? "Atenção" : "Operacional");
+        $health = (array) ($context["health"] ?? []);
+        $healthState = (string) ($health["state"] ?? "Operacional");
+        $state = $healthState === "Crítico" ? "Crítico" : ($actions ? "Atenção" : $healthState);
+        $critical = $state === "Crítico";
         $stateCopy = match ($state) {
-            "Crítico" => "Há uma condição estrutural que exige intervenção técnica.",
-            "Atenção" => "A plataforma está disponível, mas existem decisões ou sinais que merecem revisão.",
-            default => "Nenhuma condição relevante exige intervenção neste momento.",
+            "Crítico" => "Existe uma condição estrutural que exige intervenção técnica.",
+            "Atenção" => "Há decisões ou exceções que justificam sua revisão.",
+            default => "Nada exige intervenção neste momento.",
         };
         $stateClass = match ($state) {
             "Crítico" => "is-critical",
             "Atenção" => "is-attention",
             default => "is-operational",
         };
+        $updatedAt = mb_trim((string) ($health["updated_at"] ?? ""));
         $statusCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="developer-control-status"><div><span class="eyebrow">Estado do Prontoo</span><h2>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
                 '</h2><p>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($stateCopy) .
-                '</p><small>Atualizado em ' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(date("d/m/Y · H:i")) .
-                '</small></div><span class="developer-state-badge ' .
+                '</p>' .
+                ($updatedAt !== "" ? '<small>Atualizado em ' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updatedAt) . '</small>' : "") .
+                '</div><span class="developer-state-badge ' .
                 $stateClass .
                 '">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($critical ? "crisis_alert" : ($actions ? "notification_important" : "verified")) .
@@ -680,98 +798,53 @@ final class AdminPagesPresentationOperations03
             ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions)
             : '<div class="developer-empty-state">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
-                '<div><b>Nada precisa de você agora</b><p>Não há pendências ou sinais relevantes aguardando intervenção.</p></div></div>';
+                '<div><b>Nada precisa de você agora</b><p>Decisões, incidentes e bloqueios relevantes aparecerão aqui.</p></div></div>';
         $actionsCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="section-head"><div><h2>Precisa de você</h2><p>Somente decisões e sinais que justificam intervenção.</p></div></div>' . $actionsBody,
+            '<div class="section-head"><div><h2>Precisa de você</h2><p>Somente itens que pedem decisão ou intervenção.</p></div></div>' . $actionsBody,
             "developer-actions-card",
         );
-        $clinicStats =
-            '<div class="stats-grid developer-compact-stats">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Somente leitura", $readOnly, "lock", "consultórios") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Vencem em 7 dias", $trialEnding, "hourglass_top", "assinaturas") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Onboarding pendente", $onboardingPending, "playlist_add_check", "consultórios") .
-            "</div>";
-        $clinicsCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="section-head"><div><h2>Consultórios</h2><p>Ciclo de vida, adoção e situação comercial.</p></div></div>' .
-                $clinicStats .
-                '<a class="ghost small developer-domain-link" href="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_clinics")) .
-                '">' .
-                (string) $actionLabel("Abrir Consultórios", "arrow_forward") .
-                "</a>",
-            "developer-domain-card",
-        );
-        $platformStats =
-            '<div class="stats-grid developer-platform-stats">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Banco", !empty($checks["database"]) ? "Normal" : "Atenção", "database", "conectividade") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Storage", !empty($checks["storage"]) ? "Normal" : "Atenção", "folder", "persistência") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Integridade", $integrityOk ? "Normal" : "Atenção", "verified_user", "auditoria") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Segurança", $securityOk ? "Normal" : "Atenção", "shield", "acesso e escopo") .
-            "</div>";
-        $platformCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="section-head"><div><h2>Plataforma</h2><p>Confiabilidade resumida; detalhes aparecem apenas quando necessários.</p></div></div>' .
-                $platformStats .
-                '<a class="ghost small developer-domain-link" href="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_health")) .
-                '">' .
-                (string) $actionLabel("Abrir Confiabilidade", "arrow_forward") .
-                "</a>",
-            "developer-domain-card",
-        );
-        $observabilityCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="section-head"><div><h2>Observabilidade</h2><p>Latência, volume de requisições e comportamento das rotas ficam fora da visão diária e disponíveis para investigação.</p></div></div><a class="ghost small developer-domain-link" href="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_performance")) .
-                '">' .
-                (string) $actionLabel("Abrir Observabilidade", "monitoring") .
-                "</a>",
-            "developer-observability-card",
-        );
-        return $statusCard .
-            $actionsCard .
-            '<div class="developer-overview-grid">' .
-            $clinicsCard .
-            $platformCard .
-            "</div>" .
-            $observabilityCard;
+        return '<section class="developer-overview-minimal">' . $statusCard . $actionsCard . '</section>';
     }
+
 
     public static function developer_administration_tools_html(callable $href): string
-
     {
-
-        $tools = [
-            ["groups", "Usuários e pessoas", "Credenciais, vínculos e identidades administrativas da plataforma.", "admin_people"],
-            ["campaign", "Comunicação técnica", "Avisos entre perfis do Desenvolvedor e acompanhamento das mensagens recebidas.", "admin_alerts"],
-            ["notifications_active", "Avisos globais", "Comunicações institucionais exibidas nos ambientes dos consultórios.", "admin_global_notices"],
-            ["construction", "Manutenção", "Modo de manutenção e controles operacionais extraordinários.", "admin_maintenance"],
-            ["settings", "Configurações", "Parâmetros globais que não pertencem à operação cotidiana.", "admin_settings"],
-            ["history", "Auditoria", "Rastreabilidade administrativa e eventos relevantes da plataforma.", "admin_audit"],
+        $primary = [
+            ["groups", "Usuários", "Credenciais, vínculos e identidades administrativas.", "admin_people"],
+            ["mail", "Mensagens internas", "Comunicação restrita aos perfis do Desenvolvedor.", "admin_alerts"],
+            ["notifications_active", "Avisos aos consultórios", "Comunicações institucionais exibidas nos ambientes clínicos.", "admin_global_notices"],
+            ["history", "Auditoria", "Rastreabilidade administrativa e eventos relevantes.", "admin_audit"],
         ];
-        $grid = '<div class="developer-tool-grid">';
-        foreach ($tools as [$icon, $title, $description, $route]) {
-            $grid .=
-                '<a class="developer-tool-card" href="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href($route)) .
-                '"><span class="developer-tool-icon">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
-                '</span><span><b>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
-                '</b><small>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
-                '</small></span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>';
-        }
-        return '<div class="section-head"><div><h2>Ferramentas administrativas</h2><p>Governança, comunicação e suporte ficam agrupados aqui para não competir com a operação diária.</p></div></div>' .
-            $grid .
-            "</div>";
+        $advanced = [
+            ["settings", "Configurações", "Parâmetros globais de baixa frequência.", "admin_settings"],
+            ["construction", "Manutenção", "Controles extraordinários de disponibilidade.", "admin_maintenance"],
+        ];
+        $render = static function (array $tools) use ($href): string {
+            $grid = '<div class="developer-tool-grid">';
+            foreach ($tools as [$icon, $title, $description, $route]) {
+                $grid .=
+                    '<a class="developer-tool-card" href="' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href($route)) .
+                    '"><span class="developer-tool-icon">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
+                    '</span><span><b>' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
+                    '</b><small>' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+                    '</small></span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>';
+            }
+            return $grid . '</div>';
+        };
+        return '<div class="section-head"><div><h2>Administração</h2><p>Acesso, comunicação e rastreabilidade em um único lugar.</p></div></div>' .
+            $render($primary) .
+            '<details class="form-panel developer-advanced-tools"><summary><span>Configuração avançada</span></summary>' .
+            $render($advanced) .
+            '</details>';
     }
 
 
-    public static function admin_observability_html(
-        array $summary,
-        array $comparison,
-        string $telemetryCards,
-        string $telemetryCharts,
-    ): string {
+    public static function admin_observability_html(array $summary, string $telemetryCharts): string
+    {
         $rows = isset($summary["routes"]) && is_array($summary["routes"])
             ? $summary["routes"]
             : [];
@@ -779,47 +852,39 @@ final class AdminPagesPresentationOperations03
         $avg = (float) ($summary["avg_ms"] ?? 0);
         $slow = $rows[0] ?? null;
         $updated = (string) ($summary["updated_at"] ?? "");
-        $current = (array) ($comparison["current"] ?? []);
-        $landingAverage = isset($current["landing_average_ms"])
-            ? (float) $current["landing_average_ms"]
-            : null;
+        $errors = 0;
+        foreach ($rows as $row) {
+            $errors += max(0, (int) ($row["errors"] ?? 0));
+        }
+        $failureRate = $total > 0 ? ($errors / $total) * 100 : 0.0;
+        $failureLabel = number_format($failureRate, $failureRate < 1 ? 2 : 1, ",", ".") . "%";
         $stats =
             '<div class="stats-grid admin-performance-stats">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Requisições 10d", $total, "route", "Eventos canônicos no período") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
-                "Tempo médio de resposta",
-                self::admin_performance_format_ms($avg),
-                "speed",
-                "Média geral nos últimos 10 dias",
-            ) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Requisições · 10d", $total, "route", "eventos canônicos") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Latência média", self::admin_performance_format_ms($avg), "speed", "média geral") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Falhas", $failureLabel, "error", $errors . " evento(s)") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Rota mais lenta",
                 $slow ? self::admin_performance_format_ms((float) ($slow["avg_ms"] ?? 0)) : "—",
                 "timer",
                 $slow ? (string) ($slow["route"] ?? "") : "Sem dados",
             ) .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
-                "Landing Page",
-                $landingAverage !== null ? self::admin_performance_format_ms($landingAverage) : "—",
-                "web",
-                "Tempo médio nos últimos 10 dias",
-            ) .
             '</div>';
         $routesCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="section-head admin-performance-head"><h2>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("speed") .
-                '<span>Rotas nos últimos 10 dias</span></h2><p>Detalhamento calculado diretamente dos eventos canônicos de início e fim.' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("route") .
+                '<span>Rotas</span></h2><p>Detalhamento dos últimos 10 dias.' .
                 ($updated !== "" ? " Última atualização: " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updated) . "." : "") .
                 '</p></div>' .
                 self::admin_performance_rows_html($rows),
             "admin-performance-card",
         );
         return '<section class="admin-performance-screen">' .
-            $telemetryCards .
-            $telemetryCharts .
             $stats .
+            $telemetryCharts .
             $routesCard .
             '</section>';
     }
+
 
 }

@@ -243,6 +243,45 @@ final class AdminPagesRuntimeOperations01
     
     }
 
+    public static function platform_health_snapshot(array $preloaded = []): array
+    {
+        $checks = self::platform_backend_selftest($preloaded);
+        $databaseOk = !empty($checks["database"]);
+        $storageOk = !empty($checks["storage"]);
+        $auditOk = !empty(($checks["audit_chain"] ?? [])["ok"]);
+        $integrityOk = $auditOk && (int) ($checks["integrity_alerts"] ?? 0) === 0;
+        $versionOk = !empty(($checks["version_contract"] ?? [])["ok"]);
+        $openErrors = (int) ($checks["open_errors"] ?? 0);
+        $locks = (int) ($checks["login_locks"] ?? 0);
+        $scope = (int) ($checks["scope_alerts_24h"] ?? 0);
+        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
+        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
+        $securityInvariantOk = $scopeLogicOk && $scopeContextOk;
+        $securityOk = $securityInvariantOk && $locks === 0 && $scope === 0;
+        $critical = !$databaseOk || !$storageOk || !$integrityOk || !$versionOk || !$securityInvariantOk;
+        $attention = $openErrors > 0 || $locks > 0 || $scope > 0;
+        $state = $critical ? "Crítico" : ($attention ? "Atenção" : "Operacional");
+        return [
+            "state" => $state,
+            "critical" => $critical,
+            "checks" => $checks,
+            "counts" => [
+                "open_errors" => $openErrors,
+                "login_locks" => $locks,
+                "scope_alerts_24h" => $scope,
+                "security_invariants_ok" => $securityInvariantOk,
+            ],
+            "components" => [
+                "database" => ["label" => "Banco", "ok" => $databaseOk],
+                "storage" => ["label" => "Storage", "ok" => $storageOk],
+                "integrity" => ["label" => "Integridade", "ok" => $integrityOk],
+                "security" => ["label" => "Segurança", "ok" => $securityOk],
+                "version" => ["label" => "Contrato de versão", "ok" => $versionOk],
+            ],
+            "updated_at" => date("d/m/Y · H:i"),
+        ];
+    }
+
     public static function platform_login_loaded_audit(
         array $checks,
         bool $autoLogin = false,

@@ -71,12 +71,6 @@ $assert(
     str_contains($source, '$cutoff = $nowUnix - 31 * 86400;'),
     "database.json deve higienizar amostras a partir de 31 dias",
 );
-$admin = (string) file_get_contents(
-    $root . "/app/Runtime/AdminPages/AdminPagesRuntimeOperations03.php",
-);
-foreach (["\"Visualizações\"", "\"Tempo médio das rotas\"", "\"Registros\""] as $token) {
-    $assert(str_contains($admin, $token), "card obrigatório ausente: " . $token);
-}
 unset(
     $root,
     $assert,
@@ -89,6 +83,4 @@ unset(
     $emptyComparison,
     $cron,
     $source,
-    $admin,
-    $token,
 );

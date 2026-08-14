@@ -403,7 +403,7 @@ final class AdminPagesRuntimeOperations09
         $intro =
             '<section class="admin-alert-hero" aria-label="Central de avisos técnicos"><span class="admin-alert-hero-icon">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
-            '</span><div class="admin-alert-hero-copy"><span class="eyebrow">Central técnica</span><h2>Comunicação do Desenvolvedor</h2><p>Organize avisos recebidos e enviados sem expor o conteúdo aos ambientes dos consultórios.</p></div><span class="admin-alert-private-chip">' .
+            '</span><div class="admin-alert-hero-copy"><span class="eyebrow">Central técnica</span><h2>Mensagens internas</h2><p>Organize avisos recebidos e enviados sem expor o conteúdo aos ambientes dos consultórios.</p></div><span class="admin-alert-private-chip">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("shield_lock") .
             "<span>Acesso restrito</span></span></section>";
         $stats =
@@ -437,8 +437,8 @@ final class AdminPagesRuntimeOperations09
             "patient-list-card patient-directory-card ds-filter-list-block admin-alert-shell",
         );
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-            "Avisos do Desenvolvedor",
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Avisos") .
+            "Mensagens internas",
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Mensagens internas") .
                 '<section class="notice-screen admin-alert-screen patient-directory-screen">' .
                 $intro .
                 $stats .
@@ -453,29 +453,21 @@ final class AdminPagesRuntimeOperations09
     }
 
     public static function page_admin_performance(): void
-
     {
-
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_performance");
         $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_performance_summary(240);
-        $comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_comparative_summary();
-        $telemetryCards =
-            '<div class="wide global-telemetry-grid">' .
-            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations03::admin_telemetry_kpi_cards_html() .
-            '</div>';
         $telemetryCharts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
         $content = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_observability_html(
             $summary,
-            $comparison,
-            $telemetryCards,
             $telemetryCharts,
         );
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Observabilidade",
-                "Métricas de requisição, latência e comportamento das rotas para investigação técnica.",
+                "Requisições, latência, falhas e rotas para investigação técnica.",
             ) .
             $content;
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Observabilidade · Desenvolvedor", $body);
     }
+
 }

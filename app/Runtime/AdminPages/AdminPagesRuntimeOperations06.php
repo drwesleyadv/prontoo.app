@@ -133,8 +133,6 @@ final class AdminPagesRuntimeOperations06
             return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.06.page_admin_painel.07', $p, 0, ['query' => $query] + $context);
         };
         $readOnly = $qInt('read.admin_pages.06.page_admin_painel.01');
-        $trialEnding = $qInt('read.admin_pages.06.page_admin_painel.02');
-        $onboardingPending = $qInt('read.admin_pages.06.page_admin_painel.03');
         $locks = $qInt('read.admin_pages.06.page_admin_painel.04', [], []);
         $openErrors = $qInt('read.admin_pages.06.page_admin_painel.05', [], []);
         $errors24h = $qInt('read.admin_pages.06.page_admin_painel.06', [], []);
@@ -143,11 +141,12 @@ final class AdminPagesRuntimeOperations06
         $scopeGroups24h = $scopeViolations24h > 0
             ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_groups(24, 12)
             : [];
-        $checks = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_backend_selftest([
+        $health = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_health_snapshot([
             "open_errors" => $openErrors,
             "login_locks" => $locks,
             "scope_alerts_24h" => $scopeViolations24h,
         ]);
+        $checks = (array) ($health["checks"] ?? []);
         $actions = [];
         try {
             $pending = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.08', [], [])->fetchAll();
@@ -247,6 +246,35 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Verifique permissões.",
             ];
         }
+        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
+        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
+        if (!$scopeLogicOk || !$scopeContextOk) {
+            $actions[] = [
+                "icon" => "shield_lock",
+                "time" => "Isolamento",
+                "title" => "Autoteste de isolamento exige revisão",
+                "body" => "A prova determinística do guardião de escopo ou do contexto entre consultórios não concluiu todos os casos críticos.",
+                "meta" => "Trate como condição estrutural até a investigação.",
+            ];
+        }
+        if (empty(($health["components"]["integrity"] ?? [])["ok"])) {
+            $actions[] = [
+                "icon" => "gpp_bad",
+                "time" => "Integridade",
+                "title" => "Integridade da auditoria exige revisão",
+                "body" => "A cadeia de auditoria ou registros recentes não concluíram a verificação.",
+                "meta" => "Investigue antes de considerar a plataforma operacional.",
+            ];
+        }
+        if (empty(($health["components"]["version"] ?? [])["ok"])) {
+            $actions[] = [
+                "icon" => "deployed_code_alert",
+                "time" => "Versão",
+                "title" => "Contrato de versão divergente",
+                "body" => "A release publicada não concluiu o contrato determinístico de versão.",
+                "meta" => "Revise os artefatos canônicos da release.",
+            ];
+        }
         if ($openErrors > 0) {
             $actions[] = [
                 "icon" => "bug_report",
@@ -266,7 +294,7 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Use o painel de Segurança.",
             ];
         }
-        if ($scopeViolations24h > 0) {
+        if ($scopeViolations24h > 0 && $scopeLogicOk && $scopeContextOk) {
             $patterns = max(1, (int) ($scopeStats24h["patterns"] ?? 0));
             $objective = (int) ($scopeStats24h["objective"] ?? 0);
             $review = (int) ($scopeStats24h["review"] ?? 0);
@@ -318,28 +346,6 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Impacta agenda, financeiro e rotina dos consultórios.",
             ];
         }
-        if ($trialEnding > 0) {
-            $actions[] = [
-                "icon" => "hourglass_top",
-                "time" => "Assinaturas",
-                "title" =>
-                    $trialEnding . " assinatura(s) iniciais vencendo em até 7 dias",
-                "body" => "São consultórios próximos da decisão de contratação.",
-                "meta" => "Sinal de conversão ou risco de perda.",
-            ];
-        }
-        if ($onboardingPending > 0) {
-            $actions[] = [
-                "icon" => "playlist_add_check",
-                "time" => "Onboarding",
-                "title" =>
-                    $onboardingPending .
-                    " consultório(s) ainda sem onboarding concluído",
-                "body" => "A configuração inicial incompleta reduz adoção.",
-                "meta" =>
-                    "Revise dados do consultório, cargos, procedimentos e agenda.",
-            ];
-        }
 
         foreach ($actions as &$action) {
             if (!empty($action["html"])) {
@@ -348,8 +354,9 @@ final class AdminPagesRuntimeOperations06
             $targetRoute = match ((string) ($action["time"] ?? "")) {
                 "Erros" => "admin_errors",
                 "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
+                "Integridade" => "admin_integrity",
+                "Versão" => "admin_diagnostics",
                 "Assinaturas" => "admin_clinics",
-                "Onboarding" => "admin_onboarding",
                 default => "",
             };
             if ($targetRoute !== "") {
@@ -366,12 +373,7 @@ final class AdminPagesRuntimeOperations06
         $overview = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_overview_html(
             [
                 "actions" => $actions,
-                "checks" => $checks,
-                "locks" => $locks,
-                "scope_violations" => $scopeViolations24h,
-                "read_only" => $readOnly,
-                "trial_ending" => $trialEnding,
-                "onboarding_pending" => $onboardingPending,
+                "health" => $health,
             ],
             static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
             static fn(string $label, string $icon): string => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label, $icon),
