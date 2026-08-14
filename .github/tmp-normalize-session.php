@@ -64,6 +64,12 @@ PY;
 if (substr_count($helperSource, $throwOld) !== 1) {
     throw new RuntimeException('Remediation mismatch guard drift');
 }
-file_put_contents($helperPath, str_replace($throwOld, $throwNew, $helperSource), LOCK_EX);
+$helperSource = str_replace($throwOld, $throwNew, $helperSource);
+$pixOld = 'replace(components, "pix-" + OLD + ".svg", "pix-" + NEW + ".svg")';
+$pixNew = 'replace(components, "pix-" + OLD + ".svg", "pix-" + NEW + ".svg", expected=2)';
+if (substr_count($helperSource, $pixOld) !== 1) {
+    throw new RuntimeException('Pix remediation count drift');
+}
+file_put_contents($helperPath, str_replace($pixOld, $pixNew, $helperSource), LOCK_EX);
 
 unlink(__FILE__);
