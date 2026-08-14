@@ -484,7 +484,7 @@ final class SecurityAccessRuntimeOperations01
         $lock = "prontoo_mfa_user_" . max(0, $uid);
         $locked = false;
         try {
-            $locked = (int) \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security01.mfa_enroll_user.01', [$lock], []) === 1;
+            $locked = (int) self::auditRemediationDataService()->scalar('identity.security01.mfa_enroll_user.01', [$lock], []) === 1;
             if (!$locked) {
                 throw new RuntimeException(
                     "Não foi possível proteger o cadastro MFA.",
@@ -512,7 +512,7 @@ final class SecurityAccessRuntimeOperations01
         } finally {
             if ($locked) {
                 try {
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security01.mfa_enroll_user.02', [$lock], []);
+                    self::auditRemediationDataService()->scalar('identity.security01.mfa_enroll_user.02', [$lock], []);
                 } catch (Throwable $e) {
                     error_log("[Prontoo MFA enroll unlock] " . $e->getMessage());
                 }
@@ -520,4 +520,9 @@ final class SecurityAccessRuntimeOperations01
         }
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }

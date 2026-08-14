@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
-
 namespace Prontoo\Runtime\InstallInstaller;
-
 use \Closure;
 use \DateInterval;
 use \DateTime;
@@ -19,40 +17,28 @@ use \PDOException;
 use \ProntooHttpError;
 use \RuntimeException;
 use \Throwable;
-
 final class InstallInstallerRuntimeOperations01
 {
     private function __construct()
     {
     }
-
     public static function install_value(string $v, int $max = 255): string
-    
     {
-    
         $v = trim($v);
         if ($v === "" || strlen($v) > $max || preg_match('/[\x00-\x1F\x7F]/', $v)) {
             throw new RuntimeException("Valor de instalação inválido.");
         }
         return $v;
-    
     }
-
     public static function install_pdf_dir(): string
-    
     {
-    
         if (is_callable([\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::class, 'document_pdf_dir'])) {
             return \Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::document_pdf_dir();
         }
         return \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_root() . "/pdfs";
-    
     }
-
     public static function install_environment_checks(bool $touchPaths = false): array
-    
     {
-    
         $checks = [];
         $add = static function (
             string $key,
@@ -61,7 +47,6 @@ final class InstallInstallerRuntimeOperations01
             string $message,
             string $level = "error",
         ) use (&$checks): void {
-    
             $checks[] = [
                 "key" => $key,
                 "ok" => $ok,
@@ -135,46 +120,30 @@ final class InstallInstallerRuntimeOperations01
             );
         }
         return $checks;
-    
     }
-
     public static function install_environment_has_blocker(array $checks): bool
-    
     {
-    
         foreach ($checks as $check) {
             if (($check["level"] ?? "error") === "error" && empty($check["ok"])) {
                 return true;
             }
         }
         return false;
-    
     }
-
     public static function install_yesno(bool $value): string
-    
     {
-    
         return $value ? "sim" : "não";
-    
     }
-
     public static function install_compact_text(string $value, int $limit = 1800): string
-    
     {
-    
         $value = preg_replace("/\s+/", " ", trim($value)) ?? trim($value);
         if (strlen($value) <= $limit) {
             return $value;
         }
         return substr($value, 0, $limit) . "... [truncado]";
-    
     }
-
     public static function install_throwable_lines(Throwable $e): array
-    
     {
-    
         $lines = [];
         $i = 0;
         do {
@@ -206,41 +175,25 @@ final class InstallInstallerRuntimeOperations01
             $i++;
         } while ($e instanceof Throwable && $i < 4);
         return $lines;
-    
     }
-
     public static function install_mysql_dsn(string $host, string $db): string
-    
     {
-    
         return "mysql:host=" . $host . ";dbname=" . $db . ";charset=utf8mb4";
-    
     }
-
     public static function install_pdo_options(): array
-    
     {
-    
         return [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
-    
     }
-
     public static function install_open_database(array $context, bool $strictMode = false): PDO
-    
     {
-    
         return \Prontoo\Infrastructure\InstallInstaller\InstallInstallerInfrastructureOperations01::install_open_database($context, $strictMode);
-    
     }
-
     public static function install_database_error_code(Throwable $e): int
-    
     {
-    
         if (
             $e instanceof PDOException &&
             is_array($e->errorInfo ?? null) &&
@@ -249,13 +202,9 @@ final class InstallInstallerRuntimeOperations01
             return (int) $e->errorInfo[1];
         }
         return is_numeric($e->getCode()) ? (int) $e->getCode() : 0;
-    
     }
-
     public static function install_database_error_message(Throwable $e): string
-    
     {
-    
         return match (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_error_code($e)) {
             1045
                 => "O MySQL recusou o usuário ou a senha informados. Confira o usuário completo do banco, a senha e se esse usuário está vinculado ao banco.",
@@ -269,13 +218,9 @@ final class InstallInstallerRuntimeOperations01
             default
                 => "Não foi possível conectar ao banco vazio com os dados informados.",
         };
-    
     }
-
     public static function install_database_hint_lines(Throwable $e, array $context = []): array
-    
     {
-    
         $code = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_database_error_code($e);
         $lines = [];
         if ($code === 1045) {
@@ -296,13 +241,9 @@ final class InstallInstallerRuntimeOperations01
                 "Erro de host/socket. Confirme se o host deve ser localhost ou outro endereço fornecido pela hospedagem.";
         }
         return $lines;
-    
     }
-
     public static function install_database_probe_lines(array $context): array
-    
     {
-    
         $lines = [];
         $host = (string) ($context["db_host"] ?? "");
         $db = (string) ($context["db_name"] ?? "");
@@ -349,16 +290,13 @@ final class InstallInstallerRuntimeOperations01
             }
         }
         return $lines;
-    
     }
-
     public static function install_technical_report(
         ?Throwable $e = null,
         array $context = [],
         array $checks = [],
-    ): string 
+    ): string
     {
-    
         $lines = [];
         $lines[] = "PRONTOO INSTALL DIAGNOSTIC";
         $lines[] =
@@ -488,13 +426,9 @@ final class InstallInstallerRuntimeOperations01
         }
         $lines[] = "Fim do diagnóstico.";
         return implode("\n", $lines);
-    
     }
-
     public static function install_prepare_writable_paths(): void
-    
     {
-    
         $checks = \Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_environment_checks(true);
         if (\Prontoo\Runtime\InstallInstaller\InstallInstallerRuntimeOperations01::install_environment_has_blocker($checks)) {
             throw new RuntimeException(
@@ -509,13 +443,9 @@ final class InstallInstallerRuntimeOperations01
         }
         \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("logs"));
         \Prontoo\Infrastructure\SecurityPrivacy\SecurityPrivacyInfrastructureOperations01::security_storage_deny_file(\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::storage_path("pdfs"));
-    
     }
-
     public static function install_safe_failure_message(Throwable $e): string
-    
     {
-    
         $msg = trim($e->getMessage());
         if ($msg === "") {
             return "A instalação não foi concluída. Revise os dados informados e tente novamente.";
@@ -553,6 +483,5 @@ final class InstallInstallerRuntimeOperations01
             return "A instalação encontrou divergência diagnóstica de isolamento multi-consultório. Verifique ssd/tenant_integrity.json e use banco vazio.";
         }
         return "A instalação não foi concluída. Revise os dados informados, o banco vazio e as permissões de escrita em app/ e ssd/.";
-    
     }
 }

@@ -186,7 +186,7 @@ final class SecurityAccessRuntimeOperations03
                 "Registro não pertence ao consultório ativo.",
             );
         }
-        $row = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.security03.require_same_clinic_entity.01', [
+        $row = self::auditRemediationDataService()->row('identity.security03.require_same_clinic_entity.01', [
             $id,
             $cid,
         ], compact('entity'));
@@ -340,7 +340,7 @@ final class SecurityAccessRuntimeOperations03
             return array_keys(\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions());
         }
         try {
-            $allowed = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result(
+            $allowed = self::auditRemediationDataService()->result(
                 'identity.security03.effective_allowed_modules_for_roles.01',
                 array_merge([$cid], $roles),
                 ['role_count' => count($roles)],
@@ -361,7 +361,7 @@ final class SecurityAccessRuntimeOperations03
     
             foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::default_permissions() as $role => $keys) {
                 foreach (\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::actions() as $key => $a) {
-                    \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.security03.seed_permissions.01', [
+                    self::auditRemediationDataService()->result('identity.security03.seed_permissions.01', [
                             $clinicId,
                             $role,
                             $key,
@@ -381,7 +381,7 @@ final class SecurityAccessRuntimeOperations03
         if (is_string($secret) && $secret !== "") {
             return $secret;
         }
-        $secret = (string) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.security03.secret_key.01', [], []) ??
+        $secret = (string) (self::auditRemediationDataService()->scalar('identity.security03.secret_key.01', [], []) ??
             (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()["secret"] ?? "prontoo"));
         return $secret;
     
@@ -530,4 +530,9 @@ final class SecurityAccessRuntimeOperations03
         \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect($route);
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }

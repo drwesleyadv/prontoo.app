@@ -35,7 +35,7 @@ final class AuthOnboardingRuntimeOperations06
         if ($uid <= 0) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
-        $u = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth06.page_profile.01', [$uid], []);
+        $u = self::auditRemediationDataService()->row('identity.auth06.page_profile.01', [$uid], []);
         if (!$u) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("login");
         }
@@ -87,7 +87,7 @@ final class AuthOnboardingRuntimeOperations06
                     $personId = (int) $u["person_id"];
                     if ($email !== "") {
                         $emailOwner =
-                            (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->scalar('identity.auth06.page_profile.02', [$email, $uid], []) ?:
+                            (int) (self::auditRemediationDataService()->scalar('identity.auth06.page_profile.02', [$email, $uid], []) ?:
                             0);
                         if ($emailOwner > 0) {
                             throw new RuntimeException(
@@ -468,7 +468,7 @@ final class AuthOnboardingRuntimeOperations06
                         throw new RuntimeException("Escolha um ambiente válido.");
                     }
                     $roleId = (int) $m[1];
-                    $link = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth06.page_profile.06', [$roleId, $uid], []);
+                    $link = self::auditRemediationDataService()->row('identity.auth06.page_profile.06', [$roleId, $uid], []);
                     if (!$link) {
                         throw new RuntimeException(
                             "Ambiente indisponível para este usuário.",
@@ -846,7 +846,7 @@ final class AuthOnboardingRuntimeOperations06
                 $active,
             );
         }
-        $rows = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->result('identity.auth06.page_profile.07', [$uid], [])->fetchAll();
+        $rows = self::auditRemediationDataService()->result('identity.auth06.page_profile.07', [$uid], [])->fetchAll();
         foreach ($rows as $r) {
             $rid = (int) $r["id"];
             $role = (string) $r["role_code"];
@@ -891,4 +891,9 @@ final class AuthOnboardingRuntimeOperations06
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Minha conta", $body);
     
     }
+    private static function auditRemediationDataService()
+    {
+        return \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService();
+    }
+
 }
