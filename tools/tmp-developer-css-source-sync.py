@@ -12,7 +12,7 @@ artifact = artifact_path.read_text()
 if marker not in artifact:
     raise SystemExit('developer artifact CSS marker missing')
 _, tail = artifact.split(marker, 1)
-block = marker + tail
+block = tail.lstrip('\n')
 
 source = source_path.read_text()
 if marker in source:
