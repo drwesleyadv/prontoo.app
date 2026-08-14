@@ -25,7 +25,7 @@ env:
 
 jobs:
   materialize-runtime-gate:
-    if: github.event_name == 'pull_request' && github.head_ref == 'agent/global-audit-remediation-1-8-13-9' && github.event.pull_request.head.sha == 'b9755f21bec90035c0afc1e46ff4fc05649c952d'
+    if: github.event_name == 'pull_request' && github.head_ref == 'agent/global-audit-remediation-1-8-13-9'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -72,15 +72,14 @@ jobs:
           for raw_path in targets:
               path = Path(raw_path)
               source = path.read_text(encoding='utf-8')
+              if 'auditRemediationDataService' in source:
+                  print(f'{raw_path}: already centralized')
+                  continue
               before = sum(source.count(factory) for factory in factories)
               chosen = next((factory for factory in factories if source.count(factory) >= 2), None)
               if chosen is None:
                   raise RuntimeError(f'{raw_path}: no repeated generic gateway factory; before={before}')
               helper = 'auditRemediationDataService'
-              suffix = 1
-              while helper in source:
-                  suffix += 1
-                  helper = f'auditRemediationDataService{suffix}'
               source = source.replace(chosen, f'self::{helper}()')
               insertion = '\n    private static function ' + helper + '()\n    {\n        return ' + chosen + ';\n    }\n'
               closing = source.rfind('\n}')
@@ -127,6 +126,10 @@ jobs:
           git config user.name 'Wesley Ferreira'
           git config user.email '48494254+drwesleyadv@users.noreply.github.com'
           git add -A
+          if git diff --cached --quiet; then
+            echo 'Runtime reductions already materialized.'
+            exit 0
+          fi
           git commit -m 'refactor: satisfy runtime on-touch gate'
           git push origin HEAD:agent/global-audit-remediation-1-8-13-9
 
