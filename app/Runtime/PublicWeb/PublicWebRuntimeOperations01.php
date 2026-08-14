@@ -45,7 +45,7 @@ final class PublicWebRuntimeOperations01
             readfile($document);
             return;
         }
-        echo "<!doctype html><html lang=\"pt-BR\"><meta charset=\"utf-8\"><title>Página não encontrada · Prontoo</title><body><main><h1>Esta página não está por aqui</h1><p>Você pode voltar ao Prontoo e continuar normalmente.</p><p><a href=\"/\">Voltar ao Prontoo</a></p></main></body></html>";
+        echo "<!doctype html><html lang=\"pt-BR\"><meta charset=\"utf-8\"><title>Não encontrado - Prontoo</title><body><main><h1>Esta página não existe</h1><p>Você pode voltar ao Prontoo e continuar normalmente.</p><p><a href=\"/\">Voltar ao Prontoo</a></p></main></body></html>";
     }
 
     public static function page_public_telemetry_tombstone(): void

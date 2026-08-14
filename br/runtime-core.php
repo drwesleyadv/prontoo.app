@@ -117,7 +117,7 @@ function br_landing_send_asset(string $asset): void
     if (is_file($document)) {
         readfile($document);
     } else {
-        echo '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Página não encontrada · Prontoo</title><body><main><h1>Esta página não está por aqui</h1><p><a href="/">Voltar ao Prontoo</a></p></main></body></html>';
+        echo '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Não encontrado - Prontoo</title><body><main><h1>Esta página não existe</h1><p><a href="/">Voltar ao Prontoo</a></p></main></body></html>';
     }
     exit();
 }
