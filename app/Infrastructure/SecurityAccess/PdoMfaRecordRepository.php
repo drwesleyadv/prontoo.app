@@ -48,6 +48,7 @@ final class PdoMfaRecordRepository implements MfaRecordPort
 
     public function secretKey(): string
     {
+        $secret = '';
         try {
             $statement = ($this->guardedQueryExecutor)(
                 "SELECT meta_value FROM pi_meta WHERE meta_key='app_secret'",
@@ -55,12 +56,23 @@ final class PdoMfaRecordRepository implements MfaRecordPort
             );
             $value = $statement->fetchColumn();
             $statement->closeCursor();
-            if (is_string($value) && trim($value) !== '') {
-                return $value;
+            if (is_string($value)) {
+                $secret = trim($value);
             }
         } catch (\Throwable) {
         }
-        return (string) (\Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()['secret'] ?? 'prontoo');
+        if (strlen($secret) < 32) {
+            $config = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::has_cfg()
+                ? \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cfg()
+                : [];
+            $secret = trim((string) ($config['secret'] ?? ''));
+        }
+        if (strlen($secret) < 32) {
+            throw new \RuntimeException(
+                'Segredo criptográfico da instalação indisponível para o MFA.',
+            );
+        }
+        return $secret;
     }
 
     private function invalidate(): void
