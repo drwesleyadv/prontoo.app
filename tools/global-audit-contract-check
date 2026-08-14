@@ -51,12 +51,16 @@ $journey = (string) file_get_contents($root . '/app/Core/Invariant/Workflow/Appo
 $patientSql = (string) file_get_contents($root . '/app/Infrastructure/Operational/PatientsSqlCatalog07.php');
 $patientRuntime = (string) file_get_contents($root . '/app/Runtime/Patients/PatientsRuntimeOperations07.php');
 $patientCommand = (string) file_get_contents($root . '/app/Application/Operational/PatientCareCommand.php');
+$schemaReadiness = (string) file_get_contents($root . '/app/Infrastructure/DatabaseSchema/RuntimeSchemaReadiness.php');
 foreach ([
     'journey:task_completion_fast_ready' => str_contains($journey, '"task_completion_fast_ready"'),
     'journey:clinical_note_fast_start' => str_contains($journey, '"clinical_note_fast_start"'),
     'patient_sql:direct_em_atendimento' => str_contains($patientSql, "status='em_atendimento'") && str_contains($patientSql, "status IN ('agendado','pronto_atendimento')"),
     'patient_runtime:typed_atomic_command' => str_contains($patientRuntime, 'patientCareCommands()->createClinicalNote(') && !str_contains($patientRuntime, "operational.patients.07.page_patient.28"),
     'patient_command:atomicity' => str_contains($patientCommand, '$this->data->atomic(') && str_contains($patientCommand, "operational.patients.07.page_patient.26") && str_contains($patientCommand, "operational.patients.07.page_patient.27") && str_contains($patientCommand, "operational.patients.07.page_patient.28"),
+    'schema_readiness:persisted_revision_identity' => str_contains($schemaReadiness, "PERSISTED_SCHEMA_REVISION = 'prontoo_1_7_20_6_clean_schema_r7_layer2_ledger'"),
+    'schema_readiness:persisted_revision_guard' => str_contains($schemaReadiness, 'self::revisionAccepted($revision, $expectedRevision)'),
+    'schema_readiness:db_lock_revision_consistency' => str_contains($schemaReadiness, "hash_equals(\$revision, (string) (\$ready['revision'] ?? ''))"),
 ] as $name => $ok) {
     if (!$ok) {
         $failures[] = $name;
