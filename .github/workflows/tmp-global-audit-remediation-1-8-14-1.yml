@@ -131,6 +131,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git add -A
           php tools/release-contract-reconcile --write
       - name: Validate final tree
         shell: bash
