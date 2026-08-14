@@ -133,8 +133,6 @@ final class AdminPagesRuntimeOperations06
             return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.06.page_admin_painel.07', $p, 0, ['query' => $query] + $context);
         };
         $readOnly = $qInt('read.admin_pages.06.page_admin_painel.01');
-        $trialEnding = $qInt('read.admin_pages.06.page_admin_painel.02');
-        $onboardingPending = $qInt('read.admin_pages.06.page_admin_painel.03');
         $locks = $qInt('read.admin_pages.06.page_admin_painel.04', [], []);
         $openErrors = $qInt('read.admin_pages.06.page_admin_painel.05', [], []);
         $errors24h = $qInt('read.admin_pages.06.page_admin_painel.06', [], []);
@@ -143,11 +141,12 @@ final class AdminPagesRuntimeOperations06
         $scopeGroups24h = $scopeViolations24h > 0
             ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_groups(24, 12)
             : [];
-        $checks = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_backend_selftest([
+        $health = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_health_snapshot([
             "open_errors" => $openErrors,
             "login_locks" => $locks,
             "scope_alerts_24h" => $scopeViolations24h,
         ]);
+        $checks = (array) ($health["checks"] ?? []);
         $actions = [];
         try {
             $pending = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.08', [], [])->fetchAll();
@@ -318,28 +317,6 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Impacta agenda, financeiro e rotina dos consultórios.",
             ];
         }
-        if ($trialEnding > 0) {
-            $actions[] = [
-                "icon" => "hourglass_top",
-                "time" => "Assinaturas",
-                "title" =>
-                    $trialEnding . " assinatura(s) iniciais vencendo em até 7 dias",
-                "body" => "São consultórios próximos da decisão de contratação.",
-                "meta" => "Sinal de conversão ou risco de perda.",
-            ];
-        }
-        if ($onboardingPending > 0) {
-            $actions[] = [
-                "icon" => "playlist_add_check",
-                "time" => "Onboarding",
-                "title" =>
-                    $onboardingPending .
-                    " consultório(s) ainda sem onboarding concluído",
-                "body" => "A configuração inicial incompleta reduz adoção.",
-                "meta" =>
-                    "Revise dados do consultório, cargos, procedimentos e agenda.",
-            ];
-        }
 
         foreach ($actions as &$action) {
             if (!empty($action["html"])) {
@@ -366,12 +343,7 @@ final class AdminPagesRuntimeOperations06
         $overview = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_overview_html(
             [
                 "actions" => $actions,
-                "checks" => $checks,
-                "locks" => $locks,
-                "scope_violations" => $scopeViolations24h,
-                "read_only" => $readOnly,
-                "trial_ending" => $trialEnding,
-                "onboarding_pending" => $onboardingPending,
+                "health" => $health,
             ],
             static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
             static fn(string $label, string $icon): string => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label, $icon),

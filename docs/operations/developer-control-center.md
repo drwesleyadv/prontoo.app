@@ -2,40 +2,27 @@
 
 ## Princípio
 
-O ambiente global do Desenvolvedor é um plano de controle operacional. A página inicial responde primeiro se existe algo que exige intervenção; telemetria detalhada fica sob demanda.
+O ambiente global do Desenvolvedor é um plano de controle operacional. A interface prioriza decisões e exceções; informação normal, repetida ou de baixa frequência permanece fora do primeiro plano.
 
-## Navegação primária
+## Hierarquia
 
-1. **Visão geral** — estado da plataforma e fila “Precisa de você”.
-2. **Consultórios** — ciclo de vida, onboarding, assinatura e operação dos consultórios.
-3. **Confiabilidade** — erros, segurança, isolamento, integridade, diagnóstico e recuperação.
-4. **Observabilidade** — requisições, latência, rotas e séries de desempenho.
-5. **Administração** — usuários, comunicação, manutenção, configurações e auditoria.
+1. **Visão geral** — responde somente ao estado atual e ao que precisa de intervenção.
+2. **Consultórios** — ciclo de vida e gestão, com filtros de Todos, Atenção, Onboarding, Somente leitura e Vencendo.
+3. **Confiabilidade** — exceções técnicas e acesso direto a Erros, Segurança e Integridade.
+4. **Observabilidade** — requisições, latência, falhas, gráficos e comportamento das rotas.
+5. **Administração** — hub de acesso, comunicação e auditoria; configuração e manutenção ficam progressivamente reveladas.
 
-## Autópsia funcional
+## Terceira passada de carga cognitiva
 
-| Recurso | Destino | Decisão |
-|---|---|---|
-| `admin_painel` | Visão geral | Manter e reescrever como fila de decisão |
-| `admin_clinics` | Consultórios | Manter |
-| `admin_onboarding` | Consultórios | Incorporar como ferramenta secundária |
-| `admin_operations` | Consultórios | Incorporar como ferramenta secundária |
-| `admin_payment_proof` | Consultórios | Rebaixar a fluxo contextual |
-| `admin_health` | Confiabilidade | Manter e redefinir |
-| `admin_errors` | Confiabilidade | Incorporar |
-| `admin_security` | Confiabilidade | Incorporar |
-| `admin_integrity` | Confiabilidade | Incorporar |
-| `admin_diagnostics` | Confiabilidade | Rebaixar a diagnóstico sob demanda |
-| `admin_deleted` | Confiabilidade | Rebaixar a recuperação extraordinária |
-| `admin_performance` | Observabilidade | Manter e renomear |
-| `admin_people` / `admin_users` | Administração | Incorporar; `admin_users` permanece alias de compatibilidade |
-| `admin_alerts` | Administração | Incorporar como comunicação técnica |
-| `admin_global_notices` | Administração | Incorporar como comunicação institucional |
-| `admin_maintenance` | Administração | Rebaixar a ferramenta extraordinária |
-| `admin_settings` | Administração | Incorporar |
-| `admin_audit` | Administração | Incorporar |
-| `admin_stats` | — | Remover; era apenas redirecionamento para o painel |
+- A Visão geral contém apenas **Estado do Prontoo** e **Precisa de você**.
+- Onboarding e vencimentos deixam de ser alertas globais e passam a filtros contextuais de Consultórios.
+- `admin_onboarding` permanece apenas como alias de compatibilidade e redireciona ao filtro de onboarding.
+- `admin_operations` vira **Indicadores do negócio**, relatório sob demanda acessível por Mais opções em Consultórios.
+- Confiabilidade mostra somente exceções; Diagnóstico e Recuperação ficam em Ferramentas avançadas.
+- Observabilidade tem uma única camada de quatro KPIs: Requisições, Latência média, Falhas e Rota mais lenta; depois gráficos e rotas.
+- Administração não replica seus filhos na navegação da PageHead. O hub mostra Usuários, Mensagens internas, Avisos aos consultórios e Auditoria; Configurações e Manutenção ficam em Configuração avançada.
+- O estado técnico é calculado por um único snapshot de saúde compartilhado por Visão geral e Confiabilidade.
 
 ## Regra de UX
 
-Informação só ganha destaque quando altera uma decisão. Estados normais são resumidos; detalhes técnicos são progressivamente revelados em Confiabilidade ou Observabilidade.
+Uma informação só ocupa espaço permanente se alterar uma decisão frequente. Drill-down existe para explicar uma exceção, não para repetir o resumo. Ferramentas raras continuam acessíveis, mas não competem visualmente com a operação diária.

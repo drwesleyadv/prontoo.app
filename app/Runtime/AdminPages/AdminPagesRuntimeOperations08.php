@@ -224,6 +224,38 @@ final class AdminPagesRuntimeOperations08
         $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.10', [], [])->fetchAll();
         $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         $peopleCounts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_people_counts_by_cpf($ids);
+        $view = preg_replace("/[^a-z_]/", "", (string) ($_GET["view"] ?? "all"));
+        if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+            $view = "all";
+        }
+        $filterSpecs = [
+            "all" => ["Todos", "format_list_bulleted"],
+            "attention" => ["Atenção", "priority_high"],
+            "onboarding" => ["Onboarding", "playlist_add_check"],
+            "readonly" => ["Somente leitura", "lock"],
+            "expiring" => ["Vencendo", "event_upcoming"],
+        ];
+        $filters = '<nav class="notice-filter-chips lead-filter-chips ds-notice-filters" aria-label="Filtrar consultórios">';
+        foreach ($filterSpecs as $filterKey => [$filterLabel, $filterIcon]) {
+            $activeFilter = $view === $filterKey;
+            $filters .= '<a class="lead-chip ds-filter-chip ' .
+                ($activeFilter ? "active is-active" : "") .
+                '" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
+                        "admin_clinics",
+                        $filterKey === "all" ? [] : ["view" => $filterKey],
+                    ),
+                ) .
+                '"' .
+                ($activeFilter ? ' aria-current="page"' : "") .
+                '>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($filterIcon) .
+                '<span class="lead-chip-label">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($filterLabel) .
+                '</span></a>';
+        }
+        $filters .= '</nav>';
         $bodyRows = "";
         foreach ($rows as $r) {
             $id = (int) $r["id"];
@@ -233,6 +265,28 @@ final class AdminPagesRuntimeOperations08
                 (int) ($peopleCounts[$id]["collaborators"] ?? 0);
             $billing = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations03::billing_state($r);
             $status = (string) ($billing["status"] ?? "active");
+            $dueCandidate = mb_trim((string) ($billing["paid_until"] ?? ""));
+            if ($dueCandidate === "") {
+                $dueCandidate = mb_trim((string) ($billing["trial_ends_at"] ?? ""));
+            }
+            $dueTimestamp = $dueCandidate !== "" ? strtotime($dueCandidate) : false;
+            $now = time();
+            $expiresSoon = empty($billing["exempt"]) &&
+                $dueTimestamp !== false &&
+                $dueTimestamp >= $now &&
+                $dueTimestamp <= $now + 7 * 86400;
+            $onboardingPending = (int) ($r["onboarding_done"] ?? 0) !== 1;
+            $needsAttention = (int) $r["active"] !== 1 || !empty($billing["read_only"]) || $onboardingPending || $expiresSoon;
+            $matchesFilter = match ($view) {
+                "attention" => $needsAttention,
+                "onboarding" => $onboardingPending,
+                "readonly" => !empty($billing["read_only"]),
+                "expiring" => $expiresSoon,
+                default => true,
+            };
+            if (!$matchesFilter) {
+                continue;
+            }
             $attentionClass = "is-stable";
             $attentionIcon = "verified";
             $attentionLabel = "Ativo";
@@ -333,15 +387,18 @@ final class AdminPagesRuntimeOperations08
             '<div class="clinic-attention-list">' .
             ($bodyRows !== ""
                 ? $bodyRows
-                : '<div class="empty">Nenhum consultório exige atenção agora.</div>') .
+                : '<div class="empty">Nenhum consultório corresponde a este filtro.</div>') .
             "</div>";
         $onboardingHead =
             '<div class="admin-onboarding-head clinic-attention-head"><div><span class="eyebrow">Acompanhamento</span><h2>Consultórios</h2><p>Leitura compacta por status, data de cadastro, profissionais, colaboradores e vencimento. Status padronizados: Ativo, Somente leitura e Isento.</p></div></div>';
+        $advanced = '<details class="form-panel developer-advanced-tools"><summary><span>Mais opções</span></summary><div class="developer-tool-grid"><a class="developer-tool-card" href="' .
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_operations") .
+            '"><span class="developer-tool-icon">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("insights") . '</span><span><b>Indicadores do negócio</b><small>Adoção, operação e financeiro sob demanda.</small></span></a></div></details>';
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Consultórios", "") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($commercial, "admin-clinics-focus-card") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                $onboardingHead . $table,
+                $onboardingHead . $filters . $advanced . $table,
                 "admin-onboarding-card admin-clinics-list-card clinic-attention-card",
             );
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Consultórios", $body);

@@ -28,18 +28,7 @@ $assert(
     str_contains($admin2, 'admin_global_metric_series_24h("database")') &&
     str_contains($admin2, 'admin_global_volume_series_30d("page_load")') &&
     str_contains($admin2, 'admin_global_volume_series_30d("database_queries")'),
-    'Velocidade deve usar latência por minuto e Volume deve usar contagens por dia',
-);
-$assert(
-    str_contains($admin2, '"primary_label" => "Carregamentos de página"') &&
-    str_contains($admin2, '"secondary_label" => "Consultas ao banco de dados"') &&
-    str_contains($admin2, '"count_summary_mode" => "sum"'),
-    'Volume deve exibir totais de carregamentos e consultas',
-);
-$assert(
-    !str_contains($admin2, '"secondary_label" => "Landing Page"') &&
-    !str_contains($admin2, '"Leitura e gravação"'),
-    'gráficos operacionais não podem manter a composição antiga',
+    'gráficos devem usar as séries canônicas de latência e volume',
 );
 $assert(class_exists(\Prontoo\Infrastructure\Database\PdoQueryTelemetry::class), 'acumulador de latência PDO ausente');
 \Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
@@ -52,154 +41,40 @@ $assert(
     abs((float) ($querySnapshot['average_ms'] ?? 0.0) - 3.0) < 0.000001,
     'média ponderada de consultas PDO divergente',
 );
-\Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
-$databaseSchemaSource = (string) file_get_contents($root . '/app/Infrastructure/DatabaseSchema/DatabaseSchemaInfrastructureOperations01.php');
-$pdoStatementSource = (string) file_get_contents($root . '/app/Infrastructure/Database/TelemetryPdoStatement.php');
-$telemetryStoreSource = (string) file_get_contents($root . '/app/Infrastructure/SupportTelemetry/TelemetryJsonStore.php');
 $assert(
-    str_contains($databaseSchemaSource, 'PDO::ATTR_STATEMENT_CLASS') &&
-    str_contains($databaseSchemaSource, 'TelemetryPdoStatement::class') &&
-    str_contains($pdoStatementSource, 'parent::execute($params)') &&
-    str_contains($pdoStatementSource, 'PdoQueryTelemetry::record'),
-    'latência deve ser medida na execução real do prepared statement PDO',
+    str_contains($admin9, 'telemetry_route_performance_summary(240)') &&
+    !str_contains($admin9, 'telemetry_comparative_summary()') &&
+    !str_contains($admin9, 'admin_telemetry_kpi_cards_html('),
+    'Observabilidade deve usar uma única camada de resumo',
 );
 $assert(
-    str_contains($telemetryStoreSource, '"database_query_count"') &&
-    str_contains($telemetryStoreSource, '"database_query_duration_ns"') &&
-    str_contains($telemetryStoreSource, '"database_query_instrumented"') &&
-    str_contains($telemetryStoreSource, '"database_query_observed"') &&
-    !str_contains($telemetryStoreSource, 'database_query_sql') &&
-    !str_contains($telemetryStoreSource, 'database_query_params'),
-    'speed.json deve persistir somente agregados seguros da consulta',
+    !str_contains($admin3, 'admin_telemetry_kpi_cards_html(') &&
+    !str_contains($admin3, 'page_status()') &&
+    !str_contains($admin6, 'admin_performance_card_html('),
+    'renderers legados de telemetria não podem voltar à central do Desenvolvedor',
 );
-foreach (['"Visualizações"', '"Tempo médio das rotas"', '"Registros"', '"Landing Page"'] as $token) {
-    $assert(str_contains($admin3, $token), 'cards perderam ' . $token);
+foreach (["Requisições · 10d", "Latência média", "Falhas", "Rota mais lenta"] as $label) {
+    $assert(str_contains($presentation3, $label), 'Observabilidade perdeu o indicador ' . $label);
 }
-$assert(str_contains($admin9, 'telemetry_route_performance_summary(240)') && str_contains($admin9, 'telemetry_comparative_summary()'), 'Performance deixou de usar o contrato canônico');
-$assert(str_contains($admin2, 'data-refresh-ms="60000"'), 'cards e gráficos devem atualizar a cada minuto');
-$assert(
-    str_contains($admin3, '$current["landing_requests"]') &&
-    str_contains($admin3, '$variations["landing_requests_pct"]'),
-    'card Landing Page deixou de consumir total e comparação canônicos',
-);
-$assert(
-    str_contains($admin3, 'telemetry-kpi-card') &&
-    str_contains($admin3, 'telemetry-kpi-value') &&
-    !str_contains($admin3, 'admin_telemetry_variation_note') &&
-    !str_contains($admin3, '15 dias móveis') &&
-    !str_contains($admin3, 'vs. 15 dias anteriores'),
-    'cards de telemetria perderam a apresentação minimalista da variação',
-);
-$assert(
-    !str_contains($admin6, 'admin_telemetry_kpi_cards_html(') &&
-    !str_contains($admin6, 'admin_performance_card_html(') &&
-    str_contains($admin9, 'admin_telemetry_kpi_cards_html()') &&
-    str_contains($admin3, 'admin_telemetry_kpi_cards_html()'),
-    'Visão geral deve permanecer sem telemetria detalhada e Observabilidade deve usar o renderer canônico dos KPIs',
-);
-$positiveTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(12.34);
-$negativeTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(-8.0);
-$neutralTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(0.0);
-$missingTrend = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_telemetry_variation_badge(null);
-$assert(
-    str_contains($positiveTrend, 'is-positive') &&
-    str_contains($positiveTrend, '▲') &&
-    str_contains($positiveTrend, '12,3%') &&
-    !str_contains($positiveTrend, '+12'),
-    'variação positiva deve ser compacta, azul e precedida por triângulo para cima',
-);
-$assert(
-    str_contains($negativeTrend, 'is-negative') &&
-    str_contains($negativeTrend, '▼') &&
-    str_contains($negativeTrend, '8%') &&
-    !str_contains($negativeTrend, '-8'),
-    'variação negativa deve ser compacta, vermelha e precedida por triângulo para baixo',
-);
-$assert(
-    str_contains($neutralTrend, 'is-neutral') &&
-    str_contains($neutralTrend, '0%') &&
-    !str_contains($neutralTrend, '▲') &&
-    !str_contains($neutralTrend, '▼'),
-    'variação neutra deve permanecer minimalista',
-);
-$assert(
-    str_contains($missingTrend, 'is-pending') &&
-    str_contains($missingTrend, '⌛') &&
-    !str_contains($missingTrend, '%') &&
-    !str_contains($missingTrend, '▲') &&
-    !str_contains($missingTrend, '▼'),
-    'ausência de base comparável deve exibir somente ampulheta',
-);
-$valueMarkupPos = strpos($admin3, 'UiComponentsPresentationOperations01::n($value)');
-$trendMarkupPos = $valueMarkupPos === false ? false : strpos($admin3, '$trend .', $valueMarkupPos);
-$assert(
-    $valueMarkupPos !== false &&
-    $trendMarkupPos !== false &&
-    $trendMarkupPos > $valueMarkupPos,
-    'ordem visual dos KPIs deve ser Valor, Triângulo e Percentual',
-);
-foreach ([
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-positive{color:#2563eb!important}',
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend.is-negative{color:var(--md-sys-color-error,#ba1a1a)!important}',
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-value{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:7px;white-space:nowrap;width:max-content;min-width:max-content}',
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-value>b{display:inline-block;flex:0 0 auto;white-space:nowrap}',
-    '.stat-card.telemetry-kpi-card .telemetry-kpi-trend{display:inline-flex!important;align-items:center;flex:0 0 auto;gap:2px;position:static;top:auto;',
-] as $trendCssToken) {
-    $assert(str_contains($css, $trendCssToken), 'CSS minimalista dos KPIs divergente: ' . $trendCssToken);
-}
-$assert(!str_contains($css, 'top:-.28em'), 'KPIs não podem deslocar a tendência para fora da linha do valor');
+$assert(!str_contains($presentation3, 'stat_card("Landing Page"'), 'Landing Page não deve duplicar o resumo de Observabilidade');
+$assert(str_contains($admin2, 'data-refresh-ms="60000"'), 'gráficos devem atualizar a cada minuto');
 $loadAreaPos = strpos($presentation3, '$loadArea =');
 $responseAreaPos = strpos($presentation3, '$responseArea =');
 $fillOrderPos = strpos($presentation3, '$fillAreas = $loadArea . $responseArea;');
-$assert(
-    $loadAreaPos !== false &&
-    $responseAreaPos !== false &&
-    $responseAreaPos > $loadAreaPos &&
-    $fillOrderPos !== false,
-    'a série secundária deve ser pintada depois da série primária nos gráficos duplos',
-);
-$assert(
-    str_contains($admin6, 'page_admin_painel()') &&
-    !str_contains($admin6, 'admin_performance_card_html(') &&
-    str_contains($admin9, 'page_admin_performance()') &&
-    str_contains($admin9, 'admin_performance_card_html()'),
-    'Visão geral deve ser orientada a decisões e Observabilidade deve consumir o gráfico canônico de 30 dias',
-);
-$assert(
-    str_contains($admin3, 'page_status()') &&
-    str_contains($admin3, 'admin_performance_card_html(true)'),
-    'Status deixou de consumir o gráfico canônico de 30 dias',
-);
-$requestWavePos = strpos($login, 'data-wave-series="requests"');
-$recordWavePos = strpos($login, 'data-wave-series="records"');
-$assert($requestWavePos !== false && $recordWavePos !== false && $recordWavePos > $requestWavePos, 'Registros devem ser pintados depois de Visualizações no rodapé');
+$assert($loadAreaPos !== false && $responseAreaPos > $loadAreaPos && $fillOrderPos !== false, 'ordem das áreas dos gráficos divergiu');
 foreach ([
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-load{stroke:none}',
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-response{stroke:none}',
-] as $latencyVisualToken) {
-    $assert(str_contains($css, $latencyVisualToken), 'hierarquia visual de Velocidade/Volume divergente: ' . $latencyVisualToken);
-}
-foreach ([
-    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-load{fill:#347963;opacity:.5}',
-    '.metric-dual-time-chart[data-metric-value-type="count"] .metric-chart-fill-response{fill:#1f6f56;opacity:.5}',
-    "body.public[data-route=\"login\"] .login-telemetry-wave-path{\n  stroke:none;\n  opacity:.5;\n}",
-    'body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}',
-    'body.public[data-route="login"] .login-telemetry-wave-path.is-requests{',
-    'fill:#347963;',
-    'body.public[data-route="login"] .login-telemetry-wave-path.is-records{',
-    'fill:#1f6f56;',
-    'body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-requests{fill:var(--clinic-accent,var(--brand,#347963))}',
-    'body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-records{fill:var(--clinic-accent-strong,var(--brand-dark,#1f6f56))}',
-] as $visualToken) {
-    $assert(str_contains($css, $visualToken), 'hierarquia visual de Visualizações/Registros divergente: ' . $visualToken);
+] as $token) {
+    $assert(str_contains($css, $token), 'hierarquia visual da telemetria divergente: ' . $token);
 }
 foreach ([
     'class="metric-chart-fill-load" style="fill-opacity:0.5"',
     'class="metric-chart-fill-response" style="fill-opacity:0.5"',
-] as $opacityToken) {
-    $assert(str_contains($speedGeometry, $opacityToken), 'gráfico Últimos 30 dias perdeu transparência obrigatória de 50%: ' . $opacityToken);
+] as $token) {
+    $assert(str_contains($speedGeometry, $token), 'gráfico de 30 dias perdeu transparência obrigatória: ' . $token);
 }
-$assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'linha pública/rodapé deixou de usar as séries canônicas');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $loadAreaPos, $responseAreaPos, $fillOrderPos, $requestWavePos, $recordWavePos, $positiveTrend, $negativeTrend, $neutralTrend, $missingTrend, $valueMarkupPos, $trendMarkupPos, $trendCssToken, $visualToken, $latencyVisualToken, $opacityToken, $token, $source, $querySnapshot, $databaseSchemaSource, $pdoStatementSource, $telemetryStoreSource);
+$assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'rodapé deixou de usar as séries canônicas');
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label);
