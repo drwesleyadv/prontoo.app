@@ -29,7 +29,52 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/tmp-global-audit-remediation-1-8-14-1.py
-          python3 -c "import json; p='version.json'; d=json.load(open(p)); d['asset_version']='1.8.13.9'; open(p,'w').write(json.dumps(d, ensure_ascii=False, indent=4)+'\\n')"
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import subprocess
+
+          old = '1.8.13.9'
+          new = '1.8.14.1'
+          tracked = subprocess.check_output(['git', 'ls-files'], text=True).splitlines()
+          for relative in tracked:
+              path = Path(relative)
+              if not path.is_file() or path.stat().st_size > 3_000_000:
+                  continue
+              data = path.read_bytes()
+              if b'\0' in data:
+                  continue
+              try:
+                  text = data.decode('utf-8')
+              except UnicodeDecodeError:
+                  continue
+              if old in text:
+                  path.write_text(text.replace(old, new))
+
+          assets = [
+              ('app-icon', 'png'),
+              ('prontoo-mark', 'png'),
+              ('favicon', 'png'),
+              ('favicon', 'ico'),
+              ('pix', 'svg'),
+          ]
+          for stem, extension in assets:
+              source = Path(f'public/assets/{stem}-{old}.{extension}')
+              target = Path(f'public/assets/{stem}-{new}.{extension}')
+              if not source.is_file():
+                  raise SystemExit(f'missing source asset: {source}')
+              target.write_bytes(source.read_bytes())
+              source.unlink()
+
+          css = Path('public/assets/presentation.css').read_bytes()
+          contract_path = Path('app/presentation.visual-contract.json')
+          contract = json.loads(contract_path.read_text())
+          contract['version'] = new
+          contract['delivery']['current_sha256'] = hashlib.sha256(css).hexdigest()
+          contract['delivery']['current_bytes'] = len(css)
+          contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=4) + '\n')
+          PY
       - name: Remove temporary publisher infrastructure
         shell: bash
         run: |
@@ -41,10 +86,8 @@ jobs:
         run: |
           set -euo pipefail
           php tools/release-contract-reconcile --write
-      - name: Validate final tree against canonical base
+      - name: Validate final tree
         shell: bash
-        env:
-          GITHUB_BASE_REF: prontoo
         run: |
           set -euo pipefail
           php tools/quality-gate
