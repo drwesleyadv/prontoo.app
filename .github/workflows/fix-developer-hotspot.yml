@@ -30,11 +30,13 @@ jobs:
           set -euo pipefail
           python3 tools/tmp-extract-developer-administration.py
           python3 tools/tmp-developer-presentation-budget.py
+          python3 tools/tmp-developer-css-dedupe.py
       - name: Remove temporary execution files
         shell: bash
         run: |
           rm -f tools/tmp-extract-developer-administration.py
           rm -f tools/tmp-developer-presentation-budget.py
+          rm -f tools/tmp-developer-css-dedupe.py
           rm -f .github/workflows/fix-developer-hotspot.yml
       - name: Validate and reconcile
         shell: bash
