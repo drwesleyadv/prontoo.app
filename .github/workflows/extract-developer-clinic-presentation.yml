@@ -1,0 +1,53 @@
+name: Extract Developer Clinic Presentation
+
+on:
+  push:
+    branches:
+      - agent/developer-control-center-audit
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      GITHUB_ACTIONS: 'true'
+      GITHUB_BASE_REF: prontoo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Extract presentation
+        run: python3 tools/extract-developer-clinic-presentation.py
+      - name: Remove temporary runner
+        run: rm -f tools/extract-developer-clinic-presentation.py .github/workflows/extract-developer-clinic-presentation.yml
+      - name: Reconcile release contract
+        run: |
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Lint affected PHP
+        run: |
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
+      - name: Engineering quality gate
+        run: php tools/quality-gate
+      - name: Commit clean tree
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'refactor: extract clinic directory presentation'
+          git push
