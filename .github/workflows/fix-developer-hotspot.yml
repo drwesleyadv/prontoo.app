@@ -29,16 +29,20 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/tmp-extract-developer-administration.py
+          python3 tools/tmp-developer-presentation-budget.py
       - name: Remove temporary execution files
         shell: bash
         run: |
           rm -f tools/tmp-extract-developer-administration.py
+          rm -f tools/tmp-developer-presentation-budget.py
           rm -f .github/workflows/fix-developer-hotspot.yml
       - name: Validate and reconcile
         shell: bash
         run: |
           set -euo pipefail
           php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php >/dev/null
+          php -l app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php >/dev/null
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations01.php >/dev/null
           php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php >/dev/null
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
@@ -52,5 +56,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "refactor: keep developer runtime below hotspot threshold"
+          git commit -m "refactor: preserve developer presentation budgets"
           git push origin HEAD:agent/developer-control-center
