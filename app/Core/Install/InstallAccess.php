@@ -124,11 +124,17 @@ final class InstallAccess
 
         if (!headers_sent()) {
             http_response_code(404);
-            header('Content-Type: text/plain; charset=utf-8');
+            header('Content-Type: text/html; charset=utf-8');
             header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
             header('X-Robots-Tag: noindex, nofollow, noarchive');
+            header('X-Content-Type-Options: nosniff');
         }
-        echo "Not Found\n";
+        $document = dirname(__DIR__, 3) . '/public/errors/404.html';
+        if (is_file($document)) {
+            readfile($document);
+        } else {
+            echo '<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Página não encontrada · Prontoo</title><body><main><h1>Esta página não está por aqui</h1><p><a href="/">Voltar ao Prontoo</a></p></main></body></html>';
+        }
         exit;
     }
 }
