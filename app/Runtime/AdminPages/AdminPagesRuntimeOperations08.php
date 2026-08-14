@@ -398,7 +398,7 @@ final class AdminPagesRuntimeOperations08
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Consultórios", "") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($commercial, "admin-clinics-focus-card") .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                $onboardingHead . $filters . $advanced . $table,
+                $onboardingHead . $filters . $table . $advanced,
                 "admin-onboarding-card admin-clinics-list-card clinic-attention-card",
             );
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Consultórios", $body);

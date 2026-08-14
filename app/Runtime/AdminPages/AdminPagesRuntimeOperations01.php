@@ -254,9 +254,12 @@ final class AdminPagesRuntimeOperations01
         $openErrors = (int) ($checks["open_errors"] ?? 0);
         $locks = (int) ($checks["login_locks"] ?? 0);
         $scope = (int) ($checks["scope_alerts_24h"] ?? 0);
-        $securityOk = $locks === 0 && $scope === 0;
-        $critical = !$databaseOk || !$storageOk || !$integrityOk || !$versionOk;
-        $attention = $openErrors > 0 || !$securityOk;
+        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
+        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
+        $securityInvariantOk = $scopeLogicOk && $scopeContextOk;
+        $securityOk = $securityInvariantOk && $locks === 0 && $scope === 0;
+        $critical = !$databaseOk || !$storageOk || !$integrityOk || !$versionOk || !$securityInvariantOk;
+        $attention = $openErrors > 0 || $locks > 0 || $scope > 0;
         $state = $critical ? "Crítico" : ($attention ? "Atenção" : "Operacional");
         return [
             "state" => $state,
@@ -266,6 +269,7 @@ final class AdminPagesRuntimeOperations01
                 "open_errors" => $openErrors,
                 "login_locks" => $locks,
                 "scope_alerts_24h" => $scope,
+                "security_invariants_ok" => $securityInvariantOk,
             ],
             "components" => [
                 "database" => ["label" => "Banco", "ok" => $databaseOk],

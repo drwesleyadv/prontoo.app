@@ -240,8 +240,13 @@ final class AdminPagesRuntimeOperations03
         }
         $locks = (int) ($counts["login_locks"] ?? 0);
         $scope = (int) ($counts["scope_alerts_24h"] ?? 0);
-        if ($locks > 0 || $scope > 0) {
-            $items[] = ["icon" => "security", "time" => "Segurança", "title" => ($locks + $scope) . " sinal(is) para revisar", "body" => $locks . " bloqueio(s) de login · " . $scope . " operação(ões) de escopo bloqueada(s).", "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") . '">Ver segurança</a>'];
+        $securityInvariantsOk = !empty($counts["security_invariants_ok"]);
+        if ($locks > 0 || $scope > 0 || !$securityInvariantsOk) {
+            $securityBody = $locks . " bloqueio(s) de login · " . $scope . " operação(ões) de escopo bloqueada(s).";
+            if (!$securityInvariantsOk) {
+                $securityBody .= " O autoteste determinístico de isolamento exige revisão.";
+            }
+            $items[] = ["icon" => "security", "time" => "Segurança", "title" => !$securityInvariantsOk ? "Isolamento exige revisão" : ($locks + $scope) . " sinal(is) para revisar", "body" => $securityBody, "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") . '">Ver segurança</a>'];
         }
         if (empty(($components["integrity"] ?? [])["ok"])) {
             $items[] = ["icon" => "gpp_bad", "time" => "Integridade", "title" => "Integridade exige revisão", "body" => "A cadeia de auditoria ou registros recentes não concluíram a verificação.", "html" => '<a class="ghost small" href="' . \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_integrity") . '">Ver integridade</a>'];

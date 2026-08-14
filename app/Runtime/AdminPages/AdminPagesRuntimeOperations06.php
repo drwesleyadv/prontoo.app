@@ -246,6 +246,35 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Verifique permissões.",
             ];
         }
+        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
+        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
+        if (!$scopeLogicOk || !$scopeContextOk) {
+            $actions[] = [
+                "icon" => "shield_lock",
+                "time" => "Isolamento",
+                "title" => "Autoteste de isolamento exige revisão",
+                "body" => "A prova determinística do guardião de escopo ou do contexto entre consultórios não concluiu todos os casos críticos.",
+                "meta" => "Trate como condição estrutural até a investigação.",
+            ];
+        }
+        if (empty(($health["components"]["integrity"] ?? [])["ok"])) {
+            $actions[] = [
+                "icon" => "gpp_bad",
+                "time" => "Integridade",
+                "title" => "Integridade da auditoria exige revisão",
+                "body" => "A cadeia de auditoria ou registros recentes não concluíram a verificação.",
+                "meta" => "Investigue antes de considerar a plataforma operacional.",
+            ];
+        }
+        if (empty(($health["components"]["version"] ?? [])["ok"])) {
+            $actions[] = [
+                "icon" => "deployed_code_alert",
+                "time" => "Versão",
+                "title" => "Contrato de versão divergente",
+                "body" => "A release publicada não concluiu o contrato determinístico de versão.",
+                "meta" => "Revise os artefatos canônicos da release.",
+            ];
+        }
         if ($openErrors > 0) {
             $actions[] = [
                 "icon" => "bug_report",
@@ -265,7 +294,7 @@ final class AdminPagesRuntimeOperations06
                 "meta" => "Use o painel de Segurança.",
             ];
         }
-        if ($scopeViolations24h > 0) {
+        if ($scopeViolations24h > 0 && $scopeLogicOk && $scopeContextOk) {
             $patterns = max(1, (int) ($scopeStats24h["patterns"] ?? 0));
             $objective = (int) ($scopeStats24h["objective"] ?? 0);
             $review = (int) ($scopeStats24h["review"] ?? 0);
@@ -325,8 +354,9 @@ final class AdminPagesRuntimeOperations06
             $targetRoute = match ((string) ($action["time"] ?? "")) {
                 "Erros" => "admin_errors",
                 "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
+                "Integridade" => "admin_integrity",
+                "Versão" => "admin_diagnostics",
                 "Assinaturas" => "admin_clinics",
-                "Onboarding" => "admin_onboarding",
                 default => "",
             };
             if ($targetRoute !== "") {
