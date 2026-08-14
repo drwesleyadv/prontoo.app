@@ -1,0 +1,128 @@
+name: Reconcile 404 copy
+
+on:
+  push:
+    branches:
+      - agent/404-copy-update
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply requested 404 copy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          title_old = '<title>Página não encontrada · Prontoo</title>'
+          title_new = '<title>Não encontrado - Prontoo</title>'
+          heading_old = 'Esta página não está por aqui'
+          heading_new = 'Esta página não existe'
+          detail_old = 'O link pode ter mudado ou o endereço pode estar incompleto.'
+          detail_new = 'Confirme se o endereço existe ou foi digitado corretamente.'
+
+          title_targets = [
+              Path('public/errors/404.html'),
+              Path('app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php'),
+              Path('app/Core/Install/InstallAccess.php'),
+              Path('br/runtime-core.php'),
+          ]
+          heading_targets = title_targets + [Path('tools/http-runtime-smoke-check')]
+          detail_targets = [Path('public/errors/404.html'), Path('tools/http-runtime-smoke-check')]
+
+          for path in title_targets:
+              text = path.read_text()
+              if title_old not in text:
+                  raise SystemExit(f'missing old title in {path}')
+              path.write_text(text.replace(title_old, title_new))
+
+          for path in heading_targets:
+              text = path.read_text()
+              if heading_old not in text:
+                  raise SystemExit(f'missing old heading in {path}')
+              path.write_text(text.replace(heading_old, heading_new))
+
+          for path in detail_targets:
+              text = path.read_text()
+              if detail_old not in text:
+                  raise SystemExit(f'missing old detail in {path}')
+              path.write_text(text.replace(detail_old, detail_new))
+
+          page = Path('public/errors/404.html')
+          text = page.read_text()
+          old_eyebrow = '<span class="eyebrow">Página não encontrada</span>'
+          new_eyebrow = '<span class="eyebrow">Nada por aqui...</span>'
+          if old_eyebrow not in text:
+              raise SystemExit('missing old 404 eyebrow')
+          page.write_text(text.replace(old_eyebrow, new_eyebrow))
+
+          smoke = Path('tools/http-runtime-smoke-check')
+          text = smoke.read_text()
+          anchor = "grep -Fq 'width:min(520px,100%);grid-template-columns:minmax(0,1fr);gap:0;align-items:stretch;' \"$ROOT/public/errors/404.html\"\n"
+          extra = (
+              anchor
+              + "grep -Fq '<title>Não encontrado - Prontoo</title>' \"$ROOT/public/errors/404.html\"\n"
+              + "grep -Fq 'Nada por aqui...' \"$ROOT/public/errors/404.html\"\n"
+          )
+          if anchor not in text:
+              raise SystemExit('missing static 404 smoke anchor')
+          text = text.replace(anchor, extra, 1)
+          body_anchor = "grep -Fq 'class=\"auth login-card login-shell\"' \"$TMP/status.body\"\n"
+          body_extra = (
+              body_anchor
+              + "grep -Fq '<title>Não encontrado - Prontoo</title>' \"$TMP/status.body\"\n"
+              + "grep -Fq 'Nada por aqui...' \"$TMP/status.body\"\n"
+          )
+          if body_anchor not in text:
+              raise SystemExit('missing rendered 404 smoke anchor')
+          smoke.write_text(text.replace(body_anchor, body_extra, 1))
+          PY
+
+          grep -Fq '<title>Não encontrado - Prontoo</title>' public/errors/404.html
+          grep -Fq 'Nada por aqui...' public/errors/404.html
+          grep -Fq 'Esta página não existe' public/errors/404.html
+          grep -Fq 'Confirme se o endereço existe ou foi digitado corretamente.' public/errors/404.html
+          ! grep -Fq 'Página não encontrada · Prontoo' public/errors/404.html app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php app/Core/Install/InstallAccess.php br/runtime-core.php
+          ! grep -Fq 'Esta página não está por aqui' public/errors/404.html app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php app/Core/Install/InstallAccess.php br/runtime-core.php tools/http-runtime-smoke-check
+          ! grep -Fq 'O link pode ter mudado ou o endereço pode estar incompleto.' public/errors/404.html tools/http-runtime-smoke-check
+          bash -n tools/http-runtime-smoke-check
+          php -l app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php >/dev/null
+          php -l app/Core/Install/InstallAccess.php >/dev/null
+          php -l br/runtime-core.php >/dev/null
+      - name: Remove temporary workflow before release hashing
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/reconcile-404-copy.yml
+      - name: Reconcile release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Commit reconciled tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'fix: refine branded 404 copy'
+          git push origin HEAD:agent/404-copy-update
