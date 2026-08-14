@@ -43,6 +43,34 @@ if (substr_count($installSource, $foundationOld) !== 1) {
 }
 file_put_contents($installPath, str_replace($foundationOld, $foundationNew, $installSource), LOCK_EX);
 
+$testFastPath = $root . '/tools/test-fast';
+$testFastSource = (string) file_get_contents($testFastPath);
+$credentialOld = <<<'PHP'
+    static function (int $userId) use (&$credentialHooks): void {
+        $credentialHooks[] = ['rotate', $userId];
+    },
+    static function (int $userId) use (&$credentialHooks): void {
+        $credentialHooks[] = ['retire', $userId];
+    },
+    static function (...$arguments) use (&$credentialAudit): void {
+PHP;
+$credentialNew = <<<'PHP'
+    static function (int $userId) use (&$credentialHooks): void {
+        $credentialHooks[] = ['rotate', $userId];
+    },
+    static function (...$arguments) use (&$credentialAudit): void {
+PHP;
+if (substr_count($testFastSource, $credentialOld) !== 1) {
+    throw new RuntimeException('Credential hook test signature drift');
+}
+$testFastSource = str_replace($credentialOld, $credentialNew, $testFastSource);
+$expectOld = "    [['rotate', 91], ['retire', 91]],\n    $credentialHooks,\n    'application.identity_credentials.session_revocation',";
+$expectNew = "    [['rotate', 91]],\n    $credentialHooks,\n    'application.identity_credentials.session_revocation',";
+if (substr_count($testFastSource, $expectOld) !== 1) {
+    throw new RuntimeException('Credential hook expectation drift');
+}
+file_put_contents($testFastPath, str_replace($expectOld, $expectNew, $testFastSource), LOCK_EX);
+
 $helperPath = __DIR__ . '/tmp-global-audit-remediation.py';
 $helperSource = (string) file_get_contents($helperPath);
 $helperOld = '    updated, count = re.subn(pattern, replacement, content, flags=flags)';
