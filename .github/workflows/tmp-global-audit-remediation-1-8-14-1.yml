@@ -29,6 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/tmp-global-audit-remediation-1-8-14-1.py
+          python3 -c "import json; p='version.json'; d=json.load(open(p)); d['asset_version']='1.8.13.9'; open(p,'w').write(json.dumps(d, ensure_ascii=False, indent=4)+'\\n')"
       - name: Remove temporary publisher infrastructure
         shell: bash
         run: |
