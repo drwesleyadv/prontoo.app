@@ -1,0 +1,54 @@
+name: Fix HTTP Smoke and Reconcile
+
+on:
+  push:
+    branches:
+      - agent/reconcile-security-release-1-8-14-1
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Align smoke and reconcile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/http-runtime-smoke-check')
+          source = path.read_text()
+          replacements = [
+              ('if curl -fsS "${COMMON_HEADERS[@]}" "$BASE_URL?r=status" >/dev/null 2>&1; then', 'if curl -fsS "${COMMON_HEADERS[@]}" "$BASE_URL?r=login" >/dev/null 2>&1; then'),
+              ('assert_status "$TMP/status.headers" 200 "status"', 'assert_status "$TMP/status.headers" 404 "status"'),
+          ]
+          for old, new in replacements:
+              if source.count(old) != 1:
+                  raise SystemExit(f'HTTP smoke target not unique: {old}')
+              source = source.replace(old, new, 1)
+          path.write_text(source)
+          PY
+          git rm .github/workflows/fix-http-smoke-reconcile.yml
+          bash -n tools/http-runtime-smoke-check
+          php tools/version-asset-contract-check.php
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test: align HTTP smoke with private status policy"
+          git push origin HEAD:agent/reconcile-security-release-1-8-14-1
