@@ -11,9 +11,11 @@ $baselinePath = $root . '/app/presentation.ux-baseline.json';
 $fixturePath = $root . '/tests/presentation/ux-fixture.html';
 $runnerPath = $root . '/tools/presentation-ux-contract.mjs';
 $workflowPath = $root . '/.github/workflows/presentation-ux.yml';
+$packagePath = $root . '/package.json';
+$lockPath = $root . '/package-lock.json';
 $failures = [];
 
-foreach ([$baselinePath, $fixturePath, $runnerPath, $workflowPath] as $path) {
+foreach ([$baselinePath, $fixturePath, $runnerPath, $workflowPath, $packagePath, $lockPath] as $path) {
     if (!is_file($path)) {
         $failures[] = 'missing:' . str_replace($root . '/', '', $path);
     }
@@ -104,20 +106,45 @@ if (is_file($runnerPath)) {
 }
 if (is_file($workflowPath)) {
     $workflow = (string) file_get_contents($workflowPath);
-    foreach (['playwright@1.59.1', 'presentation-ux-contract.mjs --check', 'chromium'] as $needle) {
+    foreach (['npm ci --ignore-scripts', 'presentation-ux-contract.mjs --check', 'chromium'] as $needle) {
         if (!str_contains($workflow, $needle)) {
             $failures[] = 'workflow:' . $needle;
         }
+    }
+    if (str_contains($workflow, '--no-package-lock') || str_contains($workflow, 'npm install --no-save')) {
+        $failures[] = 'workflow:non_lockfile_install';
+    }
+}
+if (is_file($packagePath)) {
+    try {
+        $package = json_decode((string) file_get_contents($packagePath), true, 512, JSON_THROW_ON_ERROR);
+        if (($package['devDependencies']['playwright'] ?? '') !== '1.59.1') {
+            $failures[] = 'package:playwright_pin';
+        }
+    } catch (Throwable $error) {
+        $failures[] = 'package:invalid_json';
+    }
+}
+if (is_file($lockPath)) {
+    try {
+        $lock = json_decode((string) file_get_contents($lockPath), true, 512, JSON_THROW_ON_ERROR);
+        if (($lock['packages']['node_modules/playwright']['version'] ?? '') !== '1.59.1') {
+            $failures[] = 'lock:playwright_pin';
+        }
+    } catch (Throwable $error) {
+        $failures[] = 'lock:invalid_json';
     }
 }
 
 fwrite(STDOUT, json_encode([
     'ok' => $failures === [],
-    'policy' => 'presentation-observable-ux-contract-v2',
+    'policy' => 'presentation-observable-ux-contract-v3',
     'scenarios' => count($expectedScenarios),
     'targets_per_scenario' => count($expectedTargets),
     'asserted_surfaces' => count($expectedScenarios) * count($expectedTargets),
     'covered_routes' => ['appointments', 'financial', 'patient', 'procedures'],
+    'playwright' => '1.59.1',
+    'dependency_install' => 'npm-ci-lockfile',
     'failures' => $failures,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
 exit($failures === [] ? 0 : 1);
