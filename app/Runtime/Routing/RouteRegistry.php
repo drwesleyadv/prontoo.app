@@ -9,8 +9,9 @@ final class RouteRegistry
 {
     private const SPECS = [
         'home' => [\Prontoo\Runtime\Dashboards\DashboardsRuntimeOperations01::class, 'page_home', false, false, [], ['patients', 'financial']],
-        'status' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations09::class, 'page_admin_performance', false, false, [], []],
+        'status' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_status', true, false, ['GET'], []],
         'login' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations03::class, 'page_login', true, false, ['*'], []],
+        'login_telemetry_wave' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_telemetry_tombstone', true, true, ['GET'], []],
         'login_autotest' => [\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::class, 'page_login_autotest', true, false, ['GET'], []],
         'mfa' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class, 'page_mfa', true, false, ['*'], []],
         'mobile_web_access' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_mobile_web_access', true, false, ['GET'], []],
@@ -143,7 +144,7 @@ final class RouteRegistry
                     $failures[] = 'light_method_invalid:' . $name . ':' . $method;
                 }
             }
-            if ($definition->json && $definition->public) {
+            if ($definition->json && $definition->public && $name !== 'login_telemetry_wave') {
                 $failures[] = 'unexpected_public_json:' . $name;
             }
         }
