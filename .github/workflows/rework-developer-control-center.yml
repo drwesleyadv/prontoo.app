@@ -28,6 +28,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/tmp-developer-control-center-rewrite.py')
+          text = path.read_text()
+          old = 'new, count = re.subn(pattern, replacement, text, count=1, flags=flags)'
+          new = 'new, count = re.subn(pattern, lambda _match: replacement, text, count=1, flags=flags)'
+          if text.count(old) != 1:
+              raise SystemExit('rewrite helper signature drift')
+          path.write_text(text.replace(old, new, 1))
+          PY
           python3 tools/tmp-developer-control-center-rewrite.py
       - name: Remove temporary execution files
         shell: bash
