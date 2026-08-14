@@ -6,47 +6,129 @@ on:
       - agent/global-audit-remediation-1-8-13-9
 
 permissions:
-  contents: read
+  contents: write
+
+env:
+  DB_HOST: 127.0.0.1
+  DB_PORT: 3306
+  DB_DATABASE: prontoo_schema
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  PRONTOO_SCHEMA_DSN: mysql:host=127.0.0.1;dbname=prontoo_schema;charset=utf8mb4
+  PRONTOO_SCHEMA_USER: root
+  PRONTOO_SCHEMA_PASS: root
+  GITHUB_ACTIONS: 'true'
+  CI: 'true'
+  PRONTOO_SCHEMA_TEST_MODE: '1'
+  PRONTOO_INSTALLER_CLI_MODE: '1'
+  GITHUB_BASE_REF: prontoo
 
 jobs:
-  inventory:
+  remediate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.0.43@sha256:3e646bcda0d9448ffa3d2024eef04e1bca95528ec19b9e8b76749da9d97d4a10
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prontoo_schema
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
-      - name: Inventory retired authentication surface
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Setup Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Apply audited remediation
         shell: bash
         run: |
           set -euo pipefail
-          for token in \
-            device_cookie_name \
-            device_session_lifetime_seconds \
-            device_session_cookie_ttl_seconds \
-            device_hash_is_valid \
-            device_login_fields \
-            device_cookie_pack \
-            device_secure_cookie \
-            device_cookie_set \
-            device_cookie_clear \
-            device_token_hash \
-            device_fallback_hash \
-            device_client_hash_from_post \
-            device_login_payload_from_post \
-            device_cookie_unpack \
-            device_session_context_payload \
-            device_session_remember_after_login \
-            device_session_update_current_context \
-            device_session_enforce_current \
-            device_session_auto_login \
-            security_clear_legacy_device_cookie \
-            security_retire_persistent_devices_for_user \
-            security_session_generation_enforce; do
-            echo "===== ${token} ====="
-            git grep -n "${token}" -- '*.php' '*.js' '*.md' '*.json' || true
-          done
-      - name: Inventory hardening compatibility guards
+          python3 .github/tmp-global-audit-remediation.py
+      - name: Generate deterministic Node lock
         shell: bash
         run: |
           set -euo pipefail
-          git grep -n -E 'security_disable_runtime_error_display|security_storage_deny_file|function_exists' -- app tools || true
+          npm install --package-lock-only --ignore-scripts
+          node -e "const l=require('./package-lock.json'); if(l.packages['node_modules/playwright'].version!=='1.59.1') process.exit(1)"
+      - name: Remove temporary publisher infrastructure
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/tmp-global-audit-remediation.py .github/workflows/tmp-global-audit-remediation.yml
+          git add -A
+      - name: Rebuild Presentation artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --check
+      - name: Reconcile release contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git add -A
+      - name: Engineering and runtime validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/quality-gate
+          php tools/schema-check.php
+          php tools/mysql-query-budget-check
+          php tools/install-security-check.php
+          php tools/login-post-password-runtime-check
+          bash tools/login-logout-http-smoke
+          php tools/maestro-runtime-regression-check
+          php tools/critical-runtime-smoke-check
+          bash tools/http-runtime-smoke-check
+      - name: Presentation browser validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+          rm -rf node_modules
+      - name: Validate final tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --check
+          test ! -e .github/tmp-global-audit-remediation.py
+          test ! -e .github/workflows/tmp-global-audit-remediation.yml
+          git grep -n '1\.8\.13\.8' -- '*.md' '*.json' && exit 1 || true
+          php tools/global-audit-contract-check
+          php tools/ci-supply-chain-check
+      - name: Publish validated remediation branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'Wesley Ferreira'
+          git config user.email '48494254+drwesleyadv@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No remediation changes to publish.'
+            exit 1
+          fi
+          git commit -m 'fix: remediate global audit findings'
+          git push origin HEAD:agent/global-audit-remediation-1-8-13-9
