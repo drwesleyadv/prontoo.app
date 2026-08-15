@@ -30,6 +30,16 @@ jobs:
         run: |
           set -euo pipefail
           cat tools/.health-evidence/registry.3a.part tools/.health-evidence/registry.3b.part tools/.health-evidence/registry.3c.part > tools/.health-evidence/registry.3.part
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/health-evidence-refactor.py')
+          text = p.read_text()
+          old = '    updated, count = re.subn(pattern, replacement, text, count=1, flags=flags)\n'
+          new = '''    compiled = re.compile(pattern, flags)\n    def literal_replacement(match):\n        captured = match.group(1) if match.lastindex else ""\n        return replacement.replace("\\\\1", captured)\n    updated, count = compiled.subn(literal_replacement, text, count=1)\n'''
+          if old not in text:
+              raise SystemExit('replace_once anchor missing')
+          p.write_text(text.replace(old, new, 1))
+          PY
           python tools/health-evidence-refactor.py
           php tools/release-contract-reconcile --write
           php -l app/Infrastructure/Health/HealthEvidenceStore.php
