@@ -25,25 +25,17 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Apply health evidence registry
+      - name: Apply layered health evidence refactor
         shell: bash
         run: |
           set -euo pipefail
-          cat tools/.health-evidence/registry.3a.part tools/.health-evidence/registry.3b.part tools/.health-evidence/registry.3c.part > tools/.health-evidence/registry.3.part
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('tools/health-evidence-refactor.py')
-          text = p.read_text()
-          old = '    updated, count = re.subn(pattern, replacement, text, count=1, flags=flags)\n'
-          new = '''    compiled = re.compile(pattern, flags)\n    def literal_replacement(match):\n        captured = match.group(1) if match.lastindex else ""\n        return replacement.replace("\\\\1", captured)\n    updated, count = compiled.subn(literal_replacement, text, count=1)\n'''
-          if old not in text:
-              raise SystemExit('replace_once anchor missing')
-          p.write_text(text.replace(old, new, 1))
-          PY
-          python tools/health-evidence-refactor.py
+          python tools/health-evidence-refactor-v2.py
           php tools/release-contract-reconcile --write
+          php -l app/Domain/Health/HealthEvidencePolicy.php
+          php -l app/Domain/Health/HealthEvidenceBuilder.php
           php -l app/Infrastructure/Health/HealthEvidenceStore.php
-          php -l app/Runtime/Health/HealthEvidenceRegistry.php
+          php -l app/Infrastructure/Health/HealthCanary.php
+          php -l app/Infrastructure/AdminPages/AdminPagesInfrastructureOperations01.php
           php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations01.php
           php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php
           php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
@@ -56,7 +48,9 @@ jobs:
           set -euo pipefail
           test ! -e .github/workflows/health-evidence-runner.yml
           test ! -e tools/health-evidence-refactor.py
+          test ! -e tools/health-evidence-refactor-v2.py
           test ! -e tools/.health-evidence
+          test ! -e app/Runtime/Health/HealthEvidenceRegistry.php
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
