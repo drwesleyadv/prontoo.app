@@ -29,6 +29,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          cat tools/.health-evidence/registry.3a.part tools/.health-evidence/registry.3b.part tools/.health-evidence/registry.3c.part > tools/.health-evidence/registry.3.part
           python tools/health-evidence-refactor.py
           php tools/release-contract-reconcile --write
           php -l app/Infrastructure/Health/HealthEvidenceStore.php
