@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply:
-    if: false
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
