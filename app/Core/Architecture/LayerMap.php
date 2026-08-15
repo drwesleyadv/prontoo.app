@@ -31,6 +31,7 @@ final class LayerMap
         'app/Core/',
         'app/Domain/Authorization/',
         'app/Domain/Identity/',
+        'app/Domain/Health/',
         'app/Domain/Appointments/AppointmentsDomainOperations01.php',
         'app/Domain/AuditActivity/ActivityDisplayPolicy.php',
         'app/Domain/AuditActivity/ActivityTargetPolicy.php',

@@ -175,111 +175,119 @@ final class AdminPagesRuntimeOperations01
     }
 
     public static function platform_backend_selftest(array $preloaded = []): array
-    
     {
-    
-        $checks = [];
-        $ok = true;
-        try {
-            $dbOk = (string) \Prontoo\Runtime\Operational\OperationalComposition::administration()->scalar('operational.admin_pages.01.platform_backend_selftest.01', [], []) === "1";
-        } catch (Throwable $e) {
-            $dbOk = false;
-        }
-        $checks["database"] = $dbOk;
-        $ok = $ok && $dbOk;
-        $storage = \Prontoo\Infrastructure\AdminPages\AdminPagesInfrastructureOperations01::platform_storage_status();
-        $checks["storage"] = (bool) $storage["ok"];
-        $checks["storage_free_bytes"] = $storage["free_bytes"];
-        $ok = $ok && (bool) $storage["ok"];
-        $checks["open_errors"] = array_key_exists("open_errors", $preloaded)
-            ? (int) $preloaded["open_errors"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_open_errors", 45, 'read.admin_pages.01.platform_backend_selftest.01', [], []);
-        $checks["login_locks"] = array_key_exists("login_locks", $preloaded)
-            ? (int) $preloaded["login_locks"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_login_locks", 45, 'read.admin_pages.01.platform_backend_selftest.02', [], []);
-        $checks["scope_alerts_24h"] = array_key_exists("scope_alerts_24h", $preloaded)
-            ? (int) $preloaded["scope_alerts_24h"]
-            : (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val("platform_selftest_scope_actionable_24h_v2_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(), 45, 'read.admin_pages.01.platform_backend_selftest.03', [], []);
-        $scopeLogic = class_exists("\\Prontoo\\Core\\Database\\SqlScopeGuard")
-            ? \Prontoo\Core\Database\SqlScopeGuard::logicSelfTest()
-            : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["class_missing"]];
-        $checks["scope_guard_logic"] = $scopeLogic;
-        $ok = $ok && !empty($scopeLogic["ok"]);
-        $scopeContext = is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'scope_guard_context_selftest'])
-            ? \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::scope_guard_context_selftest()
-            : ["ok" => false, "passed" => 0, "total" => 0, "failed" => ["function_missing"]];
-        $checks["scope_guard_context"] = $scopeContext;
-        $ok = $ok && !empty($scopeContext["ok"]);
-        $checks["integrity_alerts"] = (int) \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::cache_remember(
-            "platform_selftest_integrity_alerts_" . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(),
-            60,
-            static function (): int {
-    
-                $alerts = 0;
-                try {
-                    foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(["scope" => "model_excluded"], [], 50) as $row) {
-                        if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($row)) {
-                            $alerts++;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    return 0;
-                }
-                return $alerts;
-            },
-        );
-        $checks["audit_chain"] = is_callable([\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::class, 'audit_chain_integrity_status'])
-            ? \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_chain_integrity_status(240)
-            : ["ok" => false, "sequence_ok" => false, "head_ok" => false, "checked" => 0];
-        $ok = $ok && !empty($checks["audit_chain"]["ok"]);
-        $versionContract = function_exists("prontoo_version_contract_status")
-            ? prontoo_version_contract_status()
-            : ["ok" => true, "version" => PRONTOO_VERSION, "issues" => []];
-        $checks["version"] = (string) ($versionContract["version"] ?? PRONTOO_VERSION);
-        $checks["version_contract"] = $versionContract;
-        $ok = $ok && !empty($versionContract["ok"]);
-        $checks["ok"] = $ok;
-        return $checks;
-    
+        $snapshot = self::platform_health_snapshot($preloaded);
+        return (array) ($snapshot['checks'] ?? []);
     }
 
     public static function platform_health_snapshot(array $preloaded = []): array
     {
-        $checks = self::platform_backend_selftest($preloaded);
-        $databaseOk = !empty($checks["database"]);
-        $storageOk = !empty($checks["storage"]);
-        $auditOk = !empty(($checks["audit_chain"] ?? [])["ok"]);
-        $integrityOk = $auditOk && (int) ($checks["integrity_alerts"] ?? 0) === 0;
-        $versionOk = !empty(($checks["version_contract"] ?? [])["ok"]);
-        $openErrors = (int) ($checks["open_errors"] ?? 0);
-        $locks = (int) ($checks["login_locks"] ?? 0);
-        $scope = (int) ($checks["scope_alerts_24h"] ?? 0);
-        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
-        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
-        $securityInvariantOk = $scopeLogicOk && $scopeContextOk;
-        $securityOk = $securityInvariantOk && $locks === 0 && $scope === 0;
-        $critical = !$databaseOk || !$storageOk || !$integrityOk || !$versionOk || !$securityInvariantOk;
-        $attention = $openErrors > 0 || $locks > 0 || $scope > 0;
-        $state = $critical ? "Crítico" : ($attention ? "Atenção" : "Operacional");
-        return [
-            "state" => $state,
-            "critical" => $critical,
-            "checks" => $checks,
-            "counts" => [
-                "open_errors" => $openErrors,
-                "login_locks" => $locks,
-                "scope_alerts_24h" => $scope,
-                "security_invariants_ok" => $securityInvariantOk,
-            ],
-            "components" => [
-                "database" => ["label" => "Banco", "ok" => $databaseOk],
-                "storage" => ["label" => "Storage", "ok" => $storageOk],
-                "integrity" => ["label" => "Integridade", "ok" => $integrityOk],
-                "security" => ["label" => "Segurança", "ok" => $securityOk],
-                "version" => ["label" => "Contrato de versão", "ok" => $versionOk],
-            ],
-            "updated_at" => date("d/m/Y · H:i"),
-        ];
+        return \Prontoo\Infrastructure\AdminPages\AdminPagesInfrastructureOperations01::platform_health_exchange(
+            static function (array $context) use ($preloaded): array {
+                $raw = [
+                    'observed_at' => gmdate('c'),
+                    'storage' => (array) ($context['storage'] ?? []),
+                    'performance' => (array) ($context['performance'] ?? []),
+                    'maestro' => (array) ($context['maestro'] ?? []),
+                    'database' => null,
+                    'open_errors' => self::platform_health_operational_count(
+                        $preloaded,
+                        'open_errors',
+                        'platform_selftest_open_errors',
+                        'read.admin_pages.01.platform_backend_selftest.01',
+                    ),
+                    'login_locks' => self::platform_health_operational_count(
+                        $preloaded,
+                        'login_locks',
+                        'platform_selftest_login_locks',
+                        'read.admin_pages.01.platform_backend_selftest.02',
+                    ),
+                    'scope_alerts_24h' => self::platform_health_operational_count(
+                        $preloaded,
+                        'scope_alerts_24h',
+                        'platform_selftest_scope_actionable_24h_v2_' . \Prontoo\Core\Tenant\TenantRegistry::modelClinicId(),
+                        'read.admin_pages.01.platform_backend_selftest.03',
+                    ),
+                ];
+                try {
+                    $raw['database'] = (string) \Prontoo\Runtime\Operational\OperationalComposition::administration()
+                        ->scalar('operational.admin_pages.01.platform_backend_selftest.01', [], []) === '1';
+                } catch (Throwable $error) {
+                    $raw['database'] = null;
+                }
+                try {
+                    $raw['scope_logic'] = class_exists(\Prontoo\Core\Database\SqlScopeGuard::class)
+                        ? \Prontoo\Core\Database\SqlScopeGuard::logicSelfTest()
+                        : ['ok' => false, 'unknown' => true, 'failed' => ['class_missing']];
+                } catch (Throwable $error) {
+                    $raw['scope_logic'] = ['ok' => false, 'unknown' => true, 'failed' => ['unavailable']];
+                }
+                try {
+                    $raw['scope_context'] = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::scope_guard_context_selftest();
+                } catch (Throwable $error) {
+                    $raw['scope_context'] = ['ok' => false, 'unknown' => true, 'failed' => ['unavailable']];
+                }
+                try {
+                    $raw['audit_chain'] = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_chain_integrity_status(240);
+                } catch (Throwable $error) {
+                    $raw['audit_chain'] = ['ok' => false, 'unknown' => true, 'checked' => 0];
+                }
+                $raw['integrity_alerts'] = null;
+                if ((int) (($raw['audit_chain']['checked'] ?? 0)) > 0) {
+                    try {
+                        $raw['integrity_alerts'] = 0;
+                        foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::audit_rows_light(['scope' => 'model_excluded'], [], 50) as $row) {
+                            if (!\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::verify_audit_row($row)) {
+                                $raw['integrity_alerts']++;
+                            }
+                        }
+                    } catch (Throwable $error) {
+                        $raw['integrity_alerts'] = null;
+                    }
+                }
+                try {
+                    $raw['mutation_invariant'] = \Prontoo\Core\Invariant\InvariantKernel::logicSelfTest();
+                } catch (Throwable $error) {
+                    $raw['mutation_invariant'] = ['ok' => false, 'unknown' => true];
+                }
+                if (function_exists('prontoo_version_contract_status')) {
+                    try {
+                        $raw['version_contract'] = prontoo_version_contract_status();
+                    } catch (Throwable $error) {
+                        $raw['version_contract'] = ['ok' => false, 'unknown' => true, 'issues' => ['unavailable']];
+                    }
+                } else {
+                    $raw['version_contract'] = ['ok' => false, 'unknown' => true, 'issues' => ['function_missing']];
+                }
+                $raw['version'] = (string) ($raw['version_contract']['version'] ?? PRONTOO_VERSION);
+                return \Prontoo\Domain\Health\HealthEvidenceBuilder::build(
+                    $raw,
+                    (array) ($context['previous'] ?? []),
+                );
+            },
+        );
+    }
+
+    private static function platform_health_operational_count(
+        array $preloaded,
+        string $key,
+        string $cacheKey,
+        string $queryId,
+    ): ?int {
+        if (array_key_exists($key, $preloaded)) {
+            return max(0, (int) $preloaded[$key]);
+        }
+        try {
+            return max(0, (int) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::cached_val(
+                $cacheKey,
+                45,
+                $queryId,
+                [],
+                [],
+            ));
+        } catch (Throwable $error) {
+            return null;
+        }
     }
 
     public static function platform_login_loaded_audit(

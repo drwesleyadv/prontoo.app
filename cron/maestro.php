@@ -396,10 +396,13 @@ try {
             $__prontooCronStarted,
             "preflight somente leitura falhou",
         );
+        $healthCanary = \Prontoo\Infrastructure\Health\HealthCanary::run();
         $payload = [
             "ok" => false,
+            "status" => "failed",
             "stage" => "preflight",
             "preflight" => $preflight,
+            "health_canary" => $healthCanary,
         ];
         prontoo_cron_cycle_state_write($payload + [
             "version" => PRONTOO_VERSION,
@@ -412,6 +415,7 @@ try {
         );
         exit(1);
     }
+    $healthCanary = \Prontoo\Infrastructure\Health\HealthCanary::run();
     $recordSnapshot = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_snapshot_capture();
     $rulesBudget = min(45000, prontoo_cron_remaining_budget_ms($__prontooCronDeadline));
     $rules = $rulesBudget >= 5000
@@ -434,7 +438,8 @@ try {
     $ok = (bool) ($rules["success"] ?? false) &&
         (bool) ($deferredWork["success"] ?? false) &&
         (bool) ($piResult["ok"] ?? false) &&
-        (bool) ($maintenance["ok"] ?? false);
+        (bool) ($maintenance["ok"] ?? false) &&
+        (bool) ($healthCanary["ok"] ?? false);
     $attention = (string) ($rules["status"] ?? "") === "attention" ||
         (string) ($deferredWork["status"] ?? "") === "attention" ||
         !($recordSnapshot["ok"] ?? false) ||
@@ -457,6 +462,7 @@ try {
         "deferred_work" => $deferredWork,
         "pi_integrity" => $piResult,
         "maintenance" => $maintenance,
+        "health_canary" => $healthCanary,
     ];
     prontoo_cron_cycle_state_write($cycle);
     $__prontooCronFinished = true;
@@ -469,6 +475,7 @@ try {
             "deferred_work" => $deferredWork,
             "pi_integrity" => $piResult,
             "maintenance" => $maintenance,
+            "health_canary" => $healthCanary,
         ] + $rules,
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
     ) . PHP_EOL;

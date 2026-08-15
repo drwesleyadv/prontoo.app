@@ -767,9 +767,18 @@ final class AdminPagesPresentationOperations03
         $healthState = (string) ($health["state"] ?? "Operacional");
         $state = $healthState === "Crítico" ? "Crítico" : ($actions ? "Atenção" : $healthState);
         $critical = $state === "Crítico";
+        $hasUnknownEvidence = false;
+        foreach ((array) ($health["dimensions"] ?? []) as $dimension) {
+            if ((string) ($dimension["state"] ?? "") === "unknown") {
+                $hasUnknownEvidence = true;
+                break;
+            }
+        }
         $stateCopy = match ($state) {
             "Crítico" => "Existe uma condição estrutural que exige intervenção técnica.",
-            "Atenção" => "Há decisões ou exceções que justificam sua revisão.",
+            "Atenção" => $hasUnknownEvidence
+                ? "Uma ou mais evidências de saúde precisam ser renovadas antes de considerar a plataforma normal."
+                : "Há decisões ou exceções que justificam sua revisão.",
             default => "Nada exige intervenção neste momento.",
         };
         $stateClass = match ($state) {
@@ -778,13 +787,16 @@ final class AdminPagesPresentationOperations03
             default => "is-operational",
         };
         $updatedAt = mb_trim((string) ($health["updated_at"] ?? ""));
+        $freshnessLabel = mb_trim((string) ($health["freshness_label"] ?? ""));
         $statusCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="developer-control-status"><div><span class="eyebrow">Estado do Prontoo</span><h2>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
                 '</h2><p>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($stateCopy) .
                 '</p>' .
-                ($updatedAt !== "" ? '<small>Atualizado em ' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updatedAt) . '</small>' : "") .
+                ($freshnessLabel !== ""
+                    ? '<small>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(ucfirst($freshnessLabel)) . '</small>'
+                    : ($updatedAt !== "" ? '<small>Atualizado em ' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updatedAt) . '</small>' : "")) .
                 '</div><span class="developer-state-badge ' .
                 $stateClass .
                 '">' .

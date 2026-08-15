@@ -226,54 +226,10 @@ final class AdminPagesRuntimeOperations06
                 "[Prontoo pending subscription payments] " . $e->getMessage(),
             );
         }
-        if (empty($checks["database"])) {
-            $actions[] = [
-                "icon" => "database_off",
-                "time" => "Banco",
-                "title" => "Banco de dados indisponível no autoteste",
-                "body" =>
-                    "A plataforma não conseguiu confirmar a conexão básica com o banco.",
-                "meta" => "Incidente técnico crítico.",
-            ];
-        }
-        if (empty($checks["storage"])) {
-            $actions[] = [
-                "icon" => "folder_off",
-                "time" => "Arquivos",
-                "title" => "Storage sem permissão de escrita",
-                "body" =>
-                    "Arquivos temporários, métricas e comprovantes dependem de escrita em /ssd.",
-                "meta" => "Verifique permissões.",
-            ];
-        }
         $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
         $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
-        if (!$scopeLogicOk || !$scopeContextOk) {
-            $actions[] = [
-                "icon" => "shield_lock",
-                "time" => "Isolamento",
-                "title" => "Autoteste de isolamento exige revisão",
-                "body" => "A prova determinística do guardião de escopo ou do contexto entre consultórios não concluiu todos os casos críticos.",
-                "meta" => "Trate como condição estrutural até a investigação.",
-            ];
-        }
-        if (empty(($health["components"]["integrity"] ?? [])["ok"])) {
-            $actions[] = [
-                "icon" => "gpp_bad",
-                "time" => "Integridade",
-                "title" => "Integridade da auditoria exige revisão",
-                "body" => "A cadeia de auditoria ou registros recentes não concluíram a verificação.",
-                "meta" => "Investigue antes de considerar a plataforma operacional.",
-            ];
-        }
-        if (empty(($health["components"]["version"] ?? [])["ok"])) {
-            $actions[] = [
-                "icon" => "deployed_code_alert",
-                "time" => "Versão",
-                "title" => "Contrato de versão divergente",
-                "body" => "A release publicada não concluiu o contrato determinístico de versão.",
-                "meta" => "Revise os artefatos canônicos da release.",
-            ];
+        foreach (\Prontoo\Domain\Health\HealthEvidencePolicy::structuralActions($health) as $healthAction) {
+            $actions[] = $healthAction;
         }
         if ($openErrors > 0) {
             $actions[] = [
@@ -351,14 +307,17 @@ final class AdminPagesRuntimeOperations06
             if (!empty($action["html"])) {
                 continue;
             }
-            $targetRoute = match ((string) ($action["time"] ?? "")) {
+            $targetRoute = mb_trim((string) ($action["route"] ?? ""));
+            if ($targetRoute === "") {
+                $targetRoute = match ((string) ($action["time"] ?? "")) {
                 "Erros" => "admin_errors",
                 "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
                 "Integridade" => "admin_integrity",
                 "Versão" => "admin_diagnostics",
                 "Assinaturas" => "admin_clinics",
                 default => "",
-            };
+                };
+            }
             if ($targetRoute !== "") {
                 $action["html"] =
                     '<a class="ghost small" href="' .

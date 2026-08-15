@@ -26,3 +26,13 @@ O ambiente global do Desenvolvedor é um plano de controle operacional. A interf
 ## Regra de UX
 
 Uma informação só ocupa espaço permanente se alterar uma decisão frequente. Drill-down existe para explicar uma exceção, não para repetir o resumo. Ferramentas raras continuam acessíveis, mas não competem visualmente com a operação diária.
+
+## Evidência de saúde
+
+A saúde da plataforma não é inferida por um único semáforo. O estado global é derivado de cinco dimensões independentes: Disponibilidade, Integridade, Isolamento e segurança, Desempenho e Continuidade.
+
+Cada sinal assume exatamente um dos estados `ok`, `attention`, `fail` ou `unknown` e carrega horário de observação e validade. Evidência expirada ou uma verificação que não pôde ser concluída vira `unknown`; ausência de medição nunca é convertida em estado saudável.
+
+A telemetria de requisições funciona como sensor passivo. Degradações transitórias de falha ou latência só promovem alerta quando persistem em observações consecutivas, e a recuperação também precisa se estabilizar. O Maestro funciona como sensor ativo: cada ciclo executa um canário de banco, storage, invariantes de mutação e isolamento e renova a evidência de continuidade.
+
+O histórico persistente registra somente transições de estado de plataforma, dimensão ou sinal. Leituras repetidas em `ok` não geram novos eventos. A Visão geral continua minimalista e exibe apenas o estado, a idade da evidência e as exceções que exigem intervenção.
