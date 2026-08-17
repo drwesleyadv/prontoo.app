@@ -15,6 +15,7 @@ final class RouteRegistry
         'login_autotest' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_public_login_autotest', true, false, ['GET'], []],
         'mfa' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations02::class, 'page_mfa', true, false, ['*'], []],
         'mobile_web_access' => [\Prontoo\Runtime\PublicWeb\PublicWebRuntimeOperations01::class, 'page_mobile_web_access', true, false, ['GET'], []],
+        'footer_telemetry_wave' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::class, 'page_footer_telemetry_wave', false, true, [], []],
         'goal_status' => [\Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class, 'page_goal_status', false, true, [], ['financial']],
         'signup' => [\Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations04::class, 'page_signup', true, false, ['GET'], []],
         'logout' => [\Prontoo\Runtime\AuthOnboarding\LogoutCoordinator::class, 'handle', true, false, ['*'], []],

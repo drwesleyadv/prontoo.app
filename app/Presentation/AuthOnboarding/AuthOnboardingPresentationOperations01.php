@@ -210,7 +210,7 @@ final class AuthOnboardingPresentationOperations01
     
     }
 
-    public static function login_telemetry_wave_values(array $series): array
+    public static function footer_telemetry_line_values(array $series): array
     
     {
         return array_values(
@@ -225,87 +225,4 @@ final class AuthOnboardingPresentationOperations01
     
     }
 
-    public static function login_telemetry_wave_path(
-        array $values,
-        float $maximum,
-        int $width = 1000,
-        int $height = 250,
-    ): string 
-    {
-        $values = array_values($values);
-        $count = count($values);
-        if ($count === 0) {
-            return "";
-        }
-        $maximum = max(1.0, $maximum);
-        $top = 10.0;
-        $bottom = 14.0;
-        $plotHeight = max(1.0, $height - $top - $bottom);
-        $format = static function (float $value): string {
-            $formatted = number_format($value, 2, ".", "");
-            return rtrim(rtrim($formatted, "0"), ".");
-        };
-        $points = [];
-        foreach ($values as $index => $value) {
-            $x =
-                $count <= 1
-                    ? 0.0
-                    : $index * ($width / ($count - 1));
-            $y =
-                $top +
-                $plotHeight -
-                (max(0.0, (float) $value) / $maximum) * $plotHeight;
-            $points[] = [$x, $y];
-        }
-        $widthValue = $format((float) $width);
-        $heightValue = $format((float) $height);
-        if ($count === 1) {
-            $y = $format($points[0][1]);
-            return "M 0 " .
-                $y .
-                " L " .
-                $widthValue .
-                " " .
-                $y .
-                " L " .
-                $widthValue .
-                " " .
-                $heightValue .
-                " L 0 " .
-                $heightValue .
-                " Z";
-        }
-        $path =
-            "M " .
-            $format($points[0][0]) .
-            " " .
-            $format($points[0][1]);
-        for ($index = 1; $index < $count; $index++) {
-            $previousPoint = $points[$index - 1];
-            $current = $points[$index];
-            $middleX = ($previousPoint[0] + $current[0]) / 2;
-            $path .=
-                " C " .
-                $format($middleX) .
-                " " .
-                $format($previousPoint[1]) .
-                " " .
-                $format($middleX) .
-                " " .
-                $format($current[1]) .
-                " " .
-                $format($current[0]) .
-                " " .
-                $format($current[1]);
-        }
-        return $path .
-            " L " .
-            $widthValue .
-            " " .
-            $heightValue .
-            " L 0 " .
-            $heightValue .
-            " Z";
-    
-    }
 }

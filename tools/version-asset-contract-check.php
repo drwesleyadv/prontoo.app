@@ -56,6 +56,9 @@ foreach ([
         throw new RuntimeException('Superfície pública não está neutralizada: ' . $routeContract);
     }
 }
+if (!str_contains($routeRegistry, "'footer_telemetry_wave' => [\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations07::class, 'page_footer_telemetry_wave', false, true, [], []]")) {
+    throw new RuntimeException('Rodapé de telemetria deve permanecer restrito à sessão autenticada.');
+}
 if (str_contains($loginRuntime, 'login_telemetry_wave_html()')) {
     throw new RuntimeException('Login público não pode renderizar telemetria.');
 }

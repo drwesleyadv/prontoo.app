@@ -63,6 +63,7 @@ final class SupportTelemetryInfrastructureOperations01
     {
         return [
             "login_telemetry_wave",
+            "footer_telemetry_wave",
             "login_autotest",
             "goal_status",
             "patient_lookup",

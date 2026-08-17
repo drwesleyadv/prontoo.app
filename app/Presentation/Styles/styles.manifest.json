@@ -118,8 +118,8 @@
             "layer": "foundation",
             "responsibility": "document",
             "concern": "document",
-            "sha256": "2ed1feec9c703c616b00aa85573e5897e524062f994bb755d46b797fa33a6ddb",
-            "bytes": 61545,
+            "sha256": "9546d630634cca9cfabcde25df57e144ec221e4f2a6be5f55339adf86a784385",
+            "bytes": 62254,
             "important_count": 486,
             "route_scope_count": 0
         },
@@ -138,8 +138,8 @@
             "layer": "components",
             "responsibility": "components",
             "concern": "components",
-            "sha256": "97efaf4860ef6a590c1e20ae1519cbbc06d7eebb592ac74afa6c1d49027b9bd3",
-            "bytes": 338946,
+            "sha256": "e61b8ce8c364cdce61de505a1a3bb3e26fed33b5a1ab73875f72c1d2b0499cf6",
+            "bytes": 339614,
             "important_count": 1637,
             "route_scope_count": 0
         },
@@ -1067,7 +1067,7 @@
             "source": "components/components.css",
             "offset": 21152,
             "bytes": 4843,
-            "sha256": "d610186e96180cab944c946acd8009074e074439c319eadee6ced7b6fb80e826",
+            "sha256": "d4e6ce1a9e00daf9daba69e383c2b7469430adc6d55ea003ae70447a2b3af9b9",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9841,8 +9841,8 @@
             "order": 1059,
             "source": "foundation/document.css",
             "offset": 60934,
-            "bytes": 611,
-            "sha256": "d8c23bf5a402f90558b644d38e635c5fed062d63e42211c340a5a6d8618b6fd8",
+            "bytes": 1320,
+            "sha256": "eba514a718abe52fabbd6f8e4825c792b00852f0c745aee852fda55b41879a89",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9949,15 +9949,15 @@
             "order": 1071,
             "source": "components/components.css",
             "offset": 336380,
-            "bytes": 2566,
-            "sha256": "5f106b2ba0be40d411040046de183d56aa158ae74a340385b6e33b424847e68a",
+            "bytes": 3234,
+            "sha256": "9741b7cd3a44cc006d60ea1ef62430448f0ddf9622d18de175f2129b4d62d68e",
             "important_count": 0,
             "route_scope_count": 0
         }
     ],
     "artifact_contract": {
-        "sha256": "717b45a333b1d17174074bfec3a8d3ee2297308f34b30c92a78c697f0794b498",
-        "bytes": 801451,
+        "sha256": "1724458218ae26200044c768f81d6355666ab2072f0d0d91cf59117be2964cff",
+        "bytes": 802828,
         "lines": 15094,
         "deterministic_source_required": true
     },
