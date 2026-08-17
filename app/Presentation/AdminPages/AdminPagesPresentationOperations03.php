@@ -95,10 +95,10 @@ final class AdminPagesPresentationOperations03
             $scaleMax = $scaleMin + 1.0;
         }
         $range = $scaleMax - $scaleMin;
-        $w = 720;
-        $h = 190;
-        $padL = 34;
-        $padR = 14;
+        $w = $visualMode === "telemetry" ? 960 : 720;
+        $h = $visualMode === "telemetry" ? 210 : 190;
+        $padL = $visualMode === "telemetry" ? 40 : 34;
+        $padR = $visualMode === "telemetry" ? 16 : 14;
         $padT = 18;
         $padB = 32;
         $plotW = $w - $padL - $padR;
@@ -132,11 +132,12 @@ final class AdminPagesPresentationOperations03
                     $v,
                     (string) ($row["label"] ?? ""),
                     (string) ($row["tooltip"] ?? ($row["label"] ?? "")),
+                    (string) ($row["axis_label"] ?? ""),
                 ];
             }
             return $points;
         };
-        $path = static function (array $points): string {
+        $path = static function (array $points) use ($visualMode): string {
     
             $count = count($points);
             if ($count === 0) {
@@ -144,6 +145,13 @@ final class AdminPagesPresentationOperations03
             }
             if ($count === 1) {
                 return "M" . $points[0][0] . " " . $points[0][1];
+            }
+            if ($visualMode === "telemetry") {
+                $d = "M" . $points[0][0] . " " . $points[0][1];
+                for ($i = 1; $i < $count; $i++) {
+                    $d .= " L " . $points[$i][0] . " " . $points[$i][1];
+                }
+                return $d;
             }
             $tension = 0.72;
             $d = "M" . $points[0][0] . " " . $points[0][1];
@@ -225,21 +233,41 @@ final class AdminPagesPresentationOperations03
         }
         $ticks = "";
         $n = count($loadPoints);
-        $tickEvery = max(1, (int) ceil(max(1, $n) / 8));
-        foreach ($loadPoints as $i => $pt) {
-            if ($i % $tickEvery === 0 || $i === $n - 1) {
+        $hourTicks = array_values(array_filter(
+            $loadPoints,
+            static fn(array $point): bool => ($point[5] ?? "") !== "",
+        ));
+        if ($hourTicks) {
+            foreach ($hourTicks as $pt) {
                 $ticks .=
                     '<text x="' .
                     $pt[0] .
                     '" y="' .
                     ($h - 8) .
-                    '" class="metric-axis-label metric-x-label">' .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pt[3]) .
+                    '" text-anchor="middle" class="metric-axis-label metric-x-label metric-hour-label">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pt[5]) .
                     "</text>";
+            }
+        } else {
+            $tickEvery = max(1, (int) ceil(max(1, $n) / 8));
+            foreach ($loadPoints as $i => $pt) {
+                if ($i % $tickEvery === 0 || $i === $n - 1) {
+                    $ticks .=
+                        '<text x="' .
+                        $pt[0] .
+                        '" y="' .
+                        ($h - 8) .
+                        '" text-anchor="middle" class="metric-axis-label metric-x-label">' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pt[3]) .
+                        "</text>";
+                }
             }
         }
         $hover = "";
         foreach ($loadPoints as $pt) {
+            if ($visualMode === "telemetry" && $pt[2] <= 0.0) {
+                continue;
+            }
             $hover .=
                 '<circle cx="' .
                 $pt[0] .
@@ -254,6 +282,9 @@ final class AdminPagesPresentationOperations03
                 "</title></circle>";
         }
         foreach ($responsePoints as $pt) {
+            if ($visualMode === "telemetry" && $pt[2] <= 0.0) {
+                continue;
+            }
             $hover .=
                 '<circle cx="' .
                 $pt[0] .

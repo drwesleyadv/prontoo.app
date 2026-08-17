@@ -17,7 +17,7 @@ O ambiente global do Desenvolvedor é um plano de controle direto, sem tela inte
 - A PageHead de Métricas contém, nesta ordem, **Métricas** e **Rotas**.
 - Métricas abre com **Páginas**, **Registros** e **Landing**. Cada card compara os últimos 10 dias móveis com os 10 dias imediatamente anteriores.
 - Páginas conta carregamentos HTML concluídos; Registros soma as operações preparadas observadas no banco; Landing conta carregamentos da Landing Page.
-- Abaixo dos cards, Métricas preserva os gráficos **Velocidade** e **Volume**, atualizados a cada minuto, sem incorporar a tabela de Rotas.
+- Abaixo dos cards, Métricas preserva os gráficos **Velocidade** e **Volume**, atualizados a cada minuto, sem incorporar a tabela de Rotas. Ambos exibem Carregamento de Páginas e Consulta nos 1.440 minutos completos das últimas 24 horas, com zero explícito nos minutos sem eventos, segmentos retos entre pontos e uma marca por hora no eixo inferior.
 - Rotas mostra o nome funcional da tela ou operação, o número de requisições e o tempo médio. A ordem usa maior número de requisições primeiro e, em empate, menor tempo médio.
 - A PageHead de Consultórios contém, nesta ordem, **Consultórios**, **Usuários**, **Mensagens**, **Avisos** e **Auditoria**.
 - Administração contém somente **Manutenção** e **Configuração**.

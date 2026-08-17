@@ -1,10 +1,11 @@
 # Versão canônica
 
-## 1.8.17.5 — Gráficos restaurados em Métricas
+## 1.8.17.6 — Telemetria minuto a minuto
 
-- mantém Páginas, Registros e Landing como os três cards comparativos no topo.
-- restaura o gráfico Velocidade com os tempos médios de Rotas e Banco de dados.
-- restaura o gráfico Volume com carregamentos de página e consultas ao banco.
-- posiciona os gráficos abaixo dos cards e preserva sua atualização automática a cada minuto.
-- mantém a tabela detalhada exclusivamente na tela Rotas.
-- adiciona contratos para impedir nova supressão dos gráficos e não altera schema ou banco de dados.
+- renomeia o gráfico Últimas 24 horas para Velocidade.
+- padroniza Velocidade e Volume em 1.440 buckets de um minuto completo.
+- representa minutos sem Carregamento de Páginas ou Consulta com pontos explícitos em zero.
+- liga os valores consecutivos por segmentos retos para formar picos sem interpolação curva.
+- mostra exatamente uma marca centralizada por hora no eixo inferior.
+- mantém contornos visíveis nas duas séries e atualização automática a cada minuto.
+- adiciona contratos determinísticos para buckets, agregação, geometria e escala horária sem alterar schema ou banco de dados.
