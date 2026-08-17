@@ -18,10 +18,7 @@ final class AdminActionDefinitions implements ActionDefinitionSource
             'admin_painel' => ['confirm_subscription_payment', 'reject_subscription_payment'],
             'admin_clinics' => ['activate_subscription', 'billing', 'deactivate_subscription', 'default_billing', 'toggle'],
             'admin_alerts' => ['create', 'read'],
-            'admin_errors' => ['resolve_incident'],
-            'admin_security' => ['release_login_lock'],
             'admin_maintenance' => ['save_settings', 'save_maintenance'],
-            'admin_deleted' => ['restore_patient', 'restore_care'],
         ];
         foreach ($globalActions as $route => $actions) {
             $definitions->add($route, $actions, 'global', $admin, ['admin:*'], ['admin:write'], [], 'global_admin');

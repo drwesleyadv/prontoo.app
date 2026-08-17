@@ -198,12 +198,7 @@ final class UiComponentsPresentationOperations01
             "admin_payment_proof" => "admin_clinics",
             "admin_global_notices" => "admin_maintenance",
             "admin_alerts" => "admin_alerts",
-            "admin_deleted" => "admin_maintenance",
-            "admin_errors" => "admin_health",
-            "admin_diagnostics" => "admin_health",
-            "admin_integrity" => "admin_health",
-            "admin_security" => "admin_health",
-            "admin_audit" => "admin_health",
+            "admin_audit" => "admin_administration",
             "painel" => "appointments",
             "patient" => "patients",
             "patient_lookup" => "patients",
@@ -260,12 +255,7 @@ final class UiComponentsPresentationOperations01
                 "admin_people" => "admin_clinics",
                 "admin_payment_proof" => "admin_clinics",
                 "admin_global_notices" => "admin_maintenance",
-                "admin_deleted" => "admin_maintenance",
-                "admin_errors" => "admin_health",
-                "admin_diagnostics" => "admin_health",
-                "admin_integrity" => "admin_health",
-                "admin_security" => "admin_health",
-                "admin_audit" => "admin_health",
+                "admin_audit" => "admin_administration",
             ];
             return $map[$route] ?? $route;
         }

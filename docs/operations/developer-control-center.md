@@ -8,9 +8,8 @@ O ambiente global do Desenvolvedor é um plano de controle operacional. A interf
 
 1. **Visão geral** — responde somente ao estado atual e ao que precisa de intervenção.
 2. **Consultórios** — ciclo de vida e gestão, com o mesmo padrão de diretório de Pacientes: resumo, busca rápida, filtros de Todos, Atenção, Onboarding, Somente leitura e Vencendo, lista compacta e ação principal por registro.
-3. **Confiabilidade** — exceções técnicas e acesso direto a Erros, Segurança e Integridade.
-4. **Observabilidade** — requisições, latência, falhas, gráficos e comportamento das rotas.
-5. **Administração** — hub de acesso, comunicação e auditoria; configuração e manutenção ficam progressivamente reveladas.
+3. **Observabilidade** — requisições, latência, falhas, gráficos e comportamento das rotas.
+4. **Administração** — hub de acesso, comunicação e auditoria; configuração e manutenção ficam progressivamente reveladas.
 
 ## Terceira passada de carga cognitiva
 
@@ -18,10 +17,10 @@ O ambiente global do Desenvolvedor é um plano de controle operacional. A interf
 - Onboarding e vencimentos deixam de ser alertas globais e passam a filtros contextuais de Consultórios.
 - `admin_onboarding` permanece apenas como alias de compatibilidade e redireciona ao filtro de onboarding.
 - `admin_operations` permanece como relatório sob demanda, sem ocupar uma ação no rodapé de Consultórios.
-- Confiabilidade mostra somente exceções; Diagnóstico e Recuperação ficam em Ferramentas avançadas.
 - Observabilidade tem uma única camada de quatro KPIs: Requisições, Latência média, Falhas e Rota mais lenta; depois gráficos e rotas.
 - Administração não replica seus filhos na navegação da PageHead. O hub mostra Usuários, Mensagens internas, Avisos aos consultórios e Auditoria; Configurações e Manutenção ficam em Configuração avançada.
-- O estado técnico é calculado por um único snapshot de saúde compartilhado por Visão geral e Confiabilidade.
+- Confiabilidade, Erros, Diagnóstico, Integridade, Segurança e Recuperação não compõem mais o perfil do Desenvolvedor. Seus bloqueios e evidências continuam aplicados internamente pelo runtime.
+- O estado técnico é calculado por um único snapshot de saúde exibido na Visão geral.
 
 ## Regra de UX
 

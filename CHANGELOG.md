@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.8.17.1 — Padronização final de Consultórios
+## 1.8.17.2 — Simplificação do perfil do Desenvolvedor
 
-- remove o botão Mais opções e seu bloco expansível do rodapé da tela de Consultórios.
-- preserva a busca rápida por nome, área, status ou vencimento.
-- mantém os filtros Todos, Atenção, Onboarding, Somente leitura e Vencendo.
-- preserva os cards, estados, metadados e a ação Gerenciar de cada consultório.
-- adiciona contrato anti-regressão para impedir a reintrodução da ação removida.
+- remove Confiabilidade da navegação global do Desenvolvedor.
+- suprime as rotas de Erros, Diagnóstico, Integridade, Segurança e Recuperação.
+- remove as ações exclusivas de resolver incidente, liberar bloqueio e restaurar registros.
+- preserva no servidor o snapshot de saúde e as proteções compartilhadas exibidas na Visão geral.
+- elimina consultas e catálogos exclusivos e adiciona contrato anti-regressão para as rotas removidas.

@@ -100,14 +100,6 @@ CONTRACT;
         $cases['sources_declared'] = array_reduce(self::all(), static fn(bool $ok, ActionContract $contract): bool => $ok && $contract->source !== '', true);
         $cases['onboarding_handler_declared'] = self::resolve('appointments', ['act' => 'onboarding_tip_dismiss'])?->source === 'Runtime/AuthOnboarding';
         $cases['global_notice_toggle_producer_declared'] = self::resolve('admin_global_notices', ['act' => 'toggle'])?->producers === ['Runtime/TasksNotices'];
-        $incident = self::resolve('admin_errors', ['act' => 'resolve_incident']);
-        $security = self::resolve('admin_security', ['act' => 'release_login_lock']);
-        $cases['incident_resolution_exact_global_contract'] = $incident?->scope === 'global' &&
-            $incident?->policy === 'global_admin' &&
-            $incident?->required === ['admin:*'];
-        $cases['login_lock_release_exact_global_contract'] = $security?->scope === 'global' &&
-            $security?->policy === 'global_admin' &&
-            $security?->required === ['admin:*'];
         $cases['all_global_contracts_are_developer_only'] = array_reduce(
             self::all(),
             static fn(bool $ok, ActionContract $contract): bool => $ok &&

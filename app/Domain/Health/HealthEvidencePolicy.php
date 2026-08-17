@@ -122,10 +122,10 @@ final class HealthEvidencePolicy
         $actions = [];
         $dimensions = (array) ($snapshot['dimensions'] ?? []);
         $map = [
-            'availability' => ['Confiabilidade', 'A disponibilidade da plataforma exige verificação.', 'health_and_safety', 'admin_health'],
-            'integrity' => ['Integridade', 'Uma evidência de integridade falhou ou não pôde ser renovada.', 'verified_user', 'admin_integrity'],
-            'security' => ['Isolamento e segurança', 'Uma fronteira de segurança precisa de revisão.', 'shield_lock', 'admin_security'],
-            'continuity' => ['Continuidade', 'O heartbeat ou o canário do Maestro não está confiável.', 'monitor_heart', 'admin_health'],
+            'availability' => ['Disponibilidade', 'A disponibilidade da plataforma exige verificação.', 'health_and_safety', ''],
+            'integrity' => ['Integridade', 'Uma evidência de integridade falhou ou não pôde ser renovada.', 'verified_user', ''],
+            'security' => ['Isolamento e segurança', 'Uma fronteira de segurança precisa de revisão.', 'shield_lock', ''],
+            'continuity' => ['Continuidade', 'O heartbeat ou o canário do Maestro não está confiável.', 'monitor_heart', ''],
             'performance' => ['Desempenho', 'A degradação persistiu por janelas consecutivas.', 'speed', 'admin_performance'],
         ];
         foreach ($map as $id => [$title, $body, $icon, $route]) {
@@ -140,7 +140,7 @@ final class HealthEvidencePolicy
                 'icon' => $icon,
                 'title' => $title,
                 'body' => $body,
-                'time' => $id === 'performance' ? 'Desempenho' : 'Confiabilidade',
+                'time' => $id === 'performance' ? 'Desempenho' : 'Sistema',
                 'route' => $route,
             ];
         }

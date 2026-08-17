@@ -17,9 +17,7 @@ final class OperationalDynamicSqlCatalog
         $since = 'DATE_SUB(NOW(), INTERVAL 30 DAY)';
         $scopeModelWhere = ModelClinicQuerySql::exclude('clinic_id');
         $modelScopedWhere = $scopeModelWhere;
-        $modelScoped = $scopeModelWhere;
         $modelClinicWhere = ModelClinicQuerySql::exclude('id');
-        $modelClinic = $modelClinicWhere;
         return match ($queryId) {
             'read.admin_pages.01.platform_backend_selftest.01' => (
                 "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL"
@@ -88,53 +86,6 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.admin_pages.02.admin_global_ops_finance_html.19' => (
                 "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE status='paga' AND paid_at>=$since $modelScopedWhere"
-            ),
-            'read.admin_pages.03.page_admin_health.01' => (
-                "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL"
-            ),
-            'read.admin_pages.03.page_admin_health.02' => (
-                "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)"
-            ),
-            'read.admin_pages.03.page_admin_health.03' => (
-                "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()"
-            ),
-            'read.admin_pages.03.page_admin_health.04' => (
-                "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' " .
-                                ModelClinicQuerySql::exclude("clinic_id")
-            ),
-            'read.admin_pages.03.page_admin_health.05' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND trial_ends_at>=NOW() $modelClinicWhere"
-            ),
-            'read.admin_pages.03.page_admin_health.06' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='read_only' $modelClinicWhere"
-            ),
-            'read.admin_pages.04.page_admin_integrity.01' => (
-                "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 7 DAY) AND violation_key<>'write_in_read_only' $modelScoped"
-            ),
-            'read.admin_pages.04.page_admin_integrity.02' => (
-                "SELECT (SELECT COUNT(*) FROM pi_appointments a JOIN pi_patients p ON p.id=a.patient_link_id WHERE a.patient_link_id IS NOT NULL AND a.clinic_id<>p.clinic_id " .
-                                ModelClinicQuerySql::exclude("a.clinic_id") .
-                                ") + (SELECT COUNT(*) FROM pi_documents d JOIN pi_patients p ON p.id=d.patient_link_id WHERE d.patient_link_id IS NOT NULL AND d.clinic_id<>p.clinic_id " .
-                                ModelClinicQuerySql::exclude("d.clinic_id") .
-                                ") + (SELECT COUNT(*) FROM pi_care c JOIN pi_patients p ON p.id=c.patient_link_id WHERE c.clinic_id<>p.clinic_id " .
-                                ModelClinicQuerySql::exclude("c.clinic_id") .
-                                ") + (SELECT COUNT(*) FROM pi_task_details td JOIN pi_tasks t ON t.id=td.task_id WHERE td.clinic_id<>t.clinic_id " .
-                                ModelClinicQuerySql::exclude("td.clinic_id") .
-                                ") + (SELECT COUNT(*) FROM pi_task_comments tc JOIN pi_tasks t ON t.id=tc.task_id WHERE tc.clinic_id<>t.clinic_id " .
-                                ModelClinicQuerySql::exclude("tc.clinic_id") .
-                                ")"
-            ),
-            'read.admin_pages.04.page_admin_integrity.03' => (
-                "SELECT COUNT(*) FROM pi_users u WHERE u.is_global_admin=0 AND u.active=0 AND NOT EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.active=1 LIMIT 1)"
-            ),
-            'read.admin_pages.04.page_admin_integrity.04' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (manager_user_id IS NULL OR manager_user_id=0) $modelClinic"
-            ),
-            'read.admin_pages.04.page_admin_integrity.05' => (
-                "SELECT COUNT(*) FROM pi_appointments WHERE patient_link_id IS NULL AND start_at>=DATE_SUB(NOW(), INTERVAL 30 DAY) $modelScoped"
-            ),
-            'read.admin_pages.04.page_admin_integrity.06' => (
-                "SELECT COUNT(*) FROM pi_tasks WHERE status='aberta' AND due_at IS NOT NULL AND due_at<NOW() $modelScoped"
             ),
             'read.admin_pages.06.page_admin_painel.01' => (
                 "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (subscription_status='read_only' OR (paid_until IS NOT NULL AND paid_until<CURDATE())) $modelClinicWhere"

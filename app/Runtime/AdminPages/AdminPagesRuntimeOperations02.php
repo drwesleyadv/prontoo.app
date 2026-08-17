@@ -106,35 +106,35 @@ final class AdminPagesRuntimeOperations02
                 (string) $activeLeads,
                 "person",
                 "ativos criados",
-                "admin_integrity",
+                "",
             ) .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "pacientes",
                 (string) $patients30,
                 "person",
                 "Últimos 30 dias",
-                "admin_integrity",
+                "",
             ) .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "agendamentos",
                 (string) $appointments30,
                 "calendar_month",
                 $appointmentsFuture . " próximos",
-                "admin_integrity",
+                "",
             ) .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "documentos",
                 (string) $documents30,
                 "description",
                 "Últimos 30 dias",
-                "admin_integrity",
+                "",
             ) .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "tarefas",
                 (string) $tasks30,
                 "task_alt",
                 $overdueTasks . " vencidas",
-                "admin_integrity",
+                "",
             ) .
             \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_global_compact_pill(
                 "avisos",

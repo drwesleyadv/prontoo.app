@@ -265,7 +265,7 @@ $same(['finalizado'], $machine->allowedFrom('ativo'), 'state.allowed_from');
 
 $routeTest = RouteRegistry::logicSelfTest();
 $assert(($routeTest['ok'] ?? false) === true, 'routes.logic_self_test');
-$same(63, $routeTest['routes'] ?? null, 'routes.count');
+$same(57, $routeTest['routes'] ?? null, 'routes.count');
 $same(8, $routeTest['public_routes'] ?? null, 'routes.public_count');
 $same(9, $routeTest['json_routes'] ?? null, 'routes.json_count');
 $login = RouteRegistry::definition('login');

@@ -71,7 +71,7 @@ $selfTest = LayeredKernel::logicSelfTest($root);
 $assert(!empty($architecture['ok']), 'architecture_verifier');
 $assert(!empty($selfTest['ok']), 'layered_kernel_self_test');
 $assert((float) ($architecture['classification_coverage_percent'] ?? 0) === 100.0, 'classification_coverage');
-$assert((int) ($architecture['action_contracts_total'] ?? 0) === 155, 'action_contract_count');
+$assert((int) ($architecture['action_contracts_total'] ?? 0) === 151, 'action_contract_count');
 
 $routes = RouteCatalog::all();
 $publicRoutes = RouteCatalog::public();

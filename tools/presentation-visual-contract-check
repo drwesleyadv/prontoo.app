@@ -208,6 +208,21 @@ foreach ([
         $failures[] = ['rule' => 'admin_clinics_patient_composition_missing', 'needle' => $needle];
     }
 }
+foreach ([
+    'admin_health',
+    'admin_errors',
+    'admin_diagnostics',
+    'admin_integrity',
+    'admin_security',
+    'admin_deleted',
+] as $removedDeveloperRoute) {
+    if (str_contains($php, $removedDeveloperRoute)) {
+        $failures[] = [
+            'rule' => 'developer_reliability_route_present',
+            'route' => $removedDeveloperRoute,
+        ];
+    }
+}
 $result = [
     'ok' => $failures === [],
     'policy' => (string) ($contract['policy'] ?? ''),
