@@ -105,11 +105,13 @@ Não introduza estilos inline para contornar o build nem duplique componentes ca
 
 ### Contrato atual da telemetria global
 
-Os quatro KPIs de telemetria de Métricas do Desenvolvedor e do Status usam um contrato responsivo próprio: em viewport acima de 980 px aparecem em uma única linha com quatro colunas; em 980 px ou menos aparecem em grade `2 colunas × 2 linhas`. Não devem cair para uma coluna em mobile.
+Métricas do Desenvolvedor contém exatamente três cards comparativos: Páginas, Registros e Landing. Em viewport acima de 980 px aparecem em uma única linha com três colunas; em 980 px ou menos aparecem em uma coluna. Os cards são filhos diretos de `.admin-metrics-kpis`. Toda mudança nesse contrato deve passar `tools/presentation-ux-contract.mjs --check`, que verifica por computed style 1280 px (3×1) e 390 px (1×3).
 
-Em Métricas do Desenvolvedor, os quatro cards são filhos diretos de `.admin-telemetry-card`; não reintroduza wrapper intermediário para agrupá-los. A própria `.admin-telemetry-card` é a grade semântica, e o título usa `wide` para ocupar todas as colunas. No Status público, o wrapper `wide global-telemetry-grid` permanece como bloco independente antes do gráfico de desempenho. O desktop canônico de `.global-telemetry-grid` pertence a `foundation/document.css`; os breakpoints pertencem a `states/responsive.css`. A regra de até 680 px não pode recolocar `.global-telemetry-grid` em uma coluna. Não reintroduza a primitive `two` nesses dois containers. Toda mudança nesse contrato deve passar `tools/presentation-ux-contract.mjs --check`, que verifica por computed style Status e Métricas em 1280 px (4×1) e 390 px (2×2).
+Cada card compara os 10 dias móveis recentes aos 10 imediatamente anteriores. Páginas conta page loads canônicos, Registros soma `database_query_count` e Landing conta a rota canônica `landing`. SQL, parâmetros, resultados e dados clínicos não são persistidos.
 
-Os gráficos de performance são compartilhados integralmente por Métricas do Desenvolvedor e por `/status`. `Velocidade` contém 1.440 buckets móveis de um minuto: Rotas é a área verde escuro ao fundo e representa a duração média dos page loads daquele minuto; Banco de dados é a área verde claro à frente e representa a média ponderada das consultas preparadas. `Volume` contém 30 buckets móveis de 24 horas: Carregamentos de página é a área verde escuro ao fundo e conta page loads; Consultas ao banco de dados é a área verde claro à frente e soma `database_query_count`. As áreas não têm contorno. SQL e parâmetros não são persistidos e períodos anteriores à instrumentação de banco permanecem sem amostra.
+O detalhamento pertence à tela Rotas, separada de Métricas. A tabela exibe nomes funcionais, requisições e tempo médio dos últimos 10 dias, ordenando primeiro pelo maior número de requisições e depois pelo menor tempo médio.
+
+O Status público preserva seu contrato independente de quatro KPIs: acima de 980 px, uma linha com quatro colunas; em 980 px ou menos, duas colunas por duas linhas. A simplificação de Métricas não altera essa superfície pública.
 
 ## 8. Release e versionamento
 

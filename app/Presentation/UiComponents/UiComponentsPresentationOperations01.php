@@ -190,15 +190,18 @@ final class UiComponentsPresentationOperations01
             return $route;
         }
         $map = [
+            "admin_routes" => "admin_performance",
             "admin_stats" => "admin_clinics",
             "admin_operations" => "admin_clinics",
             "admin_onboarding" => "admin_clinics",
             "admin_users" => "admin_clinics",
             "admin_people" => "admin_clinics",
             "admin_payment_proof" => "admin_clinics",
-            "admin_global_notices" => "admin_maintenance",
-            "admin_alerts" => "admin_alerts",
-            "admin_audit" => "admin_administration",
+            "admin_global_notices" => "admin_clinics",
+            "admin_alerts" => "admin_clinics",
+            "admin_audit" => "admin_clinics",
+            "admin_maintenance" => "admin_administration",
+            "admin_settings" => "admin_administration",
             "painel" => "appointments",
             "patient" => "patients",
             "patient_lookup" => "patients",
@@ -248,14 +251,18 @@ final class UiComponentsPresentationOperations01
                 return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($route);
             }
             $map = [
+                "admin_routes" => "admin_performance",
                 "admin_stats" => "admin_clinics",
                 "admin_operations" => "admin_clinics",
                 "admin_onboarding" => "admin_clinics",
                 "admin_users" => "admin_clinics",
                 "admin_people" => "admin_clinics",
                 "admin_payment_proof" => "admin_clinics",
-                "admin_global_notices" => "admin_maintenance",
-                "admin_audit" => "admin_administration",
+                "admin_global_notices" => "admin_clinics",
+                "admin_alerts" => "admin_clinics",
+                "admin_audit" => "admin_clinics",
+                "admin_maintenance" => "admin_administration",
+                "admin_settings" => "admin_administration",
             ];
             return $map[$route] ?? $route;
         }

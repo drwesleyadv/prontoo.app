@@ -61,6 +61,7 @@ final class RouteRegistry
         'admin_alerts' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations09::class, 'page_admin_alerts', false, false, [], []],
         'admin_maintenance' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations05::class, 'page_admin_maintenance', false, false, [], []],
         'admin_performance' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations09::class, 'page_admin_performance', false, false, [], []],
+        'admin_routes' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations09::class, 'page_admin_routes', false, false, [], []],
         'admin_settings' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations05::class, 'page_admin_settings', false, false, [], []],
         'admin_payment_proof' => [\Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::class, 'page_admin_payment_proof', false, false, [], []],
         'admin_audit' => [\Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations08::class, 'page_admin_audit', false, false, [], []],

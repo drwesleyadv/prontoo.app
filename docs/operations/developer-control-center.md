@@ -6,20 +6,24 @@ O ambiente global do Desenvolvedor é um plano de controle direto, sem tela inte
 
 ## Hierarquia
 
-1. **Métricas** — tela inicial, com requisições, latência, falhas, gráficos e comportamento das rotas.
+1. **Métricas** — tela inicial, com os três comparativos essenciais de volume da plataforma.
 2. **Consultórios** — ciclo de vida e gestão, com o mesmo padrão de diretório de Pacientes: resumo, busca rápida, filtros, lista compacta e ação principal por registro.
-3. **Administração** — hub de acesso, comunicação e auditoria; configuração e manutenção ficam progressivamente reveladas.
+3. **Administração** — hub restrito a manutenção e configuração global.
 
 ## Contratos do ambiente
 
 - `admin_performance` é a entrada do Desenvolvedor e aparece com o rótulo **Métricas**.
 - A navegação contém somente Métricas, Consultórios e Administração, nessa ordem.
+- A PageHead de Métricas contém, nesta ordem, **Métricas** e **Rotas**.
+- Métricas mostra somente **Páginas**, **Registros** e **Landing**. Cada card compara os últimos 10 dias móveis com os 10 dias imediatamente anteriores.
+- Páginas conta carregamentos HTML concluídos; Registros soma as operações preparadas observadas no banco; Landing conta carregamentos da Landing Page.
+- Rotas mostra o nome funcional da tela ou operação, o número de requisições e o tempo médio. A ordem usa maior número de requisições primeiro e, em empate, menor tempo médio.
+- A PageHead de Consultórios contém, nesta ordem, **Consultórios**, **Usuários**, **Mensagens**, **Avisos** e **Auditoria**.
+- Administração contém somente **Manutenção** e **Configuração**.
 - `admin_painel` e sua Visão geral não existem mais.
 - A revisão de pagamentos e comprovantes de assinatura pertence a Consultórios.
 - `admin_onboarding` permanece apenas como alias de compatibilidade e redireciona ao filtro de onboarding.
 - `admin_operations` permanece como relatório sob demanda, sem ocupar uma ação no rodapé de Consultórios.
-- Métricas tem uma única camada de quatro KPIs: Requisições, Latência média, Falhas e Rota mais lenta; depois gráficos e rotas.
-- Administração não replica seus filhos na navegação da PageHead. O hub mostra Usuários, Mensagens internas, Avisos aos consultórios e Auditoria; Configurações e Manutenção ficam em Configuração avançada.
 
 ## Limite das supressões
 

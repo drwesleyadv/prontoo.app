@@ -236,7 +236,7 @@ foreach ($iterator as $file) {
     $relative = str_starts_with($absolute, $rootPrefix)
         ? substr($absolute, strlen($rootPrefix))
         : $absolute;
-    if ($relative === '' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
+    if ($relative === '' || $relative === '.git' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
         continue;
     }
     if ($relative === 'app/update.manifest.json') {

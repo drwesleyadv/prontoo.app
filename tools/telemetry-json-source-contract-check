@@ -42,10 +42,11 @@ $assert(
     'média ponderada de consultas PDO divergente',
 );
 $assert(
+    str_contains($admin9, 'telemetry_developer_metrics_summary()') &&
+    str_contains($admin9, 'page_admin_routes()') &&
     str_contains($admin9, 'telemetry_route_performance_summary(240)') &&
-    !str_contains($admin9, 'telemetry_comparative_summary()') &&
-    !str_contains($admin9, 'admin_telemetry_kpi_cards_html('),
-    'Métricas deve usar uma única camada de resumo',
+    !str_contains($admin9, 'admin_performance_card_html('),
+    'Métricas e Rotas devem permanecer em telas separadas',
 );
 $assert(
     !str_contains($admin3, 'admin_telemetry_kpi_cards_html(') &&
@@ -53,10 +54,72 @@ $assert(
     !str_contains($admin6, 'admin_performance_card_html('),
     'renderers legados de telemetria não podem voltar à central do Desenvolvedor',
 );
-foreach (["Requisições · 10d", "Latência média", "Falhas", "Rota mais lenta"] as $label) {
+foreach (["Páginas", "Registros", "Landing"] as $label) {
     $assert(str_contains($presentation3, $label), 'Métricas perdeu o indicador ' . $label);
 }
-$assert(!str_contains($presentation3, 'stat_card("Landing Page"'), 'Landing Page não deve duplicar o resumo de Métricas');
+$assert(
+    str_contains($presentation3, 'admin_metrics_html(') &&
+    str_contains($presentation3, 'admin_routes_html(') &&
+    str_contains($presentation3, 'admin_route_display_label($route)') &&
+    !str_contains($presentation3, '<td><code>'),
+    'Rotas devem usar nomes funcionais fora do identificador interno',
+);
+$nowUs = 2000000000000000;
+$dayUs = 86400 * 1000000;
+$metricEvents = [
+    ['evento_id' => 'old', 'fim_unix_us' => $nowUs - 20 * $dayUs - 1, 'rota' => 'patient', 'database_query_count' => 99],
+    ['evento_id' => 'previous-start', 'fim_unix_us' => $nowUs - 20 * $dayUs, 'rota' => 'patient', 'database_query_count' => 2],
+    ['evento_id' => 'previous-end', 'fim_unix_us' => $nowUs - 10 * $dayUs - 1, 'rota' => 'landing', 'database_query_count' => 3],
+    ['evento_id' => 'current-start', 'fim_unix_us' => $nowUs - 10 * $dayUs, 'rota' => 'patient', 'database_query_count' => 4],
+    ['evento_id' => 'current-end', 'fim_unix_us' => $nowUs - 1, 'rota' => 'landing', 'database_query_count' => 5],
+    ['evento_id' => 'current-start', 'fim_unix_us' => $nowUs - 2, 'rota' => 'patient', 'database_query_count' => 90],
+    ['evento_id' => 'future-boundary', 'fim_unix_us' => $nowUs, 'rota' => 'landing', 'database_query_count' => 99],
+];
+$metricSummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_developer_metrics_summary_from_events(
+    $metricEvents,
+    $nowUs,
+);
+$metricCurrent = (array) ($metricSummary['current'] ?? []);
+$metricPrevious = (array) ($metricSummary['previous'] ?? []);
+$metricVariations = (array) ($metricSummary['variations'] ?? []);
+$assert(
+    ($metricSummary['window_mode'] ?? '') === 'rolling_20d_10x10' &&
+    ($metricCurrent['pages'] ?? -1) === 2 &&
+    ($metricPrevious['pages'] ?? -1) === 2 &&
+    ($metricCurrent['database_operations'] ?? -1) === 9 &&
+    ($metricPrevious['database_operations'] ?? -1) === 5 &&
+    ($metricCurrent['landing'] ?? -1) === 1 &&
+    ($metricPrevious['landing'] ?? -1) === 1 &&
+    abs((float) ($metricVariations['pages_pct'] ?? 999) - 0.0) < 0.000001 &&
+    abs((float) ($metricVariations['database_operations_pct'] ?? 999) - 80.0) < 0.000001 &&
+    abs((float) ($metricVariations['landing_pct'] ?? 999) - 0.0) < 0.000001,
+    'comparação 10x10 de Páginas, Registros e Landing divergente',
+);
+$routeEvent = static fn(string $route, int $offsetUs, int $durationNs): array => [
+    'fim_unix_us' => $nowUs - $offsetUs,
+    'rota' => $route,
+    'duracao_ns' => $durationNs,
+    'speed_observed' => true,
+    'sucesso' => true,
+];
+$routeSummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_performance_summary_from_events(
+    [
+        $routeEvent('popular', 1, 500000000),
+        $routeEvent('popular', 2, 500000000),
+        $routeEvent('popular', 3, 500000000),
+        $routeEvent('slow', 4, 400000000),
+        $routeEvent('slow', 5, 200000000),
+        $routeEvent('fast', 6, 200000000),
+        $routeEvent('fast', 7, 100000000),
+    ],
+    240,
+    $nowUs,
+);
+$routeOrder = array_column((array) ($routeSummary['routes'] ?? []), 'route');
+$assert(
+    $routeOrder === ['popular', 'fast', 'slow'],
+    'Rotas devem ordenar por mais requisições e depois por menor tempo médio',
+);
 $assert(str_contains($admin2, 'data-refresh-ms="60000"'), 'gráficos devem atualizar a cada minuto');
 $loadAreaPos = strpos($presentation3, '$loadArea =');
 $responseAreaPos = strpos($presentation3, '$responseArea =');
@@ -77,4 +140,4 @@ foreach ([
     $assert(str_contains($speedGeometry, $token), 'gráfico de 30 dias perdeu transparência obrigatória: ' . $token);
 }
 $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'rodapé deixou de usar as séries canônicas');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder);
