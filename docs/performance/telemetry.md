@@ -14,15 +14,19 @@ A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e d
 
 No preenchimento de Velocidade, Carregamento de Páginas usa verde `#05391f` e Consulta usa verde claro `#ddf6e8`. As duas cores são sólidas, com opacidade integral. Esse contrato visual é exclusivo de Velocidade e não altera a paleta de Volume.
 
-`Volume` usa 30 intervalos consecutivos de 24 horas imediatamente anteriores ao timestamp da leitura. Cada um dos 30 pontos contém as quantidades totais de seu intervalo: verde escuro para Carregamento de Páginas e verde claro para Consulta.
+`Volume` usa 30 intervalos consecutivos de 24 horas imediatamente anteriores ao timestamp da leitura. Cada um dos 30 pontos contém as quantidades totais de seu intervalo: Carregamento de Páginas usa `#1f6f56` com opacidade `0.5` e Consulta usa `#347963` com opacidade `0.5`.
 
 Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada intervalo de 24 horas, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente; nenhuma das séries exibe contorno ou ponto terminal, permanecendo visíveis somente as áreas inferiores preenchidas. Somente o eixo de Velocidade mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
 
-## Linhas decorativas autenticadas
+## Linhas decorativas do rodapé
 
-As telas autenticadas desenham no rodapé duas linhas decorativas suavizadas. A forma usa exatamente as séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. A obtenção ocorre pela rota JSON privada `footer_telemetry_wave`, atualizada a cada 15 minutos e excluída da própria contagem de page loads para evitar retroalimentação.
+Todas as áreas HTML renderizam no rodapé duas linhas decorativas derivadas das mesmas séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. O layout obtém essas séries no servidor e converte os valores diretamente em coordenadas SVG normalizadas pelo maior valor conjunto; nenhuma contagem absoluta ou array de telemetria é serializado no HTML público.
 
-`login_telemetry_wave` continua sendo apenas um tombstone público sem dados. O rodapé não reabre telemetria no login, no cadastro ou em qualquer outra superfície pública.
+A geometria conserva encostas retas entre os pontos e arredonda somente a aproximação e a saída de cada vértice com curvas quadráticas. O resultado mantém picos e vales reconhecíveis, mas elimina quinas rígidas para produzir a aparência de uma cadeia de montanhas.
+
+Nas áreas públicas, as linhas usam exatamente a paleta e o tom de Volume: `#1f6f56` para Carregamento de Páginas e `#347963` para Consulta, ambas com opacidade `0.5`. Nas áreas autenticadas, as duas linhas usam respectivamente a cor forte e a cor principal de destaque do consultório; no escopo global, usam as cores de destaque do ambiente Desenvolvedor.
+
+`login_telemetry_wave` continua sendo apenas um tombstone público sem dados. `footer_telemetry_wave` permanece uma rota JSON privada e serve somente como fallback autenticado legado; o wrapper renderizado no servidor é marcado como pronto para impedir uma segunda consulta e não expõe URL pública de refresh. As rotas de telemetria decorativa continuam excluídas da própria contagem de page loads para evitar retroalimentação.
 
 ## Tempo médio de consulta ao banco
 
