@@ -834,65 +834,6 @@ final class AdminPagesPresentationOperations03
         return $filterNav . $table;
     }
 
-    public static function developer_overview_html(array $context, callable $href, callable $actionLabel): string
-    {
-        $actions = (array) ($context["actions"] ?? []);
-        $health = (array) ($context["health"] ?? []);
-        $healthState = (string) ($health["state"] ?? "Operacional");
-        $state = $healthState === "Crítico" ? "Crítico" : ($actions ? "Atenção" : $healthState);
-        $critical = $state === "Crítico";
-        $hasUnknownEvidence = false;
-        foreach ((array) ($health["dimensions"] ?? []) as $dimension) {
-            if ((string) ($dimension["state"] ?? "") === "unknown") {
-                $hasUnknownEvidence = true;
-                break;
-            }
-        }
-        $stateCopy = match ($state) {
-            "Crítico" => "Existe uma condição estrutural que exige intervenção técnica.",
-            "Atenção" => $hasUnknownEvidence
-                ? "Uma ou mais evidências de saúde precisam ser renovadas antes de considerar a plataforma normal."
-                : "Há decisões ou exceções que justificam sua revisão.",
-            default => "Nada exige intervenção neste momento.",
-        };
-        $stateClass = match ($state) {
-            "Crítico" => "is-critical",
-            "Atenção" => "is-attention",
-            default => "is-operational",
-        };
-        $updatedAt = mb_trim((string) ($health["updated_at"] ?? ""));
-        $freshnessLabel = mb_trim((string) ($health["freshness_label"] ?? ""));
-        $statusCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="developer-control-status"><div><span class="eyebrow">Estado do Prontoo</span><h2>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
-                '</h2><p>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($stateCopy) .
-                '</p>' .
-                ($freshnessLabel !== ""
-                    ? '<small>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(ucfirst($freshnessLabel)) . '</small>'
-                    : ($updatedAt !== "" ? '<small>Atualizado em ' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updatedAt) . '</small>' : "")) .
-                '</div><span class="developer-state-badge ' .
-                $stateClass .
-                '">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($critical ? "crisis_alert" : ($actions ? "notification_important" : "verified")) .
-                '<span>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($state) .
-                '</span></span></div>',
-            "developer-status-card",
-        );
-        $actionsBody = $actions
-            ? \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($actions)
-            : '<div class="developer-empty-state">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("check_circle") .
-                '<div><b>Nada precisa de você agora</b><p>Decisões, incidentes e bloqueios relevantes aparecerão aqui.</p></div></div>';
-        $actionsCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="section-head"><div><h2>Precisa de você</h2><p>Somente itens que pedem decisão ou intervenção.</p></div></div>' . $actionsBody,
-            "developer-actions-card",
-        );
-        return '<section class="developer-overview-minimal">' . $statusCard . $actionsCard . '</section>';
-    }
-
-
     public static function developer_administration_tools_html(callable $href): string
     {
         $primary = [

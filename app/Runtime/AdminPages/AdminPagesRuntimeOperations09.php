@@ -463,11 +463,11 @@ final class AdminPagesRuntimeOperations09
         );
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
-                "Observabilidade",
+                "Métricas",
                 "Requisições, latência, falhas e rotas para investigação técnica.",
             ) .
             $content;
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Observabilidade · Desenvolvedor", $body);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Métricas · Desenvolvedor", $body);
     }
 
 }

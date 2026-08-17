@@ -145,7 +145,7 @@ $queryScenarios = [
     'financial_movements_read',
     'tasks_read',
     'documents_read',
-    'developer_dashboard_read',
+    'developer_clinics_read',
     'login_readiness_read',
     'maestro_preflight_read',
 ];

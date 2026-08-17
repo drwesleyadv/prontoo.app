@@ -508,7 +508,7 @@ final class AuthOnboardingRuntimeOperations06
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("profile");
             }
         }
-        $backRoute = ($c["scope"] ?? "") === "global" ? "admin_painel" : "painel";
+        $backRoute = ($c["scope"] ?? "") === "global" ? "admin_performance" : "painel";
         $back =
             '<a class="ghost small" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($backRoute) .
@@ -840,7 +840,7 @@ final class AuthOnboardingRuntimeOperations06
                     "global",
                     "admin_panel_settings",
                     "Desenvolvedor",
-                    "Painel do Desenvolvedor",
+                    "Métricas e administração",
                     $active,
                 ),
                 $active,

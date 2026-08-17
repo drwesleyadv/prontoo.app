@@ -131,7 +131,6 @@ final class SecurityAccessInfrastructureOperations02
         return [
             "context" => [
                 "painel" => "space_dashboard",
-                "admin_painel" => "space_dashboard",
                 "operations" => "account_tree",
                 "admin_operations" => "account_tree",
                 "maestro" => "event_repeat",

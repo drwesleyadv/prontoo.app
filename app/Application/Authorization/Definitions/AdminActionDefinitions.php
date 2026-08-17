@@ -15,8 +15,7 @@ final class AdminActionDefinitions implements ActionDefinitionSource
         $tasks = 'Runtime/TasksNotices';
 
         $globalActions = [
-            'admin_painel' => ['confirm_subscription_payment', 'reject_subscription_payment'],
-            'admin_clinics' => ['activate_subscription', 'billing', 'deactivate_subscription', 'default_billing', 'toggle'],
+            'admin_clinics' => ['activate_subscription', 'billing', 'confirm_subscription_payment', 'deactivate_subscription', 'default_billing', 'reject_subscription_payment', 'toggle'],
             'admin_alerts' => ['create', 'read'],
             'admin_maintenance' => ['save_settings', 'save_maintenance'],
         ];

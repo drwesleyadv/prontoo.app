@@ -22,7 +22,7 @@ $ceilings = [
     'financial_movements_read' => ['max_selects' => 3],
     'tasks_read' => ['max_selects' => 2],
     'documents_read' => ['max_selects' => 2],
-    'developer_dashboard_read' => ['max_selects' => 7],
+    'developer_clinics_read' => ['max_selects' => 6],
     'login_readiness_read' => ['max_selects' => 3],
     'maestro_preflight_read' => ['max_selects' => 6],
 ];

@@ -45,7 +45,7 @@ $assert(
     str_contains($admin9, 'telemetry_route_performance_summary(240)') &&
     !str_contains($admin9, 'telemetry_comparative_summary()') &&
     !str_contains($admin9, 'admin_telemetry_kpi_cards_html('),
-    'Observabilidade deve usar uma única camada de resumo',
+    'Métricas deve usar uma única camada de resumo',
 );
 $assert(
     !str_contains($admin3, 'admin_telemetry_kpi_cards_html(') &&
@@ -54,9 +54,9 @@ $assert(
     'renderers legados de telemetria não podem voltar à central do Desenvolvedor',
 );
 foreach (["Requisições · 10d", "Latência média", "Falhas", "Rota mais lenta"] as $label) {
-    $assert(str_contains($presentation3, $label), 'Observabilidade perdeu o indicador ' . $label);
+    $assert(str_contains($presentation3, $label), 'Métricas perdeu o indicador ' . $label);
 }
-$assert(!str_contains($presentation3, 'stat_card("Landing Page"'), 'Landing Page não deve duplicar o resumo de Observabilidade');
+$assert(!str_contains($presentation3, 'stat_card("Landing Page"'), 'Landing Page não deve duplicar o resumo de Métricas');
 $assert(str_contains($admin2, 'data-refresh-ms="60000"'), 'gráficos devem atualizar a cada minuto');
 $loadAreaPos = strpos($presentation3, '$loadArea =');
 $responseAreaPos = strpos($presentation3, '$responseArea =');

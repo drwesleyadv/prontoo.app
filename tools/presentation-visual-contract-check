@@ -16,6 +16,8 @@ $rendererPath = $root . '/app/Presentation/UiComponents/PageHeadControlPresentat
 $renderer = is_file($rendererPath) ? (string) file_get_contents($rendererPath) : '';
 $adminClinicsPresentation = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $adminClinicsRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php');
+$applicationRoot = (string) file_get_contents($root . '/app/prontoo.php');
+$maestroCron = (string) file_get_contents($root . '/cron/maestro.php');
 $php = '';
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
 foreach ($iterator as $file) {
@@ -184,7 +186,7 @@ foreach ([
 $adminClinicsDirectoryStart = strpos($adminClinicsPresentation, 'public static function developer_clinic_directory_html(');
 $adminClinicsDirectoryEnd = $adminClinicsDirectoryStart === false
     ? false
-    : strpos($adminClinicsPresentation, 'public static function developer_overview_html(', $adminClinicsDirectoryStart);
+    : strpos($adminClinicsPresentation, 'public static function developer_administration_tools_html(', $adminClinicsDirectoryStart);
 if ($adminClinicsDirectoryStart === false || $adminClinicsDirectoryEnd === false) {
     $failures[] = ['rule' => 'admin_clinics_directory_section_missing'];
 } else {
@@ -222,6 +224,24 @@ foreach ([
             'route' => $removedDeveloperRoute,
         ];
     }
+}
+$developerActions = <<<'PHP'
+const PRONTOO_ADMIN_ACTIONS = [
+    "admin_performance" => ["label" => "Métricas", "icon" => "monitoring"],
+    "admin_clinics" => ["label" => "Consultórios", "icon" => "home_health"],
+    "admin_administration" => ["label" => "Administração", "icon" => "tune"],
+];
+PHP;
+if (!str_contains($applicationRoot, $developerActions)) {
+    $failures[] = ['rule' => 'developer_navigation_order_or_label'];
+}
+foreach (['admin_painel', 'HealthEvidence', 'HealthCanary'] as $obsoleteDeveloperFeature) {
+    if (str_contains($php, $obsoleteDeveloperFeature)) {
+        $failures[] = ['rule' => 'obsolete_developer_feature_present', 'feature' => $obsoleteDeveloperFeature];
+    }
+}
+if (str_contains($maestroCron, 'health_canary')) {
+    $failures[] = ['rule' => 'background_health_canary_present'];
 }
 $result = [
     'ok' => $failures === [],

@@ -106,8 +106,8 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.17.2";
-const PRONTOO_ASSET_REV_FALLBACK = "1.8.17.2";
+const PRONTOO_VERSION_FALLBACK = "1.8.17.3";
+const PRONTOO_ASSET_REV_FALLBACK = "1.8.17.3";
 function prontoo_release_metadata(): array
 {
 
@@ -309,9 +309,8 @@ const PRONTOO_ROLES = [
     "gerente" => "Administrativo",
 ];
 const PRONTOO_ADMIN_ACTIONS = [
-    "admin_painel" => ["label" => "Visão geral", "icon" => "space_dashboard"],
+    "admin_performance" => ["label" => "Métricas", "icon" => "monitoring"],
     "admin_clinics" => ["label" => "Consultórios", "icon" => "home_health"],
-    "admin_performance" => ["label" => "Observabilidade", "icon" => "monitoring"],
     "admin_administration" => ["label" => "Administração", "icon" => "tune"],
 ];
 class ProntooHttpError extends RuntimeException

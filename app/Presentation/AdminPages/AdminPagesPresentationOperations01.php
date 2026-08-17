@@ -229,9 +229,8 @@ final class AdminPagesPresentationOperations01
             return [["admin_maintenance", "Manutenção", "construction"]];
         }
         return match ($parent) {
-            "admin_painel" => [["admin_painel", "Visão geral", "space_dashboard"]],
             "admin_clinics" => [["admin_clinics", "Consultórios", "home_health"]],
-            "admin_performance" => [["admin_performance", "Observabilidade", "monitoring"]],
+            "admin_performance" => [["admin_performance", "Métricas", "monitoring"]],
             "admin_administration" => [["admin_administration", "Administração", "tune"]],
             default => [],
         };

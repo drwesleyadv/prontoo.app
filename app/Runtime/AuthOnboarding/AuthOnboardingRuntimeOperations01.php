@@ -368,9 +368,9 @@ final class AuthOnboardingRuntimeOperations01
                 "skip_context_enrichment" => true,
             ]);
             if ($redirectAfterLogin) {
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_performance");
             }
-            return "admin_painel";
+            return "admin_performance";
         }
         $choice = $credential["choice"] ?? null;
         if (!$choice || (int) ($choice["id"] ?? 0) <= 0) {

@@ -243,7 +243,7 @@ final class AuthOnboardingRuntimeOperations02
     {
         $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::need_login();
         if (($c["scope"] ?? "") === "global") {
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_performance");
         }
         $uid = (int) ($c["user"]["id"] ?? 0);
         $user = \Prontoo\Runtime\SecurityAccess\SecurityAccessComposition::dataService()->row('identity.auth02.page_global_reauth.01', [$uid], []);
@@ -290,9 +290,9 @@ final class AuthOnboardingRuntimeOperations02
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("elevacao_global_reautenticada", "usuario", $uid, [
                     "scope" => "global",
                     "audit_body" =>
-                        "Entrada no Painel do Desenvolvedor autorizada após nova confirmação de senha e MFA.",
+                        "Entrada no ambiente do Desenvolvedor autorizada após nova confirmação de senha e MFA.",
                 ]);
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_performance");
             } catch (Throwable $e) {
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("falha_elevacao_global", "seguranca", $uid, [
                     "motivo_hash" => hash("sha256", $e->getMessage()),

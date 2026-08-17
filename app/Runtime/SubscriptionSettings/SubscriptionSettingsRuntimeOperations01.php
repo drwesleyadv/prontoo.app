@@ -437,7 +437,7 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_clinics");
         $pid = (int) ($_GET["payment_id"] ?? 0);
         $p =
             $pid > 0
@@ -445,12 +445,12 @@ final class SubscriptionSettingsRuntimeOperations01
                 : null;
         if (!$p || mb_trim((string) ($p["proof_path"] ?? "")) === "") {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comprovante não encontrado para este pagamento.", "bad");
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
         }
         $full = \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_absolute_path((string) $p["proof_path"]);
         if ($full === null || !is_file($full)) {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("O arquivo do comprovante não está mais disponível.", "bad");
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
         }
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
             "assinatura_comprovante_visualizado",

@@ -58,8 +58,8 @@
             "max_deletes": 0,
             "max_replaces": 0
         },
-        "developer_dashboard_read": {
-            "max_selects": 7,
+        "developer_clinics_read": {
+            "max_selects": 6,
             "max_inserts": 0,
             "max_updates": 0,
             "max_deletes": 0,

@@ -42,6 +42,7 @@ final class AdminPagesRuntimeOperations08
         };
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "toggle");
+            \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::admin_subscription_payment_review_handle($act, $redirectAfterClinicAction);
             if ($act === "default_billing") {
                 $price = max(
                     0,
@@ -221,6 +222,7 @@ final class AdminPagesRuntimeOperations08
             ) .
             $defaultBilling .
             "</section>";
+        $paymentReviews = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::admin_subscription_payment_reviews_html();
         $search = mb_trim((string) ($_GET["q"] ?? ""));
         $view = (string) ($_GET["view"] ?? "all");
         $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.10', [], [])->fetchAll();
@@ -255,6 +257,7 @@ final class AdminPagesRuntimeOperations08
                 "Lista global para localizar, conferir e gerenciar consultórios com rapidez.",
             ) .
             $commercial .
+            $paymentReviews .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 $searchBar,
                 "patient-search-card ds-search-card admin-clinic-search-card",
