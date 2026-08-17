@@ -30,7 +30,6 @@
     "file_count": 432,
     "total_uncompressed_bytes": 6030472,
     "files": {
-        ".git": "b0867fd16815daaafc30e5ca49f20d9322f089ce3dc3e7a799c81e4b5d97db24",
         ".github/workflows/architecture.yml": "f9bdc1348d8dbc6a134c59e75212c17562a0a27103297108bb2df8636fea8a5b",
         ".github/workflows/delete-merged-branches.yml": "640552259c917b3c3a755b9be3fabe66be137d2f03f43479fe7c6c3e5b2102e4",
         ".github/workflows/documentation.yml": "28c7143c638cd130cbf7d7dae153d68716012453915d686037ed80dea317ca72",
@@ -626,7 +625,7 @@
         "tools/presentation-visual-contract-check": "674eef34a50bd0e3414fa5fa1b31182fbd50ee5e03763f3d713e62fa11b183dd",
         "tools/quality-gate": "7dadaa322bfcc8541c34fd7986bbb47f7e108d6b641f1c4a7724294f4507f9a4",
         "tools/query-budget-contract-check": "51cfb78c028e1204836c55e5b54742d7e334bea0f92167092b88e2f16db5a83b",
-        "tools/release-contract-reconcile": "09ceb4966fc85a2701c8173f1aad44ce9e94fd3361ba0c34747a4730ff29dba6",
+        "tools/release-contract-reconcile": "16e9cf22fb7b63d8c722b845805ba77eb49142d0ad4fe67f48506c991199ea69",
         "tools/release-version": "3fb5ffa73b1d75d224f2ff420cdac692ecb9be5c3f537e83b1533f777c9dc147",
         "tools/runtime-boundary-check": "5e0a24d9c89bf4ecc7c0dd0a147526d0b7e2331929b443164bc815e64952cf2a",
         "tools/runtime-input-boundary-check": "7b13d39d0cb978998d273f252682a1e4d87a8d59185149361579ef727cd6bb7c",
