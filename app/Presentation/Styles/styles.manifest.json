@@ -118,7 +118,7 @@
             "layer": "foundation",
             "responsibility": "document",
             "concern": "document",
-            "sha256": "3540bfd995b11975d4c972b0b9d8539e89ada1edc74616c5f8e19ffdd4627736",
+            "sha256": "c071c5c8658121de2d81d13e0ee573afbfa1e427aab5fa41227ce4ebf61222d1",
             "bytes": 62254,
             "important_count": 486,
             "route_scope_count": 0
@@ -138,7 +138,7 @@
             "layer": "components",
             "responsibility": "components",
             "concern": "components",
-            "sha256": "83a8e795b95058091f387ca500657287c45053d2c1300a279a17c1be53291243",
+            "sha256": "edf4c87f07af008bae02d3a3bef3a426c7d3e730f486021021a48f842702ac91",
             "bytes": 339616,
             "important_count": 1637,
             "route_scope_count": 0
@@ -1067,7 +1067,7 @@
             "source": "components/components.css",
             "offset": 21152,
             "bytes": 4845,
-            "sha256": "287d393ca481e267c919577b651383d8551d972f0e0110c8b983b526b94bf60e",
+            "sha256": "1a263c464e83737bd3daeff5955e68a73c30d130a3c8a1fd65d99abacae206e0",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9842,7 +9842,7 @@
             "source": "foundation/document.css",
             "offset": 60934,
             "bytes": 1320,
-            "sha256": "ee840220ee8b3c19395dd051dfb7f4e5f6cadbfb9d233ffe346c36f7fcef4c70",
+            "sha256": "a657929a737008eaf64155b0eb7bcc36d411b349178982dcb6c3466959f231ae",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9956,7 +9956,7 @@
         }
     ],
     "artifact_contract": {
-        "sha256": "7c8b423eeb110f3030aafc8847f6a05e64a4949d9d82e745c8a155b850bbd009",
+        "sha256": "d7edca630b13767373e3e1d6519aba6f56c8a66de40a28ac9443cc52992e9d0b",
         "bytes": 802830,
         "lines": 15094,
         "deterministic_source_required": true

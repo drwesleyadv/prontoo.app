@@ -20,15 +20,15 @@ Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada
 
 ## Áreas decorativas do rodapé
 
-Todas as áreas HTML renderizam no rodapé duas áreas inferiores preenchidas derivadas das mesmas séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. Nenhuma contagem absoluta ou array de telemetria é serializado no HTML público.
+Todas as áreas HTML renderizam no rodapé duas ondas preenchidas derivadas das mesmas séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. Nenhuma contagem absoluta ou array de telemetria é serializado no HTML público.
 
-A projeção é a mesma de Volume: canvas lógico `960×210`, padding esquerdo `40`, direito `16`, superior `18` e inferior `32`, plot de `904×160`, escala mínima conjunta incluindo zero, escala máxima conjunta das duas séries e coordenadas arredondadas a duas casas com `HalfAwayFromZero`. As áreas fecham na mesma baseline e são pintadas na mesma ordem do gráfico.
+A apresentação restaura a identidade visual usada antes da supressão do Status público. Os valores são normalizados em conjunto pelo maior valor das duas séries em um SVG `1000×250`, com margem superior de `10` e inferior de `14`. Cada amostra é ligada à seguinte por uma Bézier cúbica cujos dois controles ficam no ponto médio horizontal, respectivamente nas alturas da amostra anterior e da atual. Isso produz a curva contínua característica, com tangentes horizontais nas amostras, sem substituir os dados por uma spline independente.
 
-A única diferença geométrica é local: em cada vértice interno, no máximo 4 unidades horizontais de cada lado são substituídas por uma curva quadrática que usa o próprio pico ou vale como controle. Fora dessa pequena vizinhança, os segmentos permanecem nas mesmas retas de Volume. Assim, a leitura de vales e montanhas continua determinada pelos dados, sem transformar a série em spline.
+Cada caminho fecha até o fundo do SVG (`y=250`). A superfície fixa ocupa `15vh`, limitada a `64–180px`, usa `opacity: 0.5`, não possui stroke e recebe a máscara vertical histórica `transparent → #000`, integral aos 34% da altura.
 
-Nas áreas públicas, Carregamento de Páginas usa `#1f6f56` e Consulta usa `#347963`, ambas com opacidade `0.5`, exatamente como os preenchimentos de Volume. Nas áreas autenticadas, as duas áreas usam respectivamente a cor forte e a cor principal de destaque do consultório ou do ambiente Desenvolvedor, mantendo opacidade `0.5`. O rodapé não usa máscara de fade, contorno ou pontos terminais.
+A ordem cromática também segue o renderer histórico: Carregamento de Páginas ocupa o papel visual antes usado por requisições e recebe o tom principal — `#347963` nas superfícies públicas; Consulta ocupa o papel antes usado por registros e recebe o tom forte — `#1f6f56` nas superfícies públicas. Nas áreas autenticadas, a mesma relação usa respectivamente a cor principal e a cor forte do consultório ou do ambiente Desenvolvedor.
 
-`login_telemetry_wave` continua sendo apenas um tombstone público sem dados. `footer_telemetry_wave` permanece uma rota JSON privada e excluída da própria contagem de page loads, mas o renderer canônico do rodapé é integralmente de servidor: o JavaScript não busca nem recalcula a geometria.
+A fonte de dados e os controles de segurança permanecem atuais. `login_telemetry_wave` continua sendo apenas um tombstone público sem dados; `footer_telemetry_wave` permanece uma rota JSON privada e excluída da própria contagem de page loads; o renderer canônico do rodapé é de servidor e o JavaScript não busca nem recalcula sua geometria. A página pública Status não é restaurada.
 
 ## Tempo médio de consulta ao banco
 
