@@ -37,6 +37,8 @@ $routeRegistry = (string) @file_get_contents($root . '/app/Runtime/Routing/Route
 $moduleCatalog = (string) @file_get_contents($root . '/app/Runtime/Modules/RuntimeModuleCatalog.php');
 $loginRuntime = (string) @file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations03.php');
 $publicRuntime = (string) @file_get_contents($root . '/app/Runtime/PublicWeb/PublicWebRuntimeOperations01.php');
+$uiRuntime = (string) @file_get_contents($root . '/app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php');
+$footerPresentation = (string) @file_get_contents($root . '/app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php');
 foreach ([
     'RouteRegistry::names()',
     'RouteRegistry::publicNames()',
@@ -57,10 +59,35 @@ foreach ([
     }
 }
 if (!str_contains($routeRegistry, "'footer_telemetry_wave' => [\\Prontoo\\Runtime\\AuthOnboarding\\AuthOnboardingRuntimeOperations07::class, 'page_footer_telemetry_wave', false, true, [], []]")) {
-    throw new RuntimeException('Rodapé de telemetria deve permanecer restrito à sessão autenticada.');
+    throw new RuntimeException('Rota JSON do rodapé deve permanecer restrita à sessão autenticada.');
 }
 if (str_contains($loginRuntime, 'login_telemetry_wave_html()')) {
-    throw new RuntimeException('Login público não pode renderizar telemetria.');
+    throw new RuntimeException('Login público não pode restaurar o renderer legado de telemetria.');
+}
+foreach ([
+    'footer_telemetry_mountains_html(',
+    'footer_telemetry_wave_data()',
+    '$bodyClass .= " has-telemetry-mountains";',
+    '$footerTelemetryHtml .',
+] as $required) {
+    if (!str_contains($uiRuntime, $required)) {
+        throw new RuntimeException('Layout não preserva o rodapé de telemetria normalizada: ' . $required);
+    }
+}
+foreach ([
+    'footer_telemetry_mountain_path(',
+    ' Q ',
+    '$public ? "#1f6f56"',
+    '$public ? "#347963"',
+    '$public ? "0.5" : "0.62"',
+    'data-footer-telemetry-lines-ready="1"',
+] as $required) {
+    if (!str_contains($footerPresentation, $required)) {
+        throw new RuntimeException('Contrato visual seguro do rodapé ausente: ' . $required);
+    }
+}
+if (str_contains($footerPresentation, 'data-refresh-url=') || str_contains($footerPresentation, 'json_encode(')) {
+    throw new RuntimeException('Rodapé público não pode serializar valores de telemetria nem abrir refresh público.');
 }
 foreach ([
     '$publicTelemetry =',
@@ -112,6 +139,7 @@ echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
     'public_telemetry' => false,
+    'public_telemetry_geometry' => 'normalized_path_only',
     'public_status_signal' => false,
     'public_login_autotest_signal' => false,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;

@@ -17,6 +17,7 @@ $admin3 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPages
 $admin6 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php');
 $admin9 = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php');
 $login = (string) file_get_contents($root . '/app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php');
+$uiRuntime = (string) file_get_contents($root . '/app/Runtime/UiComponents/UiComponentsRuntimeOperations02.php');
 $presentation3 = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $speedGeometry = (string) file_get_contents($root . '/app/Presentation/SpeedChartGeometry/SpeedChartGeometryPresentationOperations01.php');
 $appJs = (string) file_get_contents($root . '/public/assets/app.js');
@@ -252,6 +253,47 @@ $assert(
     (int) $footerDatabaseQueries[28] === 3,
     'rodapé deve preservar os mesmos 30 valores diários de Volume',
 );
+$mountainPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_path([0, 3, 1, 4, 2], 4.0);
+$assert(
+    substr_count($mountainPath, ' Q ') === 3 &&
+    str_contains($mountainPath, ' L ') &&
+    !str_contains($mountainPath, ' C '),
+    'montanhas do rodapé devem preservar encostas retas e arredondar somente os vértices com curvas quadráticas',
+);
+$publicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountains_html(
+    ['page_loads' => [0, 3, 1, 4, 2], 'database_queries' => [1, 2, 0, 3, 1]],
+    true,
+    '#abcdef',
+    '#fedcba',
+);
+$clinicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountains_html(
+    ['page_loads' => [0, 3, 1, 4, 2], 'database_queries' => [1, 2, 0, 3, 1]],
+    false,
+    '#112233',
+    '#445566',
+);
+$assert(
+    str_contains($publicMountains, 'stroke="#1f6f56"') &&
+    str_contains($publicMountains, 'stroke="#347963"') &&
+    substr_count($publicMountains, 'opacity="0.5"') === 2 &&
+    str_contains($publicMountains, 'data-footer-telemetry-lines-ready="1"') &&
+    !str_contains($publicMountains, 'data-refresh-url='),
+    'áreas públicas devem renderizar somente a silhueta normalizada nas mesmas cores e tom de Volume',
+);
+$assert(
+    str_contains($clinicMountains, 'stroke="#112233"') &&
+    str_contains($clinicMountains, 'stroke="#445566"') &&
+    substr_count($clinicMountains, 'opacity="0.62"') === 2 &&
+    str_contains($clinicMountains, 'data-footer-telemetry-lines-ready="1"'),
+    'áreas autenticadas devem usar as cores de destaque do consultório',
+);
+$assert(
+    str_contains($uiRuntime, 'footer_telemetry_mountains_html(') &&
+    str_contains($uiRuntime, 'footer_telemetry_wave_data()') &&
+    str_contains($uiRuntime, '$bodyClass .= " has-telemetry-mountains";') &&
+    str_contains($uiRuntime, '$footerTelemetryHtml .'),
+    'layout comum deve renderizar as montanhas no servidor sem expor payload público',
+);
 $chartSample = [
     ['label' => '14:07', 'axis_label' => '14h', 'tooltip' => '14:07 → 14:08', 'value' => 0, 'observed' => true],
     ['label' => '14:08', 'axis_label' => '', 'tooltip' => '14:08 → 14:09', 'value' => 3, 'observed' => true],
@@ -297,7 +339,7 @@ $assert(
     $footerRoute->json &&
     $footerRoute->handlerClass === \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::class &&
     $footerRoute->handlerMethod === 'page_footer_telemetry_wave',
-    'rodapé deve usar rota JSON autenticada sem reabrir telemetria pública',
+    'rota JSON histórica do rodapé deve continuar privada',
 );
 $assert(
     str_contains($login, 'telemetry_volume_series_30d("page_load")') &&
@@ -316,14 +358,14 @@ $assert(
     str_contains($appJs, 'class="footer-telemetry-line is-database-queries"') &&
     str_contains($appJs, 'return path;') &&
     !str_contains($appJs, 'endpoint.searchParams.set("r", "login_telemetry_wave")'),
-    'cliente deve desenhar duas linhas abertas a partir da rota autenticada do rodapé',
+    'fallback do cliente deve permanecer autenticado e não pode reabrir a rota pública histórica',
 );
 foreach ([
     'body.has-telemetry-mountains .footer-telemetry-line{fill:none;stroke-width:2.4;',
     '.footer-telemetry-line.is-page-loads{stroke:var(--clinic-accent-strong,var(--brand-dark,#1f6f56))}',
     '.footer-telemetry-line.is-database-queries{stroke:var(--clinic-accent,var(--brand,#347963))}',
 ] as $token) {
-    $assert(str_contains($css, $token), 'linha decorativa do rodapé divergente: ' . $token);
+    $assert(str_contains($css, $token), 'fallback decorativo do rodapé divergente: ' . $token);
 }
 $assert(in_array('footer_telemetry_wave', \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true), 'rota decorativa não pode retroalimentar a telemetria');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerPageLoads, $footerDatabaseQueries, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);

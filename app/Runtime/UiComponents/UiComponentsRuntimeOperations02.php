@@ -408,6 +408,15 @@ final class UiComponentsRuntimeOperations02
                 }
             }
         }
+        $footerTelemetryHtml = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountains_html(
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::footer_telemetry_wave_data(),
+            (bool) $public,
+            (string) ($visual["brand_dark"] ?? "#1f6f56"),
+            (string) ($visual["brand"] ?? "#347963"),
+        );
+        if ($footerTelemetryHtml !== "") {
+            $bodyClass .= " has-telemetry-mountains";
+        }
         echo '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="canonical" href="https://prontoo.app/"><title>' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
             " · " .
@@ -456,6 +465,7 @@ final class UiComponentsRuntimeOperations02
             $body .
             "</main>" .
             $clock .
+            $footerTelemetryHtml .
             "</body></html>";
     
     }

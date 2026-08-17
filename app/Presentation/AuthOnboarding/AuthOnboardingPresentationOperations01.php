@@ -225,4 +225,114 @@ final class AuthOnboardingPresentationOperations01
     
     }
 
+    public static function footer_telemetry_mountain_path(
+        array $values,
+        float $maximum,
+        int $width = 1000,
+        int $height = 250,
+    ): string
+    {
+        $clean = array_values(
+            array_map(
+                static fn(mixed $value): float => max(0.0, (float) $value),
+                $values,
+            ),
+        );
+        $count = count($clean);
+        if ($count === 0) {
+            return "";
+        }
+        $maximum = max(1.0, $maximum);
+        $top = 10.0;
+        $bottom = 14.0;
+        $plotHeight = max(1.0, $height - $top - $bottom);
+        $format = static function (float $value): string {
+            $formatted = number_format($value, 2, ".", "");
+            return rtrim(rtrim($formatted, "0"), ".");
+        };
+        $points = [];
+        foreach ($clean as $index => $value) {
+            $x = $count <= 1 ? 0.0 : $index * ($width / ($count - 1));
+            $y = $top + $plotHeight - ($value / $maximum) * $plotHeight;
+            $points[] = [$x, $y];
+        }
+        if ($count === 1) {
+            $y = $format($points[0][1]);
+            return "M 0 " . $y . " L " . $format((float) $width) . " " . $y;
+        }
+        $stepX = $width / ($count - 1);
+        $cornerTarget = min(10.0, max(3.0, $stepX * 0.18));
+        $path = "M " . $format($points[0][0]) . " " . $format($points[0][1]);
+        for ($index = 1; $index < $count - 1; $index++) {
+            $previous = $points[$index - 1];
+            $current = $points[$index];
+            $next = $points[$index + 1];
+            $incomingLength = hypot($current[0] - $previous[0], $current[1] - $previous[1]);
+            $outgoingLength = hypot($next[0] - $current[0], $next[1] - $current[1]);
+            $incomingOffset = min($cornerTarget, $incomingLength * 0.24);
+            $outgoingOffset = min($cornerTarget, $outgoingLength * 0.24);
+            $before = [
+                $current[0] - (($current[0] - $previous[0]) / $incomingLength) * $incomingOffset,
+                $current[1] - (($current[1] - $previous[1]) / $incomingLength) * $incomingOffset,
+            ];
+            $after = [
+                $current[0] + (($next[0] - $current[0]) / $outgoingLength) * $outgoingOffset,
+                $current[1] + (($next[1] - $current[1]) / $outgoingLength) * $outgoingOffset,
+            ];
+            $path .=
+                " L " . $format($before[0]) . " " . $format($before[1]) .
+                " Q " . $format($current[0]) . " " . $format($current[1]) .
+                " " . $format($after[0]) . " " . $format($after[1]);
+        }
+        $last = $points[$count - 1];
+        return $path . " L " . $format($last[0]) . " " . $format($last[1]);
+    }
+
+    public static function footer_telemetry_mountains_html(
+        array $payload,
+        bool $public,
+        string $primaryColor = "#1f6f56",
+        string $secondaryColor = "#347963",
+    ): string
+    {
+        $pageLoads = array_values(
+            array_map(
+                static fn(mixed $value): float => max(0.0, (float) $value),
+                (array) ($payload["page_loads"] ?? []),
+            ),
+        );
+        $databaseQueries = array_values(
+            array_map(
+                static fn(mixed $value): float => max(0.0, (float) $value),
+                (array) ($payload["database_queries"] ?? []),
+            ),
+        );
+        if ($pageLoads === [] && $databaseQueries === []) {
+            return "";
+        }
+        $maximum = max(array_merge([1.0], $pageLoads, $databaseQueries));
+        $pageLoadPath = self::footer_telemetry_mountain_path($pageLoads, (float) $maximum);
+        $databaseQueryPath = self::footer_telemetry_mountain_path($databaseQueries, (float) $maximum);
+        $pageLoadColor = $public ? "#1f6f56" : ($primaryColor !== "" ? $primaryColor : "#1f6f56");
+        $databaseQueryColor = $public ? "#347963" : ($secondaryColor !== "" ? $secondaryColor : "#347963");
+        $opacity = $public ? "0.5" : "0.62";
+        $pathAttributes =
+            ' fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="' .
+            $opacity .
+            '"';
+        return '<div class="footer-telemetry-lines app-telemetry-mountains" data-footer-telemetry-lines="1" data-footer-telemetry-lines-ready="1" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="footer-telemetry-mountain is-page-loads" stroke="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadColor) .
+            '" d="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadPath) .
+            '"' .
+            $pathAttributes .
+            '/><path class="footer-telemetry-mountain is-database-queries" stroke="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryColor) .
+            '" d="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryPath) .
+            '"' .
+            $pathAttributes .
+            '/></svg></div>';
+    }
+
 }
