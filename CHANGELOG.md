@@ -8,5 +8,5 @@
 - expõe publicamente somente as coordenadas normalizadas do desenho, sem contagens absolutas nem nova rota pública de telemetria.
 - usa nas áreas autenticadas as cores forte e principal de destaque do consultório ou do ambiente Desenvolvedor.
 - marca o wrapper renderizado no servidor como pronto e preserva footer_telemetry_wave apenas como fallback privado.
-- mantém asset_version em 1.8.17.9 porque nenhum asset estático JS, CSS ou binário foi alterado.
+- revisiona os assets canônicos para 1.8.17.10 sem alterar o conteúdo binário dos ícones.
 - atualiza contratos executáveis e documentação sem alterar schema ou banco de dados.
