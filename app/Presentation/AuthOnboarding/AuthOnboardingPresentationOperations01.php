@@ -300,14 +300,13 @@ final class AuthOnboardingPresentationOperations01
         $maximum = max(array_merge([1.0], $pageLoads, $databaseQueries));
         $pageLoadPath = self::footer_telemetry_wave_path($pageLoads, (float) $maximum);
         $databaseQueryPath = self::footer_telemetry_wave_path($databaseQueries, (float) $maximum);
-        $pageLoadColor = $public ? "#347963" : ($secondaryColor !== "" ? $secondaryColor : "#347963");
-        $databaseQueryColor = $public ? "#1f6f56" : ($primaryColor !== "" ? $primaryColor : "#1f6f56");
+        $sharedColor = $public ? "#347963" : ($secondaryColor !== "" ? $secondaryColor : "#347963");
         return '<div class="footer-telemetry-lines app-telemetry-mountains" data-footer-telemetry-lines="1" data-footer-telemetry-lines-ready="1" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="footer-telemetry-wave-path is-page-loads" fill="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadColor) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sharedColor) .
             '" d="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadPath) .
             '"/><path class="footer-telemetry-wave-path is-database-queries" fill="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryColor) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sharedColor) .
             '" d="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryPath) .
             '"/></svg></div>';

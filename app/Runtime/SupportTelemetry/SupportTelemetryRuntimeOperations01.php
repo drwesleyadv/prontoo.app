@@ -161,7 +161,7 @@ final class SupportTelemetryRuntimeOperations01
 
     public static function telemetry_sequence_records_series_20d(?int $nowUnix = null): array
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d($nowUnix);
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_20d($nowUnix);
     }
 
 }

@@ -4,7 +4,7 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 ## Janelas móveis
 
-Os cards de Métricas do Desenvolvedor usam duas janelas móveis contíguas de 10 dias. Páginas conta os carregamentos HTML concluídos, Registros soma `database_query_count` e Landing conta somente os carregamentos cuja rota canônica é `landing`. O percentual representa o período recente em relação aos 10 dias imediatamente anteriores; quando o período anterior é zero e o atual é positivo, a variação permanece indefinida.
+Os cards de Métricas do Desenvolvedor usam duas janelas móveis contíguas de 10 dias. Páginas conta os carregamentos HTML concluídos; Registros soma os deltas de `ssd/telemetry/database.json`, em que cada captura do Maestro mede exatamente o total de linhas de todas as tabelas-base e registra `total atual - total imediatamente anterior`; Landing conta somente os carregamentos cuja rota canônica é `landing`. O primeiro total é saldo inicial e não entra em Registros. Deltas negativos são preservados. O percentual representa o período recente em relação aos 10 dias imediatamente anteriores; quando não há cobertura completa ou o período anterior é zero e o atual é positivo, a variação permanece indefinida.
 
 Logo abaixo desses cards, a mesma tela preserva os gráficos operacionais `Velocidade` e `Volume`, com atualização automática a cada minuto. A tabela detalhada continua exclusiva da tela Rotas.
 
@@ -20,13 +20,13 @@ Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada
 
 ## Áreas decorativas do rodapé
 
-Todas as áreas HTML renderizam no rodapé duas ondas preenchidas derivadas das mesmas séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. Nenhuma contagem absoluta ou array de telemetria é serializado no HTML público.
+Todas as áreas HTML renderizam no rodapé duas ondas preenchidas em um timeframe comum de 20 intervalos consecutivos de 24 horas. Carregamento de Páginas usa os 20 pontos finais de `page_load`; Consulta usa a série diária de variação líquida de registros de `ssd/telemetry/database.json`, e não a contagem de queries SQL. Nenhuma contagem absoluta ou array de telemetria é serializado no HTML público.
 
-A apresentação restaura a identidade visual usada antes da supressão do Status público. Os valores são normalizados em conjunto pelo maior valor das duas séries em um SVG `1000×250`, com margem superior de `10` e inferior de `14`. Cada amostra é ligada à seguinte por uma Bézier cúbica cujos dois controles ficam no ponto médio horizontal, respectivamente nas alturas da amostra anterior e da atual. Isso produz a curva contínua característica, com tangentes horizontais nas amostras, sem substituir os dados por uma spline independente.
+A apresentação preserva a identidade visual usada antes da supressão do Status público. Os valores são normalizados em conjunto pelo maior valor das duas séries em um SVG `1000×250`, com margem superior de `10` e inferior de `14`. Cada amostra é ligada à seguinte por uma Bézier cúbica cujos dois controles ficam no ponto médio horizontal, respectivamente nas alturas da amostra anterior e da atual. Isso produz a curva contínua característica, com tangentes horizontais nas amostras, sem substituir os dados por uma spline independente.
 
-Cada caminho fecha até o fundo do SVG (`y=250`). A superfície fixa ocupa `15vh`, limitada a `64–180px`, usa `opacity: 0.5`, não possui stroke e recebe a máscara vertical histórica `transparent → #000`, integral aos 34% da altura.
+Cada caminho fecha até o fundo do SVG (`y=250`). A superfície fixa ocupa `15vh`, limitada a `64–180px`, usa `opacity: 0.5` em cada área, não possui stroke e recebe a máscara vertical histórica `transparent → #000`, integral aos 34% da altura.
 
-A ordem cromática também segue o renderer histórico: Carregamento de Páginas ocupa o papel visual antes usado por requisições e recebe o tom principal — `#347963` nas superfícies públicas; Consulta ocupa o papel antes usado por registros e recebe o tom forte — `#1f6f56` nas superfícies públicas. Nas áreas autenticadas, a mesma relação usa respectivamente a cor principal e a cor forte do consultório ou do ambiente Desenvolvedor.
+As duas áreas usam exatamente a mesma cor. Em superfícies públicas, ambas usam `#347963`; em áreas autenticadas, ambas usam a cor principal do consultório ou do ambiente Desenvolvedor. Como cada área tem 50% de opacidade, a região compartilhada fica visualmente mais densa e as mudanças de qual série ocupa a posição superior ficam evidentes nos cruzamentos, sem depender de cores diferentes.
 
 A fonte de dados e os controles de segurança permanecem atuais. `login_telemetry_wave` continua sendo apenas um tombstone público sem dados; `footer_telemetry_wave` permanece uma rota JSON privada e excluída da própria contagem de page loads; o renderer canônico do rodapé é de servidor e o JavaScript não busca nem recalcula sua geometria. A página pública Status não é restaurada.
 
@@ -38,8 +38,8 @@ Eventos sem consulta observada não inventam duração nem quantidade. Na série
 
 ## Higienização
 
-As três fontes mantêm retenção móvel de 31 dias. `views.json` e `speed.json` são higienizados no fechamento de page loads; `database.json` é higienizado durante a captura do Maestro. Dados mais antigos que 31 dias não participam das fontes canônicas.
+`views.json` e `speed.json` mantêm a retenção operacional vigente para as séries de page load e velocidade. `database.json` mantém 20 dias móveis de deltas, suficientes para os dois períodos comparativos de 10 dias, e é higienizado durante a captura do Maestro.
 
 ## Interpretação
 
-Carregamentos contam `page_load` elegível e deduplicado. Velocidade de Carregamento de Páginas usa somente eventos com amostra em `speed.json`; Velocidade de Consulta usa consultas preparadas observadas. Volume de Carregamento de Páginas conta todos os `page_load` canônicos da janela. Volume de Consulta soma `database_query_count` apenas onde a instrumentação está presente. A série de estoque persistida em `database.json` continua representando `total atual - total imediatamente anterior` de todas as tabelas-base, amostrado pelo Maestro; deltas negativos permanecem válidos e não são confundidos com o card Registros da tela Métricas.
+Carregamentos contam `page_load` elegível e deduplicado. Velocidade de Carregamento de Páginas usa somente eventos com amostra em `speed.json`; Velocidade de Consulta usa consultas preparadas observadas. Volume de Carregamento de Páginas conta todos os `page_load` canônicos da janela. Volume de Consulta soma `database_query_count` apenas onde a instrumentação está presente. A série de estoque persistida em `database.json` representa `total atual - total imediatamente anterior` de todas as tabelas-base, amostrado pelo Maestro; essa série é a fonte canônica do card Registros e da área Consulta do rodapé. O saldo inicial é metadado de bootstrap e não entra nos totais móveis; deltas negativos permanecem válidos.

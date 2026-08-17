@@ -460,7 +460,7 @@ final class AdminPagesRuntimeOperations09
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Métricas",
-                "Páginas, operações no banco e carregamentos da Landing Page comparados ao período anterior.",
+                "Páginas, variação líquida de registros e carregamentos da Landing Page comparados ao período anterior.",
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metrics_html(
                 $summary,

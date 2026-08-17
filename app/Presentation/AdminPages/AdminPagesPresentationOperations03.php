@@ -904,10 +904,10 @@ final class AdminPagesPresentationOperations03
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
                 "Registros",
-                max(0, (int) ($current["database_operations"] ?? 0)),
+                (int) ($current["records"] ?? 0),
                 "database",
-                $variation("database_operations_pct"),
-                "operações no banco nos últimos 10 dias",
+                $variation("records_pct"),
+                "variação líquida de registros nos últimos 10 dias",
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
                 "Landing",

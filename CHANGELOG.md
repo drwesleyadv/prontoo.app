@@ -1,10 +1,9 @@
 # Versão canônica
 
-## 1.8.17.12 — Identidade histórica das ondas de telemetria
+## 1.8.17.13 — Registros por variação real e sobreposição no rodapé
 
-- mantém os mesmos 30 pontos diários de Carregamento de Páginas e Consulta usados por Volume.
-- restaura o renderer histórico em SVG 1000×250 com curvas Bézier cúbicas contínuas e fechamento inferior.
-- restaura altura de 15vh limitada a 64–180px, opacidade 0.5 e máscara vertical até 34%.
-- restaura a ordem visual histórica: Carregamento de Páginas no tom principal e Consulta no tom forte.
-- mantém o renderer no servidor, sem serializar contagens públicas nem reabrir o Status ou rotas públicas de telemetria.
-- não altera schema nem banco de dados.
+- define Registros como a soma dos deltas do total exato de linhas capturado pelo Maestro, excluindo o saldo inicial.
+- mantém 20 dias móveis em database.json e compara os 10 dias recentes aos 10 imediatamente anteriores, preservando deltas negativos.
+- alinha o rodapé em 20 intervalos equivalentes, com Carregamento de Páginas e Consulta alimentada pela variação líquida de registros.
+- usa a mesma cor nas duas áreas do rodapé, com 50% de opacidade em cada uma para evidenciar sobreposição e cruzamentos.
+- mantém Volume com sua métrica própria de consultas SQL e não altera schema nem banco de dados.

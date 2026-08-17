@@ -112,15 +112,20 @@ final class SupportTelemetryInfrastructureOperations02
         ?int $nowUnixUs = null,
     ): array {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        $recordComparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_comparison_10d(
+            intdiv(max(1, $nowUnixUs), 1000000),
+        );
         return self::telemetry_developer_metrics_summary_from_events(
             \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs),
             $nowUnixUs,
+            $recordComparison,
         );
     }
 
     public static function telemetry_developer_metrics_summary_from_events(
         array $events,
         int $nowUnixUs,
+        ?array $recordComparison = null,
     ): array {
         $nowUnixUs = max(1, $nowUnixUs);
         $periodUs = 10 * 86400 * 1000000;
@@ -128,7 +133,7 @@ final class SupportTelemetryInfrastructureOperations02
         $previousStartUs = $currentStartUs - $periodUs;
         $empty = [
             "pages" => 0,
-            "database_operations" => 0,
+            "records" => 0,
             "landing" => 0,
         ];
         $current = $empty;
@@ -152,17 +157,23 @@ final class SupportTelemetryInfrastructureOperations02
             $target = $finishedUs >= $currentStartUs ? "current" : "previous";
             if ($target === "current") {
                 $current["pages"]++;
-                $current["database_operations"] += max(0, (int) ($event["database_query_count"] ?? 0));
                 if ((string) ($event["rota"] ?? "") === "landing") {
                     $current["landing"]++;
                 }
                 continue;
             }
             $previous["pages"]++;
-            $previous["database_operations"] += max(0, (int) ($event["database_query_count"] ?? 0));
             if ((string) ($event["rota"] ?? "") === "landing") {
                 $previous["landing"]++;
             }
+        }
+        $recordsVariation = null;
+        if (is_array($recordComparison)) {
+            $current["records"] = (int) ($recordComparison["current_total"] ?? 0);
+            $previous["records"] = (int) ($recordComparison["previous_total"] ?? 0);
+            $recordsVariation = isset($recordComparison["variation_pct"]) && is_numeric($recordComparison["variation_pct"])
+                ? (float) $recordComparison["variation_pct"]
+                : null;
         }
         return [
             "window_mode" => "rolling_20d_10x10",
@@ -176,10 +187,7 @@ final class SupportTelemetryInfrastructureOperations02
                     $current["pages"],
                     $previous["pages"],
                 ),
-                "database_operations_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
-                    $current["database_operations"],
-                    $previous["database_operations"],
-                ),
+                "records_pct" => $recordsVariation,
                 "landing_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
                     $current["landing"],
                     $previous["landing"],
