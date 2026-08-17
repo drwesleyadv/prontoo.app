@@ -1,0 +1,129 @@
+name: Footer telemetry reconcile helper
+
+on:
+  push:
+    branches:
+      - agent/footer-telemetry-mountains
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring
+      - name: Reconcile CSS source and architecture contract
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+
+          root = Path('.')
+          source_rel = 'components/components.css'
+          source_path = root / 'app/Presentation/Styles' / source_rel
+          manifest_path = root / 'app/Presentation/Styles/styles.manifest.json'
+          artifact_path = root / 'public/assets/presentation.css'
+          old_token = b'pix-1.8.17.9.svg'
+          new_token = b'pix-1.8.17.10.svg'
+
+          old_css = source_path.read_bytes()
+          occurrences = old_css.count(old_token)
+          if occurrences != 1:
+              raise SystemExit(f'expected one old PIX reference, found {occurrences}')
+          position = old_css.index(old_token)
+          new_css = old_css.replace(old_token, new_token, 1)
+          delta = len(new_css) - len(old_css)
+          source_path.write_bytes(new_css)
+
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          source_data = {}
+          for entry in manifest['sources']:
+              rel = entry['path']
+              data = (root / 'app/Presentation/Styles' / rel).read_bytes()
+              source_data[rel] = data
+              if rel == source_rel:
+                  entry['sha256'] = hashlib.sha256(data).hexdigest()
+                  entry['bytes'] = len(data)
+                  entry['important_count'] = data.count(b'!important')
+                  entry['route_scope_count'] = data.count(b'body[data-route=')
+
+          for segment in manifest['sequence']:
+              if segment['source'] != source_rel:
+                  continue
+              old_offset = int(segment['offset'])
+              old_bytes = int(segment['bytes'])
+              old_end = old_offset + old_bytes
+              if position < old_offset:
+                  segment['offset'] = old_offset + delta
+              elif old_offset <= position < old_end:
+                  segment['bytes'] = old_bytes + delta
+              data = new_css
+              offset = int(segment['offset'])
+              size = int(segment['bytes'])
+              chunk = data[offset:offset + size]
+              if len(chunk) != size:
+                  raise SystemExit('adjusted CSS segment exceeds source')
+              segment['sha256'] = hashlib.sha256(chunk).hexdigest()
+              segment['important_count'] = chunk.count(b'!important')
+              segment['route_scope_count'] = chunk.count(b'body[data-route=')
+
+          built = bytearray()
+          for segment in manifest['sequence']:
+              data = source_data[segment['source']]
+              if segment['source'] == source_rel:
+                  data = new_css
+              offset = int(segment['offset'])
+              size = int(segment['bytes'])
+              chunk = data[offset:offset + size]
+              if len(chunk) != size:
+                  raise SystemExit(f'invalid segment {segment["order"]}')
+              if hashlib.sha256(chunk).hexdigest() != segment['sha256']:
+                  raise SystemExit(f'segment hash mismatch {segment["order"]}')
+              built.extend(chunk)
+
+          artifact_contract = manifest['artifact_contract']
+          artifact_contract['sha256'] = hashlib.sha256(built).hexdigest()
+          artifact_contract['bytes'] = len(built)
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          artifact_path.write_bytes(built)
+
+          architecture_path = root / 'app/architecture.manifest.json'
+          architecture = json.loads(architecture_path.read_text(encoding='utf-8'))
+          architecture['login_telemetry_wave_policy'] = 'public_tombstone_only_all_html_surfaces_render_server_normalized_footer_mountains_private_footer_route_remains_authenticated_fallback'
+          architecture['footer_telemetry_route_policy'] = 'private_json_fallback_only_page_load_and_database_query_volume_series_excluded_from_page_load_telemetry_public_html_exposes_normalized_svg_geometry_only'
+          architecture_path.write_text(json.dumps(architecture, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          PY
+      - name: Validate and build CSS
+        run: |
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+      - name: Remove helper from final snapshot
+        run: rm .github/workflows/footer-telemetry-reconcile-helper.yml
+      - name: Reconcile release contracts
+        run: |
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+      - name: Run focused gates
+        run: |
+          php tools/telemetry-json-source-contract-check
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/documentation-check.php
+          php tools/quality-gate --fast
+      - name: Upload reconciled snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: footer-telemetry-reconciled
+          path: .
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
