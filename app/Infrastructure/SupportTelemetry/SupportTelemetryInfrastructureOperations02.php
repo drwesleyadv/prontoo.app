@@ -26,16 +26,36 @@ final class SupportTelemetryInfrastructureOperations02
     {
     }
 
-    public static function telemetry_route_performance_summary(int $hours = 240): array
+    public static function telemetry_route_performance_summary(
+        int $hours = 240,
+        ?int $nowUnixUs = null,
+    ): array
+    {
+        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        return self::telemetry_route_performance_summary_from_events(
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs),
+            $hours,
+            $nowUnixUs,
+        );
+    }
+
+    public static function telemetry_route_performance_summary_from_events(
+        array $events,
+        int $hours,
+        int $nowUnixUs,
+    ): array
     
     {
         $hours = max(1, min(480, $hours));
-        $nowUs = (int) floor(microtime(true) * 1000000);
-        $startUs = $nowUs - $hours * 3600 * 1000000;
+        $nowUnixUs = max(1, $nowUnixUs);
+        $startUs = $nowUnixUs - $hours * 3600 * 1000000;
         $routes = [];
-        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUs) as $event) {
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            if ($finishedUs < $startUs || $finishedUs >= $nowUs) {
+            if ($finishedUs < $startUs || $finishedUs >= $nowUnixUs) {
                 continue;
             }
             if (empty($event["speed_observed"])) {
@@ -74,16 +94,98 @@ final class SupportTelemetryInfrastructureOperations02
         usort(
             $routes,
             static fn(array $a, array $b): int =>
-                ($b["avg_ms"] <=> $a["avg_ms"]) ?: strcmp($a["route"], $b["route"]),
+                ($b["count"] <=> $a["count"])
+                    ?: ($a["avg_ms"] <=> $b["avg_ms"])
+                    ?: strcmp($a["route"], $b["route"]),
         );
         return [
             "hours" => $hours,
             "total" => $total,
             "avg_ms" => $total > 0 ? ($totalDurationNs / $total) / 1000000 : 0.0,
             "routes" => array_values($routes),
-            "updated_at" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_utc_from_unix_microseconds($nowUs),
+            "updated_at" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_utc_from_unix_microseconds($nowUnixUs),
         ];
     
+    }
+
+    public static function telemetry_developer_metrics_summary(
+        ?int $nowUnixUs = null,
+    ): array {
+        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        return self::telemetry_developer_metrics_summary_from_events(
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs),
+            $nowUnixUs,
+        );
+    }
+
+    public static function telemetry_developer_metrics_summary_from_events(
+        array $events,
+        int $nowUnixUs,
+    ): array {
+        $nowUnixUs = max(1, $nowUnixUs);
+        $periodUs = 10 * 86400 * 1000000;
+        $currentStartUs = $nowUnixUs - $periodUs;
+        $previousStartUs = $currentStartUs - $periodUs;
+        $empty = [
+            "pages" => 0,
+            "database_operations" => 0,
+            "landing" => 0,
+        ];
+        $current = $empty;
+        $previous = $empty;
+        $seen = [];
+        foreach ($events as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $eventId = (string) ($event["evento_id"] ?? "");
+            if ($eventId !== "") {
+                if (isset($seen[$eventId])) {
+                    continue;
+                }
+                $seen[$eventId] = true;
+            }
+            $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
+            if ($finishedUs < $previousStartUs || $finishedUs >= $nowUnixUs) {
+                continue;
+            }
+            $target = $finishedUs >= $currentStartUs ? "current" : "previous";
+            if ($target === "current") {
+                $current["pages"]++;
+                $current["database_operations"] += max(0, (int) ($event["database_query_count"] ?? 0));
+                if ((string) ($event["rota"] ?? "") === "landing") {
+                    $current["landing"]++;
+                }
+                continue;
+            }
+            $previous["pages"]++;
+            $previous["database_operations"] += max(0, (int) ($event["database_query_count"] ?? 0));
+            if ((string) ($event["rota"] ?? "") === "landing") {
+                $previous["landing"]++;
+            }
+        }
+        return [
+            "window_mode" => "rolling_20d_10x10",
+            "current_start_unix_us" => $currentStartUs,
+            "previous_start_unix_us" => $previousStartUs,
+            "current_end_unix_us" => $nowUnixUs,
+            "current" => $current,
+            "previous" => $previous,
+            "variations" => [
+                "pages_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                    $current["pages"],
+                    $previous["pages"],
+                ),
+                "database_operations_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                    $current["database_operations"],
+                    $previous["database_operations"],
+                ),
+                "landing_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                    $current["landing"],
+                    $previous["landing"],
+                ),
+            ],
+        ];
     }
 
     public static function telemetry_route_requests_series_20d(?int $nowUnixUs = null): array

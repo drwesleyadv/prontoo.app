@@ -7,6 +7,7 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 $root = dirname(__DIR__);
+require_once $root . '/app/Runtime/Autoload/ProntooAutoloader.php';
 $contract = json_decode((string) file_get_contents($root . '/app/presentation.visual-contract.json'), true, 512, JSON_THROW_ON_ERROR);
 $css = (string) file_get_contents($root . '/public/assets/presentation.css');
 $js = (string) file_get_contents($root . '/public/assets/app.js');
@@ -16,6 +17,7 @@ $rendererPath = $root . '/app/Presentation/UiComponents/PageHeadControlPresentat
 $renderer = is_file($rendererPath) ? (string) file_get_contents($rendererPath) : '';
 $adminClinicsPresentation = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $adminClinicsRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php');
+$routeRegistry = (string) file_get_contents($root . '/app/Runtime/Routing/RouteRegistry.php');
 $applicationRoot = (string) file_get_contents($root . '/app/prontoo.php');
 $maestroCron = (string) file_get_contents($root . '/cron/maestro.php');
 $php = '';
@@ -234,6 +236,59 @@ const PRONTOO_ADMIN_ACTIONS = [
 PHP;
 if (!str_contains($applicationRoot, $developerActions)) {
     $failures[] = ['rule' => 'developer_navigation_order_or_label'];
+}
+$developerPageHeadGroups = [
+    'admin_performance' => [
+        ['admin_performance', 'Métricas', 'monitoring'],
+        ['admin_routes', 'Rotas', 'route'],
+    ],
+    'admin_clinics' => [
+        ['admin_clinics', 'Consultórios', 'home_health'],
+        ['admin_people', 'Usuários', 'groups'],
+        ['admin_alerts', 'Mensagens', 'mail'],
+        ['admin_global_notices', 'Avisos', 'notifications_active'],
+        ['admin_audit', 'Auditoria', 'history'],
+    ],
+    'admin_administration' => [
+        ['admin_administration', 'Administração', 'tune'],
+    ],
+];
+foreach ($developerPageHeadGroups as $parent => $expectedActions) {
+    $actions = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_global_operation_specs(
+        $parent,
+        $parent,
+        'received',
+    );
+    if ($actions !== $expectedActions) {
+        $failures[] = [
+            'rule' => 'developer_pagehead_actions_or_order',
+            'parent' => $parent,
+            'expected' => $expectedActions,
+            'current' => $actions,
+        ];
+    }
+}
+if (!str_contains($routeRegistry, "'admin_routes' =>")) {
+    $failures[] = ['rule' => 'developer_routes_screen_missing'];
+}
+$administrationStart = strpos($adminClinicsPresentation, 'public static function developer_administration_tools_html(');
+$administrationEnd = $administrationStart === false
+    ? false
+    : strpos($adminClinicsPresentation, 'public static function admin_metrics_html(', $administrationStart);
+if ($administrationStart === false || $administrationEnd === false) {
+    $failures[] = ['rule' => 'developer_administration_section_missing'];
+} else {
+    $administrationSource = substr($adminClinicsPresentation, $administrationStart, $administrationEnd - $administrationStart);
+    foreach (['admin_people', 'admin_alerts', 'admin_global_notices', 'admin_audit', 'developer-advanced-tools'] as $movedAdministrationAction) {
+        if (str_contains($administrationSource, $movedAdministrationAction)) {
+            $failures[] = ['rule' => 'developer_administration_moved_action_present', 'action' => $movedAdministrationAction];
+        }
+    }
+    foreach (['"admin_maintenance"', '"admin_settings"'] as $administrationAction) {
+        if (!str_contains($administrationSource, $administrationAction)) {
+            $failures[] = ['rule' => 'developer_administration_action_missing', 'action' => $administrationAction];
+        }
+    }
 }
 foreach (['admin_painel', 'HealthEvidence', 'HealthCanary'] as $obsoleteDeveloperFeature) {
     if (str_contains($php, $obsoleteDeveloperFeature)) {

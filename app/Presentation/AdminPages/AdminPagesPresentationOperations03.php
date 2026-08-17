@@ -576,29 +576,23 @@ final class AdminPagesPresentationOperations03
             return '<div class="empty">Ainda não há eventos de rota nos últimos 10 dias. Use o sistema por alguns minutos e retorne a esta tela.</div>';
         }
         $h =
-            '<div class="admin-performance-table-wrap"><table class="admin-performance-table"><thead><tr><th>Rota</th><th>Requisições</th><th>Tempo médio</th><th>Máximo</th><th>Falhas</th></tr></thead><tbody>';
+            '<div class="admin-performance-table-wrap"><table class="admin-performance-table"><thead><tr><th>Rota</th><th>Requisições</th><th>Tempo médio</th></tr></thead><tbody>';
         foreach ($rows as $r) {
             $route = (string) ($r["route"] ?? "");
             $count = (int) ($r["count"] ?? 0);
             $avg = (float) ($r["avg_ms"] ?? 0);
-            $max = (float) ($r["max_ms"] ?? 0);
-            $errors = (int) ($r["errors"] ?? 0);
             $tone = $avg >= 1500 ? "is-bad" : ($avg >= 800 ? "is-warn" : "is-ok");
             $h .=
                 '<tr class="' .
                 $tone .
-                '"><td><code>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($route) .
-                "</code></td><td>" .
+                '"><td><strong class="admin-route-display-name">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_route_display_label($route),
+                ) .
+                "</strong></td><td>" .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($count) .
                 "</td><td><b>" .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms($avg)) .
-                "</b></td><td>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_performance_format_ms($max)) .
-                "</td><td>" .
-                ($errors > 0
-                    ? '<span class="status danger">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($errors) . "</span>"
-                    : '<span class="status ok">0</span>') .
                 "</td></tr>";
         }
         return $h . "</tbody></table></div>";
@@ -836,15 +830,9 @@ final class AdminPagesPresentationOperations03
 
     public static function developer_administration_tools_html(callable $href): string
     {
-        $primary = [
-            ["groups", "Usuários", "Credenciais, vínculos e identidades administrativas.", "admin_people"],
-            ["mail", "Mensagens internas", "Comunicação restrita aos perfis do Desenvolvedor.", "admin_alerts"],
-            ["notifications_active", "Avisos aos consultórios", "Comunicações institucionais exibidas nos ambientes clínicos.", "admin_global_notices"],
-            ["history", "Auditoria", "Rastreabilidade administrativa e eventos relevantes.", "admin_audit"],
-        ];
-        $advanced = [
-            ["settings", "Configurações", "Parâmetros globais de baixa frequência.", "admin_settings"],
-            ["construction", "Manutenção", "Controles extraordinários de disponibilidade.", "admin_maintenance"],
+        $tools = [
+            ["construction", "Manutenção", "Controle de disponibilidade da plataforma.", "admin_maintenance"],
+            ["settings", "Configuração", "Parâmetros globais da operação.", "admin_settings"],
         ];
         $render = static function (array $tools) use ($href): string {
             $grid = '<div class="developer-tool-grid">';
@@ -862,54 +850,57 @@ final class AdminPagesPresentationOperations03
             }
             return $grid . '</div>';
         };
-        return '<div class="section-head"><div><h2>Administração</h2><p>Acesso, comunicação e rastreabilidade em um único lugar.</p></div></div>' .
-            $render($primary) .
-            '<details class="form-panel developer-advanced-tools"><summary><span>Configuração avançada</span></summary>' .
-            $render($advanced) .
-            '</details>';
+        return '<div class="section-head"><div><h2>Administração</h2><p>Manutenção e configuração global da plataforma.</p></div></div>' .
+            $render($tools);
     }
 
 
-    public static function admin_observability_html(array $summary, string $telemetryCharts): string
+    public static function admin_metrics_html(array $summary): string
+    {
+        $current = (array) ($summary["current"] ?? []);
+        $variations = (array) ($summary["variations"] ?? []);
+        $variation = static fn(string $key): ?float =>
+            isset($variations[$key]) && is_numeric($variations[$key])
+                ? (float) $variations[$key]
+                : null;
+        return '<section class="admin-performance-screen admin-metrics-screen"><div class="three admin-performance-stats admin-metrics-kpis" aria-label="Métricas comparativas dos últimos 10 dias">' .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
+                "Páginas",
+                max(0, (int) ($current["pages"] ?? 0)),
+                "web",
+                $variation("pages_pct"),
+                "carregamentos nos últimos 10 dias",
+            ) .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
+                "Registros",
+                max(0, (int) ($current["database_operations"] ?? 0)),
+                "database",
+                $variation("database_operations_pct"),
+                "operações no banco nos últimos 10 dias",
+            ) .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
+                "Landing",
+                max(0, (int) ($current["landing"] ?? 0)),
+                "language",
+                $variation("landing_pct"),
+                "carregamentos da Landing Page nos últimos 10 dias",
+            ) .
+            '</div></section>';
+    }
+
+    public static function admin_routes_html(array $summary): string
     {
         $rows = isset($summary["routes"]) && is_array($summary["routes"])
             ? $summary["routes"]
             : [];
-        $total = (int) ($summary["total"] ?? 0);
-        $avg = (float) ($summary["avg_ms"] ?? 0);
-        $slow = $rows[0] ?? null;
-        $updated = (string) ($summary["updated_at"] ?? "");
-        $errors = 0;
-        foreach ($rows as $row) {
-            $errors += max(0, (int) ($row["errors"] ?? 0));
-        }
-        $failureRate = $total > 0 ? ($errors / $total) * 100 : 0.0;
-        $failureLabel = number_format($failureRate, $failureRate < 1 ? 2 : 1, ",", ".") . "%";
-        $stats =
-            '<div class="stats-grid admin-performance-stats">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Requisições · 10d", $total, "route", "eventos canônicos") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Latência média", self::admin_performance_format_ms($avg), "speed", "média geral") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card("Falhas", $failureLabel, "error", $errors . " evento(s)") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
-                "Rota mais lenta",
-                $slow ? self::admin_performance_format_ms((float) ($slow["avg_ms"] ?? 0)) : "—",
-                "timer",
-                $slow ? (string) ($slow["route"] ?? "") : "Sem dados",
-            ) .
-            '</div>';
-        $routesCard = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+        return '<section class="admin-performance-screen admin-routes-screen">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
             '<div class="section-head admin-performance-head"><h2>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("route") .
-                '<span>Rotas</span></h2><p>Detalhamento dos últimos 10 dias.' .
-                ($updated !== "" ? " Última atualização: " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($updated) . "." : "") .
-                '</p></div>' .
+                '<span>Rotas</span></h2><p>Carregamentos dos últimos 10 dias, ordenados por maior volume e, em caso de empate, pelo menor tempo médio.</p></div>' .
                 self::admin_performance_rows_html($rows),
             "admin-performance-card",
-        );
-        return '<section class="admin-performance-screen">' .
-            $stats .
-            $telemetryCharts .
-            $routesCard .
+        ) .
             '</section>';
     }
 

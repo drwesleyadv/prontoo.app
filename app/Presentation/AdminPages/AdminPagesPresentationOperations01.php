@@ -85,14 +85,18 @@ final class AdminPagesPresentationOperations01
     {
 
         return match ($route) {
-            "admin_onboarding", "admin_operations", "admin_payment_proof" => "admin_clinics",
+            "admin_routes" => "admin_performance",
+            "admin_onboarding",
+            "admin_operations",
+            "admin_payment_proof",
             "admin_users",
             "admin_people",
             "admin_alerts",
             "admin_global_notices",
-            "admin_maintenance",
-            "admin_settings",
             "admin_audit"
+                => "admin_clinics",
+            "admin_maintenance",
+            "admin_settings"
                 => "admin_administration",
             default => $route,
         };
@@ -213,24 +217,137 @@ final class AdminPagesPresentationOperations01
     
     }
 
+    public static function admin_metric_variation_badge(?float $variation): string
+    {
+        if ($variation === null) {
+            return '<span class="telemetry-kpi-trend is-neutral is-pending" title="Aguardando período anterior comparável" aria-label="Aguardando período anterior comparável">⌛</span>';
+        }
+        if (abs($variation) < 0.05) {
+            return '<span class="telemetry-kpi-trend is-neutral" title="Sem variação em relação aos 10 dias anteriores" aria-label="Sem variação em relação aos 10 dias anteriores">0%</span>';
+        }
+        $positive = $variation > 0;
+        $compact = number_format(abs($variation), 1, ",", ".");
+        $compact = preg_replace('/,0$/', "", $compact) ?: "0";
+        $direction = $positive ? "▲" : "▼";
+        $description = ($positive ? "Alta de " : "Queda de ") .
+            $compact .
+            "% em relação aos 10 dias anteriores";
+        return '<span class="telemetry-kpi-trend ' .
+            ($positive ? "is-positive" : "is-negative") .
+            '" title="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+            '" aria-label="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
+            '"><span class="telemetry-kpi-trend-icon" aria-hidden="true">' .
+            $direction .
+            '</span><span class="telemetry-kpi-trend-rate">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($compact . "%") .
+            "</span></span>";
+    }
+
+    public static function admin_metric_comparison_card_html(
+        string $label,
+        int $value,
+        string $icon,
+        ?float $variation,
+        string $note,
+    ): string {
+        return '<article class="stat-card telemetry-kpi-card">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
+            '<div><div class="telemetry-kpi-value"><b>' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
+            '</b>' .
+            self::admin_metric_variation_badge($variation) .
+            '</div><span>' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
+            '</span><small>' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($note) .
+            '</small></div></article>';
+    }
+
+    public static function admin_route_display_label(string $route): string
+    {
+        $route = strtolower(mb_trim($route));
+        if (str_starts_with($route, "landing_")) {
+            return "Recurso da Landing Page";
+        }
+        return match ($route) {
+            "landing" => "Landing Page",
+            "install" => "Instalação",
+            "home" => "Início",
+            "status" => "Status público",
+            "login" => "Acesso ao sistema",
+            "login_telemetry_wave" => "Telemetria da tela de acesso",
+            "login_autotest" => "Verificação da tela de acesso",
+            "mfa" => "Verificação em duas etapas",
+            "mobile_web_access" => "Acesso pelo celular",
+            "goal_status" => "Andamento da meta",
+            "signup" => "Cadastro de consultório",
+            "logout" => "Saída do sistema",
+            "switch" => "Troca de ambiente",
+            "profile" => "Perfil",
+            "global_reauth" => "Reautenticação do Desenvolvedor",
+            "onboarding" => "Configuração inicial",
+            "painel" => "Painel do consultório",
+            "operations" => "Fluxo operacional",
+            "maestro" => "Rotinas automatizadas",
+            "leads" => "Interessados",
+            "appointments" => "Agenda",
+            "patients" => "Lista de pacientes",
+            "patient" => "Prontuário do paciente",
+            "patient_lookup" => "Busca de paciente",
+            "lead_lookup" => "Busca de interessado",
+            "lead_patient_lookup" => "Busca de paciente para interessado",
+            "patient_suggest" => "Sugestão de paciente",
+            "person_lookup" => "Busca de pessoa",
+            "counterparty_lookup" => "Busca de contraparte financeira",
+            "counterparty_suggest" => "Sugestão de contraparte financeira",
+            "procedures" => "Procedimentos",
+            "financial" => "Financeiro",
+            "creditors" => "Credores",
+            "tasks" => "Tarefas",
+            "documents" => "Documentos",
+            "document_view" => "Visualização de documento",
+            "document_print" => "Impressão de documento",
+            "document_pdf" => "Emissão de PDF",
+            "document_pdf_file" => "Arquivo PDF",
+            "notices" => "Avisos do consultório",
+            "users" => "Colaboradores",
+            "user" => "Cadastro de colaborador",
+            "permissions" => "Permissões",
+            "audit" => "Atividades do consultório",
+            "settings" => "Configuração do consultório",
+            "admin_administration" => "Administração",
+            "admin_clinics" => "Consultórios",
+            "admin_onboarding" => "Onboarding dos consultórios",
+            "admin_users", "admin_people" => "Usuários da plataforma",
+            "admin_operations" => "Operação e financeiro",
+            "admin_global_notices" => "Avisos aos consultórios",
+            "admin_alerts" => "Mensagens do Desenvolvedor",
+            "admin_maintenance" => "Manutenção",
+            "admin_performance" => "Métricas",
+            "admin_routes" => "Rotas da aplicação",
+            "admin_settings" => "Configuração",
+            "admin_payment_proof" => "Comprovante de pagamento",
+            "admin_audit" => "Auditoria",
+            default => "Rota não identificada",
+        };
+    }
+
     public static function admin_global_operation_specs(string $current, string $parent, string $alertView): array
     {
-        if (!in_array($alertView, ["received", "sent"], true)) {
-            $alertView = "received";
-        }
-        if ($current === "admin_alerts") {
-            return [
-                ["admin_alerts", "Recebidos", "inbox", ["view" => "received"]],
-                ["admin_alerts", "Enviados", "outbox", ["view" => "sent"]],
-                ["admin_alerts", "Nova mensagem", "add_comment", ["view" => $alertView, "compose" => "1"]],
-            ];
-        }
-        if ($current === "admin_maintenance") {
-            return [["admin_maintenance", "Manutenção", "construction"]];
-        }
         return match ($parent) {
-            "admin_clinics" => [["admin_clinics", "Consultórios", "home_health"]],
-            "admin_performance" => [["admin_performance", "Métricas", "monitoring"]],
+            "admin_clinics" => [
+                ["admin_clinics", "Consultórios", "home_health"],
+                ["admin_people", "Usuários", "groups"],
+                ["admin_alerts", "Mensagens", "mail"],
+                ["admin_global_notices", "Avisos", "notifications_active"],
+                ["admin_audit", "Auditoria", "history"],
+            ],
+            "admin_performance" => [
+                ["admin_performance", "Métricas", "monitoring"],
+                ["admin_routes", "Rotas", "route"],
+            ],
             "admin_administration" => [["admin_administration", "Administração", "tune"]],
             default => [],
         };

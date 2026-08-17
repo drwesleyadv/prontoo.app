@@ -455,19 +455,25 @@ final class AdminPagesRuntimeOperations09
     public static function page_admin_performance(): void
     {
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_performance");
-        $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_performance_summary(240);
-        $telemetryCharts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
-        $content = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_observability_html(
-            $summary,
-            $telemetryCharts,
-        );
+        $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_developer_metrics_summary();
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Métricas",
-                "Requisições, latência, falhas e rotas para investigação técnica.",
+                "Páginas, operações no banco e carregamentos da Landing Page comparados ao período anterior.",
             ) .
-            $content;
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metrics_html($summary);
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Métricas · Desenvolvedor", $body);
+    }
+
+    public static function page_admin_routes(): void
+    {
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_routes");
+        $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_performance_summary(240);
+        $body = \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
+            "Rotas",
+            "Volume de carregamentos e tempo médio por função da aplicação.",
+        ) . \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_routes_html($summary);
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Rotas · Desenvolvedor", $body);
     }
 
 }

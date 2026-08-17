@@ -118,9 +118,9 @@ final class AdminPagesRuntimeOperations05
                     "trial_days" => $defaultTrialDays,
                     "global_admin_timezone" => $adminTimezone,
                     "audit_body" =>
-                        "Configurações globais da plataforma atualizadas.",
+                        "Configuração global da plataforma atualizada.",
                 ]);
-                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Configurações globais salvas.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Configuração global salva.");
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance", ["tab" => "configuracoes"]);
             }
         }
@@ -137,7 +137,7 @@ final class AdminPagesRuntimeOperations05
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_maintenance", ["tab" => "configuracoes"])) .
             '">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("settings") .
-            '<span class="lead-chip-label">Configurações</span></a></nav>';
+            '<span class="lead-chip-label">Configuração</span></a></nav>';
         if ($tab === "configuracoes") {
             $defaultPrice = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
             $defaultTrialDays = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
@@ -215,10 +215,10 @@ final class AdminPagesRuntimeOperations05
                 ) .
                 '</section><button type="submit" class="primary">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
-                "<span>Salvar configurações</span></button></form>";
+                "<span>Salvar configuração</span></button></form>";
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-                "Manutenção e Configurações",
-                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configurações", "") . $tabs . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form),
+                "Manutenção e Configuração",
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configuração", "") . $tabs . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form),
             );
             return;
         }
@@ -249,8 +249,8 @@ final class AdminPagesRuntimeOperations05
             ],
         ];
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-            "Manutenção e Configurações",
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configurações", "") .
+            "Manutenção e Configuração",
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configuração", "") .
                 $tabs .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form) .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items)),
