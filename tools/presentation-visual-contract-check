@@ -181,6 +181,24 @@ foreach ([
         $failures[] = ['rule' => 'admin_clinics_patient_layout_missing', 'needle' => $needle];
     }
 }
+$adminClinicsDirectoryStart = strpos($adminClinicsPresentation, 'public static function developer_clinic_directory_html(');
+$adminClinicsDirectoryEnd = $adminClinicsDirectoryStart === false
+    ? false
+    : strpos($adminClinicsPresentation, 'public static function developer_overview_html(', $adminClinicsDirectoryStart);
+if ($adminClinicsDirectoryStart === false || $adminClinicsDirectoryEnd === false) {
+    $failures[] = ['rule' => 'admin_clinics_directory_section_missing'];
+} else {
+    $adminClinicsDirectory = substr(
+        $adminClinicsPresentation,
+        $adminClinicsDirectoryStart,
+        $adminClinicsDirectoryEnd - $adminClinicsDirectoryStart,
+    );
+    foreach (['Mais opções', 'developer-advanced-tools', 'admin_operations'] as $needle) {
+        if (str_contains($adminClinicsDirectory, $needle)) {
+            $failures[] = ['rule' => 'admin_clinics_footer_action_present', 'needle' => $needle];
+        }
+    }
+}
 foreach ([
     'patient-directory-overview kpis kpi-info-strip',
     'patient-search-card ds-search-card',

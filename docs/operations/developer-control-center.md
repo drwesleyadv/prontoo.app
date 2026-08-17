@@ -17,7 +17,7 @@ O ambiente global do Desenvolvedor é um plano de controle operacional. A interf
 - A Visão geral contém apenas **Estado do Prontoo** e **Precisa de você**.
 - Onboarding e vencimentos deixam de ser alertas globais e passam a filtros contextuais de Consultórios.
 - `admin_onboarding` permanece apenas como alias de compatibilidade e redireciona ao filtro de onboarding.
-- `admin_operations` vira **Indicadores do negócio**, relatório sob demanda acessível por Mais opções em Consultórios.
+- `admin_operations` permanece como relatório sob demanda, sem ocupar uma ação no rodapé de Consultórios.
 - Confiabilidade mostra somente exceções; Diagnóstico e Recuperação ficam em Ferramentas avançadas.
 - Observabilidade tem uma única camada de quatro KPIs: Requisições, Latência média, Falhas e Rota mais lenta; depois gráficos e rotas.
 - Administração não replica seus filhos na navegação da PageHead. O hub mostra Usuários, Mensagens internas, Avisos aos consultórios e Auditoria; Configurações e Manutenção ficam em Configuração avançada.
