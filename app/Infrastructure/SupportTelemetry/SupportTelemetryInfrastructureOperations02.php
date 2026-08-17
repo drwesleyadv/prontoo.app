@@ -232,16 +232,30 @@ final class SupportTelemetryInfrastructureOperations02
 
 
 
-    public static function telemetry_volume_series_30d(
+    public static function telemetry_volume_series_24h(
         string $metric,
         ?int $nowUnixUs = null,
     ): array {
-        $metric = in_array($metric, ["page_load", "database_queries"], true) ? $metric : "page_load";
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        $nowUnixUs = max(1, $nowUnixUs);
-        $bucketUs = 86400 * 1000000;
-        $bucketCount = 30;
-        $windowStartUs = $nowUnixUs - $bucketCount * $bucketUs;
+        return self::telemetry_volume_series_24h_from_events(
+            $metric,
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
+            max(1, $nowUnixUs),
+        );
+    }
+
+    public static function telemetry_volume_series_24h_from_events(
+        string $metric,
+        array $events,
+        int $nowUnixUs,
+    ): array {
+        $metric = in_array($metric, ["page_load", "database_queries"], true)
+            ? $metric
+            : "page_load";
+        $bucketUs = 60 * 1000000;
+        $bucketCount = 1440;
+        $windowEndUs = intdiv(max(1, $nowUnixUs), $bucketUs) * $bucketUs;
+        $windowStartUs = $windowEndUs - $bucketCount * $bucketUs;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $buckets = [];
         for ($index = 0; $index < $bucketCount; $index++) {
@@ -249,16 +263,31 @@ final class SupportTelemetryInfrastructureOperations02
             $endUs = $startUs + $bucketUs;
             $start = (new DateTimeImmutable("@" . intdiv($startUs, 1000000)))->setTimezone($timezone);
             $end = (new DateTimeImmutable("@" . intdiv($endUs, 1000000)))->setTimezone($timezone);
-            $buckets[$index] = ["ts" => intdiv($startUs, 1000000), "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end), "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"), "value" => 0, "observed" => $metric === "page_load", "period" => $index < 15 ? "previous" : "current"];
+            $buckets[$index] = [
+                "ts" => intdiv($startUs, 1000000),
+                "label" => $start->format("H:i"),
+                "axis_label" => $start->format("i") === "00" ? $start->format("H\\h") : "",
+                "tooltip" => $start->format("d/m H:i") . " → " . $end->format("H:i"),
+                "value" => 0,
+                "observed" => true,
+            ];
         }
-        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+        foreach ($events as $event) {
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            if ($finishedUs < $windowStartUs || $finishedUs >= $nowUnixUs) continue;
+            if ($finishedUs < $windowStartUs || $finishedUs >= $windowEndUs) {
+                continue;
+            }
             $index = intdiv($finishedUs - $windowStartUs, $bucketUs);
-            if ($index < 0 || $index >= $bucketCount) continue;
-            if ($metric === "page_load") { $buckets[$index]["value"]++; continue; }
-            if (empty($event["database_query_instrumented"])) continue;
-            $buckets[$index]["observed"] = true;
+            if ($index < 0 || $index >= $bucketCount) {
+                continue;
+            }
+            if ($metric === "page_load") {
+                $buckets[$index]["value"]++;
+                continue;
+            }
+            if (empty($event["database_query_instrumented"])) {
+                continue;
+            }
             $buckets[$index]["value"] += max(0, (int) ($event["database_query_count"] ?? 0));
         }
         return array_values($buckets);
@@ -270,12 +299,25 @@ final class SupportTelemetryInfrastructureOperations02
         ?int $nowUnixUs = null,
     ): array {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        return self::telemetry_latency_series_24h_from_events(
+            $metric,
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
+            max(1, $nowUnixUs),
+        );
+    }
+
+    public static function telemetry_latency_series_24h_from_events(
+        string $metric,
+        array $events,
+        int $nowUnixUs,
+    ): array {
         return self::telemetry_latency_series(
             $metric,
             max(1, $nowUnixUs),
             1440,
             60 * 1000000,
             false,
+            $events,
         );
     }
 
@@ -290,6 +332,7 @@ final class SupportTelemetryInfrastructureOperations02
             30,
             86400 * 1000000,
             true,
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
         );
     }
 
@@ -299,11 +342,15 @@ final class SupportTelemetryInfrastructureOperations02
         int $bucketCount,
         int $bucketUs,
         bool $daily,
+        array $events,
     ): array {
         $metric = in_array($metric, ["route", "database"], true)
             ? $metric
             : "route";
-        $windowStartUs = $nowUnixUs - $bucketCount * $bucketUs;
+        $windowEndUs = $daily
+            ? $nowUnixUs
+            : intdiv($nowUnixUs, $bucketUs) * $bucketUs;
+        $windowStartUs = $windowEndUs - $bucketCount * $bucketUs;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $buckets = [];
         for ($index = 0; $index < $bucketCount; $index++) {
@@ -316,22 +363,25 @@ final class SupportTelemetryInfrastructureOperations02
                 "label" => $daily
                     ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end)
                     : $start->format("H:i"),
+                "axis_label" => !$daily && $start->format("i") === "00"
+                    ? $start->format("H\\h")
+                    : "",
                 "tooltip" => $daily
                     ? $start->format("d/m H:i") . " → " . $end->format("d/m H:i")
-                    : $start->format("d/m H:i"),
+                    : $start->format("d/m H:i") . " → " . $end->format("H:i"),
                 "value" => 0.0,
                 "samples" => 0,
                 "sum_ns" => 0,
-                "observed" => false,
+                "observed" => !$daily,
             ];
             if ($daily) {
                 $row["period"] = $index < 15 ? "previous" : "current";
             }
             $buckets[$index] = $row;
         }
-        foreach (\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events($nowUnixUs) as $event) {
+        foreach ($events as $event) {
             $finishedUs = (int) ($event["fim_unix_us"] ?? 0);
-            if ($finishedUs < $windowStartUs || $finishedUs >= $nowUnixUs) {
+            if ($finishedUs < $windowStartUs || $finishedUs >= $windowEndUs) {
                 continue;
             }
             $index = intdiv($finishedUs - $windowStartUs, $bucketUs);
@@ -360,7 +410,7 @@ final class SupportTelemetryInfrastructureOperations02
         foreach ($buckets as &$row) {
             $samples = max(0, (int) $row["samples"]);
             $sumNs = max(0, (int) $row["sum_ns"]);
-            $row["observed"] = $samples > 0;
+            $row["observed"] = !$daily || $samples > 0;
             $row["value"] = $samples > 0
                 ? round(($sumNs / $samples) / 1000000, 6, \RoundingMode::HalfAwayFromZero)
                 : 0.0;

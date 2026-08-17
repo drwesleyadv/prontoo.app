@@ -109,7 +109,7 @@ Métricas do Desenvolvedor contém exatamente três cards comparativos: Páginas
 
 Cada card compara os 10 dias móveis recentes aos 10 imediatamente anteriores. Páginas conta page loads canônicos, Registros soma `database_query_count` e Landing conta a rota canônica `landing`. SQL, parâmetros, resultados e dados clínicos não são persistidos.
 
-Depois dos três cards, Métricas preserva os gráficos canônicos Velocidade e Volume. Velocidade compara o tempo médio de Rotas e Banco de dados; Volume compara Carregamentos de página e Consultas ao banco de dados. Os gráficos atualizam a cada minuto e não substituem nem incorporam a tabela da tela Rotas.
+Depois dos três cards, Métricas preserva os gráficos canônicos Velocidade e Volume. Ambos usam os 1.440 minutos completos das últimas 24 horas, com um ponto por minuto: Carregamento de Páginas é a série primária e Consulta é a série secundária. Minutos sem eventos são pontos explícitos em zero; a geometria liga os valores consecutivos por segmentos retos, e o eixo inferior mostra somente as 24 marcas horárias, centralizadas e sem sobreposição. Velocidade compara durações médias e Volume compara quantidades. Os gráficos atualizam a cada minuto e não substituem nem incorporam a tabela da tela Rotas.
 
 O detalhamento pertence à tela Rotas, separada de Métricas. A tabela exibe nomes funcionais, requisições e tempo médio dos últimos 10 dias, ordenando primeiro pelo maior número de requisições e depois pelo menor tempo médio.
 

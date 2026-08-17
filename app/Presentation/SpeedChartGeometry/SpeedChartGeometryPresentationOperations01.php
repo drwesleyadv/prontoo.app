@@ -90,18 +90,6 @@ final class SpeedChartGeometryPresentationOperations01
         }
         $html = self::prontoo_performance_replace_chart(
             $html,
-            'Velocidade',
-            'Últimas 24 horas',
-            [
-                'Tempo médio das rotas nos últimos 5 minutos' => 'Velocidade média nos últimos 5 minutos',
-                'Tempo médio das rotas nos últimos 30 minutos' => 'Velocidade média nos últimos 30 minutos',
-                'Tempo médio das rotas nas últimas 24 horas' => 'Velocidade média nas últimas 24 horas',
-                'dados de duração de rotas e da Landing Page.' => 'dados de velocidade das rotas e da Landing Page.',
-            ],
-            true,
-        );
-        $html = self::prontoo_performance_replace_chart(
-            $html,
             'Leitura e gravação',
             'Últimos 30 dias',
             [
