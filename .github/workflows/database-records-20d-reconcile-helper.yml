@@ -25,19 +25,35 @@ jobs:
           coverage: none
           tools: none
           extensions: mbstring
-      - name: Apply requested telemetry change
+      - name: Decode patch
         shell: bash
         run: |
           set -euo pipefail
           base64 -d .github/db20-core.patch.gz.b64 | gzip -d > /tmp/db20-core.patch
+      - name: Check patch
+        shell: bash
+        run: |
+          set -euo pipefail
           git apply --check /tmp/db20-core.patch
+      - name: Apply core patch
+        shell: bash
+        run: |
+          set -euo pipefail
           git apply /tmp/db20-core.patch
+      - name: Apply canonical reconciliations
+        shell: bash
+        run: |
+          set -euo pipefail
           python .github/db20-reconcile.py
+      - name: Reconcile release
+        shell: bash
+        run: |
+          set -euo pipefail
           rm .github/db20-core.patch.gz.b64
           rm .github/db20-reconcile.py
           rm .github/workflows/database-records-20d-reconcile-helper.yml
           php tools/release-contract-reconcile --write
-      - name: Validate
+      - name: Validate record telemetry
         shell: bash
         run: |
           set -euo pipefail
@@ -50,6 +66,10 @@ jobs:
           php tools/database-record-telemetry-contract-check
           php tools/telemetry-json-source-contract-check
           php tools/version-asset-contract-check.php
+      - name: Validate release and docs
+        shell: bash
+        run: |
+          set -euo pipefail
           php tools/documentation-check.php
           php tools/release-contract-reconcile --check
           php tools/quality-gate --fast
