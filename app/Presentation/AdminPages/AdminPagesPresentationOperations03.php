@@ -855,7 +855,7 @@ final class AdminPagesPresentationOperations03
     }
 
 
-    public static function admin_metrics_html(array $summary): string
+    public static function admin_metrics_html(array $summary, string $telemetryCharts): string
     {
         $current = (array) ($summary["current"] ?? []);
         $variations = (array) ($summary["variations"] ?? []);
@@ -885,7 +885,9 @@ final class AdminPagesPresentationOperations03
                 $variation("landing_pct"),
                 "carregamentos da Landing Page nos últimos 10 dias",
             ) .
-            '</div></section>';
+            '</div>' .
+            $telemetryCharts .
+            '</section>';
     }
 
     public static function admin_routes_html(array $summary): string

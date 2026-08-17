@@ -15,8 +15,9 @@ O ambiente global do Desenvolvedor é um plano de controle direto, sem tela inte
 - `admin_performance` é a entrada do Desenvolvedor e aparece com o rótulo **Métricas**.
 - A navegação contém somente Métricas, Consultórios e Administração, nessa ordem.
 - A PageHead de Métricas contém, nesta ordem, **Métricas** e **Rotas**.
-- Métricas mostra somente **Páginas**, **Registros** e **Landing**. Cada card compara os últimos 10 dias móveis com os 10 dias imediatamente anteriores.
+- Métricas abre com **Páginas**, **Registros** e **Landing**. Cada card compara os últimos 10 dias móveis com os 10 dias imediatamente anteriores.
 - Páginas conta carregamentos HTML concluídos; Registros soma as operações preparadas observadas no banco; Landing conta carregamentos da Landing Page.
+- Abaixo dos cards, Métricas preserva os gráficos **Velocidade** e **Volume**, atualizados a cada minuto, sem incorporar a tabela de Rotas.
 - Rotas mostra o nome funcional da tela ou operação, o número de requisições e o tempo médio. A ordem usa maior número de requisições primeiro e, em empate, menor tempo médio.
 - A PageHead de Consultórios contém, nesta ordem, **Consultórios**, **Usuários**, **Mensagens**, **Avisos** e **Auditoria**.
 - Administração contém somente **Manutenção** e **Configuração**.

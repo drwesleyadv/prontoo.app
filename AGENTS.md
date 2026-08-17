@@ -109,6 +109,8 @@ Métricas do Desenvolvedor contém exatamente três cards comparativos: Páginas
 
 Cada card compara os 10 dias móveis recentes aos 10 imediatamente anteriores. Páginas conta page loads canônicos, Registros soma `database_query_count` e Landing conta a rota canônica `landing`. SQL, parâmetros, resultados e dados clínicos não são persistidos.
 
+Depois dos três cards, Métricas preserva os gráficos canônicos Velocidade e Volume. Velocidade compara o tempo médio de Rotas e Banco de dados; Volume compara Carregamentos de página e Consultas ao banco de dados. Os gráficos atualizam a cada minuto e não substituem nem incorporam a tabela da tela Rotas.
+
 O detalhamento pertence à tela Rotas, separada de Métricas. A tabela exibe nomes funcionais, requisições e tempo médio dos últimos 10 dias, ordenando primeiro pelo maior número de requisições e depois pelo menor tempo médio.
 
 O Status público preserva seu contrato independente de quatro KPIs: acima de 980 px, uma linha com quatro colunas; em 980 px ou menos, duas colunas por duas linhas. A simplificação de Métricas não altera essa superfície pública.

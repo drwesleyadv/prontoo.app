@@ -456,12 +456,16 @@ final class AdminPagesRuntimeOperations09
     {
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_performance");
         $summary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_developer_metrics_summary();
+        $telemetryCharts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_performance_card_html();
         $body =
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
                 "Métricas",
                 "Páginas, operações no banco e carregamentos da Landing Page comparados ao período anterior.",
             ) .
-            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metrics_html($summary);
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metrics_html(
+                $summary,
+                $telemetryCharts,
+            );
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Métricas · Desenvolvedor", $body);
     }
 
