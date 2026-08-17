@@ -199,7 +199,7 @@ final class AdminPagesRuntimeOperations08
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations04::form_actions("Salvar", "primary small") .
             "</form></details>";
         $commercial =
-            '<div class="stats-grid admin-clinic-attention-grid">' .
+            '<section class="patient-directory-overview kpis kpi-info-strip stats-grid admin-clinic-attention-grid" aria-label="Resumo de consultórios">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::stat_card(
                 "Ativo",
                 $activeOperational,
@@ -220,7 +220,9 @@ final class AdminPagesRuntimeOperations08
                 $active . " ativo(s)",
             ) .
             $defaultBilling .
-            "</div>";
+            "</section>";
+        $search = mb_trim((string) ($_GET["q"] ?? ""));
+        $view = (string) ($_GET["view"] ?? "all");
         $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.10', [], [])->fetchAll();
         $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         $peopleCounts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_people_counts_by_cpf($ids);
@@ -237,16 +239,29 @@ final class AdminPagesRuntimeOperations08
         }
         $directory = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_clinic_directory_html(
             $directoryRows,
-            (string) ($_GET["view"] ?? "all"),
+            $view,
+            $search,
             static fn(string $route, array $params = []): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params),
             static fn(mixed $value): string => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($value),
         );
+        $searchBar = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_clinic_search_html(
+            $search,
+            $view,
+            static fn(string $route, array $params = []): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route, $params),
+        );
         $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Consultórios", "") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($commercial, "admin-clinics-focus-card") .
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
+                "Consultórios",
+                "Lista global para localizar, conferir e gerenciar consultórios com rapidez.",
+            ) .
+            $commercial .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                $searchBar,
+                "patient-search-card ds-search-card admin-clinic-search-card",
+            ) .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                 $directory,
-                "admin-onboarding-card admin-clinics-list-card clinic-attention-card",
+                "patient-list-card patient-directory-card ds-filter-list-block admin-clinics-list-card clinic-attention-card",
             );
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Consultórios", $body);
     

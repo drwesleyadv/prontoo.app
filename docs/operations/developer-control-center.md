@@ -7,7 +7,7 @@ O ambiente global do Desenvolvedor é um plano de controle operacional. A interf
 ## Hierarquia
 
 1. **Visão geral** — responde somente ao estado atual e ao que precisa de intervenção.
-2. **Consultórios** — ciclo de vida e gestão, com filtros de Todos, Atenção, Onboarding, Somente leitura e Vencendo.
+2. **Consultórios** — ciclo de vida e gestão, com o mesmo padrão de diretório de Pacientes: resumo, busca rápida, filtros de Todos, Atenção, Onboarding, Somente leitura e Vencendo, lista compacta e ação principal por registro.
 3. **Confiabilidade** — exceções técnicas e acesso direto a Erros, Segurança e Integridade.
 4. **Observabilidade** — requisições, latência, falhas, gráficos e comportamento das rotas.
 5. **Administração** — hub de acesso, comunicação e auditoria; configuração e manutenção ficam progressivamente reveladas.
