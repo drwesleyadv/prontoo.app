@@ -119,6 +119,7 @@ jobs:
       - name: Reconcile release contracts
         run: |
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
       - name: Run focused gates
         run: |
