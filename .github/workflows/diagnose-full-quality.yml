@@ -1,4 +1,4 @@
-name: Diagnose full quality gate
+name: Reconcile asset revision
 
 on:
   push:
@@ -6,14 +6,18 @@ on:
       - agent/database-records-20d
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  diagnose:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
         with:
@@ -21,33 +25,49 @@ jobs:
           coverage: none
           tools: none
           extensions: mbstring
-      - name: Version asset contract
-        continue-on-error: true
-        run: php tools/version-asset-contract-check.php
-      - name: PHP 8.4 runtime contract
-        continue-on-error: true
-        run: php tools/php84-runtime-contract-check
-      - name: Superseded reference contract
-        continue-on-error: true
-        run: php tools/superseded-reference-contract-check
-      - name: Release version contract
-        continue-on-error: true
-        run: php tools/release-version
-      - name: Release reconcile contract
-        continue-on-error: true
-        run: php tools/release-contract-reconcile --check
-      - name: Documentation contract
-        continue-on-error: true
-        run: php tools/documentation-check.php
-      - name: Code comment contract
-        continue-on-error: true
-        run: php tools/code-comment-check.php
-      - name: Security regressions
-        continue-on-error: true
-        run: php tools/security-regression-check.php
-      - name: Architecture invariants
-        continue-on-error: true
-        run: php tools/architecture-check.php
-      - name: Native unit contract
-        continue-on-error: true
-        run: php tools/native-unit-check
+      - name: Bump asset revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['version.json', 'app/presentation.visual-contract.json', 'docs/index.md', 'app/prontoo.php']:
+              p = Path(name)
+              s = p.read_text()
+              if '1.8.17.12' not in s:
+                  raise SystemExit(f'asset revision source missing in {name}')
+              p.write_text(s.replace('1.8.17.12', '1.8.17.13'))
+          PY
+          for old in \
+            public/assets/app-icon-1.8.17.12.png \
+            public/assets/favicon-1.8.17.12.ico \
+            public/assets/favicon-1.8.17.12.png \
+            public/assets/pix-1.8.17.12.svg \
+            public/assets/prontoo-mark-1.8.17.12.png
+          do
+            new="${old/1.8.17.12/1.8.17.13}"
+            mv "$old" "$new"
+          done
+          rm .github/workflows/diagnose-full-quality.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+      - name: Validate canonical release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          php tools/presentation-visual-contract-check
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/release-contract-reconcile --check
+          php tools/documentation-check.php
+          php tools/quality-gate
+      - name: Commit clean asset revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Reconcilia assets da versão 1.8.17.13"
+          git push origin HEAD:agent/database-records-20d
