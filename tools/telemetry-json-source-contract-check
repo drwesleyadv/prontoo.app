@@ -43,10 +43,10 @@ $assert(
 );
 $assert(
     str_contains($admin9, 'telemetry_developer_metrics_summary()') &&
+    str_contains($admin9, 'admin_performance_card_html()') &&
     str_contains($admin9, 'page_admin_routes()') &&
-    str_contains($admin9, 'telemetry_route_performance_summary(240)') &&
-    !str_contains($admin9, 'admin_performance_card_html('),
-    'Métricas e Rotas devem permanecer em telas separadas',
+    str_contains($admin9, 'telemetry_route_performance_summary(240)'),
+    'Métricas deve preservar os gráficos e Rotas deve permanecer em tela separada',
 );
 $assert(
     !str_contains($admin3, 'admin_telemetry_kpi_cards_html(') &&
@@ -57,6 +57,17 @@ $assert(
 foreach (["Páginas", "Registros", "Landing"] as $label) {
     $assert(str_contains($presentation3, $label), 'Métricas perdeu o indicador ' . $label);
 }
+$metricsStart = strpos($presentation3, 'public static function admin_metrics_html(');
+$routesStart = strpos($presentation3, 'public static function admin_routes_html(');
+$metricsSource = $metricsStart === false || $routesStart === false || $routesStart <= $metricsStart
+    ? ''
+    : substr($presentation3, $metricsStart, $routesStart - $metricsStart);
+$metricCardsPos = strpos($metricsSource, 'admin-metrics-kpis');
+$metricChartsPos = strpos($metricsSource, '$telemetryCharts .');
+$assert(
+    $metricCardsPos !== false && $metricChartsPos > $metricCardsPos,
+    'gráficos de Velocidade e Volume devem aparecer depois dos três cards de Métricas',
+);
 $assert(
     str_contains($presentation3, 'admin_metrics_html(') &&
     str_contains($presentation3, 'admin_routes_html(') &&
@@ -140,4 +151,4 @@ foreach ([
     $assert(str_contains($speedGeometry, $token), 'gráfico de 30 dias perdeu transparência obrigatória: ' . $token);
 }
 $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'rodapé deixou de usar as séries canônicas');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder);

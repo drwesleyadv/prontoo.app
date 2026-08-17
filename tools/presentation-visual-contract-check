@@ -271,6 +271,18 @@ foreach ($developerPageHeadGroups as $parent => $expectedActions) {
 if (!str_contains($routeRegistry, "'admin_routes' =>")) {
     $failures[] = ['rule' => 'developer_routes_screen_missing'];
 }
+$metricsStart = strpos($adminClinicsPresentation, 'public static function admin_metrics_html(');
+$routesStart = strpos($adminClinicsPresentation, 'public static function admin_routes_html(');
+if ($metricsStart === false || $routesStart === false || $routesStart <= $metricsStart) {
+    $failures[] = ['rule' => 'developer_metrics_section_missing'];
+} else {
+    $metricsSource = substr($adminClinicsPresentation, $metricsStart, $routesStart - $metricsStart);
+    $metricCardsPos = strpos($metricsSource, 'admin-metrics-kpis');
+    $metricChartsPos = strpos($metricsSource, '$telemetryCharts .');
+    if ($metricCardsPos === false || $metricChartsPos === false || $metricChartsPos <= $metricCardsPos) {
+        $failures[] = ['rule' => 'developer_metrics_charts_missing_or_before_cards'];
+    }
+}
 $administrationStart = strpos($adminClinicsPresentation, 'public static function developer_administration_tools_html(');
 $administrationEnd = $administrationStart === false
     ? false

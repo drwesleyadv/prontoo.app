@@ -6,6 +6,8 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 Os cards de Métricas do Desenvolvedor usam duas janelas móveis contíguas de 10 dias. Páginas conta os carregamentos HTML concluídos, Registros soma `database_query_count` e Landing conta somente os carregamentos cuja rota canônica é `landing`. O percentual representa o período recente em relação aos 10 dias imediatamente anteriores; quando o período anterior é zero e o atual é positivo, a variação permanece indefinida.
 
+Logo abaixo desses cards, a mesma tela preserva os gráficos operacionais `Velocidade` e `Volume`, com atualização automática a cada minuto. A tabela detalhada continua exclusiva da tela Rotas.
+
 A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e duração por rota, apresenta nomes funcionais e ordena por maior quantidade de requisições e, em caso de empate, por menor tempo médio.
 
 `Velocidade` usa os 1.440 intervalos de um minuto imediatamente anteriores ao timestamp da leitura. Cada bucket contém a média daquele minuto: Rotas usa a duração média dos page loads observados e Banco de dados usa a média ponderada das consultas preparadas observadas.
