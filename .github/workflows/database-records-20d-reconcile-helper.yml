@@ -66,12 +66,20 @@ jobs:
           php tools/database-record-telemetry-contract-check
           php tools/telemetry-json-source-contract-check
           php tools/version-asset-contract-check.php
-      - name: Validate release and docs
+      - name: Validate documentation
         shell: bash
         run: |
           set -euo pipefail
           php tools/documentation-check.php
+      - name: Validate release contract
+        shell: bash
+        run: |
+          set -euo pipefail
           php tools/release-contract-reconcile --check
+      - name: Validate fast quality gate
+        shell: bash
+        run: |
+          set -euo pipefail
           php tools/quality-gate --fast
       - name: Commit reconciled change
         shell: bash
