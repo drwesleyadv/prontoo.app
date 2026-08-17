@@ -253,32 +253,12 @@ $assert(
     (int) $footerDatabaseQueries[28] === 3,
     'rodapé deve preservar os mesmos 30 valores diários de Volume',
 );
-$footerGeometry = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_volume_geometry(
-    [0, 3, 1, 4, 2],
-    [1, 2, 0, 3, 1],
-);
+$historicalWave = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_wave_path([0, 3, 1, 4, 2], 4.0);
 $assert(
-    ($footerGeometry['view_box'] ?? '') === '0 0 960 210' &&
-    abs((float) ($footerGeometry['baseline'] ?? 0) - 178.0) < 0.000001 &&
-    ($footerGeometry['page_loads'] ?? []) === [[40.0, 178.0], [266.0, 58.0], [492.0, 138.0], [718.0, 18.0], [944.0, 98.0]] &&
-    ($footerGeometry['database_queries'] ?? []) === [[40.0, 138.0], [266.0, 98.0], [492.0, 178.0], [718.0, 58.0], [944.0, 138.0]],
-    'rodapé deve reutilizar pixel a pixel a projeção lógica 960x210 e a escala conjunta de Volume',
-);
-$sharpFooterArea = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_area_path(
-    (array) $footerGeometry['page_loads'],
-    (float) $footerGeometry['baseline'],
-    0.0,
-);
-$roundedFooterArea = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_area_path(
-    (array) $footerGeometry['page_loads'],
-    (float) $footerGeometry['baseline'],
-);
-$assert(
-    $sharpFooterArea === 'M40 178 L 266 58 L 492 138 L 718 18 L 944 98 L 944 178 L 40 178 Z' &&
-    substr_count($roundedFooterArea, ' Q ') === 3 &&
-    str_contains($roundedFooterArea, 'L 944 178 L 40 178 Z') &&
-    !str_contains($roundedFooterArea, ' C '),
-    'rodapé deve preservar as encostas de Volume e arredondar somente uma vizinhança curta de picos e vales',
+    substr_count($historicalWave, ' C ') === 4 &&
+    !str_contains($historicalWave, ' Q ') &&
+    str_ends_with($historicalWave, ' L 1000 250 L 0 250 Z'),
+    'rodapé deve preservar a curva cúbica contínua e o fechamento inferior da identidade histórica',
 );
 $publicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountains_html(
     ['page_loads' => [0, 3, 1, 4, 2], 'database_queries' => [1, 2, 0, 3, 1]],
@@ -293,21 +273,18 @@ $clinicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentati
     '#445566',
 );
 $assert(
-    str_contains($publicMountains, 'viewBox="0 0 960 210"') &&
-    str_contains($publicMountains, 'fill="#1f6f56"') &&
-    str_contains($publicMountains, 'fill="#347963"') &&
-    substr_count($publicMountains, 'opacity="0.5"') === 2 &&
-    substr_count($publicMountains, 'stroke="none"') === 2 &&
+    str_contains($publicMountains, 'viewBox="0 0 1000 250"') &&
+    str_contains($publicMountains, 'class="footer-telemetry-wave-path is-page-loads" fill="#347963"') &&
+    str_contains($publicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#1f6f56"') &&
     str_contains($publicMountains, 'data-footer-telemetry-lines-ready="1"') &&
     !str_contains($publicMountains, 'data-refresh-url='),
-    'áreas públicas do rodapé devem repetir os preenchimentos e tons de Volume',
+    'áreas públicas devem restaurar a identidade visual histórica sem reabrir refresh público',
 );
 $assert(
-    str_contains($clinicMountains, 'fill="#112233"') &&
-    str_contains($clinicMountains, 'fill="#445566"') &&
-    substr_count($clinicMountains, 'opacity="0.5"') === 2 &&
-    substr_count($clinicMountains, 'stroke="none"') === 2,
-    'áreas autenticadas devem usar as cores de destaque sem alterar a opacidade de Volume',
+    str_contains($clinicMountains, 'class="footer-telemetry-wave-path is-page-loads" fill="#445566"') &&
+    str_contains($clinicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#112233"') &&
+    str_contains($clinicMountains, 'data-footer-telemetry-lines-ready="1"'),
+    'áreas autenticadas devem preservar a ordem histórica principal/forte com as cores do consultório',
 );
 $assert(
     str_contains($uiRuntime, 'footer_telemetry_mountains_html(') &&
@@ -388,9 +365,16 @@ $footerCss = $footerCssStart === false || $footerCssEnd === false
     : substr($css, $footerCssStart, $footerCssEnd - $footerCssStart + 1);
 $assert(
     $footerCss !== '' &&
-    !str_contains($footerCss, 'mask-image:linear-gradient') &&
-    str_contains($footerCss, 'max-height:210px'),
-    'rodapé não pode aplicar fade nem limitar a geometria abaixo da altura lógica de Volume',
+    str_contains($footerCss, '-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%)') &&
+    str_contains($footerCss, 'mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%)') &&
+    str_contains($footerCss, 'height:15vh') &&
+    str_contains($footerCss, 'min-height:64px') &&
+    str_contains($footerCss, 'max-height:180px'),
+    'rodapé deve preservar altura e máscara da identidade histórica anterior à supressão do Status público',
+);
+$assert(
+    str_contains($css, 'body.has-telemetry-mountains .footer-telemetry-wave-path{stroke:none;opacity:.5}'),
+    'rodapé deve preservar áreas sem stroke e opacidade histórica 0.5',
 );
 $assert(in_array('footer_telemetry_wave', \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true), 'rota decorativa não pode retroalimentar a telemetria');
 unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);

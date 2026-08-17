@@ -1,12 +1,10 @@
 # Versão canônica
 
-## 1.8.17.11 — Rodapé com geometria do Volume
+## 1.8.17.12 — Identidade histórica das ondas de telemetria
 
-- reutiliza no rodapé a projeção canônica 960 por 210 do gráfico Volume, inclusive escala conjunta e paddings.
-- preserva os mesmos 30 pontos e a mesma ordem de Carregamento de Páginas e Consulta.
-- renderiza duas áreas inferiores preenchidas, sem contornos e sem pontos terminais, como Volume.
-- arredonda somente uma vizinhança horizontal curta de cada pico e vale, mantendo as encostas originais fora dos cantos.
-- usa nas áreas públicas #1f6f56 e #347963 com opacidade 0.5 e nas áreas autenticadas as cores de destaque do consultório com a mesma opacidade.
-- remove o fade do rodapé para não alterar os tons do gráfico.
-- torna o renderer de servidor canônico e elimina o redesenho e o refresh de geometria pelo cliente.
+- mantém os mesmos 30 pontos diários de Carregamento de Páginas e Consulta usados por Volume.
+- restaura o renderer histórico em SVG 1000×250 com curvas Bézier cúbicas contínuas e fechamento inferior.
+- restaura altura de 15vh limitada a 64–180px, opacidade 0.5 e máscara vertical até 34%.
+- restaura a ordem visual histórica: Carregamento de Páginas no tom principal e Consulta no tom forte.
+- mantém o renderer no servidor, sem serializar contagens públicas nem reabrir o Status ou rotas públicas de telemetria.
 - não altera schema nem banco de dados.

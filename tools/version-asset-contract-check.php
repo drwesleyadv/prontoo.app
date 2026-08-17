@@ -75,18 +75,15 @@ foreach ([
     }
 }
 foreach ([
-    'footer_telemetry_volume_geometry(',
-    'footer_telemetry_mountain_area_path(',
-    ' Q ',
-    '$public ? "#1f6f56"',
+    'footer_telemetry_wave_path(',
+    ' C ',
     '$public ? "#347963"',
-    '$opacity = "0.5";',
-    'viewBox="0 0 960 210"',
-    'stroke="none"',
+    '$public ? "#1f6f56"',
+    'viewBox="0 0 1000 250"',
     'data-footer-telemetry-lines-ready="1"',
 ] as $required) {
     if (!str_contains($footerPresentation, $required)) {
-        throw new RuntimeException('Contrato visual seguro do rodapé ausente: ' . $required);
+        throw new RuntimeException('Contrato visual histórico seguro do rodapé ausente: ' . $required);
     }
 }
 if (str_contains($footerPresentation, 'data-refresh-url=') || str_contains($footerPresentation, 'json_encode(')) {
@@ -142,7 +139,7 @@ echo json_encode([
     'ok' => true,
     'asset_version' => $assetRevision,
     'public_telemetry' => false,
-    'public_telemetry_geometry' => 'volume_plot_projection_filled_areas_only',
+    'public_telemetry_geometry' => 'historical_cubic_wave_normalized_path_only',
     'public_status_signal' => false,
     'public_login_autotest_signal' => false,
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
