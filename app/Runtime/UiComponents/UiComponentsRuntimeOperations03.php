@@ -203,9 +203,6 @@ final class UiComponentsRuntimeOperations03
     
         $current = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
         $params = $_GET;
-        if ($current === "admin_painel") {
-            return "space_dashboard";
-        }
         if (is_callable([\Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations02::class, 'prontoo_icon_for_route_label'])) {
             if (
                 str_starts_with($current, "admin_") &&

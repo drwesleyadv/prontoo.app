@@ -99,7 +99,7 @@ final class Runner
                     ], 503);
                     return;
                 }
-                RuntimeModuleComposition::loader()->loadRouteModules('admin_painel');
+                RuntimeModuleComposition::loader()->loadRouteModules('admin_performance');
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::page_maintenance_notice();
                 return;
             }

@@ -190,8 +190,8 @@ final class UiComponentsPresentationOperations01
             return $route;
         }
         $map = [
-            "admin_stats" => "admin_painel",
-            "admin_operations" => "admin_painel",
+            "admin_stats" => "admin_clinics",
+            "admin_operations" => "admin_clinics",
             "admin_onboarding" => "admin_clinics",
             "admin_users" => "admin_clinics",
             "admin_people" => "admin_clinics",
@@ -248,8 +248,8 @@ final class UiComponentsPresentationOperations01
                 return \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_nav_parent($route);
             }
             $map = [
-                "admin_stats" => "admin_painel",
-                "admin_operations" => "admin_painel",
+                "admin_stats" => "admin_clinics",
+                "admin_operations" => "admin_clinics",
                 "admin_onboarding" => "admin_clinics",
                 "admin_users" => "admin_clinics",
                 "admin_people" => "admin_clinics",

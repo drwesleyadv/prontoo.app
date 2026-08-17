@@ -26,151 +26,126 @@ final class AdminPagesRuntimeOperations06
     {
     }
 
-    public static function page_admin_painel(): void
-    
+    public static function admin_subscription_payment_review_handle(
+        string $act,
+        Closure $redirectAfterClinicAction,
+    ): void
     {
-    
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
-        if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
-            $act = (string) ($_POST["act"] ?? "");
-            if (
-                in_array(
-                    $act,
-                    ["confirm_subscription_payment", "reject_subscription_payment"],
-                    true,
-                )
-            ) {
-                $pid = (int) ($_POST["payment_id"] ?? 0);
-                $p =
-                    $pid > 0
-                        ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.06.page_admin_painel.02', [$pid], [])
-                        : null;
-                if (!$p) {
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                        "Pedido de assinatura não encontrado ou já analisado.",
-                        "bad",
-                    );
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
-                }
-                $adminId = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx()["user"]["id"] ?? 0);
-                $cid = (int) $p["clinic_id"];
-                $hadProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
-                if ($act === "confirm_subscription_payment") {
-                    $reviewNote = $hadProof
-                        ? "Comprovante aprovado."
-                        : "Recebimento confirmado.";
-                    if ($hadProof) {
-                        \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_delete_proof(
-                            (string) $p["proof_path"],
-                        );
-                    }
-                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.03', [$adminId, $reviewNote, $pid, $cid], []);
-                    \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.04', [$p["applied_until"] ?: null, $cid], []);
-                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                        $hadProof
-                            ? "assinatura_comprovante_aprovado"
-                            : "assinatura_pagamento_confirmado",
-                        "assinatura",
-                        $cid,
-                        [
-                            "pagamento_id" => $pid,
-                            "audit_body" => $hadProof
-                                ? "Desenvolvedor aprovou o comprovante enviado. A assinatura foi ativada de forma definitiva."
-                                : "Desenvolvedor confirmou o pagamento informado. A assinatura foi ativada de forma definitiva.",
-                        ],
-                    );
-                    if ($hadProof) {
-                        \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                            "assinatura_comprovante_excluido",
-                            "assinatura",
-                            $cid,
-                            [
-                                "pagamento_id" => $pid,
-                                "audit_body" =>
-                                    "Após a aprovação, o comprovante enviado foi excluído dos registros operacionais da assinatura.",
-                            ],
-                        );
-                    }
-                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
-                        $hadProof
-                            ? "Comprovante aprovado. A assinatura foi ativada de forma definitiva."
-                            : "Pagamento confirmado. A assinatura foi ativada de forma definitiva.",
-                    );
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
-                }
-                $reviewNote = $hadProof
-                    ? "Comprovante recusado."
-                    : "Recebimento não confirmado.";
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.05', [$adminId, $reviewNote, $pid, $cid], []);
-                $trustBlockedUntil = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
-                    "2099-12-31 23:59:59",
+        if (
+            in_array(
+                $act,
+                ["confirm_subscription_payment", "reject_subscription_payment"],
+                true,
+            )
+        ) {
+            $paymentId = (int) ($_POST["payment_id"] ?? 0);
+            $payment =
+                $paymentId > 0
+                    ? \Prontoo\Runtime\Operational\OperationalComposition::administration()->row('operational.admin_pages.08.page_admin_clinics.11', [$paymentId], [])
+                    : null;
+            if (!$payment) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    "Pedido de assinatura não encontrado ou já analisado.",
+                    "bad",
                 );
-                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.06', [$trustBlockedUntil, $cid], []);
-                \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations02::clinic_subscription_rejected_notice($cid, $hadProof);
+                $redirectAfterClinicAction();
+            }
+            $adminId = (int) (\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::ctx()["user"]["id"] ?? 0);
+            $clinicId = (int) $payment["clinic_id"];
+            $hadProof = mb_trim((string) ($payment["proof_path"] ?? "")) !== "";
+            if ($act === "confirm_subscription_payment") {
+                $reviewNote = $hadProof ? "Comprovante aprovado." : "Recebimento confirmado.";
+                if ($hadProof) {
+                    \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_delete_proof(
+                        (string) $payment["proof_path"],
+                    );
+                }
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.12', [$adminId, $reviewNote, $paymentId, $clinicId], []);
+                \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.13', [$payment["applied_until"] ?: null, $clinicId], []);
+                if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
+                    \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
+                }
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
-                    $hadProof
-                        ? "assinatura_comprovante_recusado"
-                        : "assinatura_pagamento_nao_confirmado",
+                    $hadProof ? "assinatura_comprovante_aprovado" : "assinatura_pagamento_confirmado",
                     "assinatura",
-                    $cid,
+                    $clinicId,
                     [
-                        "pagamento_id" => $pid,
+                        "pagamento_id" => $paymentId,
                         "audit_body" => $hadProof
-                            ? "Desenvolvedor recusou o comprovante enviado. Consultório retornou para Somente Leitura e poderá enviar novo comprovante."
-                            : "Desenvolvedor recusou o pagamento informado. Consultório retornou para Somente Leitura e exigirá comprovante.",
+                            ? "Desenvolvedor aprovou o comprovante enviado. A assinatura foi ativada de forma definitiva."
+                            : "Desenvolvedor confirmou o pagamento informado. A assinatura foi ativada de forma definitiva.",
                     ],
                 );
+                if ($hadProof) {
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                        "assinatura_comprovante_excluido",
+                        "assinatura",
+                        $clinicId,
+                        [
+                            "pagamento_id" => $paymentId,
+                            "audit_body" => "Após a aprovação, o comprovante enviado foi excluído dos registros operacionais da assinatura.",
+                        ],
+                    );
+                }
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $hadProof
-                        ? "Comprovante recusado. O consultório voltou para Somente Leitura e poderá enviar novo comprovante."
-                        : "Pagamento recusado. O consultório voltou para Somente Leitura e a clínica recebeu aviso.",
+                        ? "Comprovante aprovado. A assinatura foi ativada de forma definitiva."
+                        : "Pagamento confirmado. A assinatura foi ativada de forma definitiva.",
                 );
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+                $redirectAfterClinicAction();
             }
+            $reviewNote = $hadProof ? "Comprovante recusado." : "Recebimento não confirmado.";
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.14', [$adminId, $reviewNote, $paymentId, $clinicId], []);
+            $trustBlockedUntil = \Prontoo\Infrastructure\SupportFoundation\SupportFoundationInfrastructureOperations01::app_storage_timestamp(
+                "2099-12-31 23:59:59",
+            );
+            \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.15', [$trustBlockedUntil, $clinicId], []);
+            if (class_exists("\Prontoo\Core\Tenant\TenantRegistry")) {
+                \Prontoo\Core\Tenant\TenantRegistry::resetModelClinicCache();
+            }
+            \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations02::clinic_subscription_rejected_notice($clinicId, $hadProof);
+            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                $hadProof ? "assinatura_comprovante_recusado" : "assinatura_pagamento_nao_confirmado",
+                "assinatura",
+                $clinicId,
+                [
+                    "pagamento_id" => $paymentId,
+                    "audit_body" => $hadProof
+                        ? "Desenvolvedor recusou o comprovante enviado. Consultório retornou para Somente Leitura e poderá enviar novo comprovante."
+                        : "Desenvolvedor recusou o pagamento informado. Consultório retornou para Somente Leitura e exigirá comprovante.",
+                ],
+            );
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                $hadProof
+                    ? "Comprovante recusado. O consultório voltou para Somente Leitura e poderá enviar novo comprovante."
+                    : "Pagamento recusado. O consultório voltou para Somente Leitura e a clínica recebeu aviso.",
+            );
+            $redirectAfterClinicAction();
         }
-        $qInt = function (string $query, array $p = [], array $context = []): int {
-    
-            return (int) \Prontoo\Runtime\Operational\OperationalComposition::administration()->safeScalar('operational.admin_pages.06.page_admin_painel.07', $p, 0, ['query' => $query] + $context);
-        };
-        $readOnly = $qInt('read.admin_pages.06.page_admin_painel.01');
-        $locks = $qInt('read.admin_pages.06.page_admin_painel.04', [], []);
-        $openErrors = $qInt('read.admin_pages.06.page_admin_painel.05', [], []);
-        $errors24h = $qInt('read.admin_pages.06.page_admin_painel.06', [], []);
-        $scopeStats24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_stats(24);
-        $scopeViolations24h = (int) $scopeStats24h["actionable"];
-        $health = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_health_snapshot([
-            "open_errors" => $openErrors,
-            "login_locks" => $locks,
-            "scope_alerts_24h" => $scopeViolations24h,
-        ]);
-        $checks = (array) ($health["checks"] ?? []);
-        $actions = [];
+    }
+
+    public static function admin_subscription_payment_reviews_html(): string
+    {
+        $paymentReviewActions = [];
         try {
-            $pending = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.06.page_admin_painel.08', [], [])->fetchAll();
-            foreach ($pending as $p) {
-                $hasProof = mb_trim((string) ($p["proof_path"] ?? "")) !== "";
-                $hadRejected = (int) ($p["rejected_count"] ?? 0) > 0;
+            $pendingPayments = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.16', [], [])->fetchAll();
+            foreach ($pendingPayments as $payment) {
                 $holder =
-                    (int) $p["account_self"] === 1
+                    (int) $payment["account_self"] === 1
                         ? "Conta própria"
-                        : "Titular: " .
-                            ($p["account_holder_name"] ?: "não informado");
-                $view = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_payment_proof_view_link($p);
-                $isProofReview = \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::subscription_payment_is_proof_review($p);
-                $confirmLabel = $isProofReview
-                    ? "Aprovar comprovante"
-                    : "Confirmar pagamento";
+                        : "Titular: " . ($payment["account_holder_name"] ?: "não informado");
+                $viewLink = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::subscription_payment_proof_view_link($payment);
+                $isProofReview = \Prontoo\Domain\SubscriptionSettings\SubscriptionSettingsDomainOperations01::subscription_payment_is_proof_review($payment);
+                $confirmLabel = $isProofReview ? "Aprovar comprovante" : "Confirmar pagamento";
                 $confirmIcon = $isProofReview ? "verified" : "check_circle";
                 $rejectLabel = $isProofReview ? "Recusar comprovante" : "Recusar";
-                $rejectQuestion = $isProofReview
-                    ? "Recusar este comprovante?"
-                    : "Recusar este pagamento informado?";
+                $rejectQuestion = $isProofReview ? "Recusar este comprovante?" : "Recusar este pagamento informado?";
                 $forms =
-                    $view .
+                    $viewLink .
                     '<form method="post" class="inline">' .
                     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="confirm_subscription_payment"><input type="hidden" name="payment_id" value="' .
-                    (int) $p["id"] .
+                    (int) $payment["id"] .
                     '"><button class="primary small" type="submit">' .
                     \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($confirmLabel, $confirmIcon) .
                     '</button></form><form method="post" class="inline" onsubmit="return confirm(&quot;' .
@@ -178,144 +153,43 @@ final class AdminPagesRuntimeOperations06
                     '&quot;)">' .
                     \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                     '<input type="hidden" name="act" value="reject_subscription_payment"><input type="hidden" name="payment_id" value="' .
-                    (int) $p["id"] .
+                    (int) $payment["id"] .
                     '"><button class="danger small" type="submit">' .
                     \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($rejectLabel, "block") .
                     "</button></form>";
-                if ($isProofReview) {
-                    $actions[] = [
-                        "icon" => "upload_file",
-                        "time" => "Assinatura",
-                        "title" =>
-                            "Visualizar e aprovar comprovante de " .
-                            ($p["display_name"] ?? "consultório"),
-                        "body" =>
-                            "O consultório enviou comprovante após um pagamento recusado. Abra o arquivo antes de aprovar ou recusar. Valor informado: " .
-                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $p["amount_cents"]) .
-                            " · " .
-                            $holder,
-                        "meta" =>
-                            "Ao aprovar, a assinatura fica ativa de forma definitiva. Ao recusar, o consultório volta para Somente Leitura.",
-                        "html" => $forms,
-                        "class" => "subscription-action proof-review",
-                    ];
-                } else {
-                    $actions[] = [
-                        "icon" => "payments",
-                        "time" => "Assinatura",
-                        "title" =>
-                            "Confirmar pagamento informado por " .
-                            ($p["display_name"] ?? "consultório"),
-                        "body" =>
-                            "Valor informado: " .
-                            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $p["amount_cents"]) .
-                            " · " .
-                            $holder,
-                        "meta" =>
-                            "Ao confirmar, a assinatura fica ativa de forma definitiva. Ao recusar, o consultório volta para Somente Leitura e deverá enviar comprovante.",
-                        "html" => $forms,
-                        "class" => "subscription-action",
-                    ];
-                }
+                $paymentReviewActions[] = [
+                    "icon" => $isProofReview ? "upload_file" : "payments",
+                    "time" => "Assinatura",
+                    "title" =>
+                        ($isProofReview ? "Visualizar e aprovar comprovante de " : "Confirmar pagamento informado por ") .
+                        ($payment["display_name"] ?? "consultório"),
+                    "body" =>
+                        ($isProofReview
+                            ? "O consultório enviou comprovante após um pagamento recusado. Abra o arquivo antes de aprovar ou recusar. Valor informado: "
+                            : "Valor informado: ") .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::money_br((int) $payment["amount_cents"]) .
+                        " · " .
+                        $holder,
+                    "meta" => $isProofReview
+                        ? "Ao aprovar, a assinatura fica ativa de forma definitiva. Ao recusar, o consultório volta para Somente Leitura."
+                        : "Ao confirmar, a assinatura fica ativa de forma definitiva. Ao recusar, o consultório volta para Somente Leitura e deverá enviar comprovante.",
+                    "html" => $forms,
+                    "class" => $isProofReview ? "subscription-action proof-review" : "subscription-action",
+                ];
             }
         } catch (Throwable $e) {
-            error_log(
-                "[Prontoo pending subscription payments] " . $e->getMessage(),
-            );
+            error_log("[Prontoo pending subscription payments] " . $e->getMessage());
         }
-        $scopeLogicOk = !empty(($checks["scope_guard_logic"] ?? [])["ok"]);
-        $scopeContextOk = !empty(($checks["scope_guard_context"] ?? [])["ok"]);
-        foreach (\Prontoo\Domain\Health\HealthEvidencePolicy::structuralActions($health) as $healthAction) {
-            $actions[] = $healthAction;
-        }
-        if ($openErrors > 0) {
-            $actions[] = [
-                "icon" => "bug_report",
-                "time" => "Erros",
-                "title" => $openErrors . " erro(s) aberto(s)",
-                "body" => "Há eventos técnicos sem resolução registrada.",
-                "meta" => $errors24h . " nas últimas 24h.",
-            ];
-        }
-        if ($locks > 0) {
-            $actions[] = [
-                "icon" => "lock_clock",
-                "time" => "Segurança",
-                "title" => $locks . " bloqueio(s) de login ativo(s)",
-                "body" =>
-                    "Confirme se são usuários reais com dificuldade ou tentativa indevida.",
-                "meta" => "O bloqueio automático permanece ativo no servidor.",
-            ];
-        }
-        if ($scopeViolations24h > 0 && $scopeLogicOk && $scopeContextOk) {
-            $patterns = max(1, (int) ($scopeStats24h["patterns"] ?? 0));
-            $objective = (int) ($scopeStats24h["objective"] ?? 0);
-            $review = (int) ($scopeStats24h["review"] ?? 0);
-            $actions[] = [
-                "icon" => "policy",
-                "time" => "Isolamento",
-                "title" =>
-                    $patterns .
-                    " padrão(ões) de escopo bloqueado(s) nas últimas 24h",
-                "body" =>
-                    "As " .
-                    $scopeViolations24h .
-                    " ocorrência(s) foram interrompidas antes da execução SQL. " .
-                    $objective .
-                    " têm causa estrutural demonstrável e " .
-                    $review .
-                    " exigem revisão porque a prova lógica foi insuficiente.",
-                "meta" =>
-                    "O agrupamento por fingerprint reduz duplicidade; esta contagem não confirma acesso cruzado.",
-                "class" => "scope-recommended-action",
-            ];
-        }
-        if ($readOnly > 0) {
-            $actions[] = [
-                "icon" => "payments",
-                "time" => "Assinaturas",
-                "title" =>
-                    $readOnly . " consultório(s) em somente leitura ou vencido(s)",
-                "body" =>
-                    "O acesso operacional pode estar limitado por assinatura.",
-                "meta" => "Impacta agenda, financeiro e rotina dos consultórios.",
-            ];
-        }
-
-        foreach ($actions as &$action) {
-            if (!empty($action["html"])) {
-                continue;
-            }
-            $targetRoute = mb_trim((string) ($action["route"] ?? ""));
-            if ($targetRoute === "" && (string) ($action["time"] ?? "") === "Assinaturas") {
-                $targetRoute = "admin_clinics";
-            }
-            if ($targetRoute !== "") {
-                $action["html"] =
-                    '<a class="ghost small" href="' .
-                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($targetRoute) .
-                    '">' .
-                    \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Abrir", "arrow_forward") .
-                    "</a>";
-            }
-        }
-        unset($action);
-
-        $overview = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_overview_html(
-            [
-                "actions" => $actions,
-                "health" => $health,
-            ],
-            static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
-            static fn(string $label, string $icon): string => \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label($label, $icon),
-        );
-        $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Visão geral", "") .
-            $overview;
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Visão geral · Desenvolvedor", $body);
-    
+        $paymentReviews =
+            $paymentReviewActions === []
+                ? ""
+                : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                    '<div class="section-head"><div><h2>Pagamentos aguardando análise</h2><p>Confirme ou recuse as solicitações enviadas pelos consultórios.</p></div></div>' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($paymentReviewActions),
+                    "developer-actions-card admin-clinic-payment-reviews",
+                );
+        return $paymentReviews;
     }
-
 
     public static function page_admin_administration(): void
 

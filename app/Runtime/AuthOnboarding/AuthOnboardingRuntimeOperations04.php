@@ -113,7 +113,7 @@ final class AuthOnboardingRuntimeOperations04
         if ($currentCtx) {
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect(
                 ($currentCtx["scope"] ?? "") === "global"
-                    ? "admin_painel"
+                    ? "admin_performance"
                     : "painel",
             );
         }

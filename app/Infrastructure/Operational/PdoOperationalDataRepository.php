@@ -15,7 +15,6 @@ use RuntimeException;
 final class PdoOperationalDataRepository implements OperationalDataPort, OperationalSchemaPort, OperationalDatabaseContextPort
 {
     private const CATALOGS = [
-        'admin_pages.01' => AdminPagesSqlCatalog01::class,
         'admin_pages.02' => AdminPagesSqlCatalog02::class,
         'admin_pages.06' => AdminPagesSqlCatalog06::class,
         'admin_pages.07' => AdminPagesSqlCatalog07::class,

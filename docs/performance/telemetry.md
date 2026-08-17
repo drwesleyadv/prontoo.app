@@ -6,7 +6,7 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 `Velocidade` usa os 1.440 intervalos de um minuto imediatamente anteriores ao timestamp da leitura. Cada bucket contém a média daquele minuto: Rotas usa a duração média dos page loads observados e Banco de dados usa a média ponderada das consultas preparadas observadas.
 
-`Volume` usa os 30 intervalos móveis de 24 horas imediatamente anteriores ao mesmo timestamp. Cada bucket contém totais: verde escuro para carregamentos de página e verde claro para consultas ao banco. Status e Painel do Desenvolvedor compartilham exatamente estas séries e atualizam a cada 60 segundos enquanto a página está visível.
+`Volume` usa os 30 intervalos móveis de 24 horas imediatamente anteriores ao mesmo timestamp. Cada bucket contém totais: verde escuro para carregamentos de página e verde claro para consultas ao banco. Status e Métricas do Desenvolvedor compartilham exatamente estas séries e atualizam a cada 60 segundos enquanto a página está visível.
 
 As duas séries são áreas sem contorno. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente. Ausência de instrumentação de consultas permanece sem amostra e não é convertida em zero.
 

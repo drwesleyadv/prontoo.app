@@ -19,15 +19,6 @@ final class OperationalDynamicSqlCatalog
         $modelScopedWhere = $scopeModelWhere;
         $modelClinicWhere = ModelClinicQuerySql::exclude('id');
         return match ($queryId) {
-            'read.admin_pages.01.platform_backend_selftest.01' => (
-                "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL"
-            ),
-            'read.admin_pages.01.platform_backend_selftest.02' => (
-                "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()"
-            ),
-            'read.admin_pages.01.platform_backend_selftest.03' => (
-                "SELECT COUNT(*) FROM pi_scope_violations WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR) AND violation_key<>'write_in_read_only' $scopeModelWhere"
-            ),
             'read.admin_pages.02.admin_global_ops_finance_html.01' => (
                 "SELECT COUNT(DISTINCT clinic_id) FROM pi_audit WHERE clinic_id IS NOT NULL AND created_at>=$since $modelScopedWhere"
             ),
@@ -86,24 +77,6 @@ final class OperationalDynamicSqlCatalog
             ),
             'read.admin_pages.02.admin_global_ops_finance_html.19' => (
                 "SELECT COALESCE(SUM(amount_cents),0) FROM pi_financial_expenses WHERE status='paga' AND paid_at>=$since $modelScopedWhere"
-            ),
-            'read.admin_pages.06.page_admin_painel.01' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND (subscription_status='read_only' OR (paid_until IS NOT NULL AND paid_until<CURDATE())) $modelClinicWhere"
-            ),
-            'read.admin_pages.06.page_admin_painel.02' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND subscription_status='trial' AND trial_ends_at IS NOT NULL AND trial_ends_at>=NOW() AND trial_ends_at<DATE_ADD(NOW(), INTERVAL 7 DAY) $modelClinicWhere"
-            ),
-            'read.admin_pages.06.page_admin_painel.03' => (
-                "SELECT COUNT(*) FROM pi_clinics WHERE active=1 AND onboarding_done=0 $modelClinicWhere"
-            ),
-            'read.admin_pages.06.page_admin_painel.04' => (
-                "SELECT COUNT(*) FROM pi_login_locks WHERE locked_until>NOW()"
-            ),
-            'read.admin_pages.06.page_admin_painel.05' => (
-                "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL"
-            ),
-            'read.admin_pages.06.page_admin_painel.06' => (
-                "SELECT COUNT(*) FROM pi_error_events WHERE created_at>=DATE_SUB(NOW(), INTERVAL 24 HOUR)"
             ),
             'read.clinic_config.01.open_incidents_count.01' => (
                 "SELECT COUNT(*) FROM pi_error_events WHERE resolved_at IS NULL"

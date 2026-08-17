@@ -1,11 +1,11 @@
 {
-    "version": "1.8.17.2",
-    "release": "1.8.17.2",
-    "generated_at_unix": 1786971189,
-    "generated_at": "2026-08-17T08:53:09-04:00",
-    "updated_at": "2026-08-17T08:53:09-04:00",
-    "build": "1.8.17.2-developer-reliability-removal",
-    "asset_version": "1.8.17.2",
+    "version": "1.8.17.3",
+    "release": "1.8.17.3",
+    "generated_at_unix": 1786973219,
+    "generated_at": "2026-08-17T09:26:59-04:00",
+    "updated_at": "2026-08-17T09:26:59-04:00",
+    "build": "1.8.17.3-developer-metrics-entrypoint",
+    "asset_version": "1.8.17.3",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
@@ -13,7 +13,7 @@
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": true,
-    "functional_equivalence_policy": "developer_reliability_surface_removal_without_schema_change",
+    "functional_equivalence_policy": "developer_metrics_entrypoint_without_background_health_analysis_or_schema_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Simplifica o perfil do Desenvolvedor removendo Confiabilidade e suas telas, rotas, ações e consultas exclusivas, sem alterar schema nem os mecanismos internos de proteção da plataforma.",
+    "notes": "Suprime a Visão geral do Desenvolvedor e suas análises de fundo, define Métricas como entrada e preserva em Consultórios a revisão de pagamentos, sem alteração de schema.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.17.2-developer-reliability-removal",
-    "deployment_sync_requested_at": "2026-08-17T08:53:09-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.17.3-developer-metrics-entrypoint",
+    "deployment_sync_requested_at": "2026-08-17T09:26:59-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -84,13 +84,13 @@
         ]
     },
     "changelog": {
-        "title": "Simplificação do perfil do Desenvolvedor",
+        "title": "Métricas como entrada do Desenvolvedor",
         "items": [
-            "remove Confiabilidade da navegação global do Desenvolvedor",
-            "suprime as rotas de Erros, Diagnóstico, Integridade, Segurança e Recuperação",
-            "remove as ações exclusivas de resolver incidente, liberar bloqueio e restaurar registros",
-            "preserva no servidor o snapshot de saúde e as proteções compartilhadas exibidas na Visão geral",
-            "elimina consultas e catálogos exclusivos e adiciona contrato anti-regressão para as rotas removidas"
+            "remove a Visão geral e a rota admin_painel do ambiente do Desenvolvedor",
+            "define Métricas como tela inicial e ordena Métricas, Consultórios e Administração na navegação",
+            "renomeia Observabilidade para Métricas em toda a superfície ativa",
+            "remove snapshot, histórico de evidências e canário das análises de fundo de confiabilidade e integridade",
+            "move a revisão de pagamentos e comprovantes para Consultórios e preserva os mecanismos operacionais de proteção"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -105,5 +105,5 @@
     "presentation_visual_policy": "presentation-visual-contract-v1",
     "presentation_visual_contract": "app/presentation.visual-contract.json",
     "presentation_visual_check": "tools/presentation-visual-contract-check",
-    "presentation_visual_reference_sha": "da597d5af26eae90b66b5a473150ce619310e527"
+    "presentation_visual_reference_sha": "c6ca94cdaecb50f4fef6b13ff83ee86d88bfa6a7"
 }

@@ -189,16 +189,17 @@ $scenarios = [
             ['role' => 'gerente', 'search' => false, 'docLimit' => 10],
         )->fetchAll();
     },
-    'developer_dashboard_read' => static function () use ($operational): void {
-        foreach (range(1, 6) as $suffix) {
+    'developer_clinics_read' => static function () use ($operational): void {
+        foreach (range(6, 9) as $suffix) {
             $operational['administration']->scalar(
-                'operational.admin_pages.06.page_admin_painel.07',
-                [],
-                ['query' => sprintf('read.admin_pages.06.page_admin_painel.%02d', $suffix)],
+                sprintf('operational.admin_pages.08.page_admin_clinics.%02d', $suffix),
             );
         }
         $operational['administration']->result(
-            'operational.admin_pages.06.page_admin_painel.08',
+            'operational.admin_pages.08.page_admin_clinics.10',
+        )->fetchAll();
+        $operational['administration']->result(
+            'operational.admin_pages.08.page_admin_clinics.16',
         )->fetchAll();
     },
     'login_readiness_read' => static function () use ($identity): void {

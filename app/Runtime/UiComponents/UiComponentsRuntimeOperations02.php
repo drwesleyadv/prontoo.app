@@ -148,7 +148,7 @@ final class UiComponentsRuntimeOperations02
             '<a class="brand" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 $c && ($c["scope"] ?? "") === "global"
-                    ? "admin_painel"
+                    ? "admin_performance"
                     : "appointments",
             ) .
             '" aria-label="' .

@@ -27,19 +27,14 @@ final class SubscriptionSettingsRuntimeOperations01
     }
 
     public static function default_monthly_price_cents(): int
-    
     {
-    
         $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
         $c = (int) $v;
         return $c > 0 ? $c : PRONTOO_MONTHLY_PRICE_CENTS;
-    
     }
 
     public static function default_trial_days(): int
-    
     {
-    
         $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
         $days = (int) $v;
         $policyRevision = "trial_30_days_2026_07_14";
@@ -62,16 +57,12 @@ final class SubscriptionSettingsRuntimeOperations01
             return PRONTOO_TRIAL_DAYS;
         }
         return $days;
-    
     }
 
     public static function subscription_pix_key(): string
-    
     {
-    
         $key = mb_trim((string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("subscription_pix_key", "pix@prontoo.app"));
         return $key !== "" ? $key : "pix@prontoo.app";
-    
     }
 
     public static function subscription_time_ts(
@@ -437,7 +428,7 @@ final class SubscriptionSettingsRuntimeOperations01
     
     {
     
-        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_painel");
+        \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_clinics");
         $pid = (int) ($_GET["payment_id"] ?? 0);
         $p =
             $pid > 0
@@ -445,12 +436,12 @@ final class SubscriptionSettingsRuntimeOperations01
                 : null;
         if (!$p || mb_trim((string) ($p["proof_path"] ?? "")) === "") {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Comprovante não encontrado para este pagamento.", "bad");
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
         }
         $full = \Prontoo\Infrastructure\SubscriptionSettings\SubscriptionSettingsInfrastructureOperations01::subscription_payment_proof_absolute_path((string) $p["proof_path"]);
         if ($full === null || !is_file($full)) {
             \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("O arquivo do comprovante não está mais disponível.", "bad");
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_painel");
+            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_clinics");
         }
         \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
             "assinatura_comprovante_visualizado",
