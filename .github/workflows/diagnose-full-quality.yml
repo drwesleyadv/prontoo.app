@@ -101,11 +101,12 @@ jobs:
           rm .github/workflows/diagnose-full-quality.yml
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
+          git add -A
       - name: Validate canonical release
         shell: bash
         run: |
           set -euo pipefail
-          git diff --check
+          git diff --check --cached
           php tools/presentation-css-build --check
           php tools/presentation-visual-contract-check
           php tools/version-asset-contract-check.php
@@ -121,6 +122,5 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
           git commit -m "Reconcilia assets da versão 1.8.17.13"
           git push origin HEAD:agent/database-records-20d
