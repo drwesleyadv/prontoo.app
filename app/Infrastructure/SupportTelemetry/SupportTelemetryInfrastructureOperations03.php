@@ -9,6 +9,10 @@ use \Throwable;
 
 final class SupportTelemetryInfrastructureOperations03
 {
+    private const DATABASE_SCHEMA = "prontoo.telemetria.registros.v1";
+    private const RETENTION_DAYS = 20;
+    private const COMPARISON_DAYS = 10;
+
     private function __construct()
     {
     }
@@ -52,7 +56,39 @@ final class SupportTelemetryInfrastructureOperations03
         ];
     }
 
-    public static function telemetry_database_record_samples(): array
+    private static function telemetry_database_record_payload_schema_valid(array $payload): bool
+    {
+        return (string) ($payload["schema"] ?? "") === self::DATABASE_SCHEMA;
+    }
+
+    private static function telemetry_database_record_normalize_samples(array $rows): array
+    {
+        $samples = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $capturedAt = (int) ($row["captured_at_unix"] ?? 0);
+            $total = (int) ($row["total_records"] ?? -1);
+            if ($capturedAt <= 0 || $total < 0) {
+                continue;
+            }
+            $samples[] = [
+                "captured_at_unix" => $capturedAt,
+                "captured_at_local" => (string) ($row["captured_at_local"] ?? ""),
+                "total_records" => $total,
+                "delta_records" => (int) ($row["delta_records"] ?? 0),
+            ];
+        }
+        usort(
+            $samples,
+            static fn(array $a, array $b): int =>
+                $a["captured_at_unix"] <=> $b["captured_at_unix"],
+        );
+        return $samples;
+    }
+
+    private static function telemetry_database_record_payload(): array
     {
         $file = self::telemetry_database_records_file();
         if (!is_file($file)) {
@@ -75,35 +111,17 @@ final class SupportTelemetryInfrastructureOperations03
             return [];
         }
         $payload = json_decode($raw, true);
-        if (
-            !is_array($payload) ||
-            (string) ($payload["schema"] ?? "") !== "prontoo.telemetria.registros.v1"
-        ) {
-            return [];
-        }
-        $samples = [];
-        foreach ((array) ($payload["samples"] ?? []) as $sample) {
-            if (!is_array($sample)) {
-                continue;
-            }
-            $capturedAt = (int) ($sample["captured_at_unix"] ?? 0);
-            $total = (int) ($sample["total_records"] ?? -1);
-            if ($capturedAt <= 0 || $total < 0) {
-                continue;
-            }
-            $samples[] = [
-                "captured_at_unix" => $capturedAt,
-                "captured_at_local" => (string) ($sample["captured_at_local"] ?? ""),
-                "total_records" => $total,
-                "delta_records" => (int) ($sample["delta_records"] ?? 0),
-            ];
-        }
-        usort(
-            $samples,
-            static fn(array $a, array $b): int =>
-                $a["captured_at_unix"] <=> $b["captured_at_unix"],
+        return is_array($payload) && self::telemetry_database_record_payload_schema_valid($payload)
+            ? $payload
+            : [];
+    }
+
+    public static function telemetry_database_record_samples(): array
+    {
+        $payload = self::telemetry_database_record_payload();
+        return self::telemetry_database_record_normalize_samples(
+            (array) ($payload["samples"] ?? []),
         );
-        return $samples;
     }
 
     public static function telemetry_database_record_snapshot_capture(?int $nowUnix = null): array
@@ -118,7 +136,7 @@ final class SupportTelemetryInfrastructureOperations03
             ) {
                 throw new RuntimeException("Diretório de telemetria indisponível.");
             }
-                $file = self::telemetry_database_records_file();
+            $file = self::telemetry_database_records_file();
             $handle = @fopen($file, "c+");
             if (!is_resource($handle)) {
                 throw new RuntimeException("Arquivo de contagem de registros indisponível.");
@@ -129,54 +147,42 @@ final class SupportTelemetryInfrastructureOperations03
                 }
                 rewind($handle);
                 $raw = stream_get_contents($handle);
-                $payload = ["samples" => []];
+                $payload = [];
                 if (is_string($raw) && trim($raw) !== "") {
                     $decoded = json_decode($raw, true);
-                    if (
-                        !is_array($decoded) ||
-                        (string) ($decoded["schema"] ?? "") !== "prontoo.telemetria.registros.v1"
-                    ) {
+                    if (!is_array($decoded) || !self::telemetry_database_record_payload_schema_valid($decoded)) {
                         throw new RuntimeException("JSON de contagem de registros inválido.");
                     }
                     $payload = $decoded;
                 }
-                $samples = [];
-                foreach ((array) ($payload["samples"] ?? []) as $row) {
-                    if (!is_array($row)) {
-                        continue;
-                    }
-                    $capturedAt = (int) ($row["captured_at_unix"] ?? 0);
-                    $total = (int) ($row["total_records"] ?? -1);
-                    if ($capturedAt <= 0 || $total < 0) {
-                        continue;
-                    }
-                    $samples[] = [
-                        "captured_at_unix" => $capturedAt,
-                        "captured_at_local" => (string) ($row["captured_at_local"] ?? ""),
-                        "total_records" => $total,
-                        "delta_records" => (int) ($row["delta_records"] ?? 0),
-                    ];
-                }
-                usort(
-                    $samples,
-                    static fn(array $a, array $b): int =>
-                        $a["captured_at_unix"] <=> $b["captured_at_unix"],
+                $samples = self::telemetry_database_record_normalize_samples(
+                    (array) ($payload["samples"] ?? []),
                 );
-                $previousTotal = $samples === []
-                    ? null
-                    : (int) $samples[array_key_last($samples)]["total_records"];
+                $lastSample = $samples === [] ? null : $samples[array_key_last($samples)];
+                $lastTotal = array_key_exists("last_total_records", $payload)
+                    ? max(0, (int) $payload["last_total_records"])
+                    : (is_array($lastSample) ? (int) $lastSample["total_records"] : null);
+                $initialBalance = array_key_exists("initial_balance_records", $payload)
+                    ? max(0, (int) $payload["initial_balance_records"])
+                    : ($samples === []
+                        ? (int) $count["total_records"]
+                        : (int) $samples[0]["total_records"]);
                 $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
                 $captured = (new DateTimeImmutable("@" . $nowUnix))->setTimezone($timezone);
-                $sample = [
-                    "captured_at_unix" => $nowUnix,
-                    "captured_at_local" => $captured->format(DateTimeImmutable::ATOM),
-                    "total_records" => (int) $count["total_records"],
-                    "delta_records" => $previousTotal === null
-                        ? 0
-                        : (int) $count["total_records"] - $previousTotal,
-                ];
-                $samples[] = $sample;
-                $cutoff = $nowUnix - 31 * 86400;
+                $bootstrap = $payload === [] || $lastTotal === null;
+                $delta = 0;
+                if (!$bootstrap) {
+                    $delta = (int) $count["total_records"] - $lastTotal;
+                    $samples[] = [
+                        "captured_at_unix" => $nowUnix,
+                        "captured_at_local" => $captured->format(DateTimeImmutable::ATOM),
+                        "total_records" => (int) $count["total_records"],
+                        "delta_records" => $delta,
+                    ];
+                } else {
+                    $initialBalance = (int) $count["total_records"];
+                }
+                $cutoff = $nowUnix - self::RETENTION_DAYS * 86400;
                 $samples = array_values(
                     array_filter(
                         $samples,
@@ -184,11 +190,20 @@ final class SupportTelemetryInfrastructureOperations03
                             (int) $row["captured_at_unix"] >= $cutoff,
                     ),
                 );
+                $series = self::telemetry_database_record_series_from_samples($samples, $nowUnix);
+                $comparison = self::telemetry_database_record_comparison_10d_from_series($series);
                 $encoded = json_encode(
                     [
-                        "schema" => "prontoo.telemetria.registros.v1",
+                        "schema" => self::DATABASE_SCHEMA,
                         "timezone" => "America/Cuiaba",
-                        "retention_days" => 31,
+                        "capture_interval_minutes" => 10,
+                        "retention_days" => self::RETENTION_DAYS,
+                        "initial_balance_records" => $initialBalance,
+                        "last_total_records" => (int) $count["total_records"],
+                        "records_10d" => (int) $comparison["current_total"],
+                        "previous_records_10d" => (int) $comparison["previous_total"],
+                        "variation_pct" => $comparison["variation_pct"],
+                        "updated_at_unix" => $nowUnix,
                         "updated_at_local" => $captured->format(DateTimeImmutable::ATOM),
                         "samples" => $samples,
                     ],
@@ -212,8 +227,13 @@ final class SupportTelemetryInfrastructureOperations03
             }
             return [
                 "ok" => true,
-                "total_records" => $sample["total_records"],
-                "delta_records" => $sample["delta_records"],
+                "bootstrap" => $bootstrap,
+                "initial_balance_records" => $initialBalance,
+                "total_records" => (int) $count["total_records"],
+                "delta_records" => $delta,
+                "records_10d" => (int) $comparison["current_total"],
+                "previous_records_10d" => (int) $comparison["previous_total"],
+                "variation_pct" => $comparison["variation_pct"],
                 "table_count" => (int) $count["table_count"],
                 "samples_retained" => count($samples),
                 "duration_ms" => (int) round(
@@ -243,10 +263,10 @@ final class SupportTelemetryInfrastructureOperations03
         $nowUnix ??= time();
         $nowUnix = max(1, $nowUnix);
         $bucketSeconds = 86400;
-        $windowStart = $nowUnix - 30 * $bucketSeconds;
+        $windowStart = $nowUnix - self::RETENTION_DAYS * $bucketSeconds;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $buckets = [];
-        for ($index = 0; $index < 30; $index++) {
+        for ($index = 0; $index < self::RETENTION_DAYS; $index++) {
             $startUnix = $windowStart + $index * $bucketSeconds;
             $endUnix = $startUnix + $bucketSeconds;
             $start = (new DateTimeImmutable("@" . $startUnix))->setTimezone($timezone);
@@ -258,7 +278,7 @@ final class SupportTelemetryInfrastructureOperations03
                 "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"),
                 "value" => null,
                 "observed" => false,
-                "period" => $index < 15 ? "previous" : "current",
+                "period" => $index < self::COMPARISON_DAYS ? "previous" : "current",
             ];
         }
         foreach ($samples as $sample) {
@@ -270,7 +290,7 @@ final class SupportTelemetryInfrastructureOperations03
                 continue;
             }
             $index = intdiv($capturedAt - $windowStart, $bucketSeconds);
-            if ($index < 0 || $index >= 30) {
+            if ($index < 0 || $index >= self::RETENTION_DAYS) {
                 continue;
             }
             if (empty($buckets[$index]["observed"])) {
@@ -282,7 +302,7 @@ final class SupportTelemetryInfrastructureOperations03
         return array_values($buckets);
     }
 
-    public static function telemetry_database_record_series_30d(?int $nowUnix = null): array
+    public static function telemetry_database_record_series_20d(?int $nowUnix = null): array
     {
         return self::telemetry_database_record_series_from_samples(
             self::telemetry_database_record_samples(),
@@ -290,11 +310,11 @@ final class SupportTelemetryInfrastructureOperations03
         );
     }
 
-    public static function telemetry_series_comparison_15d(array $series): array
+    public static function telemetry_database_record_comparison_10d_from_series(array $series): array
     {
         $series = array_values($series);
-        $previous = array_slice($series, 0, 15);
-        $current = array_slice($series, 15, 15);
+        $previous = array_slice($series, 0, self::COMPARISON_DAYS);
+        $current = array_slice($series, self::COMPARISON_DAYS, self::COMPARISON_DAYS);
         $previousTotal = array_sum(
             array_map(
                 static fn(array $row): int => (int) ($row["value"] ?? 0),
@@ -324,12 +344,21 @@ final class SupportTelemetryInfrastructureOperations03
             "current_total" => $currentTotal,
             "previous_observed_days" => $previousObservedDays,
             "current_observed_days" => $currentObservedDays,
-            "variation_pct" => $previousObservedDays === 15 && $currentObservedDays === 15
-                ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
-                    $currentTotal,
-                    $previousTotal,
-                )
-                : null,
+            "variation_pct" =>
+                $previousObservedDays === self::COMPARISON_DAYS &&
+                $currentObservedDays === self::COMPARISON_DAYS
+                    ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
+                        $currentTotal,
+                        $previousTotal,
+                    )
+                    : null,
         ];
+    }
+
+    public static function telemetry_database_record_comparison_10d(?int $nowUnix = null): array
+    {
+        return self::telemetry_database_record_comparison_10d_from_series(
+            self::telemetry_database_record_series_20d($nowUnix),
+        );
     }
 }

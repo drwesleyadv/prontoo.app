@@ -10,14 +10,14 @@ $assert = static function (bool $condition, string $message): void {
     }
 };
 $timezone = new DateTimeZone("America/Cuiaba");
-$now = (new DateTimeImmutable("2026-08-11 15:37:00", $timezone))->getTimestamp();
-$windowStart = $now - 30 * 86400;
+$now = (new DateTimeImmutable("2026-08-17 15:37:00", $timezone))->getTimestamp();
+$windowStart = $now - 20 * 86400;
 $samples = [];
-for ($index = 0; $index < 30; $index++) {
+for ($index = 0; $index < 20; $index++) {
     $samples[] = [
         "captured_at_unix" => $windowStart + $index * 86400 + 300,
         "total_records" => 1000 + $index,
-        "delta_records" => $index === 29 ? -7 : $index + 1,
+        "delta_records" => $index === 19 ? -7 : $index + 1,
     ];
 }
 $samples[] = [
@@ -33,31 +33,36 @@ $assert(
     str_ends_with(\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_records_file(), "/database.json"),
     "database.json deve ser a fonte canônica de Registros",
 );
-$assert(count($series) === 30, "a série deve conter exatamente 30 janelas móveis de 24h");
+$assert(count($series) === 20, "a série deve conter exatamente 20 janelas móveis de 24h");
 $assert((int) ($series[0]["ts"] ?? 0) === $windowStart, "primeira fronteira móvel incorreta");
-$assert((int) ($series[29]["ts"] ?? 0) === $now - 86400, "última fronteira móvel incorreta");
-$assert((int) ($series[29]["value"] ?? 0) === -7, "deltas negativos devem ser preservados");
+$assert((int) ($series[19]["ts"] ?? 0) === $now - 86400, "última fronteira móvel incorreta");
+$assert((int) ($series[19]["value"] ?? 0) === -7, "deltas negativos devem ser preservados");
 $assert(
     array_sum(array_map(static fn(array $row): int => (int) ($row["value"] ?? 0), $series)) !== 999,
     "amostra exatamente no timestamp final não pode ultrapassar a janela",
 );
-$comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d(
+$comparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_comparison_10d_from_series(
     $series,
 );
-$assert((int) ($comparison["previous_total"] ?? 0) === 120, "primeiros 15 dias móveis incorretos");
-$assert((int) ($comparison["current_total"] ?? 0) === 308, "últimos 15 dias móveis incorretos");
+$assert((int) ($comparison["previous_total"] ?? 0) === 55, "primeiros 10 dias móveis incorretos");
+$assert((int) ($comparison["current_total"] ?? 0) === 128, "últimos 10 dias móveis incorretos");
 $assert(
-    (int) ($comparison["previous_observed_days"] ?? 0) === 15 &&
-        (int) ($comparison["current_observed_days"] ?? 0) === 15,
-    "comparação completa deve exigir 15 janelas observadas em cada período",
+    (int) ($comparison["previous_observed_days"] ?? 0) === 10 &&
+        (int) ($comparison["current_observed_days"] ?? 0) === 10,
+    "comparação completa deve exigir 10 janelas observadas em cada período",
 );
-$emptyComparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_series_comparison_15d(
+$assert(
+    abs((float) ($comparison["variation_pct"] ?? 0.0) - 132.727273) < 0.000001,
+    "variação percentual 10x10 incorreta",
+);
+$emptyComparison = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_comparison_10d_from_series(
     \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples([], $now),
 );
 $assert(
-    array_key_exists("variation_pct", $emptyComparison) &&
+    (int) ($emptyComparison["current_total"] ?? -1) === 0 &&
+        array_key_exists("variation_pct", $emptyComparison) &&
         $emptyComparison["variation_pct"] === null,
-    "períodos sem cobertura completa não podem produzir percentual",
+    "bootstrap sem histórico deve manter Registros em zero e percentual indefinido",
 );
 $cron = (string) file_get_contents($root . "/cron/maestro.php");
 $assert(
@@ -67,10 +72,16 @@ $assert(
 $source = (string) file_get_contents(
     $root . "/app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php",
 );
-$assert(
-    str_contains($source, '$cutoff = $nowUnix - 31 * 86400;'),
-    "database.json deve higienizar amostras a partir de 31 dias",
-);
+foreach ([
+    'private const RETENTION_DAYS = 20;',
+    'private const COMPARISON_DAYS = 10;',
+    '"initial_balance_records" => $initialBalance',
+    '"last_total_records" => (int) $count["total_records"]',
+    '"capture_interval_minutes" => 10',
+    '"records_10d" => (int) $comparison["current_total"]',
+] as $token) {
+    $assert(str_contains($source, $token), "contrato ausente: " . $token);
+}
 unset(
     $root,
     $assert,

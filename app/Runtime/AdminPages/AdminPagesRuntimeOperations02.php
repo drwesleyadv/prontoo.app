@@ -187,7 +187,7 @@ final class AdminPagesRuntimeOperations02
 
     public static function admin_global_sequence_series_20d(): array
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_30d();
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_20d();
     }
 
     public static function admin_global_volume_series_30d(string $metric): array

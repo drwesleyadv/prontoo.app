@@ -100,6 +100,7 @@ $metricEvents = [
 $metricSummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_developer_metrics_summary_from_events(
     $metricEvents,
     $nowUs,
+    ["current_total" => 9, "previous_total" => 5, "variation_pct" => 80.0],
 );
 $metricCurrent = (array) ($metricSummary['current'] ?? []);
 $metricPrevious = (array) ($metricSummary['previous'] ?? []);
@@ -108,12 +109,12 @@ $assert(
     ($metricSummary['window_mode'] ?? '') === 'rolling_20d_10x10' &&
     ($metricCurrent['pages'] ?? -1) === 2 &&
     ($metricPrevious['pages'] ?? -1) === 2 &&
-    ($metricCurrent['database_operations'] ?? -1) === 9 &&
-    ($metricPrevious['database_operations'] ?? -1) === 5 &&
+    ($metricCurrent['records'] ?? -1) === 9 &&
+    ($metricPrevious['records'] ?? -1) === 5 &&
     ($metricCurrent['landing'] ?? -1) === 1 &&
     ($metricPrevious['landing'] ?? -1) === 1 &&
     abs((float) ($metricVariations['pages_pct'] ?? 999) - 0.0) < 0.000001 &&
-    abs((float) ($metricVariations['database_operations_pct'] ?? 999) - 80.0) < 0.000001 &&
+    abs((float) ($metricVariations['records_pct'] ?? 999) - 80.0) < 0.000001 &&
     abs((float) ($metricVariations['landing_pct'] ?? 999) - 0.0) < 0.000001,
     'comparação 10x10 de Páginas, Registros e Landing divergente',
 );
@@ -244,14 +245,27 @@ $assert(
     (int) $volumeQueries[28]['value'] === 3,
     'totais de Carregamento de Páginas e Consulta por 24 horas divergiram',
 );
-$footerPageLoads = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($volumePages);
-$footerDatabaseQueries = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($volumeQueries);
+$footerRecordSamples = [];
+$footerWindowStart = intdiv($chartNowUs, 1000000) - 20 * 86400;
+for ($index = 0; $index < 20; $index++) {
+    $footerRecordSamples[] = [
+        'captured_at_unix' => $footerWindowStart + $index * 86400 + 300,
+        'total_records' => 1000 + $index,
+        'delta_records' => $index + 1,
+    ];
+}
+$footerRecordSeries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples(
+    $footerRecordSamples,
+    intdiv($chartNowUs, 1000000),
+);
+$footerPageLoads = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values(array_slice($volumePages, -20));
+$footerDatabaseQueries = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($footerRecordSeries);
 $assert(
-    count($footerPageLoads) === 30 &&
-    count($footerDatabaseQueries) === 30 &&
-    (int) $footerPageLoads[28] === 2 &&
-    (int) $footerDatabaseQueries[28] === 3,
-    'rodapé deve preservar os mesmos 30 valores diários de Volume',
+    count($footerPageLoads) === 20 &&
+    count($footerDatabaseQueries) === 20 &&
+    (int) $footerPageLoads[18] === 2 &&
+    (int) $footerDatabaseQueries[19] === 20,
+    'rodapé deve usar 20 dias equivalentes e alimentar Consulta com deltas de database.json',
 );
 $historicalWave = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_wave_path([0, 3, 1, 4, 2], 4.0);
 $assert(
@@ -275,16 +289,16 @@ $clinicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentati
 $assert(
     str_contains($publicMountains, 'viewBox="0 0 1000 250"') &&
     str_contains($publicMountains, 'class="footer-telemetry-wave-path is-page-loads" fill="#347963"') &&
-    str_contains($publicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#1f6f56"') &&
+    str_contains($publicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#347963"') &&
     str_contains($publicMountains, 'data-footer-telemetry-lines-ready="1"') &&
     !str_contains($publicMountains, 'data-refresh-url='),
-    'áreas públicas devem restaurar a identidade visual histórica sem reabrir refresh público',
+    'áreas públicas do rodapé devem usar o mesmo tom com sobreposição a 50%',
 );
 $assert(
     str_contains($clinicMountains, 'class="footer-telemetry-wave-path is-page-loads" fill="#445566"') &&
-    str_contains($clinicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#112233"') &&
+    str_contains($clinicMountains, 'class="footer-telemetry-wave-path is-database-queries" fill="#445566"') &&
     str_contains($clinicMountains, 'data-footer-telemetry-lines-ready="1"'),
-    'áreas autenticadas devem preservar a ordem histórica principal/forte com as cores do consultório',
+    'áreas autenticadas do rodapé devem usar o mesmo tom principal do consultório',
 );
 $assert(
     str_contains($uiRuntime, 'footer_telemetry_mountains_html(') &&
@@ -341,13 +355,14 @@ $assert(
     'rota JSON histórica do rodapé deve continuar privada',
 );
 $assert(
-    str_contains($login, 'telemetry_volume_series_30d("page_load")') &&
-    str_contains($login, 'telemetry_volume_series_30d("database_queries")') &&
+    str_contains($login, '$nowUnix = time();') &&
+    str_contains($login, 'telemetry_volume_series_30d(') &&
+    str_contains($login, '$nowUnix * 1000000') &&
+    str_contains($login, 'telemetry_database_record_series_20d($nowUnix)') &&
+    !str_contains($login, 'telemetry_volume_series_30d("database_queries")') &&
     str_contains($login, '"page_loads" =>') &&
-    str_contains($login, '"database_queries" =>') &&
-    !str_contains($login, 'telemetry_route_requests_series_20d()') &&
-    !str_contains($login, 'telemetry_sequence_records_series_20d()'),
-    'linhas do rodapé devem reutilizar exatamente as duas séries de Volume',
+    str_contains($login, '"database_queries" =>'),
+    'rodapé deve alinhar 20 dias de carregamentos com a variação líquida de registros de database.json',
 );
 $assert(
     str_contains($appJs, 'function initFooterTelemetryLines(root = d)') &&
@@ -377,4 +392,4 @@ $assert(
     'rodapé deve preservar áreas sem stroke e opacidade histórica 0.5',
 );
 $assert(in_array('footer_telemetry_wave', \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true), 'rota decorativa não pode retroalimentar a telemetria');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerRecordSamples, $footerWindowStart, $footerRecordSeries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);

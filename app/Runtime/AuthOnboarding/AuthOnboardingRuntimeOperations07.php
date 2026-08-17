@@ -342,8 +342,15 @@ final class AuthOnboardingRuntimeOperations07
     
     {
         try {
-            $pageLoads = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d("page_load");
-            $databaseQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d("database_queries");
+            $nowUnix = time();
+            $pageLoads = array_slice(
+                \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d(
+                    "page_load",
+                    $nowUnix * 1000000,
+                ),
+                -20,
+            );
+            $databaseQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_20d($nowUnix);
             return [
       "page_loads" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($pageLoads),
       "database_queries" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($databaseQueries),

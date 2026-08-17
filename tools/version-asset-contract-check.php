@@ -77,8 +77,7 @@ foreach ([
 foreach ([
     'footer_telemetry_wave_path(',
     ' C ',
-    '$public ? "#347963"',
-    '$public ? "#1f6f56"',
+    '$sharedColor = $public ? "#347963"',
     'viewBox="0 0 1000 250"',
     'data-footer-telemetry-lines-ready="1"',
 ] as $required) {
@@ -101,6 +100,7 @@ foreach ([
 foreach ([
     'telemetry_route_requests_series_20d',
     'telemetry_database_record_series_30d',
+    'telemetry_database_record_series_20d',
     'telemetry_comparative_summary',
     'prontoo_login_selftest_light',
     'PRONTOO_VERSION',
