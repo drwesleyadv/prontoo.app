@@ -2615,7 +2615,7 @@
     schedule();
   }
 
-  function loginTelemetryWavePath(values, maximum, width = 1000, height = 250) {
+  function footerTelemetryLinePath(values, maximum, width = 1000, height = 250) {
     const clean = Array.isArray(values)
       ? values.map((value) => Math.max(0, Number(value) || 0))
       : [];
@@ -2631,7 +2631,7 @@
     const format = (value) => Number(value.toFixed(2)).toString();
     if (points.length === 1) {
       const y = format(points[0].y);
-      return `M 0 ${y} L ${width} ${y} L ${width} ${height} L 0 ${height} Z`;
+      return `M 0 ${y} L ${width} ${y}`;
     }
     let path = `M ${format(points[0].x)} ${format(points[0].y)}`;
     for (let index = 1; index < points.length; index += 1) {
@@ -2640,70 +2640,55 @@
       const middleX = (previous.x + current.x) / 2;
       path += ` C ${format(middleX)} ${format(previous.y)} ${format(middleX)} ${format(current.y)} ${format(current.x)} ${format(current.y)}`;
     }
-    return `${path} L ${width} ${height} L 0 ${height} Z`;
+    return path;
   }
-  function renderLoginTelemetryWave(wrap, payload) {
-    const requests = Array.isArray(payload?.requests)
-      ? payload.requests
+  function renderFooterTelemetryLines(wrap, payload) {
+    const pageLoads = Array.isArray(payload?.page_loads)
+      ? payload.page_loads
       : [];
-    const records = Array.isArray(payload?.records)
-      ? payload.records
+    const databaseQueries = Array.isArray(payload?.database_queries)
+      ? payload.database_queries
       : [];
     const maximum = Math.max(
       1,
-      ...requests.map((value) => Math.max(0, Number(value) || 0)),
-      ...records.map((value) => Math.max(0, Number(value) || 0)),
+      ...pageLoads.map((value) => Math.max(0, Number(value) || 0)),
+      ...databaseQueries.map((value) => Math.max(0, Number(value) || 0)),
     );
-    const requestPath = $('[data-wave-series="requests"]', wrap);
-    const recordPath = $('[data-wave-series="records"]', wrap);
-    if (requestPath)
-      requestPath.setAttribute(
+    const pageLoadPath = $('[data-wave-series="page-loads"]', wrap);
+    const databaseQueryPath = $('[data-wave-series="database-queries"]', wrap);
+    if (pageLoadPath)
+      pageLoadPath.setAttribute(
         "d",
-        loginTelemetryWavePath(requests, maximum),
+        footerTelemetryLinePath(pageLoads, maximum),
       );
-    if (recordPath)
-      recordPath.setAttribute(
+    if (databaseQueryPath)
+      databaseQueryPath.setAttribute(
         "d",
-        loginTelemetryWavePath(records, maximum),
+        footerTelemetryLinePath(databaseQueries, maximum),
       );
   }
-  function initLoginTelemetryWave(root = d) {
-    let wrap = $("[data-login-telemetry-wave]", root);
+  function initFooterTelemetryLines(root = d) {
+    let wrap = $("[data-footer-telemetry-lines]", root);
     let needsInitialRefresh = false;
-    const loginTelemetryPublic =
-      d.body &&
-      d.body.classList.contains("public") &&
-      d.body.dataset.route === "login";
-    const clinicCreateTelemetry =
-      !!$("[data-onboarding-wizard],.signup-steps-card,[data-clinic-create]", root);
-    const telemetryEligible =
-      d.body &&
-      (loginTelemetryPublic ||
-        !d.body.classList.contains("public") ||
-        clinicCreateTelemetry);
-    if (telemetryEligible) d.body.classList.add("has-telemetry-mountains");
-    if (wrap)
-      wrap.classList.toggle("is-clinic-themed", !loginTelemetryPublic);
-    if (
-      !wrap &&
-      d.body &&
-      (!d.body.classList.contains("public") || clinicCreateTelemetry)
-    ) {
+    const telemetryEligible = d.body && !d.body.classList.contains("public");
+    if (!telemetryEligible) return;
+    d.body.classList.add("has-telemetry-mountains");
+    if (!wrap) {
       wrap = d.createElement("div");
-      wrap.className = "login-telemetry-wave app-telemetry-mountains is-clinic-themed";
-      wrap.dataset.loginTelemetryWave = "1";
+      wrap.className = "footer-telemetry-lines app-telemetry-mountains is-clinic-themed";
+      wrap.dataset.footerTelemetryLines = "1";
       wrap.dataset.refreshMs = "900000";
       const endpoint = new URL(w.location.href);
       endpoint.search = "";
-      endpoint.searchParams.set("r", "login_telemetry_wave");
+      endpoint.searchParams.set("r", "footer_telemetry_wave");
       wrap.dataset.refreshUrl = endpoint.toString();
       wrap.setAttribute("aria-hidden", "true");
-      wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d=""/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d=""/></svg>';
+      wrap.innerHTML = '<svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="footer-telemetry-line is-page-loads" data-wave-series="page-loads" d=""/><path class="footer-telemetry-line is-database-queries" data-wave-series="database-queries" d=""/></svg>';
       d.body.appendChild(wrap);
       needsInitialRefresh = true;
     }
-    if (!wrap || wrap.dataset.loginTelemetryWaveReady) return;
-    wrap.dataset.loginTelemetryWaveReady = "1";
+    if (wrap.dataset.footerTelemetryLinesReady) return;
+    wrap.dataset.footerTelemetryLinesReady = "1";
     const endpoint = String(wrap.dataset.refreshUrl || "");
     if (!endpoint) return;
     const interval = Math.max(
@@ -2726,7 +2711,7 @@ headers: { Accept: "application/json" },
         });
         if (!response.ok) return;
         const payload = await response.json();
-        renderLoginTelemetryWave(wrap, payload);
+        renderFooterTelemetryLines(wrap, payload);
         lastRefresh = Date.now();
       } catch (_) {
       } finally {
@@ -2878,7 +2863,7 @@ refresh();
     });
   }
   function init(root = d) {
-    initLoginTelemetryWave(root);
+    initFooterTelemetryLines(root);
     initAdminGlobalChartsRefresh(root);
     initDeviceFingerprint(root);
     initVersionGate(root);

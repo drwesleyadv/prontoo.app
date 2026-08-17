@@ -12,9 +12,17 @@ A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e d
 
 `Velocidade` usa os 1.440 minutos completos imediatamente anteriores ao minuto corrente. Cada bucket contém a média daquele minuto: Carregamento de Páginas usa a duração média dos page loads observados e Consulta usa a média ponderada das consultas preparadas observadas.
 
+No preenchimento de Velocidade, Carregamento de Páginas usa verde `#05391f` e Consulta usa verde claro `#ddf6e8`. As duas cores são sólidas, com opacidade integral. Esse contrato visual é exclusivo de Velocidade e não altera a paleta de Volume.
+
 `Volume` usa 30 intervalos consecutivos de 24 horas imediatamente anteriores ao timestamp da leitura. Cada um dos 30 pontos contém as quantidades totais de seu intervalo: verde escuro para Carregamento de Páginas e verde claro para Consulta.
 
 Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada intervalo de 24 horas, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente; nenhuma das séries exibe contorno ou ponto terminal, permanecendo visíveis somente as áreas inferiores preenchidas. Somente o eixo de Velocidade mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
+
+## Linhas decorativas autenticadas
+
+As telas autenticadas desenham no rodapé duas linhas decorativas suavizadas. A forma usa exatamente as séries canônicas de 30 pontos de Volume: `page_load` para Carregamento de Páginas e `database_queries` para Consulta. A obtenção ocorre pela rota JSON privada `footer_telemetry_wave`, atualizada a cada 15 minutos e excluída da própria contagem de page loads para evitar retroalimentação.
+
+`login_telemetry_wave` continua sendo apenas um tombstone público sem dados. O rodapé não reabre telemetria no login, no cadastro ou em qualquer outra superfície pública.
 
 ## Tempo médio de consulta ao banco
 

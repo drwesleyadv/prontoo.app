@@ -82,7 +82,7 @@ foreach (['home', 'login', 'login_telemetry_wave', 'patients', 'financial', 'sta
 foreach (['login', 'login_telemetry_wave', 'logout', 'status'] as $route) {
     $assert(in_array($route, $publicRoutes, true), 'public_route_catalog:' . $route);
 }
-foreach (['login_telemetry_wave', 'patient_lookup', 'goal_status'] as $route) {
+foreach (['login_telemetry_wave', 'footer_telemetry_wave', 'patient_lookup', 'goal_status'] as $route) {
     $assert(in_array($route, $jsonRoutes, true), 'json_route_catalog:' . $route);
 }
 $telemetryRoute = \Prontoo\Runtime\Routing\RouteRegistry::definition('login_telemetry_wave');
@@ -92,6 +92,15 @@ $assert(
         $telemetryRoute->handlerMethod === 'page_public_telemetry_tombstone' &&
         $telemetryRoute->isPublicLight('GET'),
     'telemetry_public_tombstone_only',
+);
+$footerTelemetryRoute = \Prontoo\Runtime\Routing\RouteRegistry::definition('footer_telemetry_wave');
+$assert(
+    $footerTelemetryRoute !== null &&
+        !$footerTelemetryRoute->public &&
+        $footerTelemetryRoute->json &&
+        $footerTelemetryRoute->handlerClass === \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::class &&
+        $footerTelemetryRoute->handlerMethod === 'page_footer_telemetry_wave',
+    'footer_telemetry_authenticated_only',
 );
 $statusRoute = \Prontoo\Runtime\Routing\RouteRegistry::definition('status');
 $assert(

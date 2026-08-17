@@ -40,6 +40,15 @@ foreach ([
         [
             "REQUEST_METHOD" => "GET",
             "HTTP_ACCEPT" => "application/json",
+            "HTTP_SEC_FETCH_MODE" => "cors",
+            "HTTP_SEC_FETCH_DEST" => "empty",
+        ],
+        "footer_telemetry_wave",
+    ],
+    [
+        [
+            "REQUEST_METHOD" => "GET",
+            "HTTP_ACCEPT" => "application/json",
             "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
         ],
         "patient_lookup",

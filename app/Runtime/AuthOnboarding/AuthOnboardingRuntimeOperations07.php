@@ -338,61 +338,26 @@ final class AuthOnboardingRuntimeOperations07
     
     }
 
-    public static function login_telemetry_wave_data(): array
+    public static function footer_telemetry_wave_data(): array
     
     {
         try {
-            $requests = is_callable([\Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::class, 'telemetry_route_requests_series_20d'])
-      ? \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_route_requests_series_20d()
-      : [];
-            $records = function_exists(
-      "telemetry_sequence_records_series_20d",
-            )
-      ? \Prontoo\Runtime\SupportTelemetry\SupportTelemetryRuntimeOperations01::telemetry_sequence_records_series_20d()
-      : [];
+            $pageLoads = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d("page_load");
+            $databaseQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d("database_queries");
             return [
-      "requests" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_values($requests),
-      "records" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_values($records),
+      "page_loads" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($pageLoads),
+      "database_queries" => \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_line_values($databaseQueries),
             ];
         } catch (Throwable $error) {
             error_log(
-      "[Prontoo login telemetry wave] " . $error->getMessage(),
+      "[Prontoo footer telemetry wave] " . $error->getMessage(),
             );
-            return ["requests" => [], "records" => []];
+            return ["page_loads" => [], "database_queries" => []];
         }
     
     }
 
-    public static function login_telemetry_wave_html(): string
-    
-    {
-        $data = \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_data();
-        $requests = $data["requests"];
-        $records = $data["records"];
-        $maximum = max(
-            1.0,
-            $requests ? max($requests) : 0.0,
-            $records ? max($records) : 0.0,
-        );
-        $requestsPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_path(
-            $requests,
-            $maximum,
-        );
-        $recordsPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::login_telemetry_wave_path(
-            $records,
-            $maximum,
-        );
-        return '<div class="login-telemetry-wave" data-login-telemetry-wave data-refresh-url="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("login_telemetry_wave")) .
-            '" data-refresh-ms="900000" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="login-telemetry-wave-path is-requests" data-wave-series="requests" d="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($requestsPath) .
-            '"/><path class="login-telemetry-wave-path is-records" data-wave-series="records" d="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($recordsPath) .
-            '"/></svg></div>';
-    
-    }
-
-    public static function page_login_telemetry_wave(): void
+    public static function page_footer_telemetry_wave(): void
     
     {
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET") {
@@ -403,10 +368,10 @@ final class AuthOnboardingRuntimeOperations07
             return;
         }
         header("Content-Type: application/json; charset=utf-8");
-        header("Cache-Control: public, max-age=60, stale-while-revalidate=300");
+        header("Cache-Control: private, max-age=60, stale-while-revalidate=300");
         header("X-Content-Type-Options: nosniff");
         echo json_encode(
-            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::login_telemetry_wave_data(),
+            \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations07::footer_telemetry_wave_data(),
             JSON_UNESCAPED_UNICODE |
       JSON_UNESCAPED_SLASHES |
       JSON_PRESERVE_ZERO_FRACTION,
