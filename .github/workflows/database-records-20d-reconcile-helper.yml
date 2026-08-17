@@ -1,0 +1,64 @@
+name: Database records 20d reconcile helper
+
+on:
+  push:
+    branches:
+      - agent/database-records-20d
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Apply requested telemetry change
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d .github/db20-core.patch.gz.b64 | gzip -d > /tmp/db20-core.patch
+          git apply --check /tmp/db20-core.patch
+          git apply /tmp/db20-core.patch
+          python .github/db20-reconcile.py
+          rm .github/db20-core.patch.gz.b64
+          rm .github/db20-reconcile.py
+          rm .github/workflows/database-records-20d-reconcile-helper.yml
+          php tools/release-contract-reconcile --write
+      - name: Validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          php -l app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations02.php
+          php -l app/Infrastructure/SupportTelemetry/SupportTelemetryInfrastructureOperations03.php
+          php -l app/Presentation/AuthOnboarding/AuthOnboardingPresentationOperations01.php
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
+          php -l app/Runtime/AuthOnboarding/AuthOnboardingRuntimeOperations07.php
+          php tools/database-record-telemetry-contract-check
+          php tools/telemetry-json-source-contract-check
+          php tools/version-asset-contract-check.php
+          php tools/documentation-check.php
+          php tools/release-contract-reconcile --check
+          php tools/quality-gate --fast
+      - name: Commit reconciled change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Ajusta Registros e sobreposição do rodapé"
+          git push origin HEAD:agent/database-records-20d
