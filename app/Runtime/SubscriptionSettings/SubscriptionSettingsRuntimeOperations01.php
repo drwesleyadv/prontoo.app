@@ -27,19 +27,14 @@ final class SubscriptionSettingsRuntimeOperations01
     }
 
     public static function default_monthly_price_cents(): int
-    
     {
-    
         $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_monthly_price_cents", PRONTOO_MONTHLY_PRICE_CENTS);
         $c = (int) $v;
         return $c > 0 ? $c : PRONTOO_MONTHLY_PRICE_CENTS;
-    
     }
 
     public static function default_trial_days(): int
-    
     {
-    
         $v = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("default_trial_days", PRONTOO_TRIAL_DAYS);
         $days = (int) $v;
         $policyRevision = "trial_30_days_2026_07_14";
@@ -62,16 +57,12 @@ final class SubscriptionSettingsRuntimeOperations01
             return PRONTOO_TRIAL_DAYS;
         }
         return $days;
-    
     }
 
     public static function subscription_pix_key(): string
-    
     {
-    
         $key = mb_trim((string) \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("subscription_pix_key", "pix@prontoo.app"));
         return $key !== "" ? $key : "pix@prontoo.app";
-    
     }
 
     public static function subscription_time_ts(
