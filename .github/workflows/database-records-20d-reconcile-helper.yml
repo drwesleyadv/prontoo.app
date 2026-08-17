@@ -53,6 +53,7 @@ jobs:
           rm .github/db20-reconcile.py
           rm .github/workflows/database-records-20d-reconcile-helper.yml
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
       - name: Validate record telemetry
         shell: bash
         run: |
