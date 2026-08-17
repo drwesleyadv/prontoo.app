@@ -253,12 +253,32 @@ $assert(
     (int) $footerDatabaseQueries[28] === 3,
     'rodapé deve preservar os mesmos 30 valores diários de Volume',
 );
-$mountainPath = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_path([0, 3, 1, 4, 2], 4.0);
+$footerGeometry = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_volume_geometry(
+    [0, 3, 1, 4, 2],
+    [1, 2, 0, 3, 1],
+);
 $assert(
-    substr_count($mountainPath, ' Q ') === 3 &&
-    str_contains($mountainPath, ' L ') &&
-    !str_contains($mountainPath, ' C '),
-    'montanhas do rodapé devem preservar encostas retas e arredondar somente os vértices com curvas quadráticas',
+    ($footerGeometry['view_box'] ?? '') === '0 0 960 210' &&
+    abs((float) ($footerGeometry['baseline'] ?? 0) - 178.0) < 0.000001 &&
+    ($footerGeometry['page_loads'] ?? []) === [[40.0, 178.0], [266.0, 58.0], [492.0, 138.0], [718.0, 18.0], [944.0, 98.0]] &&
+    ($footerGeometry['database_queries'] ?? []) === [[40.0, 138.0], [266.0, 98.0], [492.0, 178.0], [718.0, 58.0], [944.0, 138.0]],
+    'rodapé deve reutilizar pixel a pixel a projeção lógica 960x210 e a escala conjunta de Volume',
+);
+$sharpFooterArea = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_area_path(
+    (array) $footerGeometry['page_loads'],
+    (float) $footerGeometry['baseline'],
+    0.0,
+);
+$roundedFooterArea = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountain_area_path(
+    (array) $footerGeometry['page_loads'],
+    (float) $footerGeometry['baseline'],
+);
+$assert(
+    $sharpFooterArea === 'M40 178 L 266 58 L 492 138 L 718 18 L 944 98 L 944 178 L 40 178 Z' &&
+    substr_count($roundedFooterArea, ' Q ') === 3 &&
+    str_contains($roundedFooterArea, 'L 944 178 L 40 178 Z') &&
+    !str_contains($roundedFooterArea, ' C '),
+    'rodapé deve preservar as encostas de Volume e arredondar somente uma vizinhança curta de picos e vales',
 );
 $publicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_mountains_html(
     ['page_loads' => [0, 3, 1, 4, 2], 'database_queries' => [1, 2, 0, 3, 1]],
@@ -273,19 +293,21 @@ $clinicMountains = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentati
     '#445566',
 );
 $assert(
-    str_contains($publicMountains, 'stroke="#1f6f56"') &&
-    str_contains($publicMountains, 'stroke="#347963"') &&
+    str_contains($publicMountains, 'viewBox="0 0 960 210"') &&
+    str_contains($publicMountains, 'fill="#1f6f56"') &&
+    str_contains($publicMountains, 'fill="#347963"') &&
     substr_count($publicMountains, 'opacity="0.5"') === 2 &&
+    substr_count($publicMountains, 'stroke="none"') === 2 &&
     str_contains($publicMountains, 'data-footer-telemetry-lines-ready="1"') &&
     !str_contains($publicMountains, 'data-refresh-url='),
-    'áreas públicas devem renderizar somente a silhueta normalizada nas mesmas cores e tom de Volume',
+    'áreas públicas do rodapé devem repetir os preenchimentos e tons de Volume',
 );
 $assert(
-    str_contains($clinicMountains, 'stroke="#112233"') &&
-    str_contains($clinicMountains, 'stroke="#445566"') &&
-    substr_count($clinicMountains, 'opacity="0.62"') === 2 &&
-    str_contains($clinicMountains, 'data-footer-telemetry-lines-ready="1"'),
-    'áreas autenticadas devem usar as cores de destaque do consultório',
+    str_contains($clinicMountains, 'fill="#112233"') &&
+    str_contains($clinicMountains, 'fill="#445566"') &&
+    substr_count($clinicMountains, 'opacity="0.5"') === 2 &&
+    substr_count($clinicMountains, 'stroke="none"') === 2,
+    'áreas autenticadas devem usar as cores de destaque sem alterar a opacidade de Volume',
 );
 $assert(
     str_contains($uiRuntime, 'footer_telemetry_mountains_html(') &&
@@ -351,21 +373,24 @@ $assert(
     'linhas do rodapé devem reutilizar exatamente as duas séries de Volume',
 );
 $assert(
-    str_contains($appJs, 'endpoint.searchParams.set("r", "footer_telemetry_wave")') &&
-    str_contains($appJs, 'payload?.page_loads') &&
-    str_contains($appJs, 'payload?.database_queries') &&
-    str_contains($appJs, 'class="footer-telemetry-line is-page-loads"') &&
-    str_contains($appJs, 'class="footer-telemetry-line is-database-queries"') &&
-    str_contains($appJs, 'return path;') &&
-    !str_contains($appJs, 'endpoint.searchParams.set("r", "login_telemetry_wave")'),
-    'fallback do cliente deve permanecer autenticado e não pode reabrir a rota pública histórica',
+    str_contains($appJs, 'function initFooterTelemetryLines(root = d)') &&
+    str_contains($appJs, 'wrap.dataset.footerTelemetryLinesReady = "1";') &&
+    !str_contains($appJs, 'footerTelemetryLinePath(') &&
+    !str_contains($appJs, 'endpoint.searchParams.set("r", "footer_telemetry_wave")') &&
+    !str_contains($appJs, 'payload?.page_loads') &&
+    !str_contains($appJs, 'payload?.database_queries'),
+    'cliente não pode recalcular nem buscar a geometria canônica do rodapé',
 );
-foreach ([
-    'body.has-telemetry-mountains .footer-telemetry-line{fill:none;stroke-width:2.4;',
-    '.footer-telemetry-line.is-page-loads{stroke:var(--clinic-accent-strong,var(--brand-dark,#1f6f56))}',
-    '.footer-telemetry-line.is-database-queries{stroke:var(--clinic-accent,var(--brand,#347963))}',
-] as $token) {
-    $assert(str_contains($css, $token), 'fallback decorativo do rodapé divergente: ' . $token);
-}
+$footerCssStart = strpos($css, 'body.has-telemetry-mountains .footer-telemetry-lines{');
+$footerCssEnd = $footerCssStart === false ? false : strpos($css, '}', $footerCssStart);
+$footerCss = $footerCssStart === false || $footerCssEnd === false
+    ? ''
+    : substr($css, $footerCssStart, $footerCssEnd - $footerCssStart + 1);
+$assert(
+    $footerCss !== '' &&
+    !str_contains($footerCss, 'mask-image:linear-gradient') &&
+    str_contains($footerCss, 'max-height:210px'),
+    'rodapé não pode aplicar fade nem limitar a geometria abaixo da altura lógica de Volume',
+);
 $assert(in_array('footer_telemetry_wave', \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true), 'rota decorativa não pode retroalimentar a telemetria');
 unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);

@@ -225,67 +225,120 @@ final class AuthOnboardingPresentationOperations01
     
     }
 
-    public static function footer_telemetry_mountain_path(
-        array $values,
-        float $maximum,
-        int $width = 1000,
-        int $height = 250,
-    ): string
+    public static function footer_telemetry_volume_geometry(
+        array $pageLoads,
+        array $databaseQueries,
+    ): array
     {
-        $clean = array_values(
+        $normalize = static fn(array $values): array => array_values(
             array_map(
                 static fn(mixed $value): float => max(0.0, (float) $value),
                 $values,
             ),
         );
-        $count = count($clean);
-        if ($count === 0) {
+        $pageLoads = $normalize($pageLoads);
+        $databaseQueries = $normalize($databaseQueries);
+        $pageScale = $pageLoads !== [] ? $pageLoads : [0.0];
+        $queryScale = $databaseQueries !== [] ? $databaseQueries : [0.0];
+        $scaleMin = min(0.0, min($pageScale), min($queryScale));
+        $scaleMax = max(0.0, max($pageScale), max($queryScale));
+        if ($scaleMax <= $scaleMin) {
+            $scaleMax = $scaleMin + 1.0;
+        }
+        $range = $scaleMax - $scaleMin;
+        $width = 960;
+        $height = 210;
+        $padLeft = 40;
+        $padRight = 16;
+        $padTop = 18;
+        $padBottom = 32;
+        $plotWidth = $width - $padLeft - $padRight;
+        $plotHeight = $height - $padTop - $padBottom;
+        $baseline = round(
+            $padTop + $plotHeight - ((0.0 - $scaleMin) / $range) * $plotHeight,
+            2,
+            \RoundingMode::HalfAwayFromZero,
+        );
+        $makePoints = static function (array $values) use (
+            $padLeft,
+            $plotWidth,
+            $padTop,
+            $plotHeight,
+            $scaleMin,
+            $range,
+        ): array {
+            $count = count($values);
+            $points = [];
+            foreach ($values as $index => $value) {
+                $x = $padLeft + ($count <= 1 ? 0 : $index * ($plotWidth / ($count - 1)));
+                $y = $padTop + $plotHeight - (($value - $scaleMin) / $range) * $plotHeight;
+                $points[] = [
+                    round($x, 2, \RoundingMode::HalfAwayFromZero),
+                    round($y, 2, \RoundingMode::HalfAwayFromZero),
+                ];
+            }
+            return $points;
+        };
+        return [
+            "width" => $width,
+            "height" => $height,
+            "view_box" => "0 0 960 210",
+            "baseline" => $baseline,
+            "page_loads" => $makePoints($pageLoads),
+            "database_queries" => $makePoints($databaseQueries),
+        ];
+    }
+
+    public static function footer_telemetry_mountain_area_path(
+        array $points,
+        float $baseline,
+        float $cornerRadius = 4.0,
+    ): string
+    {
+        if ($points === []) {
             return "";
         }
-        $maximum = max(1.0, $maximum);
-        $top = 10.0;
-        $bottom = 14.0;
-        $plotHeight = max(1.0, $height - $top - $bottom);
         $format = static function (float $value): string {
             $formatted = number_format($value, 2, ".", "");
             return rtrim(rtrim($formatted, "0"), ".");
         };
-        $points = [];
-        foreach ($clean as $index => $value) {
-            $x = $count <= 1 ? 0.0 : $index * ($width / ($count - 1));
-            $y = $top + $plotHeight - ($value / $maximum) * $plotHeight;
-            $points[] = [$x, $y];
-        }
-        if ($count === 1) {
-            $y = $format($points[0][1]);
-            return "M 0 " . $y . " L " . $format((float) $width) . " " . $y;
-        }
-        $stepX = $width / ($count - 1);
-        $cornerTarget = min(10.0, max(3.0, $stepX * 0.18));
-        $path = "M " . $format($points[0][0]) . " " . $format($points[0][1]);
-        for ($index = 1; $index < $count - 1; $index++) {
-            $previous = $points[$index - 1];
-            $current = $points[$index];
-            $next = $points[$index + 1];
-            $incomingLength = hypot($current[0] - $previous[0], $current[1] - $previous[1]);
-            $outgoingLength = hypot($next[0] - $current[0], $next[1] - $current[1]);
-            $incomingOffset = min($cornerTarget, $incomingLength * 0.24);
-            $outgoingOffset = min($cornerTarget, $outgoingLength * 0.24);
-            $before = [
-                $current[0] - (($current[0] - $previous[0]) / $incomingLength) * $incomingOffset,
-                $current[1] - (($current[1] - $previous[1]) / $incomingLength) * $incomingOffset,
-            ];
-            $after = [
-                $current[0] + (($next[0] - $current[0]) / $outgoingLength) * $outgoingOffset,
-                $current[1] + (($next[1] - $current[1]) / $outgoingLength) * $outgoingOffset,
-            ];
-            $path .=
-                " L " . $format($before[0]) . " " . $format($before[1]) .
-                " Q " . $format($current[0]) . " " . $format($current[1]) .
-                " " . $format($after[0]) . " " . $format($after[1]);
-        }
+        $count = count($points);
+        $first = $points[0];
         $last = $points[$count - 1];
-        return $path . " L " . $format($last[0]) . " " . $format($last[1]);
+        $path = "M" . $format((float) $first[0]) . " " . $format((float) $first[1]);
+        if ($count > 1 && $cornerRadius > 0.0) {
+            $stepX = abs((float) $points[1][0] - (float) $points[0][0]);
+            $cornerX = min(max(1.5, $cornerRadius), $stepX * 0.14);
+            for ($index = 1; $index < $count - 1; $index++) {
+                $previous = $points[$index - 1];
+                $current = $points[$index];
+                $next = $points[$index + 1];
+                $incomingX = max(0.000001, (float) $current[0] - (float) $previous[0]);
+                $outgoingX = max(0.000001, (float) $next[0] - (float) $current[0]);
+                $incomingRatio = min(0.49, $cornerX / $incomingX);
+                $outgoingRatio = min(0.49, $cornerX / $outgoingX);
+                $beforeX = (float) $current[0] - ((float) $current[0] - (float) $previous[0]) * $incomingRatio;
+                $beforeY = (float) $current[1] - ((float) $current[1] - (float) $previous[1]) * $incomingRatio;
+                $afterX = (float) $current[0] + ((float) $next[0] - (float) $current[0]) * $outgoingRatio;
+                $afterY = (float) $current[1] + ((float) $next[1] - (float) $current[1]) * $outgoingRatio;
+                $path .=
+                    " L " . $format(round($beforeX, 2, \RoundingMode::HalfAwayFromZero)) .
+                    " " . $format(round($beforeY, 2, \RoundingMode::HalfAwayFromZero)) .
+                    " Q " . $format((float) $current[0]) .
+                    " " . $format((float) $current[1]) .
+                    " " . $format(round($afterX, 2, \RoundingMode::HalfAwayFromZero)) .
+                    " " . $format(round($afterY, 2, \RoundingMode::HalfAwayFromZero));
+            }
+            $path .= " L " . $format((float) $last[0]) . " " . $format((float) $last[1]);
+        } else {
+            for ($index = 1; $index < $count; $index++) {
+                $path .= " L " . $format((float) $points[$index][0]) . " " . $format((float) $points[$index][1]);
+            }
+        }
+        return $path .
+            " L " . $format((float) $last[0]) . " " . $format($baseline) .
+            " L " . $format((float) $first[0]) . " " . $format($baseline) .
+            " Z";
     }
 
     public static function footer_telemetry_mountains_html(
@@ -310,29 +363,27 @@ final class AuthOnboardingPresentationOperations01
         if ($pageLoads === [] && $databaseQueries === []) {
             return "";
         }
-        $maximum = max(array_merge([1.0], $pageLoads, $databaseQueries));
-        $pageLoadPath = self::footer_telemetry_mountain_path($pageLoads, (float) $maximum);
-        $databaseQueryPath = self::footer_telemetry_mountain_path($databaseQueries, (float) $maximum);
+        $geometry = self::footer_telemetry_volume_geometry($pageLoads, $databaseQueries);
+        $pageLoadArea = self::footer_telemetry_mountain_area_path(
+            (array) $geometry["page_loads"],
+            (float) $geometry["baseline"],
+        );
+        $databaseQueryArea = self::footer_telemetry_mountain_area_path(
+            (array) $geometry["database_queries"],
+            (float) $geometry["baseline"],
+        );
         $pageLoadColor = $public ? "#1f6f56" : ($primaryColor !== "" ? $primaryColor : "#1f6f56");
         $databaseQueryColor = $public ? "#347963" : ($secondaryColor !== "" ? $secondaryColor : "#347963");
-        $opacity = $public ? "0.5" : "0.62";
-        $pathAttributes =
-            ' fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity="' .
-            $opacity .
-            '"';
-        return '<div class="footer-telemetry-lines app-telemetry-mountains" data-footer-telemetry-lines="1" data-footer-telemetry-lines-ready="1" aria-hidden="true"><svg viewBox="0 0 1000 250" preserveAspectRatio="none" focusable="false" role="presentation"><path class="footer-telemetry-mountain is-page-loads" stroke="' .
+        $opacity = "0.5";
+        return '<div class="footer-telemetry-lines app-telemetry-mountains" data-footer-telemetry-lines="1" data-footer-telemetry-lines-ready="1" aria-hidden="true"><svg viewBox="0 0 960 210" preserveAspectRatio="none" focusable="false" role="presentation"><path class="footer-telemetry-mountain-fill is-page-loads" fill="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadColor) .
-            '" d="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadPath) .
-            '"' .
-            $pathAttributes .
-            '/><path class="footer-telemetry-mountain is-database-queries" stroke="' .
+            '" opacity="' . $opacity . '" stroke="none" d="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($pageLoadArea) .
+            '"/><path class="footer-telemetry-mountain-fill is-database-queries" fill="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryColor) .
-            '" d="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryPath) .
-            '"' .
-            $pathAttributes .
-            '/></svg></div>';
+            '" opacity="' . $opacity . '" stroke="none" d="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($databaseQueryArea) .
+            '"/></svg></div>';
     }
 
 }
