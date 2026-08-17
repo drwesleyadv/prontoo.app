@@ -107,7 +107,7 @@ if (!function_exists("h")) {
     }
 }
 const PRONTOO_VERSION_FALLBACK = "1.8.17.10";
-const PRONTOO_ASSET_REV_FALLBACK = "1.8.17.9";
+const PRONTOO_ASSET_REV_FALLBACK = "1.8.17.10";
 function prontoo_release_metadata(): array
 {
 
