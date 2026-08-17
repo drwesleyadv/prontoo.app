@@ -26,15 +26,18 @@ foreach (["\"Velocidade\"", "\"Volume\"", "\"visual_mode\" => \"telemetry\""] as
 $assert(
     str_contains($admin2, 'admin_global_metric_series_24h("route")') &&
     str_contains($admin2, 'admin_global_metric_series_24h("database")') &&
-    str_contains($admin2, 'admin_global_volume_series_24h("page_load")') &&
-    str_contains($admin2, 'admin_global_volume_series_24h("database_queries")'),
+    str_contains($admin2, 'admin_global_volume_series_30d("page_load")') &&
+    str_contains($admin2, 'admin_global_volume_series_30d("database_queries")'),
     'gráficos devem usar as séries canônicas de latência e volume',
 );
 $assert(
     str_contains($admin2, '"primary_label" => "Carregamento de Páginas"') &&
     str_contains($admin2, '"secondary_label" => "Consulta"') &&
-    !str_contains($admin2, 'admin_global_volume_series_30d'),
-    'Velocidade e Volume devem compartilhar os nomes funcionais e a janela de 24 horas',
+    !str_contains($admin2, 'admin_global_volume_series_24h') &&
+    str_contains($admin2, '"recent_points" => 1') &&
+    str_contains($admin2, '"middle_points" => 7') &&
+    str_contains($admin2, '"overall_title" => "Carregamentos nos últimos 30 dias"'),
+    'Velocidade deve usar 24 horas e Volume deve usar 30 intervalos diários',
 );
 $assert(class_exists(\Prontoo\Infrastructure\Database\PdoQueryTelemetry::class), 'acumulador de latência PDO ausente');
 \Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
@@ -171,9 +174,7 @@ $minuteEvents = [
 ];
 $speedPages = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_latency_series_24h_from_events('route', $minuteEvents, $chartNowUs);
 $speedQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_latency_series_24h_from_events('database', $minuteEvents, $chartNowUs);
-$volumePages = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_24h_from_events('page_load', $minuteEvents, $chartNowUs);
-$volumeQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_24h_from_events('database_queries', $minuteEvents, $chartNowUs);
-foreach ([$speedPages, $speedQueries, $volumePages, $volumeQueries] as $minuteSeries) {
+foreach ([$speedPages, $speedQueries] as $minuteSeries) {
     $hourIndexes = array_keys(array_filter(
         $minuteSeries,
         static fn(array $row): bool => ($row['axis_label'] ?? '') !== '',
@@ -192,10 +193,54 @@ foreach ([$speedPages, $speedQueries, $volumePages, $volumeQueries] as $minuteSe
 }
 $assert(
     abs((float) $speedPages[1438]['value'] - 180.0) < 0.000001 &&
-    abs((float) $speedQueries[1438]['value'] - 60.0) < 0.000001 &&
-    (int) $volumePages[1438]['value'] === 2 &&
-    (int) $volumeQueries[1438]['value'] === 3,
-    'agregação por minuto de Velocidade e Volume divergente',
+    abs((float) $speedQueries[1438]['value'] - 60.0) < 0.000001,
+    'agregação por minuto de Velocidade divergente',
+);
+$volumeDayUs = 86400 * 1000000;
+$volumeEvents = [
+    [
+        'fim_unix_us' => $chartNowUs - 2 * $volumeDayUs + 1000000,
+        'database_query_count' => 2,
+        'database_query_instrumented' => true,
+    ],
+    [
+        'fim_unix_us' => $chartNowUs - 2 * $volumeDayUs + 2000000,
+        'database_query_count' => 1,
+        'database_query_instrumented' => true,
+    ],
+    [
+        'fim_unix_us' => $chartNowUs,
+        'database_query_count' => 99,
+        'database_query_instrumented' => true,
+    ],
+];
+$volumePages = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d_from_events('page_load', $volumeEvents, $chartNowUs);
+$volumeQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d_from_events('database_queries', $volumeEvents, $chartNowUs);
+foreach ([$volumePages, $volumeQueries] as $dailySeries) {
+    $assert(count($dailySeries) === 30, 'Volume deve conter exatamente 30 pontos');
+    for ($index = 1; $index < count($dailySeries); $index++) {
+        $assert(
+            (int) $dailySeries[$index]['ts'] - (int) $dailySeries[$index - 1]['ts'] === 86400,
+            'cada ponto de Volume deve representar um intervalo de 24 horas',
+        );
+    }
+    $assert(
+        ($dailySeries[27]['value'] ?? -1) == 0 &&
+        ($dailySeries[29]['value'] ?? -1) == 0 &&
+        !empty($dailySeries[27]['observed']) &&
+        !empty($dailySeries[29]['observed']),
+        'intervalos de Volume sem eventos devem permanecer como pontos explícitos em zero',
+    );
+    $assert(
+        ($dailySeries[0]['period'] ?? '') === 'previous' &&
+        ($dailySeries[15]['period'] ?? '') === 'current',
+        'Volume deve preservar os dois períodos de 15 dias',
+    );
+}
+$assert(
+    (int) $volumePages[28]['value'] === 2 &&
+    (int) $volumeQueries[28]['value'] === 3,
+    'totais de Carregamento de Páginas e Consulta por 24 horas divergiram',
 );
 $chartSample = [
     ['label' => '14:07', 'axis_label' => '14h', 'tooltip' => '14:07 → 14:08', 'value' => 0, 'observed' => true],
@@ -232,4 +277,4 @@ foreach ([
 }
 $assert(!str_contains($speedGeometry, "'Últimas 24 horas'"), 'transformação legada não pode renomear Velocidade');
 $assert(str_contains($login, 'telemetry_route_requests_series_20d()') && str_contains($login, 'telemetry_sequence_records_series_20d()'), 'rodapé deixou de usar as séries canônicas');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumePages, $volumeQueries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $presentation3, $speedGeometry, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml);

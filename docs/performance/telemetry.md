@@ -12,15 +12,15 @@ A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e d
 
 `Velocidade` usa os 1.440 minutos completos imediatamente anteriores ao minuto corrente. Cada bucket contém a média daquele minuto: Carregamento de Páginas usa a duração média dos page loads observados e Consulta usa a média ponderada das consultas preparadas observadas.
 
-`Volume` usa exatamente a mesma janela e os mesmos 1.440 buckets. Cada bucket contém as quantidades daquele minuto: verde escuro para Carregamento de Páginas e verde claro para Consulta.
+`Volume` usa 30 intervalos consecutivos de 24 horas imediatamente anteriores ao timestamp da leitura. Cada um dos 30 pontos contém as quantidades totais de seu intervalo: verde escuro para Carregamento de Páginas e verde claro para Consulta.
 
-Os dois gráficos mantêm um ponto para cada minuto, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo, a secundária verde claro depois à frente, e os dois contornos permanecem visíveis. O eixo inferior mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
+Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada intervalo de 24 horas, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo, a secundária verde claro depois à frente, e os dois contornos permanecem visíveis. Somente o eixo de Velocidade mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
 
 ## Tempo médio de consulta ao banco
 
 A medição ocorre no `PDOStatement::execute()` da conexão canônica e não inclui guards de autorização, integridade ou formatação executados fora do driver. Cada page load persiste somente `database_query_count` e `database_query_duration_ns`. O valor de um bucket é ponderado pela quantidade real de consultas: soma de todas as durações SQL dividida pelo total de consultas daquele bucket. SQL, parâmetros, resultados e dados clínicos não integram a telemetria.
 
-Eventos sem consulta observada não inventam duração nem quantidade. Na série visual completa, o bucket sem consulta recebe zero para preservar a escala temporal minuto a minuto; isso não representa uma duração estimada.
+Eventos sem consulta observada não inventam duração nem quantidade. Na série visual completa, o bucket sem consulta recebe zero para preservar a escala temporal do respectivo gráfico; isso não representa uma duração estimada.
 
 ## Higienização
 
