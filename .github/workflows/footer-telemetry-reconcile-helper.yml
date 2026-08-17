@@ -115,7 +115,7 @@ jobs:
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
       - name: Remove helper from final snapshot
-        run: rm .github/workflows/footer-telemetry-reconcile-helper.yml
+        run: rm .github/workflows/footer-telemetry-reconcile-helper.yml .github/footer-telemetry-helper-trigger
       - name: Reconcile release contracts
         run: |
           php tools/release-contract-reconcile --write
