@@ -831,12 +831,7 @@ final class AdminPagesPresentationOperations03
                     $emptyMessage .
                     '</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>') .
             '</div>';
-        $advanced = '<details class="form-panel developer-advanced-tools"><summary><span>Mais opções</span></summary><div class="developer-tool-grid"><a class="developer-tool-card" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_operations")) .
-            '"><span class="developer-tool-icon">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("insights") .
-            '</span><span><b>Indicadores do negócio</b><small>Adoção, operação e financeiro sob demanda.</small></span></a></div></details>';
-        return $filterNav . $table . $advanced;
+        return $filterNav . $table;
     }
 
     public static function developer_overview_html(array $context, callable $href, callable $actionLabel): string

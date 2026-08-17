@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.8.14.1 — Remediação pós-reauditoria global
+## 1.8.17.1 — Padronização final de Consultórios
 
-- formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente de chegou para pronto para atendimento.
-- substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel.
-- torna atômica a criação da anotação clínica com o início da consulta por command tipado e reduz dívida do Runtime tocado.
-- adiciona contratos anti-regressão específicos para os dois defeitos funcionais encontrados na reauditoria.
-- adiciona limpeza segura de branches agent já incorporadas ao estado canônico e prepara proteção obrigatória da branch principal.
+- remove o botão Mais opções e seu bloco expansível do rodapé da tela de Consultórios.
+- preserva a busca rápida por nome, área, status ou vencimento.
+- mantém os filtros Todos, Atenção, Onboarding, Somente leitura e Vencendo.
+- preserva os cards, estados, metadados e a ação Gerenciar de cada consultório.
+- adiciona contrato anti-regressão para impedir a reintrodução da ação removida.

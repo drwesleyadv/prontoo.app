@@ -1,19 +1,19 @@
 {
-    "version": "1.8.14.1",
-    "release": "1.8.14.1",
-    "generated_at_unix": 1786714860,
-    "generated_at": "2026-08-14T09:41:00-04:00",
-    "updated_at": "2026-08-14T09:41:00-04:00",
-    "build": "1.8.14.1-global-audit-followup-remediation",
-    "asset_version": "1.8.14.1",
+    "version": "1.8.17.1",
+    "release": "1.8.17.1",
+    "generated_at_unix": 1786969805,
+    "generated_at": "2026-08-17T08:30:05-04:00",
+    "updated_at": "2026-08-17T08:30:05-04:00",
+    "build": "1.8.17.1-admin-clinics-footer-cleanup",
+    "asset_version": "1.8.17.1",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": false,
-    "functional_equivalence_policy": "canonical_global_audit_followup_remediation_without_schema_change",
+    "visual_changes": true,
+    "functional_equivalence_policy": "admin_clinics_footer_cleanup_without_schema_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Fecha regressões funcionais da Jornada encontradas na reauditoria global, torna gravação clínica inicial atômica e reforça governança do repositório sem alterar schema.",
+    "notes": "Remove a ação Mais opções do rodapé de Consultórios e preserva o diretório padronizado com busca, filtros, cards e gestão por registro, sem alterar schema.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.14.1-global-audit-followup-remediation",
-    "deployment_sync_requested_at": "2026-08-14T09:41:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.17.1-admin-clinics-footer-cleanup",
+    "deployment_sync_requested_at": "2026-08-17T08:30:05-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -60,7 +60,7 @@
     "rewrite_scope": "superseded_release_references_and_compatibility_only",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
-    "release_date": "2026-08-14",
+    "release_date": "2026-08-17",
     "required_php_family": "8.4",
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
@@ -84,13 +84,13 @@
         ]
     },
     "changelog": {
-        "title": "Remediação pós-reauditoria global",
+        "title": "Padronização final de Consultórios",
         "items": [
-            "formaliza o atalho de preparo concluído da Jornada sem recusar o fluxo existente de chegou para pronto para atendimento",
-            "substitui a expressão condicional de início clínico por transição de estado diretamente demonstrável pelo kernel",
-            "torna atômica a criação da anotação clínica com o início da consulta por command tipado e reduz dívida do Runtime tocado",
-            "adiciona contratos anti-regressão específicos para os dois defeitos funcionais encontrados na reauditoria",
-            "adiciona limpeza segura de branches agent já incorporadas ao estado canônico e prepara proteção obrigatória da branch principal"
+            "remove o botão Mais opções e seu bloco expansível do rodapé da tela de Consultórios",
+            "preserva a busca rápida por nome, área, status ou vencimento",
+            "mantém os filtros Todos, Atenção, Onboarding, Somente leitura e Vencendo",
+            "preserva os cards, estados, metadados e a ação Gerenciar de cada consultório",
+            "adiciona contrato anti-regressão para impedir a reintrodução da ação removida"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
