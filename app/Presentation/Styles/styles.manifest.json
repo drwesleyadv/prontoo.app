@@ -138,7 +138,7 @@
             "layer": "components",
             "responsibility": "components",
             "concern": "components",
-            "sha256": "edf4c87f07af008bae02d3a3bef3a426c7d3e730f486021021a48f842702ac91",
+            "sha256": "44d64018ce5fe9a673d7293b82dc8d370c61c71cce45f806fa8ae85d415c35e8",
             "bytes": 339616,
             "important_count": 1637,
             "route_scope_count": 0
@@ -1067,7 +1067,7 @@
             "source": "components/components.css",
             "offset": 21152,
             "bytes": 4845,
-            "sha256": "1a263c464e83737bd3daeff5955e68a73c30d130a3c8a1fd65d99abacae206e0",
+            "sha256": "f1a3c1b46d750cccf6fca0d16228e361f09ef66c1dab378dd1cf6117a033c262",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9956,9 +9956,9 @@
         }
     ],
     "artifact_contract": {
-        "sha256": "d7edca630b13767373e3e1d6519aba6f56c8a66de40a28ac9443cc52992e9d0b",
+        "sha256": "546bfb9387c4178a989982f2c19020504544b31a9a76fff3eec6546acd279471",
         "bytes": 802830,
-        "lines": 15094,
+        "lines": 15104,
         "deterministic_source_required": true
     },
     "observable_ux_contract": {
