@@ -269,8 +269,10 @@ $assert($loadAreaPos !== false && $responseAreaPos > $loadAreaPos && $fillOrderP
 foreach ([
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-load{fill:#1f6f56;opacity:.5}',
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-fill-response{fill:#347963;opacity:.5}',
-    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-load{stroke:#1f6f56;stroke-width:1.5}',
-    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-response{stroke:#347963;stroke-width:1.5}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-load{stroke:none}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-line-response{stroke:none}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-dot-load{display:none}',
+    '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-chart-dot-response{display:none}',
     '.metric-dual-time-chart[data-metric-visual="telemetry"] .metric-hour-label{font-size:9px;letter-spacing:-.1px}',
 ] as $token) {
     $assert(str_contains($css, $token), 'hierarquia visual da telemetria divergente: ' . $token);

@@ -14,7 +14,7 @@ A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e d
 
 `Volume` usa 30 intervalos consecutivos de 24 horas imediatamente anteriores ao timestamp da leitura. Cada um dos 30 pontos contém as quantidades totais de seu intervalo: verde escuro para Carregamento de Páginas e verde claro para Consulta.
 
-Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada intervalo de 24 horas, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo, a secundária verde claro depois à frente, e os dois contornos permanecem visíveis. Somente o eixo de Velocidade mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
+Velocidade mantém um ponto para cada minuto e Volume mantém um ponto para cada intervalo de 24 horas, inclusive quando não há eventos. Nesse caso, as duas séries recebem valor zero. Os pontos consecutivos são ligados por segmentos retos, formando picos e retornos à base sem interpolação curva. A área primária verde escuro é pintada primeiro ao fundo e a secundária verde claro depois à frente; nenhuma das séries exibe contorno ou ponto terminal, permanecendo visíveis somente as áreas inferiores preenchidas. Somente o eixo de Velocidade mostra uma marca centralizada a cada hora completa, totalizando 24 marcas sem sobreposição.
 
 ## Tempo médio de consulta ao banco
 
