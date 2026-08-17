@@ -232,19 +232,19 @@ final class SupportTelemetryInfrastructureOperations02
 
 
 
-    public static function telemetry_volume_series_24h(
+    public static function telemetry_volume_series_30d(
         string $metric,
         ?int $nowUnixUs = null,
     ): array {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        return self::telemetry_volume_series_24h_from_events(
+        return self::telemetry_volume_series_30d_from_events(
             $metric,
             \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
             max(1, $nowUnixUs),
         );
     }
 
-    public static function telemetry_volume_series_24h_from_events(
+    public static function telemetry_volume_series_30d_from_events(
         string $metric,
         array $events,
         int $nowUnixUs,
@@ -252,9 +252,9 @@ final class SupportTelemetryInfrastructureOperations02
         $metric = in_array($metric, ["page_load", "database_queries"], true)
             ? $metric
             : "page_load";
-        $bucketUs = 60 * 1000000;
-        $bucketCount = 1440;
-        $windowEndUs = intdiv(max(1, $nowUnixUs), $bucketUs) * $bucketUs;
+        $bucketUs = 86400 * 1000000;
+        $bucketCount = 30;
+        $windowEndUs = max(1, $nowUnixUs);
         $windowStartUs = $windowEndUs - $bucketCount * $bucketUs;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
         $buckets = [];
@@ -265,11 +265,11 @@ final class SupportTelemetryInfrastructureOperations02
             $end = (new DateTimeImmutable("@" . intdiv($endUs, 1000000)))->setTimezone($timezone);
             $buckets[$index] = [
                 "ts" => intdiv($startUs, 1000000),
-                "label" => $start->format("H:i"),
-                "axis_label" => $start->format("i") === "00" ? $start->format("H\\h") : "",
-                "tooltip" => $start->format("d/m H:i") . " → " . $end->format("H:i"),
+                "label" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_day_axis_label($end),
+                "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"),
                 "value" => 0,
                 "observed" => true,
+                "period" => $index < 15 ? "previous" : "current",
             ];
         }
         foreach ($events as $event) {
