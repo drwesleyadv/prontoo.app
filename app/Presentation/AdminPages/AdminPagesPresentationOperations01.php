@@ -26,182 +26,6 @@ final class AdminPagesPresentationOperations01
     {
     }
 
-    public static function admin_scope_guard_definition(string $key): array
-    
-    {
-    
-        $definitions = [
-            "write_in_read_only" => [
-                "tier" => "policy",
-                "icon" => "lock_clock",
-                "label" => "Escrita bloqueada pela assinatura",
-                "cause" =>
-                    "O consultório estava em Somente Leitura e a ação não integra a lista mínima permitida.",
-                "risk" =>
-                    "É um bloqueio de política comercial, não uma evidência de tentativa de cruzar consultórios.",
-                "detection" =>
-                    "A política de assinatura recusou a escrita antes da preparação do SQL.",
-                "next" =>
-                    "Verifique a situação da assinatura ou a lista de ações permitidas em Somente Leitura.",
-            ],
-            "write_without_clinic_scope" => [
-                "tier" => "objective",
-                "icon" => "shield_lock",
-                "label" => "Escrita sem escopo explícito",
-                "cause" =>
-                    "A escrita mencionou uma tabela operacional sem demonstrar a coluna clinic_id exigida.",
-                "risk" =>
-                    "Sem o invariante de consultório, a instrução poderia alcançar linhas fora do contexto ativo.",
-                "detection" =>
-                    "O guardião reconheceu a tabela como isolada e não encontrou uma prova de escopo válida.",
-                "next" =>
-                    "Inclua clinic_id e vincule seu valor ao consultório da sessão.",
-            ],
-            "write_without_where" => [
-                "tier" => "objective",
-                "icon" => "gpp_bad",
-                "label" => "UPDATE/DELETE sem WHERE",
-                "cause" =>
-                    "Uma instrução de alteração ou exclusão não continha cláusula WHERE de nível principal.",
-                "risk" =>
-                    "A ausência de filtro permitiria atingir todas as linhas da tabela operacional.",
-                "detection" =>
-                    "A estrutura do SQL foi analisada antes do PDO e não apresentou WHERE aplicável.",
-                "next" =>
-                    "Limite a instrução por identificador e clinic_id do consultório ativo.",
-            ],
-            "write_without_clinic_where" => [
-                "tier" => "objective",
-                "icon" => "gpp_bad",
-                "label" => "WHERE sem clinic_id",
-                "cause" =>
-                    "O UPDATE/DELETE tinha WHERE, mas o filtro não continha clinic_id.",
-                "risk" =>
-                    "Um identificador global ou reutilizado não constitui, sozinho, uma fronteira entre consultórios.",
-                "detection" =>
-                    "O analisador isolou o WHERE principal e não encontrou a coluna de escopo.",
-                "next" =>
-                    "Adicione clinic_id=? ao predicado e use o valor da sessão ativa.",
-            ],
-            "write_changes_clinic_scope" => [
-                "tier" => "objective",
-                "icon" => "move_down",
-                "label" => "Alteração de clinic_id bloqueada",
-                "cause" =>
-                    "O UPDATE tentou alterar a coluna que define o proprietário do registro.",
-                "risk" =>
-                    "Mover uma linha por UPDATE poderia transferir sua visibilidade para outro consultório.",
-                "detection" =>
-                    "A lista SET foi separada do WHERE e continha atribuição direta a clinic_id.",
-                "next" =>
-                    "Não altere clinic_id em rotinas clínicas; trate eventual migração em processo administrativo dedicado e auditado.",
-            ],
-            "write_mismatched_clinic_where" => [
-                "tier" => "objective",
-                "icon" => "domain_disabled",
-                "label" => "clinic_id divergente no WHERE",
-                "cause" =>
-                    "O valor demonstrável do clinic_id no filtro era diferente do consultório da sessão.",
-                "risk" =>
-                    "Se executada, a instrução teria como alvo explícito outro escopo de consultório.",
-                "detection" =>
-                    "O valor literal ou parâmetro posicional foi comparado ao clinic_id da sessão antes do SQL.",
-                "next" =>
-                    "Rastreie a origem do parâmetro e derive o escopo somente da sessão validada.",
-            ],
-            "write_unproved_clinic_where" => [
-                "tier" => "review",
-                "icon" => "rule",
-                "label" => "Prova do WHERE insuficiente",
-                "cause" =>
-                    "O analisador não conseguiu demonstrar que todos os ramos booleanos do WHERE exigem o consultório ativo.",
-                "risk" =>
-                    "Pode ser um formato SQL complexo legítimo ou um ramo com OR que escape do escopo; o registro, sozinho, não distingue os dois casos.",
-                "detection" =>
-                    "A prova conservadora exige clinic_id ativo em toda alternativa lógica alcançável.",
-                "next" =>
-                    "Simplifique o predicado ou repita a condição de clinic_id em todos os ramos do OR.",
-            ],
-            "insert_without_clinic_column" => [
-                "tier" => "objective",
-                "icon" => "playlist_remove",
-                "label" => "INSERT sem coluna clinic_id",
-                "cause" =>
-                    "A lista de colunas da nova linha não continha clinic_id.",
-                "risk" =>
-                    "A linha poderia ficar sem proprietário verificável ou depender de comportamento implícito.",
-                "detection" =>
-                    "As colunas do INSERT/REPLACE foram analisadas antes da execução.",
-                "next" =>
-                    "Grave clinic_id explicitamente com o valor da sessão.",
-            ],
-            "insert_mismatched_clinic_value" => [
-                "tier" => "objective",
-                "icon" => "domain_disabled",
-                "label" => "clinic_id divergente no INSERT",
-                "cause" =>
-                    "Ao menos uma linha do INSERT/REPLACE recebeu clinic_id diferente do consultório ativo.",
-                "risk" =>
-                    "A nova linha seria criada diretamente no escopo de outro consultório.",
-                "detection" =>
-                    "Todas as tuplas VALUES foram avaliadas, inclusive inserções em lote.",
-                "next" =>
-                    "Use o clinic_id da sessão em todas as linhas do lote.",
-            ],
-            "insert_unproved_clinic_value" => [
-                "tier" => "review",
-                "icon" => "rule",
-                "label" => "Prova do INSERT insuficiente",
-                "cause" =>
-                    "O formato do INSERT/REPLACE não permitiu provar que todas as linhas usam o consultório ativo.",
-                "risk" =>
-                    "Pode ser incompatibilidade do formato SQL, parâmetro ausente ou atribuição não demonstrável; não confirma travessia.",
-                "detection" =>
-                    "A prova verifica cada tupla VALUES e a eventual atualização de clinic_id no ON DUPLICATE KEY.",
-                "next" =>
-                    "Use lista explícita de colunas e VALUES posicionais demonstráveis.",
-            ],
-            "entity_outside_clinic" => [
-                "tier" => "objective",
-                "icon" => "block",
-                "label" => "Objeto fora do escopo ativo",
-                "cause" =>
-                    "O identificador solicitado não foi encontrado dentro do consultório ativo.",
-                "risk" =>
-                    "O identificador pode estar incorreto, removido ou pertencer a outro contexto; nenhum dado externo foi devolvido.",
-                "detection" =>
-                    "A busca obrigatória combinou id e clinic_id e falhou fechada com HTTP 403.",
-                "next" =>
-                    "Revise a origem do identificador e descarte links ou formulários desatualizados.",
-            ],
-            "user_outside_clinic" => [
-                "tier" => "objective",
-                "icon" => "person_off",
-                "label" => "Colaborador fora do escopo ativo",
-                "cause" =>
-                    "O colaborador informado não possui vínculo válido com o consultório ativo.",
-                "risk" =>
-                    "Aceitar o vínculo permitiria associar uma ação clínica a uma identidade de outro contexto.",
-                "detection" =>
-                    "A associação usuário-consultório foi validada antes da operação e falhou fechada.",
-                "next" =>
-                    "Atualize a seleção de colaboradores e confirme o vínculo ativo antes de reenviar.",
-            ],
-        ];
-        return $definitions[$key] ?? [
-            "tier" => "review",
-            "icon" => "policy",
-            "label" => "Evento de escopo não classificado",
-            "cause" =>
-                "A versão atual ainda não possui uma explicação específica para esta chave de proteção.",
-            "risk" =>
-                "O evento foi bloqueado, mas precisa de revisão de código antes de receber uma conclusão.",
-            "detection" => "O guardião registrou a chave técnica " . $key . ".",
-            "next" => "Classifique a nova chave e revise o fingerprint correspondente.",
-        ];
-    
-    }
-
     public static function platform_autotest_actions(array $checks): array
     
     {
@@ -262,12 +86,6 @@ final class AdminPagesPresentationOperations01
 
         return match ($route) {
             "admin_onboarding", "admin_operations", "admin_payment_proof" => "admin_clinics",
-            "admin_errors",
-            "admin_diagnostics",
-            "admin_integrity",
-            "admin_security",
-            "admin_deleted"
-                => "admin_health",
             "admin_users",
             "admin_people",
             "admin_alerts",
@@ -413,12 +231,6 @@ final class AdminPagesPresentationOperations01
         return match ($parent) {
             "admin_painel" => [["admin_painel", "Visão geral", "space_dashboard"]],
             "admin_clinics" => [["admin_clinics", "Consultórios", "home_health"]],
-            "admin_health" => [
-                ["admin_health", "Confiabilidade", "shield"],
-                ["admin_errors", "Erros", "bug_report"],
-                ["admin_security", "Segurança", "security"],
-                ["admin_integrity", "Integridade", "verified_user"],
-            ],
             "admin_performance" => [["admin_performance", "Observabilidade", "monitoring"]],
             "admin_administration" => [["admin_administration", "Administração", "tune"]],
             default => [],

@@ -153,7 +153,6 @@ final class SecurityAccessInfrastructureOperations02
                 "settings" => "home_health",
                 "clinic" => "home_health",
                 "admin_clinics" => "home_health",
-                "admin_health" => "crisis_alert",
                 "admin_maintenance" => "construction",
                 "admin_settings" => "settings",
             ],

@@ -17,8 +17,6 @@ final class PdoOperationalDataRepository implements OperationalDataPort, Operati
     private const CATALOGS = [
         'admin_pages.01' => AdminPagesSqlCatalog01::class,
         'admin_pages.02' => AdminPagesSqlCatalog02::class,
-        'admin_pages.03' => AdminPagesSqlCatalog03::class,
-        'admin_pages.04' => AdminPagesSqlCatalog04::class,
         'admin_pages.06' => AdminPagesSqlCatalog06::class,
         'admin_pages.07' => AdminPagesSqlCatalog07::class,
         'admin_pages.08' => AdminPagesSqlCatalog08::class,

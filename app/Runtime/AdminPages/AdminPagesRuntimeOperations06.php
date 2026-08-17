@@ -138,9 +138,6 @@ final class AdminPagesRuntimeOperations06
         $errors24h = $qInt('read.admin_pages.06.page_admin_painel.06', [], []);
         $scopeStats24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_stats(24);
         $scopeViolations24h = (int) $scopeStats24h["actionable"];
-        $scopeGroups24h = $scopeViolations24h > 0
-            ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_guard_groups(24, 12)
-            : [];
         $health = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::platform_health_snapshot([
             "open_errors" => $openErrors,
             "login_locks" => $locks,
@@ -247,26 +244,13 @@ final class AdminPagesRuntimeOperations06
                 "title" => $locks . " bloqueio(s) de login ativo(s)",
                 "body" =>
                     "Confirme se são usuários reais com dificuldade ou tentativa indevida.",
-                "meta" => "Use o painel de Segurança.",
+                "meta" => "O bloqueio automático permanece ativo no servidor.",
             ];
         }
         if ($scopeViolations24h > 0 && $scopeLogicOk && $scopeContextOk) {
             $patterns = max(1, (int) ($scopeStats24h["patterns"] ?? 0));
             $objective = (int) ($scopeStats24h["objective"] ?? 0);
             $review = (int) ($scopeStats24h["review"] ?? 0);
-            $latest = $scopeGroups24h[0] ?? [];
-            $latestDefinition = $latest
-                ? \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_scope_guard_definition(
-                    (string) ($latest["violation_key"] ?? ""),
-                )
-                : [];
-            $detailsHtml = $latest
-                ? \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations01::admin_scope_evidence_html($latest, true)
-                : "";
-            $detailsHtml .=
-                '<a class="ghost small" href="' .
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_security") .
-                '#scope-isolation">Abrir todas as evidências em Segurança</a>';
             $actions[] = [
                 "icon" => "policy",
                 "time" => "Isolamento",
@@ -280,14 +264,9 @@ final class AdminPagesRuntimeOperations06
                     $objective .
                     " têm causa estrutural demonstrável e " .
                     $review .
-                    " exigem revisão porque a prova lógica foi insuficiente." .
-                    ($latestDefinition
-                        ? " Mais recente: " .
-                            (string) $latestDefinition["cause"]
-                        : ""),
+                    " exigem revisão porque a prova lógica foi insuficiente.",
                 "meta" =>
                     "O agrupamento por fingerprint reduz duplicidade; esta contagem não confirma acesso cruzado.",
-                "html" => $detailsHtml,
                 "class" => "scope-recommended-action",
             ];
         }
@@ -308,15 +287,8 @@ final class AdminPagesRuntimeOperations06
                 continue;
             }
             $targetRoute = mb_trim((string) ($action["route"] ?? ""));
-            if ($targetRoute === "") {
-                $targetRoute = match ((string) ($action["time"] ?? "")) {
-                "Erros" => "admin_errors",
-                "Segurança", "Isolamento", "Banco", "Arquivos" => "admin_health",
-                "Integridade" => "admin_integrity",
-                "Versão" => "admin_diagnostics",
-                "Assinaturas" => "admin_clinics",
-                default => "",
-                };
+            if ($targetRoute === "" && (string) ($action["time"] ?? "") === "Assinaturas") {
+                $targetRoute = "admin_clinics";
             }
             if ($targetRoute !== "") {
                 $action["html"] =

@@ -268,11 +268,6 @@ final class UiComponentsRuntimeOperations03
             "patient" => "patient_list",
             "document_view" => "visibility",
             "document_print" => "print",
-            "admin_deleted" => "restore_from_trash",
-            "admin_diagnostics" => "troubleshoot",
-            "admin_instabilities" => "crisis_alert",
-            "admin_integrity" => "verified_user",
-            "admin_security" => "security",
             "maintenance" => "construction",
         ];
         if (isset($map[$current])) {
