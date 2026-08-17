@@ -14,6 +14,8 @@ $rt2 = (string) file_get_contents($root . '/app/Runtime/UiComponents/UiComponent
 $rt3 = (string) file_get_contents($root . '/app/Runtime/UiComponents/UiComponentsRuntimeOperations03.php');
 $rendererPath = $root . '/app/Presentation/UiComponents/PageHeadControlPresentationOperations01.php';
 $renderer = is_file($rendererPath) ? (string) file_get_contents($rendererPath) : '';
+$adminClinicsPresentation = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
+$adminClinicsRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php');
 $php = '';
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root . '/app', FilesystemIterator::SKIP_DOTS));
 foreach ($iterator as $file) {
@@ -166,6 +168,27 @@ foreach (["private const ROLES = ['nav', 'primary', 'secondary', 'danger'];", 'p
 }
 if (substr_count($rt3, 'pagehead-controls pagehead-controls--navigation') !== 1) {
     $failures[] = ['rule' => 'navigation_renderer_owner'];
+}
+foreach ([
+    'developer_clinic_search_html',
+    'class="patient-search-bar"',
+    'class="patient-filter-chips ds-filter-list-chips"',
+    'class="patient-directory-list ds-person-list ds-patient-list"',
+    'class="patient-card-row ds-person-row ds-patient-row',
+    'class="patient-card-actions ds-person-actions"',
+] as $needle) {
+    if (!str_contains($adminClinicsPresentation, $needle)) {
+        $failures[] = ['rule' => 'admin_clinics_patient_layout_missing', 'needle' => $needle];
+    }
+}
+foreach ([
+    'patient-directory-overview kpis kpi-info-strip',
+    'patient-search-card ds-search-card',
+    'patient-list-card patient-directory-card ds-filter-list-block',
+] as $needle) {
+    if (!str_contains($adminClinicsRuntime, $needle)) {
+        $failures[] = ['rule' => 'admin_clinics_patient_composition_missing', 'needle' => $needle];
+    }
 }
 $result = [
     'ok' => $failures === [],

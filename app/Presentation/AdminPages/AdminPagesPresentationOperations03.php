@@ -605,14 +605,48 @@ final class AdminPagesPresentationOperations03
     
     }
 
+    public static function developer_clinic_search_html(
+        string $search,
+        string $view,
+        callable $href,
+    ): string {
+        $search = mb_trim($search);
+        $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
+        if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+            $view = "all";
+        }
+        $clear = $search !== "" || $view !== "all"
+            ? '<a class="ghost small" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_clinics")) .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
+                '<span>Limpar</span></a>'
+            : "";
+        return '<section class="patient-directory-search ds-search-block"><form method="get" class="patient-search-bar" role="search"><input type="hidden" name="r" value="admin_clinics"><input type="hidden" name="view" value="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($search !== "" ? "all" : $view) .
+            '"><label class="search-field"><input name="q" type="search" value="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($search) .
+            '" placeholder="Nome, área, status ou vencimento" autocomplete="off" aria-label="Buscar consultório por nome, área, status ou vencimento"></label><button class="primary small" type="submit">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("search") .
+            '<span>Busca rápida</span></button>' .
+            $clear .
+            '</form></section>';
+    }
+
     public static function developer_clinic_directory_html(
         array $rows,
         string $view,
+        string $search,
         callable $href,
         callable $dateLabel,
     ): string {
+        $search = mb_trim($search);
+        $searchMode = $search !== "";
         $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
         if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+            $view = "all";
+        }
+        if ($searchMode) {
             $view = "all";
         }
         $filterSpecs = [
@@ -622,10 +656,10 @@ final class AdminPagesPresentationOperations03
             "readonly" => ["Somente leitura", "lock"],
             "expiring" => ["Vencendo", "event_upcoming"],
         ];
-        $filters = '<nav class="notice-filter-chips lead-filter-chips ds-notice-filters" aria-label="Filtrar consultórios">';
+        $normalFilters = "";
         foreach ($filterSpecs as $filterKey => [$filterLabel, $filterIcon]) {
-            $activeFilter = $view === $filterKey;
-            $filters .= '<a class="lead-chip ds-filter-chip ' .
+            $activeFilter = !$searchMode && $view === $filterKey;
+            $normalFilters .= '<a class="patient-filter-chip ds-filter-chip ' .
                 ($activeFilter ? "active is-active" : "") .
                 '" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
@@ -635,12 +669,12 @@ final class AdminPagesPresentationOperations03
                 ($activeFilter ? ' aria-current="page"' : "") .
                 '>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($filterIcon) .
-                '<span class="lead-chip-label">' .
+                '<span>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($filterLabel) .
                 '</span></a>';
         }
-        $filters .= '</nav>';
         $bodyRows = "";
+        $foundCount = 0;
         $now = time();
         foreach ($rows as $entry) {
             $r = (array) ($entry["clinic"] ?? []);
@@ -692,17 +726,10 @@ final class AdminPagesPresentationOperations03
                 $attentionLabel = "Somente leitura";
                 $attentionNote = "Alterações temporariamente bloqueadas";
             }
-            $attentionChip = '<span class="clinic-attention-chip ' .
-                $attentionClass .
-                '">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
-                '<b>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionLabel) .
-                '</b></span>';
-            $actions = '<a class="pagehead-control pagehead-control--secondary clinic-actions-summary" href="' .
+            $actions = '<a class="primary small" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_clinics", ["clinic_id" => $id])) .
                 '" aria-label="Abrir gestão do consultório">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_forward") .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("folder_open") .
                 '<span>Gerenciar</span></a>';
             $createdLabel = (string) $dateLabel($r["created_at"] ?? "");
             $dueLabel = !empty($billing["exempt"])
@@ -718,46 +745,98 @@ final class AdminPagesPresentationOperations03
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("bar_chart_off") .
                     '<span>Fora das estatísticas</span></span>'
                 : "";
-            $clinicMetrics = '<span class="ds-clinic-row-meta-chip">' .
+            $searchData = implode(" ", [
+                (string) ($r["display_name"] ?? ""),
+                $professionLabel,
+                $attentionLabel,
+                $attentionNote,
+                $createdLabel,
+                $dueLabel,
+                $onboardingPending ? "Onboarding pendente" : "Onboarding concluído",
+                $expiresSoon ? "Vencendo" : "",
+                (string) $professionals,
+                (string) $collaborators,
+            ]);
+            if ($searchMode && mb_stripos($searchData, $search) === false) {
+                continue;
+            }
+            $foundCount++;
+            $statusLevel = $attentionClass === "is-critical"
+                ? "bad"
+                : ($needsAttention && $attentionClass !== "is-exempt" ? "warn" : "ok");
+            $clinicMetrics = '<span>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event") .
-                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createdLabel) . '</b><small>Data Cadastro</small></span>' .
-                '<span class="ds-clinic-row-meta-chip">' .
+                '<span>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createdLabel) . ' · Data Cadastro</span></span>' .
+                '<span>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
-                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $professionals) . '</b><small>Profissionais</small></span>' .
-                '<span class="ds-clinic-row-meta-chip">' .
+                '<span>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $professionals) . ' profissional(is)</span></span>' .
+                '<span>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("groups") .
-                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $collaborators) . '</b><small>Colaboradores</small></span>' .
-                '<span class="ds-clinic-row-meta-chip ds-clinic-due-chip">' .
+                '<span>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $collaborators) . ' colaborador(es)</span></span>' .
+                '<span>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
-                '<b>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dueLabel) . '</b><small>Vencimento</small></span>';
-            $bodyRows .= '<article class="clinic-attention-item ds-clinic-list-item ds-clinic-list-item-inline ' .
+                '<span>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dueLabel) . ' · Vencimento</span></span>';
+            $bodyRows .= '<article class="patient-card-row ds-person-row ds-patient-row patient-status-' .
+                $statusLevel .
+                ' admin-clinic-card-row ' .
                 $attentionClass .
-                '"><div class="ds-clinic-list-identity clinic-attention-main"><span class="clinic-attention-icon">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
-                '</span><span class="clinic-attention-copy"><strong>' .
+                '"><span class="patient-card-avatar ds-person-avatar" aria-hidden="true">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("home_health") .
+                '</span><div class="patient-card-main ds-person-main"><div class="patient-card-title ds-person-title"><strong>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($r["display_name"] ?? "Consultório")) .
-                '</strong><small>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(((int) ($r["active"] ?? 0) ? "Operando" : "Inativo") . " · " . $professionLabel) .
-                '</small></span></div><div class="clinic-attention-state ds-clinic-list-status">' .
-                $attentionChip .
-                ($attentionNote !== "" ? '<small>' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionNote) . '</small>' : "") .
+                '</strong><span class="pill patient-status-pill ds-status-pill ' .
+                $statusLevel .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($attentionIcon) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionLabel) .
+                '</span>' .
                 $adminStatsNote .
-                '</div><div class="ds-clinic-row-meta">' .
+                '</div><div class="patient-card-meta ds-person-meta"><span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("work") .
+                '<span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(((int) ($r["active"] ?? 0) ? "Operando" : "Inativo") . " · " . $professionLabel) .
+                '</span></span>' .
+                ($attentionNote !== ""
+                    ? '<span>' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("info") .
+                        '<span>' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($attentionNote) .
+                        '</span></span>'
+                    : "") .
                 $clinicMetrics .
-                '</div><div class="clinic-attention-actions">' .
+                '</div></div><div class="patient-card-actions ds-person-actions">' .
                 $actions .
                 '</div></article>';
         }
-        $table = '<div class="clinic-attention-list">' .
-            ($bodyRows !== "" ? $bodyRows : '<div class="empty">Nenhum consultório corresponde a este filtro.</div>') .
+        $filters = $searchMode
+            ? '<span class="patient-filter-chip ds-filter-chip active is-active patient-filter-found" aria-current="page">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("manage_search") .
+                '<span>Encontrados</span><small>' .
+                number_format($foundCount, 0, ",", ".") .
+                '</small></span>' .
+                $normalFilters
+            : $normalFilters;
+        $filterNav = '<nav class="patient-filter-chips ds-filter-list-chips" aria-label="Filtros de consultórios">' .
+            $filters .
+            '</nav>';
+        $emptyMessage = $searchMode
+            ? "Nenhum consultório encontrado para esta busca."
+            : "Nenhum consultório corresponde a este filtro.";
+        $table = '<div class="patient-directory-list ds-person-list ds-patient-list">' .
+            ($bodyRows !== ""
+                ? $bodyRows
+                : '<div class="empty patient-directory-empty">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("manage_search") .
+                    '<strong>' .
+                    $emptyMessage .
+                    '</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>') .
             '</div>';
-        $head = '<div class="admin-onboarding-head clinic-attention-head"><div><span class="eyebrow">Acompanhamento</span><h2>Consultórios</h2><p>Leitura compacta por status, data de cadastro, profissionais, colaboradores e vencimento.</p></div></div>';
         $advanced = '<details class="form-panel developer-advanced-tools"><summary><span>Mais opções</span></summary><div class="developer-tool-grid"><a class="developer-tool-card" href="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_operations")) .
             '"><span class="developer-tool-icon">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("insights") .
             '</span><span><b>Indicadores do negócio</b><small>Adoção, operação e financeiro sob demanda.</small></span></a></div></details>';
-        return $head . $filters . $table . $advanced;
+        return $filterNav . $table . $advanced;
     }
 
     public static function developer_overview_html(array $context, callable $href, callable $actionLabel): string
