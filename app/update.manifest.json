@@ -316,7 +316,7 @@
         "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations01.php": "b9175c2f6cb343c3b38d397bbae0756d7d31f8ec095562dd54e9941583d4125a",
         "app/Infrastructure/SecurityAccess/SecurityAccessInfrastructureOperations02.php": "f428482703b238a718d1848d77c72b688e328c654e7aad41c8b60b62f3273d05",
         "app/Infrastructure/SecurityPrivacy/SecurityPrivacyInfrastructureOperations01.php": "3f803c5cdf3074d2e6607dd8cac32b6764f6f53bc5ea91add7a16e5e7a02bd3a",
-        "app/Infrastructure/ServerJsonCache/ScopedServerJsonCacheInfrastructureOperations01.php": "fa9cf409560065fd8fc334a813c1b527aed37031622693d7e8acc3b9549abc2d",
+        "app/Infrastructure/ServerJsonCache/ScopedServerJsonCacheInfrastructureOperations01.php": "ec11e27f02adf2b1377e4b262cbe67bf28a4551fb730e50a22d92b7c1c2a302d",
         "app/Infrastructure/ServerJsonCache/ServerJsonCacheInfrastructureOperations01.php": "b497b935c6e55c33992b985789eeb2219cb0a01f054b212d2b677e831d592112",
         "app/Infrastructure/SubscriptionSettings/SubscriptionSettingsInfrastructureOperations01.php": "1cac0ca2ae6b9794012b4ef4d667570df21606fd5d7850bd3ec992df787f0701",
         "app/Infrastructure/SupportFoundation/SupportFoundationInfrastructureOperations01.php": "934ad2014e9e41386c25c079cec4d5cacd8cbe2d555cb42df6e077b44939aba4",

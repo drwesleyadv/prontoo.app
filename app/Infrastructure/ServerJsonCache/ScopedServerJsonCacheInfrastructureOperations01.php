@@ -109,7 +109,7 @@ final class ScopedServerJsonCacheInfrastructureOperations01
                 }
                 $clinicId = (int) ($dependency['clinic_id'] ?? 0);
                 $domain = self::server_json_cache_normalize_domain((string) ($dependency['domain'] ?? ''));
-                $segment = trim((string) ($dependency['segment'] ?? ''));
+                $segment = mb_trim((string) ($dependency['segment'] ?? ''));
                 if ($domain === '') {
                     continue;
                 }
@@ -484,7 +484,7 @@ final class ScopedServerJsonCacheInfrastructureOperations01
         return implode(':', [
             (int) ($dependency['clinic_id'] ?? 0),
             self::server_json_cache_normalize_domain((string) ($dependency['domain'] ?? '')),
-            trim((string) ($dependency['segment'] ?? '')),
+            mb_trim((string) ($dependency['segment'] ?? '')),
         ]);
     }
 }
