@@ -29,7 +29,6 @@ jobs:
           python3 <<'PY'
           import base64, json, re
           from pathlib import Path
-          root = Path('.')
           manifest = json.loads(Path('app/Presentation/Styles/styles.manifest.json').read_text())
           bridge = json.loads(Path('design/tokens/css-bridge.json').read_text())
           css_files = sorted(Path('app/Presentation/Styles').rglob('*.css'))
@@ -67,16 +66,42 @@ jobs:
               if n:
                   outside.append((p.as_posix(), n))
           print('NON_TOKEN_FILES_DEFINING_CUSTOM_PROPERTIES', json.dumps(outside, ensure_ascii=False))
+          tails = bytearray()
+          token_paths = {
+              'clinic': Path('app/Presentation/Styles/tokens/clinic.css'),
+              'material': Path('app/Presentation/Styles/tokens/material.css'),
+              'semantic': Path('app/Presentation/Styles/tokens/semantic.css'),
+          }
+          for target, token_path in token_paths.items():
+              data = token_path.read_bytes()
+              legacy = base64.b64decode(bridge['legacy'][target]['base64'])
+              if not data.startswith(legacy):
+                  raise SystemExit(f'legacy prefix mismatch {target}')
+              tail = data[len(legacy):]
+              print('DTCG_TAIL', target, len(tail))
+              tails.extend(tail)
           Path('/tmp/current.css').write_bytes(Path('public/assets/presentation.css').read_bytes())
           Path('/tmp/token-first.css').write_bytes(bytes(tokens) + bytes(behavior))
+          Path('/tmp/dtcg-only.css').write_bytes(bytes(tails) + bytes(behavior))
           print('CURRENT_BYTES', Path('/tmp/current.css').stat().st_size)
           print('TOKEN_FIRST_BYTES', Path('/tmp/token-first.css').stat().st_size)
+          print('DTCG_ONLY_BYTES', Path('/tmp/dtcg-only.css').stat().st_size)
           PY
-      - name: Probe token-first observable equivalence
+      - name: Install browser contract
         shell: bash
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install chromium
+      - name: Probe token-first observable equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
           cp /tmp/token-first.css public/assets/presentation.css
+          node tools/presentation-ux-contract.mjs --check
+      - name: Probe DTCG-only observable equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/dtcg-only.css public/assets/presentation.css
           node tools/presentation-ux-contract.mjs --check
