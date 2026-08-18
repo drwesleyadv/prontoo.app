@@ -1,19 +1,19 @@
 {
-    "version": "1.8.18.5",
-    "release": "1.8.18.5",
-    "generated_at_unix": 1787084723,
-    "generated_at": "2026-08-18T16:25:23-04:00",
-    "updated_at": "2026-08-18T16:25:23-04:00",
-    "build": "1.8.18.5-dtcg-design-tokens",
-    "asset_version": "1.8.18.5",
+    "version": "1.8.18.6",
+    "release": "1.8.18.6",
+    "generated_at_unix": 1787087828,
+    "generated_at": "2026-08-18T17:17:08-04:00",
+    "updated_at": "2026-08-18T17:17:08-04:00",
+    "build": "1.8.18.6-design-source-independent",
+    "asset_version": "1.8.18.6",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": true,
-    "functional_equivalence_policy": "dtcg_design_tokens_default_visual_equivalence_multitheme_identity_propagation_without_schema_change",
+    "visual_changes": false,
+    "functional_equivalence_policy": "design_sources_independent_from_legacy_css_architecture_with_observable_visual_equivalence",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Design System usa DTCG 2025.10 como fonte canônica, Style Dictionary gera os tokens CSS e aliases dependentes da identidade resolvem no escopo runtime do consultório; layout e baseline padrão permanecem equivalentes.",
+    "notes": "Design System independente da arquitetura CSS anterior: DTCG gera um bundle único de tokens, estilos comportamentais são lineares em design/styles e presentation.css é montado deterministicamente sem bridge, slices ou manifesto legado.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.18.5-dtcg-design-tokens",
-    "deployment_sync_requested_at": "2026-08-18T16:25:23-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.18.6-design-source-independent",
+    "deployment_sync_requested_at": "2026-08-18T17:17:08-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,14 +86,14 @@
         ]
     },
     "changelog": {
-        "title": "Design Tokens DTCG e tema por consultório",
+        "title": "Arquitetura de design independente do CSS legado",
         "items": [
-            "adota Design Tokens DTCG 2025.10 em camadas Reference, System e Component como fonte canônica do Design System",
-            "usa Style Dictionary 5.5.0 para gerar deterministicamente os arquivos CSS de tokens e retira deles a autoridade de edição manual",
-            "resolve aliases dependentes da identidade no escopo runtime do consultório para eliminar tokens presos à cor padrão",
-            "mantém sucesso, aviso, erro e informação como cores semânticas independentes da identidade do consultório",
-            "adiciona contrato multitema obrigatório com verde, azul, vinho e violeta além do baseline computado já existente",
-            "preserva geometria, tipografia, espaçamento e fluxos do tema padrão sem alterar banco ou schema"
+            "remove integralmente app/Presentation/Styles e o manifesto de 1.074 slices da arquitetura CSS anterior",
+            "substitui o payload Base64 de compatibilidade por tokens runtime DTCG estruturados e auditáveis",
+            "consolida os tokens gerados em design/generated/tokens.css e os estilos comportamentais em design/styles/application.css",
+            "simplifica presentation.css para uma montagem determinística sem offsets, hashes por slice ou bridge legado",
+            "mantém o contrato multitema e o baseline computado sem alteração observável de geometria, tipografia, espaçamento ou fluxos",
+            "preserva banco, schema e regras de negócio enquanto reduz arquivos-fonte, metadados e custo de manutenção do Design System"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -113,6 +113,9 @@
     "design_token_policy": "dtcg_2025_10_reference_system_component_style_dictionary_5_5",
     "design_token_source": "design/tokens",
     "design_token_compiler": "style-dictionary@5.5.0",
-    "design_token_runtime_policy": "generated_css_custom_properties_runtime_body_scope",
-    "design_token_contract": "tools/design-tokens-contract.mjs"
+    "design_token_runtime_policy": "generated_design_token_bundle_without_legacy_bridge",
+    "design_token_contract": "tools/design-tokens-contract.mjs",
+    "design_token_artifact": "design/generated/tokens.css",
+    "design_style_source": "design/styles/application.css",
+    "presentation_build_policy": "font_import_then_tokens_plus_application_css"
 }

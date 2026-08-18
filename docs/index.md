@@ -4,7 +4,7 @@ Esta documentação descreve exclusivamente o estado canônico atualmente suport
 
 ## Baseline canônica
 
-A única baseline mantida, suportada e publicável na árvore corrente é `1.8.18.5`. Versões anteriores não são conservadas como documentação paralela, pacote, asset versionado ou snapshot dentro da árvore de trabalho. Quando for necessário investigar evolução ou regressões, o histórico Git é a fonte de rastreabilidade.
+A única baseline mantida, suportada e publicável na árvore corrente é `1.8.18.6`. Versões anteriores não são conservadas como documentação paralela, pacote, asset versionado ou snapshot dentro da árvore de trabalho. Quando for necessário investigar evolução ou regressões, o histórico Git é a fonte de rastreabilidade.
 
 Migrações de banco, marcadores de schema e compatibilidades estritamente necessárias ao runtime ou ao processo de atualização podem registrar estados técnicos anteriores. Esses elementos são mecanismos operacionais e não constituem baselines suportadas.
 
@@ -18,7 +18,7 @@ Os documentos de `architecture/` e os ADRs de `adr/` descrevem a arquitetura con
 
 ## Regra de autoridade
 
-A documentação é secundária aos contratos executáveis. `version.json` define a release canônica; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `design/tokens/*.tokens.json` define os tokens visuais canônicos; `tools/` contém os gates. Os arquivos `app/Presentation/Styles/tokens/*.css` são artefatos gerados e não são fonte editável. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
+A documentação é secundária aos contratos executáveis. `version.json` define a release canônica; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `design/tokens/*.tokens.json` define os tokens visuais canônicos; `tools/` contém os gates. `design/generated/tokens.css` é o artefato gerado dos tokens, e `design/styles/application.css` é a fonte canônica de seletores, estados, layouts e regras comportamentais. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
 
 O gate `tools/superseded-reference-contract-check` impede a reintrodução de releases literais substituídas em documentação e manifests e também protege a política de árvore sem artefatos históricos de release.
 

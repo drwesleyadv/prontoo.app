@@ -1,6 +1,0 @@
-body[data-route="profile"] .pagehead{position:relative;z-index:12}
-body[data-route="profile"] .pagehead-controls--navigation{overflow-x:auto;scrollbar-width:none}
-body[data-route="profile"] .pagehead-controls--navigation::-webkit-scrollbar{display:none}
-@media(max-width:640px){body[data-route="profile"] .pagehead-controls--navigation .pagehead-control--nav{width:auto!important}body[data-route="profile"] .pagehead-controls--navigation .pagehead-control--nav span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:inline!important}}
-
-

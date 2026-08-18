@@ -1,0 +1,5303 @@
+{
+  "runtime": {
+    "residual": {
+      "item0001": {
+        "$type": "string",
+        "$value": "var(--clinic-accent,#2f6652)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary40",
+            "cssValue": "var(--clinic-accent,#2f6652)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 1
+          }
+        }
+      },
+      "item0002": {
+        "$type": "string",
+        "$value": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary30",
+            "cssValue": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 2
+          }
+        }
+      },
+      "item0003": {
+        "$type": "string",
+        "$value": "#fbfdf9",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral98",
+            "cssValue": "#fbfdf9",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 3
+          }
+        }
+      },
+      "item0004": {
+        "$type": "string",
+        "$value": "#f2f5f0",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral95",
+            "cssValue": "#f2f5f0",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 4
+          }
+        }
+      },
+      "item0005": {
+        "$type": "string",
+        "$value": "#e3e8e1",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral90",
+            "cssValue": "#e3e8e1",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 5
+          }
+        }
+      },
+      "item0006": {
+        "$type": "string",
+        "$value": "#c7cec5",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral80",
+            "cssValue": "#c7cec5",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 6
+          }
+        }
+      },
+      "item0007": {
+        "$type": "string",
+        "$value": "#747b73",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral50",
+            "cssValue": "#747b73",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 7
+          }
+        }
+      },
+      "item0008": {
+        "$type": "string",
+        "$value": "#444b44",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral30",
+            "cssValue": "#444b44",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 8
+          }
+        }
+      },
+      "item0009": {
+        "$type": "string",
+        "$value": "#191d1a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-neutral10",
+            "cssValue": "#191d1a",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 9
+          }
+        }
+      },
+      "item0010": {
+        "$type": "string",
+        "$value": "var(--md-ref-palette-primary40)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary",
+            "cssValue": "var(--md-ref-palette-primary40)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 10
+          }
+        }
+      },
+      "item0011": {
+        "$type": "string",
+        "$value": "var(--clinic-on-accent,#fff)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-primary",
+            "cssValue": "var(--clinic-on-accent,#fff)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 11
+          }
+        }
+      },
+      "item0012": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 15%,#fff)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary-container",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 15%,#fff)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 12
+          }
+        }
+      },
+      "item0013": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 74%,#102018)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-primary-container",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 74%,#102018)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 13
+          }
+        }
+      },
+      "item0014": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-secondary",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 14
+          }
+        }
+      },
+      "item0015": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-secondary",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 15
+          }
+        }
+      },
+      "item0016": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-secondary) 14%,#fff)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-secondary-container",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-secondary) 14%,#fff)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 16
+          }
+        }
+      },
+      "item0017": {
+        "$type": "string",
+        "$value": "#19261f",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-secondary-container",
+            "cssValue": "#19261f",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 17
+          }
+        }
+      },
+      "item0018": {
+        "$type": "string",
+        "$value": "#46617a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-tertiary",
+            "cssValue": "#46617a",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 18
+          }
+        }
+      },
+      "item0019": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-tertiary",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 19
+          }
+        }
+      },
+      "item0020": {
+        "$type": "string",
+        "$value": "#d8e4f3",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-tertiary-container",
+            "cssValue": "#d8e4f3",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 20
+          }
+        }
+      },
+      "item0021": {
+        "$type": "string",
+        "$value": "#0b1c2e",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-tertiary-container",
+            "cssValue": "#0b1c2e",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 21
+          }
+        }
+      },
+      "item0022": {
+        "$type": "string",
+        "$value": "#ba1a1a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-error",
+            "cssValue": "#ba1a1a",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 22
+          }
+        }
+      },
+      "item0023": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-error",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 23
+          }
+        }
+      },
+      "item0024": {
+        "$type": "string",
+        "$value": "#ffdad6",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-error-container",
+            "cssValue": "#ffdad6",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 24
+          }
+        }
+      },
+      "item0025": {
+        "$type": "string",
+        "$value": "#410002",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-error-container",
+            "cssValue": "#410002",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 25
+          }
+        }
+      },
+      "item0026": {
+        "$type": "string",
+        "$value": "#f7faf6",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-background",
+            "cssValue": "#f7faf6",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 26
+          }
+        }
+      },
+      "item0027": {
+        "$type": "string",
+        "$value": "#191d1a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-background",
+            "cssValue": "#191d1a",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 27
+          }
+        }
+      },
+      "item0028": {
+        "$type": "string",
+        "$value": "#fbfdf9",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface",
+            "cssValue": "#fbfdf9",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 28
+          }
+        }
+      },
+      "item0029": {
+        "$type": "string",
+        "$value": "#191d1a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-surface",
+            "cssValue": "#191d1a",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 29
+          }
+        }
+      },
+      "item0030": {
+        "$type": "string",
+        "$value": "#dce6dd",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-variant",
+            "cssValue": "#dce6dd",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 30
+          }
+        }
+      },
+      "item0031": {
+        "$type": "string",
+        "$value": "#414941",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-surface-variant",
+            "cssValue": "#414941",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 31
+          }
+        }
+      },
+      "item0032": {
+        "$type": "string",
+        "$value": "#737b73",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-outline",
+            "cssValue": "#737b73",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 32
+          }
+        }
+      },
+      "item0033": {
+        "$type": "string",
+        "$value": "#c2cac2",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-outline-variant",
+            "cssValue": "#c2cac2",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 33
+          }
+        }
+      },
+      "item0034": {
+        "$type": "string",
+        "$value": "#d9ddd8",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-dim",
+            "cssValue": "#d9ddd8",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 34
+          }
+        }
+      },
+      "item0035": {
+        "$type": "string",
+        "$value": "#fbfdf9",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-bright",
+            "cssValue": "#fbfdf9",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 35
+          }
+        }
+      },
+      "item0036": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-lowest",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 36
+          }
+        }
+      },
+      "item0037": {
+        "$type": "string",
+        "$value": "#f2f6f1",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-low",
+            "cssValue": "#f2f6f1",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 37
+          }
+        }
+      },
+      "item0038": {
+        "$type": "string",
+        "$value": "#edf2ec",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container",
+            "cssValue": "#edf2ec",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 38
+          }
+        }
+      },
+      "item0039": {
+        "$type": "string",
+        "$value": "#e7ece6",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-high",
+            "cssValue": "#e7ece6",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 39
+          }
+        }
+      },
+      "item0040": {
+        "$type": "string",
+        "$value": "#e1e6df",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-highest",
+            "cssValue": "#e1e6df",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 40
+          }
+        }
+      },
+      "item0041": {
+        "$type": "string",
+        "$value": "#2e312e",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-inverse-surface",
+            "cssValue": "#2e312e",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 41
+          }
+        }
+      },
+      "item0042": {
+        "$type": "string",
+        "$value": "#eff2ed",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-inverse-on-surface",
+            "cssValue": "#eff2ed",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 42
+          }
+        }
+      },
+      "item0043": {
+        "$type": "string",
+        "$value": "#98d5b8",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-inverse-primary",
+            "cssValue": "#98d5b8",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 43
+          }
+        }
+      },
+      "item0044": {
+        "$type": "string",
+        "$value": "rgba(0,0,0,.18)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-shadow",
+            "cssValue": "rgba(0,0,0,.18)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 44
+          }
+        }
+      },
+      "item0045": {
+        "$type": "string",
+        "$value": "rgba(0,0,0,.42)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-scrim",
+            "cssValue": "rgba(0,0,0,.42)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 45
+          }
+        }
+      },
+      "item0046": {
+        "$type": "string",
+        "$value": "#146c43",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-success",
+            "cssValue": "#146c43",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 46
+          }
+        }
+      },
+      "item0047": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-on-success",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 47
+          }
+        }
+      },
+      "item0048": {
+        "$type": "string",
+        "$value": "#d8f5e5",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-success-container",
+            "cssValue": "#d8f5e5",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 48
+          }
+        }
+      },
+      "item0049": {
+        "$type": "string",
+        "$value": "#05391f",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-on-success-container",
+            "cssValue": "#05391f",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 49
+          }
+        }
+      },
+      "item0050": {
+        "$type": "string",
+        "$value": "#865900",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-warning",
+            "cssValue": "#865900",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 50
+          }
+        }
+      },
+      "item0051": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-on-warning",
+            "cssValue": "#fff",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 51
+          }
+        }
+      },
+      "item0052": {
+        "$type": "string",
+        "$value": "#ffefc2",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-warning-container",
+            "cssValue": "#ffefc2",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 52
+          }
+        }
+      },
+      "item0053": {
+        "$type": "string",
+        "$value": "#3d2b00",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-on-warning-container",
+            "cssValue": "#3d2b00",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 53
+          }
+        }
+      },
+      "item0054": {
+        "$type": "string",
+        "$value": "#286b73",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-info",
+            "cssValue": "#286b73",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 54
+          }
+        }
+      },
+      "item0055": {
+        "$type": "string",
+        "$value": "#d6f4f7",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-info-container",
+            "cssValue": "#d6f4f7",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 55
+          }
+        }
+      },
+      "item0056": {
+        "$type": "string",
+        "$value": "#063b42",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-color-on-info-container",
+            "cssValue": "#063b42",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 56
+          }
+        }
+      },
+      "item0057": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 57
+          }
+        }
+      },
+      "item0058": {
+        "$type": "string",
+        "$value": "var(--md-ref-palette-primary30)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand-dark",
+            "cssValue": "var(--md-ref-palette-primary30)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 58
+          }
+        }
+      },
+      "item0059": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand-soft",
+            "cssValue": "var(--md-sys-color-primary-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 59
+          }
+        }
+      },
+      "item0060": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand-soft-2",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 60
+          }
+        }
+      },
+      "item0061": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-on-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--on-brand",
+            "cssValue": "var(--md-sys-color-on-primary)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 61
+          }
+        }
+      },
+      "item0062": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-background)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--bg",
+            "cssValue": "var(--md-sys-color-background)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 62
+          }
+        }
+      },
+      "item0063": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-lowest)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--surface",
+            "cssValue": "var(--md-sys-color-surface-container-lowest)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 63
+          }
+        }
+      },
+      "item0064": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-low)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--surface-2",
+            "cssValue": "var(--md-sys-color-surface-container-low)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 64
+          }
+        }
+      },
+      "item0065": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--surface-3",
+            "cssValue": "var(--md-sys-color-surface-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 65
+          }
+        }
+      },
+      "item0066": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-on-surface)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ink",
+            "cssValue": "var(--md-sys-color-on-surface)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 66
+          }
+        }
+      },
+      "item0067": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-on-surface-variant)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ink-2",
+            "cssValue": "var(--md-sys-color-on-surface-variant)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 67
+          }
+        }
+      },
+      "item0068": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--muted",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 68
+          }
+        }
+      },
+      "item0069": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-outline-variant)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--line",
+            "cssValue": "var(--md-sys-color-outline-variant)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 69
+          }
+        }
+      },
+      "item0070": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--line-2",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 70
+          }
+        }
+      },
+      "item0071": {
+        "$type": "string",
+        "$value": "var(--pt-color-success)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ok",
+            "cssValue": "var(--pt-color-success)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 71
+          }
+        }
+      },
+      "item0072": {
+        "$type": "string",
+        "$value": "var(--pt-color-success-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ok-soft",
+            "cssValue": "var(--pt-color-success-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 72
+          }
+        }
+      },
+      "item0073": {
+        "$type": "string",
+        "$value": "var(--pt-color-warning)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--warn",
+            "cssValue": "var(--pt-color-warning)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 73
+          }
+        }
+      },
+      "item0074": {
+        "$type": "string",
+        "$value": "var(--pt-color-warning-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--warn-soft",
+            "cssValue": "var(--pt-color-warning-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 74
+          }
+        }
+      },
+      "item0075": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-error)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--danger",
+            "cssValue": "var(--md-sys-color-error)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 75
+          }
+        }
+      },
+      "item0076": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-error-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--danger-soft",
+            "cssValue": "var(--md-sys-color-error-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 76
+          }
+        }
+      },
+      "item0077": {
+        "$type": "string",
+        "$value": "var(--pt-color-info)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--info",
+            "cssValue": "var(--pt-color-info)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 77
+          }
+        }
+      },
+      "item0078": {
+        "$type": "string",
+        "$value": "var(--pt-color-info-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--info-soft",
+            "cssValue": "var(--pt-color-info-container)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 78
+          }
+        }
+      },
+      "item0079": {
+        "$type": "string",
+        "$value": "400 2.25rem/2.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-display-small",
+            "cssValue": "400 2.25rem/2.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 79
+          }
+        }
+      },
+      "item0080": {
+        "$type": "string",
+        "$value": "400 1.75rem/2.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-headline-medium",
+            "cssValue": "400 1.75rem/2.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 80
+          }
+        }
+      },
+      "item0081": {
+        "$type": "string",
+        "$value": "400 1.5rem/2rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-headline-small",
+            "cssValue": "400 1.5rem/2rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 81
+          }
+        }
+      },
+      "item0082": {
+        "$type": "string",
+        "$value": "500 1.375rem/1.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-title-large",
+            "cssValue": "500 1.375rem/1.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 82
+          }
+        }
+      },
+      "item0083": {
+        "$type": "string",
+        "$value": "500 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-title-medium",
+            "cssValue": "500 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 83
+          }
+        }
+      },
+      "item0084": {
+        "$type": "string",
+        "$value": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-title-small",
+            "cssValue": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 84
+          }
+        }
+      },
+      "item0085": {
+        "$type": "string",
+        "$value": "400 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-body-large",
+            "cssValue": "400 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 85
+          }
+        }
+      },
+      "item0086": {
+        "$type": "string",
+        "$value": "400 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-body-medium",
+            "cssValue": "400 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 86
+          }
+        }
+      },
+      "item0087": {
+        "$type": "string",
+        "$value": "400 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-body-small",
+            "cssValue": "400 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 87
+          }
+        }
+      },
+      "item0088": {
+        "$type": "string",
+        "$value": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-label-large",
+            "cssValue": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 88
+          }
+        }
+      },
+      "item0089": {
+        "$type": "string",
+        "$value": "500 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-label-medium",
+            "cssValue": "500 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 89
+          }
+        }
+      },
+      "item0090": {
+        "$type": "string",
+        "$value": "500 .6875rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-typescale-label-small",
+            "cssValue": "500 .6875rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 90
+          }
+        }
+      },
+      "item0091": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-display-small)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-display-sm",
+            "cssValue": "var(--md-sys-typescale-display-small)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 91
+          }
+        }
+      },
+      "item0092": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-headline-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-headline-md",
+            "cssValue": "var(--md-sys-typescale-headline-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 92
+          }
+        }
+      },
+      "item0093": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-headline-small)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-headline-sm",
+            "cssValue": "var(--md-sys-typescale-headline-small)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 93
+          }
+        }
+      },
+      "item0094": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-title-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-title-lg",
+            "cssValue": "var(--md-sys-typescale-title-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 94
+          }
+        }
+      },
+      "item0095": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-title-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-title-md",
+            "cssValue": "var(--md-sys-typescale-title-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 95
+          }
+        }
+      },
+      "item0096": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-title-small)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-title-sm",
+            "cssValue": "var(--md-sys-typescale-title-small)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 96
+          }
+        }
+      },
+      "item0097": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-body-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-body-lg",
+            "cssValue": "var(--md-sys-typescale-body-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 97
+          }
+        }
+      },
+      "item0098": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-body-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-body-md",
+            "cssValue": "var(--md-sys-typescale-body-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 98
+          }
+        }
+      },
+      "item0099": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-body-small)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-body-sm",
+            "cssValue": "var(--md-sys-typescale-body-small)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 99
+          }
+        }
+      },
+      "item0100": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-label-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-label-lg",
+            "cssValue": "var(--md-sys-typescale-label-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 100
+          }
+        }
+      },
+      "item0101": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-label-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--type-label-md",
+            "cssValue": "var(--md-sys-typescale-label-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 101
+          }
+        }
+      },
+      "item0102": {
+        "$type": "string",
+        "$value": "0",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-none",
+            "cssValue": "0",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 102
+          }
+        }
+      },
+      "item0103": {
+        "$type": "string",
+        "$value": "4px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-extra-small",
+            "cssValue": "4px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 103
+          }
+        }
+      },
+      "item0104": {
+        "$type": "string",
+        "$value": "8px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-small",
+            "cssValue": "8px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 104
+          }
+        }
+      },
+      "item0105": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-medium",
+            "cssValue": "12px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 105
+          }
+        }
+      },
+      "item0106": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-large",
+            "cssValue": "16px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 106
+          }
+        }
+      },
+      "item0107": {
+        "$type": "string",
+        "$value": "20px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-large-increased",
+            "cssValue": "20px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 107
+          }
+        }
+      },
+      "item0108": {
+        "$type": "string",
+        "$value": "28px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-extra-large",
+            "cssValue": "28px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 108
+          }
+        }
+      },
+      "item0109": {
+        "$type": "string",
+        "$value": "999px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-shape-corner-full",
+            "cssValue": "999px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 109
+          }
+        }
+      },
+      "item0110": {
+        "$type": "string",
+        "$value": "var(--md-sys-shape-corner-small)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--r-xs",
+            "cssValue": "var(--md-sys-shape-corner-small)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 110
+          }
+        }
+      },
+      "item0111": {
+        "$type": "string",
+        "$value": "var(--md-sys-shape-corner-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--r-sm",
+            "cssValue": "var(--md-sys-shape-corner-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 111
+          }
+        }
+      },
+      "item0112": {
+        "$type": "string",
+        "$value": "var(--md-sys-shape-corner-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--r-md",
+            "cssValue": "var(--md-sys-shape-corner-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 112
+          }
+        }
+      },
+      "item0113": {
+        "$type": "string",
+        "$value": "var(--md-sys-shape-corner-extra-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--r-lg",
+            "cssValue": "var(--md-sys-shape-corner-extra-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 113
+          }
+        }
+      },
+      "item0114": {
+        "$type": "string",
+        "$value": "32px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--r-xl",
+            "cssValue": "32px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 114
+          }
+        }
+      },
+      "item0115": {
+        "$type": "string",
+        "$value": "none",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level0",
+            "cssValue": "none",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 115
+          }
+        }
+      },
+      "item0116": {
+        "$type": "string",
+        "$value": "0 1px 2px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.06)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level1",
+            "cssValue": "0 1px 2px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.06)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 116
+          }
+        }
+      },
+      "item0117": {
+        "$type": "string",
+        "$value": "0 2px 6px rgba(0,0,0,.09),0 1px 3px rgba(0,0,0,.06)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level2",
+            "cssValue": "0 2px 6px rgba(0,0,0,.09),0 1px 3px rgba(0,0,0,.06)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 117
+          }
+        }
+      },
+      "item0118": {
+        "$type": "string",
+        "$value": "0 6px 16px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level3",
+            "cssValue": "0 6px 16px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 118
+          }
+        }
+      },
+      "item0119": {
+        "$type": "string",
+        "$value": "0 10px 24px rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.07)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level4",
+            "cssValue": "0 10px 24px rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.07)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 119
+          }
+        }
+      },
+      "item0120": {
+        "$type": "string",
+        "$value": "0 16px 36px rgba(0,0,0,.14),0 6px 12px rgba(0,0,0,.08)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-elevation-level5",
+            "cssValue": "0 16px 36px rgba(0,0,0,.14),0 6px 12px rgba(0,0,0,.08)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 120
+          }
+        }
+      },
+      "item0121": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level0)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-0",
+            "cssValue": "var(--md-sys-elevation-level0)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 121
+          }
+        }
+      },
+      "item0122": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level1)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-1",
+            "cssValue": "var(--md-sys-elevation-level1)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 122
+          }
+        }
+      },
+      "item0123": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level2)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-2",
+            "cssValue": "var(--md-sys-elevation-level2)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 123
+          }
+        }
+      },
+      "item0124": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level3)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-3",
+            "cssValue": "var(--md-sys-elevation-level3)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 124
+          }
+        }
+      },
+      "item0125": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level4)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-4",
+            "cssValue": "var(--md-sys-elevation-level4)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 125
+          }
+        }
+      },
+      "item0126": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level5)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--elevation-5",
+            "cssValue": "var(--md-sys-elevation-level5)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 126
+          }
+        }
+      },
+      "item0127": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level3)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--shadow",
+            "cssValue": "var(--md-sys-elevation-level3)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 127
+          }
+        }
+      },
+      "item0128": {
+        "$type": "string",
+        "$value": "var(--md-sys-elevation-level1)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--shadow-soft",
+            "cssValue": "var(--md-sys-elevation-level1)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 128
+          }
+        }
+      },
+      "item0129": {
+        "$type": "string",
+        "$value": "1184px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--page-max",
+            "cssValue": "1184px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 129
+          }
+        }
+      },
+      "item0130": {
+        "$type": "string",
+        "$value": "64px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--top-h",
+            "cssValue": "64px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 130
+          }
+        }
+      },
+      "item0131": {
+        "$type": "string",
+        "$value": "48px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--role-h",
+            "cssValue": "48px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 131
+          }
+        }
+      },
+      "item0132": {
+        "$type": "string",
+        "$value": "56px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--cmd-h",
+            "cssValue": "56px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 132
+          }
+        }
+      },
+      "item0133": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--space",
+            "cssValue": "16px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 133
+          }
+        }
+      },
+      "item0134": {
+        "$type": "string",
+        "$value": "58px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-density-row",
+            "cssValue": "58px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 134
+          }
+        }
+      },
+      "item0135": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-density-card",
+            "cssValue": "18px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 135
+          }
+        }
+      },
+      "item0136": {
+        "$type": "string",
+        "$value": ".08",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-state-hover-state-layer-opacity",
+            "cssValue": ".08",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 136
+          }
+        }
+      },
+      "item0137": {
+        "$type": "string",
+        "$value": ".12",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-state-focus-state-layer-opacity",
+            "cssValue": ".12",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 137
+          }
+        }
+      },
+      "item0138": {
+        "$type": "string",
+        "$value": ".12",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-state-pressed-state-layer-opacity",
+            "cssValue": ".12",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 138
+          }
+        }
+      },
+      "item0139": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--state-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 139
+          }
+        }
+      },
+      "item0140": {
+        "$type": "string",
+        "$value": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--state-focus",
+            "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 140
+          }
+        }
+      },
+      "item0141": {
+        "$type": "string",
+        "$value": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-focus-ring",
+            "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 141
+          }
+        }
+      },
+      "item0142": {
+        "$type": "string",
+        "$value": "140ms cubic-bezier(.2,0,0,1)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--motion-fast",
+            "cssValue": "140ms cubic-bezier(.2,0,0,1)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 142
+          }
+        }
+      },
+      "item0143": {
+        "$type": "string",
+        "$value": "240ms cubic-bezier(.2,0,0,1)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--motion-med",
+            "cssValue": "240ms cubic-bezier(.2,0,0,1)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 143
+          }
+        }
+      },
+      "item0144": {
+        "$type": "string",
+        "$value": "38px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-height",
+            "cssValue": "38px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 144
+          }
+        }
+      },
+      "item0145": {
+        "$type": "string",
+        "$value": "var(--md-sys-shape-corner-large)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-radius",
+            "cssValue": "var(--md-sys-shape-corner-large)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 145
+          }
+        }
+      },
+      "item0146": {
+        "$type": "string",
+        "$value": "7px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-padding-block",
+            "cssValue": "7px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 146
+          }
+        }
+      },
+      "item0147": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-padding-inline",
+            "cssValue": "12px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 147
+          }
+        }
+      },
+      "item0148": {
+        "$type": "string",
+        "$value": "8px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-gap",
+            "cssValue": "8px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 148
+          }
+        }
+      },
+      "item0149": {
+        "$type": "string",
+        "$value": "20px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-icon-size",
+            "cssValue": "20px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 149
+          }
+        }
+      },
+      "item0150": {
+        "$type": "string",
+        "$value": "42px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-mobile-height",
+            "cssValue": "42px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 150
+          }
+        }
+      },
+      "item0151": {
+        "$type": "string",
+        "$value": "13px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-mobile-padding-inline",
+            "cssValue": "13px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 151
+          }
+        }
+      },
+      "item0152": {
+        "$type": "string",
+        "$value": "var(--md-sys-typescale-label-medium)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-font",
+            "cssValue": "var(--md-sys-typescale-label-medium)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 152
+          }
+        }
+      },
+      "item0153": {
+        "$type": "string",
+        "$value": "700",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-weight",
+            "cssValue": "700",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 153
+          }
+        }
+      },
+      "item0154": {
+        "$type": "string",
+        "$value": "3px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-operation-gap",
+            "cssValue": "3px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 154
+          }
+        }
+      },
+      "item0155": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-group-gap",
+            "cssValue": "16px",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 155
+          }
+        }
+      },
+      "item0156": {
+        "$type": "string",
+        "$value": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-accent",
+            "cssValue": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 156
+          }
+        }
+      },
+      "item0157": {
+        "$type": "string",
+        "$value": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-on-accent",
+            "cssValue": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 157
+          }
+        }
+      },
+      "item0158": {
+        "$type": "string",
+        "$value": "var(--clinic-identity-hover,var(--md-ref-palette-primary30))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-hover",
+            "cssValue": "var(--clinic-identity-hover,var(--md-ref-palette-primary30))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 158
+          }
+        }
+      },
+      "item0159": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-container",
+            "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 159
+          }
+        }
+      },
+      "item0160": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-on-container",
+            "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+            "target": "clinic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 160
+          }
+        }
+      },
+      "item0161": {
+        "$type": "string",
+        "$value": "#238763",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--clinic-accent",
+            "cssValue": "#238763",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 161
+          }
+        }
+      },
+      "item0162": {
+        "$type": "string",
+        "$value": "#105e44",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--clinic-accent-dark",
+            "cssValue": "#105e44",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 162
+          }
+        }
+      },
+      "item0163": {
+        "$type": "string",
+        "$value": "#dff3ea",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--clinic-accent-soft",
+            "cssValue": "#dff3ea",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 163
+          }
+        }
+      },
+      "item0164": {
+        "$type": "string",
+        "$value": "#ffffff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--clinic-on-accent",
+            "cssValue": "#ffffff",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 164
+          }
+        }
+      },
+      "item0165": {
+        "$type": "string",
+        "$value": "#238763",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary",
+            "cssValue": "#238763",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 165
+          }
+        }
+      },
+      "item0166": {
+        "$type": "string",
+        "$value": "#238763",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary40",
+            "cssValue": "#238763",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 166
+          }
+        }
+      },
+      "item0167": {
+        "$type": "string",
+        "$value": "#105e44",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary30",
+            "cssValue": "#105e44",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 167
+          }
+        }
+      },
+      "item0168": {
+        "$type": "string",
+        "$value": "#dff3ea",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary-container",
+            "cssValue": "#dff3ea",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 168
+          }
+        }
+      },
+      "item0169": {
+        "$type": "string",
+        "$value": "#0b3322",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-primary-container",
+            "cssValue": "#0b3322",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 169
+          }
+        }
+      },
+      "item0170": {
+        "$type": "string",
+        "$value": "#f6fbf7",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-background",
+            "cssValue": "#f6fbf7",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 170
+          }
+        }
+      },
+      "item0171": {
+        "$type": "string",
+        "$value": "#fdfffd",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface",
+            "cssValue": "#fdfffd",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 171
+          }
+        }
+      },
+      "item0172": {
+        "$type": "string",
+        "$value": "#ffffff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-lowest",
+            "cssValue": "#ffffff",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 172
+          }
+        }
+      },
+      "item0173": {
+        "$type": "string",
+        "$value": "#f1faf4",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-low",
+            "cssValue": "#f1faf4",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 173
+          }
+        }
+      },
+      "item0174": {
+        "$type": "string",
+        "$value": "#e8f3eb",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container",
+            "cssValue": "#e8f3eb",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 174
+          }
+        }
+      },
+      "item0175": {
+        "$type": "string",
+        "$value": "#c1d8c8",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-outline-variant",
+            "cssValue": "#c1d8c8",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 175
+          }
+        }
+      },
+      "item0176": {
+        "$type": "string",
+        "$value": "#238763",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-accent",
+            "cssValue": "#238763",
+            "target": "clinic",
+            "selector": "body.scope-global",
+            "important": true,
+            "phase": "residual",
+            "sequence": 176
+          }
+        }
+      },
+      "item0177": {
+        "$type": "string",
+        "$value": "#2d6f55",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary",
+            "cssValue": "#2d6f55",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 177
+          }
+        }
+      },
+      "item0178": {
+        "$type": "string",
+        "$value": "#1d583f",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary30",
+            "cssValue": "#1d583f",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 178
+          }
+        }
+      },
+      "item0179": {
+        "$type": "string",
+        "$value": "#fff",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-primary",
+            "cssValue": "#fff",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 179
+          }
+        }
+      },
+      "item0180": {
+        "$type": "string",
+        "$value": "#d9f0df",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-primary-container",
+            "cssValue": "#d9f0df",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 180
+          }
+        }
+      },
+      "item0181": {
+        "$type": "string",
+        "$value": "#0b3322",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-primary-container",
+            "cssValue": "#0b3322",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 181
+          }
+        }
+      },
+      "item0182": {
+        "$type": "string",
+        "$value": "#f6fbf7",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-background",
+            "cssValue": "#f6fbf7",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 182
+          }
+        }
+      },
+      "item0183": {
+        "$type": "string",
+        "$value": "#fdfffd",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface",
+            "cssValue": "#fdfffd",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 183
+          }
+        }
+      },
+      "item0184": {
+        "$type": "string",
+        "$value": "#eff8f1",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container-low",
+            "cssValue": "#eff8f1",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 184
+          }
+        }
+      },
+      "item0185": {
+        "$type": "string",
+        "$value": "#e8f3eb",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-surface-container",
+            "cssValue": "#e8f3eb",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 185
+          }
+        }
+      },
+      "item0186": {
+        "$type": "string",
+        "$value": "#c1d8c8",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-outline-variant",
+            "cssValue": "#c1d8c8",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 186
+          }
+        }
+      },
+      "item0187": {
+        "$type": "string",
+        "$value": "#17211b",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-surface",
+            "cssValue": "#17211b",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 187
+          }
+        }
+      },
+      "item0188": {
+        "$type": "string",
+        "$value": "#44554a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-sys-color-on-surface-variant",
+            "cssValue": "#44554a",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 188
+          }
+        }
+      },
+      "item0189": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 189
+          }
+        }
+      },
+      "item0190": {
+        "$type": "string",
+        "$value": "var(--md-ref-palette-primary30)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand-dark",
+            "cssValue": "var(--md-ref-palette-primary30)",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 190
+          }
+        }
+      },
+      "item0191": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--brand-soft",
+            "cssValue": "var(--md-sys-color-primary-container)",
+            "target": "material",
+            "selector": "body.public",
+            "important": false,
+            "phase": "residual",
+            "sequence": 191
+          }
+        }
+      },
+      "item0192": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-patient",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 192
+          }
+        }
+      },
+      "item0193": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-agenda",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 193
+          }
+        }
+      },
+      "item0194": {
+        "$type": "string",
+        "$value": "#4f5f72",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-doc",
+            "cssValue": "#4f5f72",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 194
+          }
+        }
+      },
+      "item0195": {
+        "$type": "string",
+        "$value": "#6b5b2a",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-finance",
+            "cssValue": "#6b5b2a",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 195
+          }
+        }
+      },
+      "item0196": {
+        "$type": "string",
+        "$value": "#4d5b6c",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-task",
+            "cssValue": "#4d5b6c",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 196
+          }
+        }
+      },
+      "item0197": {
+        "$type": "string",
+        "$value": "#b3261e",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-danger",
+            "cssValue": "#b3261e",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 197
+          }
+        }
+      },
+      "item0198": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-surface-glass",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 198
+          }
+        }
+      },
+      "item0199": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-border-soft",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 199
+          }
+        }
+      },
+      "item0200": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-border-strong",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 200
+          }
+        }
+      },
+      "item0201": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-row-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 201
+          }
+        }
+      },
+      "item0202": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-xs",
+            "cssValue": "18px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 202
+          }
+        }
+      },
+      "item0203": {
+        "$type": "string",
+        "$value": "20px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-sm",
+            "cssValue": "20px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 203
+          }
+        }
+      },
+      "item0204": {
+        "$type": "string",
+        "$value": "24px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-md",
+            "cssValue": "24px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 204
+          }
+        }
+      },
+      "item0205": {
+        "$type": "string",
+        "$value": "28px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-lg",
+            "cssValue": "28px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 205
+          }
+        }
+      },
+      "item0206": {
+        "$type": "string",
+        "$value": "38px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-box-sm",
+            "cssValue": "38px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 206
+          }
+        }
+      },
+      "item0207": {
+        "$type": "string",
+        "$value": "44px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-box-md",
+            "cssValue": "44px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 207
+          }
+        }
+      },
+      "item0208": {
+        "$type": "string",
+        "$value": "52px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-box-lg",
+            "cssValue": "52px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 208
+          }
+        }
+      },
+      "item0209": {
+        "$type": "string",
+        "$value": "42px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-action-h",
+            "cssValue": "42px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 209
+          }
+        }
+      },
+      "item0210": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-action-radius",
+            "cssValue": "16px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 210
+          }
+        }
+      },
+      "item0211": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-surface",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 211
+          }
+        }
+      },
+      "item0212": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-surface-strong",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 212
+          }
+        }
+      },
+      "item0213": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-accent",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 213
+          }
+        }
+      },
+      "item0214": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-attention-radius",
+            "cssValue": "16px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 214
+          }
+        }
+      },
+      "item0215": {
+        "$type": "string",
+        "$value": "6px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-attention-gap",
+            "cssValue": "6px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 215
+          }
+        }
+      },
+      "item0216": {
+        "$type": "string",
+        "$value": "22px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-radius",
+            "cssValue": "22px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 216
+          }
+        }
+      },
+      "item0217": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-radius-compact",
+            "cssValue": "18px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 217
+          }
+        }
+      },
+      "item0218": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-pad",
+            "cssValue": "18px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 218
+          }
+        }
+      },
+      "item0219": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-pad-compact",
+            "cssValue": "12px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 219
+          }
+        }
+      },
+      "item0220": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-gap",
+            "cssValue": "12px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 220
+          }
+        }
+      },
+      "item0221": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-line",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 221
+          }
+        }
+      },
+      "item0222": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-bg",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 222
+          }
+        }
+      },
+      "item0223": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-bg-hover",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 223
+          }
+        }
+      },
+      "item0224": {
+        "$type": "string",
+        "$value": "0 10px 24px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-shadow",
+            "cssValue": "0 10px 24px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 224
+          }
+        }
+      },
+      "item0225": {
+        "$type": "string",
+        "$value": "0 12px 30px rgba(20,37,29,.13),0 1px 0 rgba(255,255,255,.76) inset",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-shadow-hover",
+            "cssValue": "0 12px 30px rgba(20,37,29,.13),0 1px 0 rgba(255,255,255,.76) inset",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 225
+          }
+        }
+      },
+      "item0226": {
+        "$type": "string",
+        "$value": "36px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-icon-size",
+            "cssValue": "36px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 226
+          }
+        }
+      },
+      "item0227": {
+        "$type": "string",
+        "$value": "30px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-icon-size-compact",
+            "cssValue": "30px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 227
+          }
+        }
+      },
+      "item0228": {
+        "$type": "string",
+        "$value": "14px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-icon-radius",
+            "cssValue": "14px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 228
+          }
+        }
+      },
+      "item0229": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-accent",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 229
+          }
+        }
+      },
+      "item0230": {
+        "$type": "string",
+        "$value": "0px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-edge-right",
+            "cssValue": "0px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 230
+          }
+        }
+      },
+      "item0231": {
+        "$type": "string",
+        "$value": "4px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-edge-width",
+            "cssValue": "4px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 231
+          }
+        }
+      },
+      "item0232": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-left-safe-gap",
+            "cssValue": "12px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 232
+          }
+        }
+      },
+      "item0233": {
+        "$type": "string",
+        "$value": "8px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-gap",
+            "cssValue": "8px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 233
+          }
+        }
+      },
+      "item0234": {
+        "$type": "string",
+        "$value": "10px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-pad-x",
+            "cssValue": "10px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 234
+          }
+        }
+      },
+      "item0235": {
+        "$type": "string",
+        "$value": "7px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-pad-y",
+            "cssValue": "7px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 235
+          }
+        }
+      },
+      "item0236": {
+        "$type": "string",
+        "$value": "46px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-min-h",
+            "cssValue": "46px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 236
+          }
+        }
+      },
+      "item0237": {
+        "$type": "string",
+        "$value": "30px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-icon",
+            "cssValue": "30px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 237
+          }
+        }
+      },
+      "item0238": {
+        "$type": "string",
+        "$value": "17px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-attention-radius",
+            "cssValue": "17px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 238
+          }
+        }
+      },
+      "item0239": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-line",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 239
+          }
+        }
+      },
+      "item0240": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-bg",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 240
+          }
+        }
+      },
+      "item0241": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-bg-hover",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 241
+          }
+        }
+      },
+      "item0242": {
+        "$type": "string",
+        "$value": "0 14px 34px rgba(20,37,29,.14),0 2px 8px rgba(20,37,29,.07),0 1px 0 rgba(255,255,255,.74) inset",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-shadow",
+            "cssValue": "0 14px 34px rgba(20,37,29,.14),0 2px 8px rgba(20,37,29,.07),0 1px 0 rgba(255,255,255,.74) inset",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 242
+          }
+        }
+      },
+      "item0243": {
+        "$type": "string",
+        "$value": "0 16px 38px rgba(20,37,29,.16),0 3px 10px rgba(20,37,29,.08),0 1px 0 rgba(255,255,255,.78) inset",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-shadow-hover",
+            "cssValue": "0 16px 38px rgba(20,37,29,.16),0 3px 10px rgba(20,37,29,.08),0 1px 0 rgba(255,255,255,.78) inset",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 243
+          }
+        }
+      },
+      "item0244": {
+        "$type": "string",
+        "$value": "var(--page-max,1184px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-page-max",
+            "cssValue": "var(--page-max,1184px)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 244
+          }
+        }
+      },
+      "item0245": {
+        "$type": "string",
+        "$value": "4px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-2xs",
+            "cssValue": "4px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 245
+          }
+        }
+      },
+      "item0246": {
+        "$type": "string",
+        "$value": "8px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-xs",
+            "cssValue": "8px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 246
+          }
+        }
+      },
+      "item0247": {
+        "$type": "string",
+        "$value": "10px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-sm",
+            "cssValue": "10px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 247
+          }
+        }
+      },
+      "item0248": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-md",
+            "cssValue": "12px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 248
+          }
+        }
+      },
+      "item0249": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-lg",
+            "cssValue": "16px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 249
+          }
+        }
+      },
+      "item0250": {
+        "$type": "string",
+        "$value": "20px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-gap-xl",
+            "cssValue": "20px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 250
+          }
+        }
+      },
+      "item0251": {
+        "$type": "string",
+        "$value": "14px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-radius-sm",
+            "cssValue": "14px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 251
+          }
+        }
+      },
+      "item0252": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-radius-md",
+            "cssValue": "18px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 252
+          }
+        }
+      },
+      "item0253": {
+        "$type": "string",
+        "$value": "22px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-radius-lg",
+            "cssValue": "22px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 253
+          }
+        }
+      },
+      "item0254": {
+        "$type": "string",
+        "$value": "28px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-radius-xl",
+            "cssValue": "28px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 254
+          }
+        }
+      },
+      "item0255": {
+        "$type": "string",
+        "$value": "56px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-row-min",
+            "cssValue": "56px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 255
+          }
+        }
+      },
+      "item0256": {
+        "$type": "string",
+        "$value": "10px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-row-pad-y",
+            "cssValue": "10px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 256
+          }
+        }
+      },
+      "item0257": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-row-pad-x",
+            "cssValue": "12px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 257
+          }
+        }
+      },
+      "item0258": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-section-pad",
+            "cssValue": "16px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 258
+          }
+        }
+      },
+      "item0259": {
+        "$type": "string",
+        "$value": "40px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-action-h",
+            "cssValue": "40px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 259
+          }
+        }
+      },
+      "item0260": {
+        "$type": "string",
+        "$value": "42px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-icon-box",
+            "cssValue": "42px",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 260
+          }
+        }
+      },
+      "item0261": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-border",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 261
+          }
+        }
+      },
+      "item0262": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-border-soft",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 262
+          }
+        }
+      },
+      "item0263": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-lowest)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface",
+            "cssValue": "var(--md-sys-color-surface-container-lowest)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 263
+          }
+        }
+      },
+      "item0264": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-low)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-soft",
+            "cssValue": "var(--md-sys-color-surface-container-low)",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 264
+          }
+        }
+      },
+      "item0265": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 265
+          }
+        }
+      },
+      "item0266": {
+        "$type": "string",
+        "$value": "clamp(12px,3.6vw,16px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-mobile-gutter",
+            "cssValue": "clamp(12px,3.6vw,16px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 266
+          }
+        }
+      },
+      "item0267": {
+        "$type": "string",
+        "$value": "clamp(16px,4vw,22px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-tablet-gutter",
+            "cssValue": "clamp(16px,4vw,22px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 267
+          }
+        }
+      },
+      "item0268": {
+        "$type": "string",
+        "$value": "clamp(18px,4vw,28px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-desktop-gutter",
+            "cssValue": "clamp(18px,4vw,28px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 268
+          }
+        }
+      },
+      "item0269": {
+        "$type": "string",
+        "$value": "env(safe-area-inset-left,0px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-safe-left",
+            "cssValue": "env(safe-area-inset-left,0px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 269
+          }
+        }
+      },
+      "item0270": {
+        "$type": "string",
+        "$value": "env(safe-area-inset-right,0px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-safe-right",
+            "cssValue": "env(safe-area-inset-right,0px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 270
+          }
+        }
+      },
+      "item0271": {
+        "$type": "string",
+        "$value": "env(safe-area-inset-top,0px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-safe-top",
+            "cssValue": "env(safe-area-inset-top,0px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 271
+          }
+        }
+      },
+      "item0272": {
+        "$type": "string",
+        "$value": "env(safe-area-inset-bottom,0px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-safe-bottom",
+            "cssValue": "env(safe-area-inset-bottom,0px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 272
+          }
+        }
+      },
+      "item0273": {
+        "$type": "string",
+        "$value": "0px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--role-h",
+            "cssValue": "0px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 273
+          }
+        }
+      },
+      "item0274": {
+        "$type": "string",
+        "$value": "8px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-flow-gap-xs",
+            "cssValue": "8px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 274
+          }
+        }
+      },
+      "item0275": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-flow-gap-sm",
+            "cssValue": "12px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 275
+          }
+        }
+      },
+      "item0276": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-flow-gap-md",
+            "cssValue": "16px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 276
+          }
+        }
+      },
+      "item0277": {
+        "$type": "string",
+        "$value": "clamp(18px,3vw,28px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-page-bottom",
+            "cssValue": "clamp(18px,3vw,28px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 277
+          }
+        }
+      },
+      "item0278": {
+        "$type": "string",
+        "$value": "28px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-radius-m3",
+            "cssValue": "28px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 278
+          }
+        }
+      },
+      "item0279": {
+        "$type": "string",
+        "$value": "24px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-radius-m3-compact",
+            "cssValue": "24px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 279
+          }
+        }
+      },
+      "item0280": {
+        "$type": "string",
+        "$value": "5px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-strip-width",
+            "cssValue": "5px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 280
+          }
+        }
+      },
+      "item0281": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-strip-pad",
+            "cssValue": "18px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 281
+          }
+        }
+      },
+      "item0282": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-inner-gap",
+            "cssValue": "12px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 282
+          }
+        }
+      },
+      "item0283": {
+        "$type": "string",
+        "$value": "14px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-card-section-gap",
+            "cssValue": "14px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 283
+          }
+        }
+      },
+      "item0284": {
+        "$type": "string",
+        "$value": "16px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-radius",
+            "cssValue": "16px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 284
+          }
+        }
+      },
+      "item0285": {
+        "$type": "string",
+        "$value": "5px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-gap",
+            "cssValue": "5px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 285
+          }
+        }
+      },
+      "item0286": {
+        "$type": "string",
+        "$value": "28px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-icon",
+            "cssValue": "28px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 286
+          }
+        }
+      },
+      "item0287": {
+        "$type": "string",
+        "$value": "6px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-pad-y",
+            "cssValue": "6px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 287
+          }
+        }
+      },
+      "item0288": {
+        "$type": "string",
+        "$value": "9px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-pad-x",
+            "cssValue": "9px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 288
+          }
+        }
+      },
+      "item0289": {
+        "$type": "string",
+        "$value": "44px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-min-h",
+            "cssValue": "44px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 289
+          }
+        }
+      },
+      "item0290": {
+        "$type": "string",
+        "$value": "150px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-fixed-agenda-stack-h",
+            "cssValue": "150px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 290
+          }
+        }
+      },
+      "item0291": {
+        "$type": "string",
+        "$value": "var(--agenda-floating-w,318px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-reference-w",
+            "cssValue": "var(--agenda-floating-w,318px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 291
+          }
+        }
+      },
+      "item0292": {
+        "$type": "string",
+        "$value": "36px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-selection-chip-height",
+            "cssValue": "36px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 292
+          }
+        }
+      },
+      "item0293": {
+        "$type": "string",
+        "$value": "14px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-selection-chip-radius",
+            "cssValue": "14px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 293
+          }
+        }
+      },
+      "item0294": {
+        "$type": "string",
+        "$value": "7px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-selection-chip-pad-y",
+            "cssValue": "7px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 294
+          }
+        }
+      },
+      "item0295": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-selection-chip-pad-x",
+            "cssValue": "12px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 295
+          }
+        }
+      },
+      "item0296": {
+        "$type": "string",
+        "$value": "7px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-selection-chip-gap",
+            "cssValue": "7px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 296
+          }
+        }
+      },
+      "item0297": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-height)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-filter-chip-h",
+            "cssValue": "var(--ds-selection-chip-height)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 297
+          }
+        }
+      },
+      "item0298": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-radius)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-filter-chip-radius",
+            "cssValue": "var(--ds-selection-chip-radius)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 298
+          }
+        }
+      },
+      "item0299": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-pad-y)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-filter-chip-pad-y",
+            "cssValue": "var(--ds-selection-chip-pad-y)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 299
+          }
+        }
+      },
+      "item0300": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-pad-x)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-filter-chip-pad-x",
+            "cssValue": "var(--ds-selection-chip-pad-x)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 300
+          }
+        }
+      },
+      "item0301": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-gap)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-filter-chip-gap",
+            "cssValue": "var(--ds-selection-chip-gap)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 301
+          }
+        }
+      },
+      "item0302": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-height)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-selection-chip-height",
+            "cssValue": "var(--ds-selection-chip-height)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 302
+          }
+        }
+      },
+      "item0303": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-radius)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-selection-chip-radius",
+            "cssValue": "var(--ds-selection-chip-radius)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 303
+          }
+        }
+      },
+      "item0304": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-pad-y)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-selection-chip-pad-y",
+            "cssValue": "var(--ds-selection-chip-pad-y)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 304
+          }
+        }
+      },
+      "item0305": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-pad-x)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-selection-chip-pad-x",
+            "cssValue": "var(--ds-selection-chip-pad-x)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 305
+          }
+        }
+      },
+      "item0306": {
+        "$type": "string",
+        "$value": "var(--ds-selection-chip-gap)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-selection-chip-gap",
+            "cssValue": "var(--ds-selection-chip-gap)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 306
+          }
+        }
+      },
+      "item0307": {
+        "$type": "string",
+        "$value": "22px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-surface-radius",
+            "cssValue": "22px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 307
+          }
+        }
+      },
+      "item0308": {
+        "$type": "string",
+        "$value": "clamp(14px,2.4vw,20px)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-surface-pad",
+            "cssValue": "clamp(14px,2.4vw,20px)",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 308
+          }
+        }
+      },
+      "item0309": {
+        "$type": "string",
+        "$value": "18px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-row-radius",
+            "cssValue": "18px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 309
+          }
+        }
+      },
+      "item0310": {
+        "$type": "string",
+        "$value": "10px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-row-gap",
+            "cssValue": "10px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 310
+          }
+        }
+      },
+      "item0311": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-row-pad",
+            "cssValue": "12px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 311
+          }
+        }
+      },
+      "item0312": {
+        "$type": "string",
+        "$value": "82px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-kpi-min-height",
+            "cssValue": "82px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 312
+          }
+        }
+      },
+      "item0313": {
+        "$type": "string",
+        "$value": "42px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ds-kpi-icon-size",
+            "cssValue": "42px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 313
+          }
+        }
+      },
+      "item0314": {
+        "$type": "string",
+        "$value": "12px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-cohesion-gap",
+            "cssValue": "12px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 314
+          }
+        }
+      },
+      "item0315": {
+        "$type": "string",
+        "$value": "22px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-cohesion-radius",
+            "cssValue": "22px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 315
+          }
+        }
+      },
+      "item0316": {
+        "$type": "string",
+        "$value": "56px",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-cohesion-row-min",
+            "cssValue": "56px",
+            "target": "semantic",
+            "selector": ":root",
+            "important": false,
+            "phase": "residual",
+            "sequence": 316
+          }
+        }
+      }
+    },
+    "bridge": {
+      "item0001": {
+        "$type": "string",
+        "$value": "var(--clinic-accent,#2f6652)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary40",
+            "cssValue": "var(--clinic-accent,#2f6652)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10000,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0002": {
+        "$type": "string",
+        "$value": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--md-ref-palette-primary30",
+            "cssValue": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10001,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0003": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-low)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--surface-2",
+            "cssValue": "var(--md-sys-color-surface-container-low)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10002,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0004": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--surface-3",
+            "cssValue": "var(--md-sys-color-surface-container)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10003,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0005": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-on-surface)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ink",
+            "cssValue": "var(--md-sys-color-on-surface)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10004,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0006": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-on-surface-variant)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--ink-2",
+            "cssValue": "var(--md-sys-color-on-surface-variant)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10005,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0007": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--muted",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10006,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0008": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--line-2",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10007,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0009": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--state-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10008,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0010": {
+        "$type": "string",
+        "$value": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--state-focus",
+            "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10009,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0011": {
+        "$type": "string",
+        "$value": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-focus-ring",
+            "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10010,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0012": {
+        "$type": "string",
+        "$value": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-accent",
+            "cssValue": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10011,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0013": {
+        "$type": "string",
+        "$value": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-on-accent",
+            "cssValue": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10012,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0014": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--clinic-identity-accent,var(--md-sys-color-primary)) 78%,#000)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-hover",
+            "cssValue": "color-mix(in srgb,var(--clinic-identity-accent,var(--md-sys-color-primary)) 78%,#000)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10013,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0015": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-container",
+            "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10014,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0016": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-pagehead-control-on-container",
+            "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+            "target": "clinic",
+            "selector": "body",
+            "important": false,
+            "order": 10015,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0017": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-patient",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10016,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0018": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-module-agenda",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10017,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0019": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-surface-glass",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10018,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0020": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-border-soft",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10019,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0021": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-border-strong",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10020,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0022": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-row-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10021,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0023": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-surface",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10022,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0024": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-icon-surface-strong",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10023,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0025": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-card-accent",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10024,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0026": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-line",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10025,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0027": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-bg",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10026,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0028": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-bg-hover",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10027,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0029": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-primary)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-accent",
+            "cssValue": "var(--md-sys-color-primary)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10028,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0030": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-line",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10029,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0031": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-bg",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10030,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0032": {
+        "$type": "string",
+        "$value": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-floating-surface-bg-hover",
+            "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10031,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0033": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-border",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10032,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0034": {
+        "$type": "string",
+        "$value": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-border-soft",
+            "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10033,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0035": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-lowest)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface",
+            "cssValue": "var(--md-sys-color-surface-container-lowest)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10034,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0036": {
+        "$type": "string",
+        "$value": "var(--md-sys-color-surface-container-low)",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-soft",
+            "cssValue": "var(--md-sys-color-surface-container-low)",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10035,
+            "phase": "canonical"
+          }
+        }
+      },
+      "item0037": {
+        "$type": "string",
+        "$value": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+        "$extensions": {
+          "com.prontoo": {
+            "cssName": "--pt-ds-surface-hover",
+            "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+            "target": "material",
+            "selector": "body",
+            "important": false,
+            "order": 10036,
+            "phase": "canonical"
+          }
+        }
+      }
+    }
+  }
+}

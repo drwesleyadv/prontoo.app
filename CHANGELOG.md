@@ -1,10 +1,10 @@
 # Versão canônica
 
-## 1.8.18.5 — Design Tokens DTCG e tema por consultório
+## 1.8.18.6 — Arquitetura de design independente do CSS legado
 
-- adota Design Tokens DTCG 2025.10 em camadas Reference, System e Component como fonte canônica do Design System.
-- usa Style Dictionary 5.5.0 para gerar deterministicamente os arquivos CSS de tokens e retira deles a autoridade de edição manual.
-- resolve aliases dependentes da identidade no escopo runtime do consultório para eliminar tokens presos à cor padrão.
-- mantém sucesso, aviso, erro e informação como cores semânticas independentes da identidade do consultório.
-- adiciona contrato multitema obrigatório com verde, azul, vinho e violeta além do baseline computado já existente.
-- preserva geometria, tipografia, espaçamento e fluxos do tema padrão sem alterar banco ou schema.
+- remove integralmente app/Presentation/Styles e o manifesto de 1.074 slices da arquitetura CSS anterior.
+- substitui o payload Base64 de compatibilidade por tokens runtime DTCG estruturados e auditáveis.
+- consolida os tokens gerados em design/generated/tokens.css e os estilos comportamentais em design/styles/application.css.
+- simplifica presentation.css para uma montagem determinística sem offsets, hashes por slice ou bridge legado.
+- mantém o contrato multitema e o baseline computado sem alteração observável de geometria, tipografia, espaçamento ou fluxos.
+- preserva banco, schema e regras de negócio enquanto reduz arquivos-fonte, metadados e custo de manutenção do Design System.
