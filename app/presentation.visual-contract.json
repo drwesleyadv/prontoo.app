@@ -58,7 +58,7 @@
     },
     "delivery": {
         "artifact": "public/assets/presentation.css",
-        "current_sha256": "8ad27b1f738316c474b1b07ac2c7d82f1ffabbac4679d540ffca1cfaa71bf4f1",
+        "current_sha256": "7b500e1ee65bfe0167cc62fdad5a81923549a531fab45fdf6e6ed9c86a0386a3",
         "current_bytes": 809496,
         "deterministic_source": true,
         "observable_ux_contract": "app/presentation.ux-baseline.json"
