@@ -10,7 +10,7 @@ Migrações de banco, marcadores de schema e compatibilidades estritamente neces
 
 ## Leitura recomendada
 
-Comece por `architecture/overview.md` e `architecture/layers.md`. Em seguida, escolha a trilha correspondente ao trabalho: `domain/` para comportamento de negócio, `security/` para controles, `operations/` para execução e incidentes, `database/` para integridade, `performance/` para budgets e telemetria, e `testing/` para a malha de verificação.
+Comece por `architecture/overview.md` e `architecture/layers.md`. Para a infraestrutura visual e temas, consulte `architecture/design-tokens.md`. Em seguida, escolha a trilha correspondente ao trabalho: `domain/` para comportamento de negócio, `security/` para controles, `operations/` para execução e incidentes, `database/` para integridade, `performance/` para budgets e telemetria, e `testing/` para a malha de verificação.
 
 ## Arquitetura vigente
 
@@ -18,7 +18,7 @@ Os documentos de `architecture/` e os ADRs de `adr/` descrevem a arquitetura con
 
 ## Regra de autoridade
 
-A documentação é secundária aos contratos executáveis. `version.json` define a release canônica; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `tools/` contém os gates. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
+A documentação é secundária aos contratos executáveis. `version.json` define a release canônica; `app/architecture.manifest.json` define políticas e budgets; `app/application.test-contract.json` define caracterização de Application; `design/tokens/*.tokens.json` define os tokens visuais canônicos; `tools/` contém os gates. Os arquivos `app/Presentation/Styles/tokens/*.css` são artefatos gerados e não são fonte editável. Se prosa e gate divergirem, o gate representa o estado operacional e a prosa deve ser atualizada.
 
 O gate `tools/superseded-reference-contract-check` impede a reintrodução de releases literais substituídas em documentação e manifests e também protege a política de árvore sem artefatos históricos de release.
 
