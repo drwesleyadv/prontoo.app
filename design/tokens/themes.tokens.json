@@ -16,7 +16,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-accent",
             "target": "material",
-            "selector": "body.scope-global",
+            "selector": "body:is(.scope-global)",
             "order": -7000
           }
         }
@@ -36,7 +36,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-accent-strong",
             "target": "material",
-            "selector": "body.scope-global",
+            "selector": "body:is(.scope-global)",
             "order": -6999
           }
         }
@@ -56,7 +56,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-on-accent",
             "target": "material",
-            "selector": "body.scope-global",
+            "selector": "body:is(.scope-global)",
             "order": -6998
           }
         }
@@ -78,7 +78,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-accent",
             "target": "material",
-            "selector": "body.public",
+            "selector": "body:is(.public)",
             "order": -6980
           }
         }
@@ -98,7 +98,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-accent-strong",
             "target": "material",
-            "selector": "body.public",
+            "selector": "body:is(.public)",
             "order": -6979
           }
         }
@@ -118,7 +118,7 @@
           "com.prontoo": {
             "cssName": "--pt-theme-on-accent",
             "target": "material",
-            "selector": "body.public",
+            "selector": "body:is(.public)",
             "order": -6978
           }
         }
