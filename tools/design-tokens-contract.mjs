@@ -114,14 +114,23 @@ try {
     await page.setContent(markup, { waitUntil: 'load' });
     await page.evaluate(current => {
       const body = document.body;
-      body.style.setProperty('--pt-theme-accent', current.accent);
-      body.style.setProperty('--pt-theme-accent-strong', current.strong);
-      body.style.setProperty('--pt-theme-accent-hover', current.strong);
-      body.style.setProperty('--pt-theme-accent-soft', current.soft);
-      body.style.setProperty('--pt-theme-on-accent', '#ffffff');
-      body.style.setProperty('--pt-theme-identity-accent', current.accent);
-      body.style.setProperty('--pt-theme-identity-hover', current.strong);
-      body.style.setProperty('--pt-theme-identity-on-accent', '#ffffff');
+      body.style.setProperty('--clinic-identity-accent', current.accent);
+      body.style.setProperty('--clinic-identity-hover', current.strong);
+      body.style.setProperty('--clinic-identity-pressed', current.strong);
+      body.style.setProperty('--clinic-identity-on-accent', '#ffffff');
+      body.style.setProperty('--clinic-accent', current.accent);
+      body.style.setProperty('--clinic-accent-strong', current.strong);
+      body.style.setProperty('--clinic-accent-dark', current.strong);
+      body.style.setProperty('--clinic-accent-hover', current.strong);
+      body.style.setProperty('--clinic-accent-pressed', current.strong);
+      body.style.setProperty('--clinic-accent-soft', current.soft);
+      body.style.setProperty('--clinic-accent-subtle', current.soft);
+      body.style.setProperty('--clinic-on-accent', '#ffffff');
+      body.style.setProperty('--md-sys-color-primary', current.accent);
+      body.style.setProperty('--md-ref-palette-primary40', current.accent);
+      body.style.setProperty('--md-ref-palette-primary30', current.strong);
+      body.style.setProperty('--md-sys-color-on-primary', '#ffffff');
+      body.style.setProperty('--md-sys-color-primary-container', current.soft);
     }, theme);
     const result = await page.evaluate(() => {
       const nav = getComputedStyle(document.getElementById('nav'));
@@ -132,6 +141,7 @@ try {
       const body = getComputedStyle(document.body);
       return {
         accent: body.getPropertyValue('--pt-sys-color-accent').trim(),
+        pageheadComponent: body.getPropertyValue('--pt-cmp-pagehead-accent').trim(),
         pageheadAlias: body.getPropertyValue('--pt-pagehead-control-accent').trim(),
         navColor: nav.color,
         pageheadIconColor: pageheadIcon.color,
@@ -149,11 +159,11 @@ try {
       probe.remove();
       return value;
     }, theme.accent);
-    for (const [key, value] of Object.entries({ accent: result.accent, pageheadAlias: result.pageheadAlias })) {
-      if (normalize(value) !== normalize(theme.accent)) throw new Error(`${theme.name}:${key} does not follow accent (${value} != ${theme.accent})`);
+    for (const [key, value] of Object.entries({ accent: result.accent, pageheadComponent: result.pageheadComponent, pageheadAlias: result.pageheadAlias })) {
+      if (normalize(value) !== normalize(theme.accent)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent (${value} != ${theme.accent})`);
     }
     for (const [key, value] of Object.entries({ navColor: result.navColor, pageheadIconColor: result.pageheadIconColor, statIconColor: result.statIconColor })) {
-      if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow accent (${value} != ${expected})`);
+      if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent (${value} != ${expected})`);
     }
     const semantics = [result.okBg, result.okColor, result.dangerBg].map(normalize);
     if (semanticBaseline === null) semanticBaseline = semantics;
@@ -164,4 +174,4 @@ try {
   await browser.close();
 }
 const canonicalCount = [...expectedByTarget.values()].reduce((sum, names) => sum + names.size, 0);
-process.stdout.write(`design-tokens-contract: dtcg sources=${required.length} generated=${Object.keys(generatedTargets).length} mapped=${canonicalCount} themes=${themes.length} semantic-status=invariant\n`);
+process.stdout.write(`design-tokens-contract: dtcg sources=${required.length} generated=${Object.keys(generatedTargets).length} mapped=${canonicalCount} themes=${themes.length} semantic-status=invariant runtime=clinic-config\n`);
