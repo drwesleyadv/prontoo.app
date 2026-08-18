@@ -26,6 +26,22 @@ jobs:
         run: |
           set -euo pipefail
           npm install --save-dev --save-exact style-dictionary@5.5.0
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('tools/agent-dtcg-bootstrap-v3.mjs')
+          s = p.read_text()
+          old = "const dynamic = new Set([...runtime.matchAll(/--([a-z0-9-]+):/gi)].map(match => `--${match[1]}`));"
+          new = "const runtimeSeeds = new Set([...runtime.matchAll(/--([a-z0-9-]+):/gi)].map(match => `--${match[1]}`));\nconst dynamic = new Set(runtimeSeeds);"
+          if old not in s:
+              raise SystemExit('runtime seed anchor missing')
+          s = s.replace(old, new, 1)
+          old_filter = '.filter(item => dynamic.has(item.name))'
+          new_filter = '.filter(item => dynamic.has(item.name) && !runtimeSeeds.has(item.name))'
+          if old_filter not in s:
+              raise SystemExit('bridge filter anchor missing')
+          s = s.replace(old_filter, new_filter, 1)
+          p.write_text(s)
+          PY
           node tools/agent-dtcg-bootstrap-v3.mjs
       - name: Verify unchanged computed UX
         shell: bash
