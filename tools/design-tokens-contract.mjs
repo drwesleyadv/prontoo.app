@@ -7,25 +7,63 @@ import { chromium } from 'playwright';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 execFileSync(process.execPath, [path.join(root, 'tools/design-tokens-build.mjs'), '--check'], { stdio: 'inherit' });
 
-const required = [
+const tokenSources = [
   'design/tokens/reference.tokens.json',
   'design/tokens/system.tokens.json',
   'design/tokens/component.tokens.json',
-  'design/tokens/themes.tokens.json',
-  'design/tokens/css-bridge.json'
+  'design/tokens/themes.tokens.json'
 ];
+const bridgeFile = 'design/tokens/css-bridge.json';
+const required = [...tokenSources, bridgeFile];
 for (const file of required) {
   if (!fs.existsSync(path.join(root, file))) throw new Error(`design token source missing ${file}`);
 }
-const generated = [
-  'app/Presentation/Styles/tokens/clinic.css',
-  'app/Presentation/Styles/tokens/material.css',
-  'app/Presentation/Styles/tokens/semantic.css'
-];
-for (const file of generated) {
-  const css = fs.readFileSync(path.join(root, file), 'utf8');
-  if (!css.includes('--pt-ref-') || !css.includes('--pt-sys-') && file.endsWith('clinic.css')) {
-    throw new Error(`generated token surface incomplete ${file}`);
+
+const generatedTargets = {
+  clinic: 'app/Presentation/Styles/tokens/clinic.css',
+  material: 'app/Presentation/Styles/tokens/material.css',
+  semantic: 'app/Presentation/Styles/tokens/semantic.css'
+};
+const expectedByTarget = new Map(Object.keys(generatedTargets).map(target => [target, new Set()]));
+const collectTokens = value => {
+  if (!value || typeof value !== 'object') return;
+  if (Array.isArray(value)) {
+    for (const item of value) collectTokens(item);
+    return;
+  }
+  const meta = value.$extensions?.['com.prontoo'];
+  if (Object.hasOwn(value, '$value') && meta && typeof meta.cssName === 'string' && typeof meta.target === 'string') {
+    if (!expectedByTarget.has(meta.target)) throw new Error(`unknown DTCG target ${meta.target}:${meta.cssName}`);
+    if (!/^--[a-z0-9-]+$/i.test(meta.cssName)) throw new Error(`invalid DTCG cssName ${meta.cssName}`);
+    expectedByTarget.get(meta.target).add(meta.cssName);
+  }
+  for (const [key, child] of Object.entries(value)) {
+    if (key !== '$extensions') collectTokens(child);
+  }
+};
+for (const file of tokenSources) {
+  collectTokens(JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')));
+}
+
+const bridge = JSON.parse(fs.readFileSync(path.join(root, bridgeFile), 'utf8'));
+if (bridge?.schema !== 'prontoo-design-token-css-bridge-v2' || bridge?.policy?.authored_css_is_not_source_of_truth !== true || !Array.isArray(bridge?.entries)) {
+  throw new Error('design token compatibility bridge policy invalid');
+}
+for (const entry of bridge.entries) {
+  const target = String(entry?.target || '');
+  const name = String(entry?.name || '');
+  if (!expectedByTarget.has(target)) throw new Error(`unknown bridge target ${target}:${name}`);
+  if (!/^--[a-z0-9-]+$/i.test(name)) throw new Error(`invalid bridge cssName ${name}`);
+  expectedByTarget.get(target).add(name);
+}
+
+for (const [target, file] of Object.entries(generatedTargets)) {
+  const full = path.join(root, file);
+  if (!fs.existsSync(full)) throw new Error(`generated token artifact missing ${file}`);
+  const css = fs.readFileSync(full, 'utf8');
+  if (!css.trim()) throw new Error(`generated token artifact empty ${file}`);
+  for (const name of expectedByTarget.get(target)) {
+    if (!css.includes(`${name}:`)) throw new Error(`generated token missing ${target}:${name}`);
   }
 }
 
@@ -121,4 +159,5 @@ try {
 } finally {
   await browser.close();
 }
-process.stdout.write(`design-tokens-contract: dtcg sources=${required.length} generated=${generated.length} themes=${themes.length} semantic-status=invariant\n`);
+const canonicalCount = [...expectedByTarget.values()].reduce((sum, names) => sum + names.size, 0);
+process.stdout.write(`design-tokens-contract: dtcg sources=${required.length} generated=${Object.keys(generatedTargets).length} mapped=${canonicalCount} themes=${themes.length} semantic-status=invariant\n`);
