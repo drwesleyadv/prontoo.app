@@ -1,0 +1,49 @@
+name: Agent DTCG PR Bootstrap V2
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.head_ref == 'agent/dtcg-design-tokens'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/dtcg-design-tokens
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Compile DTCG token source
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --save-dev --save-exact style-dictionary@5.5.0
+          node tools/agent-dtcg-bootstrap.mjs
+      - name: Preserve observable UX
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+          node tools/presentation-ux-contract.mjs --check
+      - name: Commit canonical token migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/agent-dtcg-migrate.yml
+          rm -f .github/workflows/agent-dtcg-pr-bootstrap.yml
+          rm -f .github/workflows/agent-dtcg-pr-bootstrap-v2.yml
+          rm -f tools/agent-dtcg-bootstrap.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Migra Design System para tokens DTCG'
+          git push origin HEAD:agent/dtcg-design-tokens
