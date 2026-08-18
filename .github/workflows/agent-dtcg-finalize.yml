@@ -96,6 +96,12 @@ jobs:
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/release-version
+      - name: Rebuild published presentation artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --check
       - name: Validate DTCG and visual equivalence before commit
         shell: bash
         run: |
@@ -110,7 +116,7 @@ jobs:
           set -euo pipefail
           rm -f .github/workflows/agent-dtcg-finalize.yml
           git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.email '4189828+github-actions[bot]@users.noreply.github.com'
           git add -A
           git commit -m 'Publica Design Tokens DTCG 1.8.18.5'
           git push origin HEAD:agent/dtcg-design-tokens
