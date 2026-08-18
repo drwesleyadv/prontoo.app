@@ -75,7 +75,14 @@ final class Runner
                 LayeredKernel::enforceAction($route, $method, $_POST, $context);
             }
             if ($isPost) {
-                if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_schedule_invalidation_for_write'])) {
+                if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_schedule_invalidation_for_write'])) {
+                    \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_schedule_invalidation_for_write(
+                        $route,
+                        (string) ($_POST['act'] ?? ''),
+                        $_POST,
+                        (int) ($context['clinic_id'] ?? ($_SESSION['clinic_id'] ?? 0)),
+                    );
+                } elseif (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_schedule_invalidation_for_write'])) {
                     \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_schedule_invalidation_for_write(
                         $route,
                         (string) ($_POST['act'] ?? ''),
