@@ -637,7 +637,7 @@ final class AdminPagesPresentationOperations03
     ): string {
         $search = mb_trim($search);
         $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
-        if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+        if (!in_array($view, ["all", "active", "expiring", "readonly"], true)) {
             $view = "all";
         }
         $clear = $search !== "" || $view !== "all"
@@ -668,7 +668,7 @@ final class AdminPagesPresentationOperations03
         $search = mb_trim($search);
         $searchMode = $search !== "";
         $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
-        if (!in_array($view, ["all", "attention", "onboarding", "readonly", "expiring"], true)) {
+        if (!in_array($view, ["all", "active", "expiring", "readonly"], true)) {
             $view = "all";
         }
         if ($searchMode) {
@@ -676,10 +676,9 @@ final class AdminPagesPresentationOperations03
         }
         $filterSpecs = [
             "all" => ["Todos", "format_list_bulleted"],
-            "attention" => ["Atenção", "priority_high"],
-            "onboarding" => ["Onboarding", "playlist_add_check"],
-            "readonly" => ["Somente leitura", "lock"],
+            "active" => ["Ativos", "verified"],
             "expiring" => ["Vencendo", "event_upcoming"],
+            "readonly" => ["Somente Leitura", "lock"],
         ];
         $normalFilters = "";
         foreach ($filterSpecs as $filterKey => [$filterLabel, $filterIcon]) {
@@ -700,7 +699,11 @@ final class AdminPagesPresentationOperations03
         }
         $bodyRows = "";
         $foundCount = 0;
-        $now = time();
+        $todayStart = strtotime("today");
+        if ($todayStart === false) {
+            $todayStart = time();
+        }
+        $expiringLimit = $todayStart + 10 * 86400 + 86399;
         foreach ($rows as $entry) {
             $r = (array) ($entry["clinic"] ?? []);
             $billing = (array) ($entry["billing"] ?? []);
@@ -715,15 +718,15 @@ final class AdminPagesPresentationOperations03
             $dueTimestamp = $dueCandidate !== "" ? strtotime($dueCandidate) : false;
             $expiresSoon = empty($billing["exempt"]) &&
                 $dueTimestamp !== false &&
-                $dueTimestamp >= $now &&
-                $dueTimestamp <= $now + 7 * 86400;
+                $dueTimestamp >= $todayStart &&
+                $dueTimestamp <= $expiringLimit;
             $onboardingPending = (int) ($r["onboarding_done"] ?? 0) !== 1;
             $needsAttention = (int) ($r["active"] ?? 0) !== 1 || !empty($billing["read_only"]) || $onboardingPending || $expiresSoon;
+            $isActive = (int) ($r["active"] ?? 0) === 1 && empty($billing["read_only"]);
             $matchesFilter = match ($view) {
-                "attention" => $needsAttention,
-                "onboarding" => $onboardingPending,
-                "readonly" => !empty($billing["read_only"]),
+                "active" => $isActive,
                 "expiring" => $expiresSoon,
+                "readonly" => !empty($billing["read_only"]),
                 default => true,
             };
             if (!$matchesFilter) {
