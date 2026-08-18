@@ -148,7 +148,10 @@ try {
       probe.remove();
       return value;
     }, theme.accent);
-    for (const [key, value] of Object.entries({ accent: result.accent, primaryBg: result.primaryBg, navColor: result.navColor, iconColor: result.iconColor })) {
+    if (normalize(result.accent) !== normalize(theme.accent)) {
+      throw new Error(`${theme.name}:accent does not follow accent (${result.accent} != ${theme.accent})`);
+    }
+    for (const [key, value] of Object.entries({ primaryBg: result.primaryBg, navColor: result.navColor, iconColor: result.iconColor })) {
       if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow accent (${value} != ${expected})`);
     }
     const semantics = [result.okBg, result.okColor, result.dangerBg].map(normalize);
