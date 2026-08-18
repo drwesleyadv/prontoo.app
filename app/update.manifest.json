@@ -38,7 +38,7 @@
         ".gitignore": "fe8839c6a3732103eebbc30e18fe60a7bf4a116292835d86476eb2d348440daa",
         ".htaccess": "d8c71efc810ede7417bd8a15fe806b32da7a7997937f9668b61d2e8c0b050188",
         "AGENTS.md": "9b4d634e33cb0cb4b51a6463b3409ef3c51c728ea08459baf611febbae46babd",
-        "CHANGELOG.md": "2a9d6d5c9ab59e688deafe491f50500ed531703842394eac29e89641d445c22e",
+        "CHANGELOG.md": "7fcf44bc2691d7cc12444834393916794e22be0fd6a15a8acd6932589f974900",
         "CONTRIBUTING.md": "d40f54b38d1d4a1875894a1d696507276ffbd26a62ed4b92142e1a8675beb247",
         "README.md": "53f6ab16da43038729a977564c7a50b25fed68ca33cf122585ca76cc892cfc5e",
         "SECURITY.md": "beb3480926fd1773dfc41a66e49fbe5f4265a7a5795ca83d6dce92523b5a9a6f",
@@ -640,7 +640,7 @@
         "tools/telemetry-json-source-contract-check": "ccb5bb1a01141f2a9a0d421c0184f147e49b2a6c64fc7a325d08cce302037185",
         "tools/test-fast": "4a32e696f233174dfb239189990fc21044fb132b57276a89024249811d926d5c",
         "tools/version-asset-contract-check.php": "476439bc976c261a8528db35e67f587e3ea39e9b2996b31529d13de5c182c235",
-        "version.json": "fd2fdb689e0b9c0fe212968d6b041155e19715fb979cee7f7a8c271b7da6887d"
+        "version.json": "b22a2f126363cbacf17fb93d1501a8dce32d6f1dbd1056a3a9500377401a853d"
     },
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "updated_at": "2026-08-09T23:15:00+00:00",
