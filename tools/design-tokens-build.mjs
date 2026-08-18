@@ -23,7 +23,7 @@ if (!fs.existsSync(bridgePath)) {
   process.exit(1);
 }
 const bridge = JSON.parse(fs.readFileSync(bridgePath, 'utf8'));
-if (!bridge || bridge.schema !== 'prontoo-design-token-css-bridge-v1' || !Array.isArray(bridge.entries)) {
+if (!bridge || bridge.schema !== 'prontoo-design-token-css-bridge-v1' || !Array.isArray(bridge.entries) || !Array.isArray(bridge.rules || [])) {
   process.stderr.write('design-tokens-build: invalid css bridge\n');
   process.exit(1);
 }
@@ -101,10 +101,20 @@ StyleDictionary.registerFormat({
       }
       grouped.get(declaration.selector).push(declaration);
     }
-    return selectorOrder.map(selector => {
+    const blocks = selectorOrder.map(selector => {
       const lines = grouped.get(selector).map(item => `  ${item.name}:${item.value}${item.important ? '!important' : ''};`).join('\n');
       return `${selector}{\n${lines}\n}`;
-    }).join('\n\n') + '\n';
+    });
+    const rawRules = (bridge.rules || [])
+      .filter(rule => String(rule.target || '') === target)
+      .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+    for (const rule of rawRules) {
+      const selector = String(rule.selector || '').trim();
+      const declarationsText = String(rule.declarations || '').trim();
+      if (!selector || !declarationsText || /--[a-z0-9-]+\s*:/i.test(declarationsText)) throw new Error(`invalid non-token bridge rule for ${target}`);
+      blocks.push(`${selector}{${declarationsText}}`);
+    }
+    return blocks.join('\n\n') + '\n';
   }
 });
 
