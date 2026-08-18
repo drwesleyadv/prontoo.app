@@ -1,0 +1,36 @@
+name: Agent DTCG Cleanup
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.head_ref == 'agent/dtcg-design-tokens'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/dtcg-design-tokens
+          fetch-depth: 0
+      - name: Remove installed dependencies from repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -r --ignore-unmatch node_modules
+          if [ -f .gitignore ]; then
+            grep -qxF 'node_modules/' .gitignore || printf '\nnode_modules/\n' >> .gitignore
+          else
+            printf 'node_modules/\n' > .gitignore
+          fi
+          rm -f .github/workflows/agent-dtcg-cleanup.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Remove dependências instaladas do branch'
+          git push origin HEAD:agent/dtcg-design-tokens
