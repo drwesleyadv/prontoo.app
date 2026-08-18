@@ -1,0 +1,82 @@
+name: Agent CSS Architecture Audit
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.head_ref == 'agent/remove-legacy-css-architecture' || github.ref_name == 'agent/remove-legacy-css-architecture'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: agent/remove-legacy-css-architecture
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Inspect legacy CSS dependency graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          import base64, json, re
+          from pathlib import Path
+          root = Path('.')
+          manifest = json.loads(Path('app/Presentation/Styles/styles.manifest.json').read_text())
+          bridge = json.loads(Path('design/tokens/css-bridge.json').read_text())
+          css_files = sorted(Path('app/Presentation/Styles').rglob('*.css'))
+          print('LEGACY_CSS_FILES', len(css_files))
+          print('LEGACY_CSS_BYTES', sum(p.stat().st_size for p in css_files))
+          print('SEQUENCE_SEGMENTS', len(manifest.get('sequence', [])))
+          print('MANIFEST_BYTES', Path('app/Presentation/Styles/styles.manifest.json').stat().st_size)
+          print('BRIDGE_BYTES', Path('design/tokens/css-bridge.json').stat().st_size)
+          print('BRIDGE_ENTRIES', len(bridge.get('entries', [])))
+          print('BRIDGE_LEGACY_PAYLOAD_BYTES', sum(len(base64.b64decode(v['base64'])) for v in bridge.get('legacy', {}).values()))
+          source = {s['path']: Path('app/Presentation/Styles', s['path']).read_bytes() for s in manifest['sources']}
+          behavior = bytearray()
+          tokens = bytearray()
+          token_segments = 0
+          behavior_segments = 0
+          for seg in manifest['sequence']:
+              data = source[seg['source']]
+              piece = data[int(seg['offset']):int(seg['offset'])+int(seg['bytes'])]
+              if seg['source'].startswith('tokens/'):
+                  tokens.extend(piece)
+                  token_segments += 1
+              else:
+                  behavior.extend(piece)
+                  behavior_segments += 1
+          print('TOKEN_SEGMENTS', token_segments)
+          print('BEHAVIOR_SEGMENTS', behavior_segments)
+          print('TOKEN_SLICE_BYTES', len(tokens))
+          print('BEHAVIOR_BYTES', len(behavior))
+          outside = []
+          custom = re.compile(rb'--[A-Za-z0-9_-]+\s*:')
+          for p in css_files:
+              if '/tokens/' in p.as_posix():
+                  continue
+              n = len(custom.findall(p.read_bytes()))
+              if n:
+                  outside.append((p.as_posix(), n))
+          print('NON_TOKEN_FILES_DEFINING_CUSTOM_PROPERTIES', json.dumps(outside, ensure_ascii=False))
+          Path('/tmp/current.css').write_bytes(Path('public/assets/presentation.css').read_bytes())
+          Path('/tmp/token-first.css').write_bytes(bytes(tokens) + bytes(behavior))
+          print('CURRENT_BYTES', Path('/tmp/current.css').stat().st_size)
+          print('TOKEN_FIRST_BYTES', Path('/tmp/token-first.css').stat().st_size)
+          PY
+      - name: Probe token-first observable equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npx playwright install chromium
+          cp /tmp/token-first.css public/assets/presentation.css
+          node tools/presentation-ux-contract.mjs --check
