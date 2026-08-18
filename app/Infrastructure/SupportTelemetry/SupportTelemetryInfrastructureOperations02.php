@@ -245,10 +245,12 @@ final class SupportTelemetryInfrastructureOperations02
         ?int $nowUnixUs = null,
     ): array {
         $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
-        return self::telemetry_volume_series_30d_from_events(
+        return self::telemetry_volume_series_from_events(
             $metric,
             \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
             max(1, $nowUnixUs),
+            30,
+            15,
         );
     }
 
@@ -257,11 +259,56 @@ final class SupportTelemetryInfrastructureOperations02
         array $events,
         int $nowUnixUs,
     ): array {
+        return self::telemetry_volume_series_from_events(
+            $metric,
+            $events,
+            $nowUnixUs,
+            30,
+            15,
+        );
+    }
+
+    public static function telemetry_volume_series_20d(
+        string $metric,
+        ?int $nowUnixUs = null,
+    ): array {
+        $nowUnixUs ??= (int) floor(microtime(true) * 1000000);
+        return self::telemetry_volume_series_from_events(
+            $metric,
+            \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_read_events(max(1, $nowUnixUs)),
+            max(1, $nowUnixUs),
+            20,
+            10,
+        );
+    }
+
+    public static function telemetry_volume_series_20d_from_events(
+        string $metric,
+        array $events,
+        int $nowUnixUs,
+    ): array {
+        return self::telemetry_volume_series_from_events(
+            $metric,
+            $events,
+            $nowUnixUs,
+            20,
+            10,
+        );
+    }
+
+    private static function telemetry_volume_series_from_events(
+        string $metric,
+        array $events,
+        int $nowUnixUs,
+        int $bucketCount,
+        int $previousBucketCount,
+    ): array {
         $metric = in_array($metric, ["page_load", "database_queries"], true)
             ? $metric
             : "page_load";
         $bucketUs = 86400 * 1000000;
-        $bucketCount = 30;
+        $bucketCount = max(1, $bucketCount);
+        $previousBucketCount = max(0, min($bucketCount, $previousBucketCount));
         $windowEndUs = max(1, $nowUnixUs);
         $windowStartUs = $windowEndUs - $bucketCount * $bucketUs;
         $timezone = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_cuiaba_tz();
@@ -277,7 +324,7 @@ final class SupportTelemetryInfrastructureOperations02
                 "tooltip" => $start->format("d/m H:i") . " → " . $end->format("d/m H:i"),
                 "value" => 0,
                 "observed" => true,
-                "period" => $index < 15 ? "previous" : "current",
+                "period" => $index < $previousBucketCount ? "previous" : "current",
             ];
         }
         foreach ($events as $event) {

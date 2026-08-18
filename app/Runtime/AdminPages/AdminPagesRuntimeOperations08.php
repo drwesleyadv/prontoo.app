@@ -224,7 +224,7 @@ final class AdminPagesRuntimeOperations08
             "</section>";
         $paymentReviews = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations06::admin_subscription_payment_reviews_html();
         $search = mb_trim((string) ($_GET["q"] ?? ""));
-        $view = (string) ($_GET["view"] ?? "all");
+        $view = (string) ($_GET["view"] ?? "active");
         $rows = \Prontoo\Runtime\Operational\OperationalComposition::administration()->result('operational.admin_pages.08.page_admin_clinics.10', [], [])->fetchAll();
         $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
         $peopleCounts = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations07::admin_clinic_people_counts_by_cpf($ids);

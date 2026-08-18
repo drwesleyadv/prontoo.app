@@ -190,9 +190,9 @@ final class AdminPagesRuntimeOperations02
         return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_20d();
     }
 
-    public static function admin_global_volume_series_30d(string $metric): array
+    public static function admin_global_volume_series_20d(string $metric): array
     {
-        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d($metric);
+        return \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_20d($metric);
     }
 
     public static function admin_maestro_health_time_label(?string $value): string
@@ -297,16 +297,16 @@ final class AdminPagesRuntimeOperations02
     {
         $route24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("route");
         $database24h = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_metric_series_24h("database");
-        $pageLoads30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_volume_series_30d("page_load");
-        $databaseQueries30d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_volume_series_30d("database_queries");
-        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="velocity-24h-volume-30d">' .
+        $pageLoads20d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_volume_series_20d("page_load");
+        $databaseRecords20d = \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations02::admin_global_sequence_series_20d();
+        return '<div class="global-performance-charts global-area-charts" data-admin-global-charts data-refresh-ms="60000" data-chart-window="velocity-24h-volume-20d">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
                 "Velocidade", $route24h, $database24h, "speed",
                 ["primary_label" => "Carregamento de Páginas", "secondary_label" => "Consulta", "value_type" => "ms", "visual_mode" => "telemetry", "recent_points" => 5, "middle_points" => 60, "recent_title" => "Velocidade média do carregamento nos últimos 5 minutos", "middle_title" => "Velocidade média do carregamento na última hora", "overall_title" => "Velocidade média do carregamento nas últimas 24 horas", "summary_lead" => "cada ponto representa um minuto completo; verde escuro é a velocidade média do Carregamento de Páginas e verde claro é a velocidade média da Consulta."],
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::admin_metric_dual_area_chart(
-                "Volume", $pageLoads30d, $databaseQueries30d, "monitoring",
-                ["primary_label" => "Carregamento de Páginas", "secondary_label" => "Consulta", "value_type" => "count", "visual_mode" => "telemetry", "count_summary_mode" => "sum", "recent_points" => 1, "middle_points" => 7, "recent_title" => "Carregamentos nas últimas 24 horas", "middle_title" => "Carregamentos nos últimos 7 dias", "overall_title" => "Carregamentos nos últimos 30 dias", "summary_lead" => "cada ponto representa um intervalo completo de 24 horas; verde escuro é o volume de Carregamento de Páginas e verde claro é o volume de Consulta."],
+                "Volume", $pageLoads20d, $databaseRecords20d, "monitoring",
+                ["primary_label" => "Carregamento de Páginas", "secondary_label" => "Consulta", "value_type" => "count", "visual_mode" => "telemetry", "count_summary_mode" => "sum", "recent_points" => 1, "middle_points" => 7, "recent_title" => "Carregamentos nas últimas 24 horas", "middle_title" => "Carregamentos nos últimos 7 dias", "overall_title" => "Carregamentos nos últimos 20 dias", "summary_lead" => "cada ponto representa um intervalo completo de 24 horas; verde escuro é o volume de Carregamento de Páginas e verde claro é Consulta, alimentada pela mesma variação líquida de Registros usada no card Registros."],
             ) .
             "</div>";
     }
