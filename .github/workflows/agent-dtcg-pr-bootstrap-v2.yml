@@ -26,6 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           npm install --save-dev --save-exact style-dictionary@5.5.0
+          sed -i "s/token(color(hex), name, 'material', selector, tokenOrder, null, true)/token(color(hex), name, 'material', selector, tokenOrder, null, false)/" tools/agent-dtcg-bootstrap.mjs
           node tools/agent-dtcg-bootstrap.mjs
       - name: Preserve observable UX
         shell: bash
