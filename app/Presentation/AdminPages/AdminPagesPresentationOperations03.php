@@ -636,11 +636,11 @@ final class AdminPagesPresentationOperations03
         callable $href,
     ): string {
         $search = mb_trim($search);
-        $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
+        $view = preg_replace("/[^a-z_]/", "", $view) ?: "active";
         if (!in_array($view, ["all", "active", "expiring", "readonly"], true)) {
-            $view = "all";
+            $view = "active";
         }
-        $clear = $search !== "" || $view !== "all"
+        $clear = $search !== "" || $view !== "active"
             ? '<a class="ghost small" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href("admin_clinics")) .
                 '">' .
@@ -667,9 +667,9 @@ final class AdminPagesPresentationOperations03
     ): string {
         $search = mb_trim($search);
         $searchMode = $search !== "";
-        $view = preg_replace("/[^a-z_]/", "", $view) ?: "all";
+        $view = preg_replace("/[^a-z_]/", "", $view) ?: "active";
         if (!in_array($view, ["all", "active", "expiring", "readonly"], true)) {
-            $view = "all";
+            $view = "active";
         }
         if ($searchMode) {
             $view = "all";
@@ -687,7 +687,7 @@ final class AdminPagesPresentationOperations03
                 ($activeFilter ? "active is-active" : "") .
                 '" href="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
-                    (string) $href("admin_clinics", $filterKey === "all" ? [] : ["view" => $filterKey]),
+                    (string) $href("admin_clinics", $filterKey === "active" ? [] : ["view" => $filterKey]),
                 ) .
                 '"' .
                 ($activeFilter ? ' aria-current="page"' : "") .

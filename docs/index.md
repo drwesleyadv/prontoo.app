@@ -4,7 +4,7 @@ Esta documentação descreve exclusivamente o estado canônico atualmente suport
 
 ## Baseline canônica
 
-A única baseline mantida, suportada e publicável na árvore corrente é `1.8.18.2`. Versões anteriores não são conservadas como documentação paralela, pacote, asset versionado ou snapshot dentro da árvore de trabalho. Quando for necessário investigar evolução ou regressões, o histórico Git é a fonte de rastreabilidade.
+A única baseline mantida, suportada e publicável na árvore corrente é `1.8.18.3`. Versões anteriores não são conservadas como documentação paralela, pacote, asset versionado ou snapshot dentro da árvore de trabalho. Quando for necessário investigar evolução ou regressões, o histórico Git é a fonte de rastreabilidade.
 
 Migrações de banco, marcadores de schema e compatibilidades estritamente necessárias ao runtime ou ao processo de atualização podem registrar estados técnicos anteriores. Esses elementos são mecanismos operacionais e não constituem baselines suportadas.
 

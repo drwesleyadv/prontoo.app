@@ -28,18 +28,20 @@ foreach (["\"Velocidade\"", "\"Volume\"", "\"visual_mode\" => \"telemetry\""] as
 $assert(
     str_contains($admin2, 'admin_global_metric_series_24h("route")') &&
     str_contains($admin2, 'admin_global_metric_series_24h("database")') &&
-    str_contains($admin2, 'admin_global_volume_series_30d("page_load")') &&
-    str_contains($admin2, 'admin_global_volume_series_30d("database_queries")'),
-    'gráficos devem usar as séries canônicas de latência e volume',
+    str_contains($admin2, 'admin_global_volume_series_20d("page_load")') &&
+    str_contains($admin2, 'admin_global_sequence_series_20d()') &&
+    !str_contains($admin2, 'admin_global_volume_series_20d("database_queries")'),
+    'Volume deve usar page_load e alimentar Consulta pela mesma série database.json do card Registros',
 );
 $assert(
     str_contains($admin2, '"primary_label" => "Carregamento de Páginas"') &&
     str_contains($admin2, '"secondary_label" => "Consulta"') &&
-    !str_contains($admin2, 'admin_global_volume_series_24h') &&
+    !str_contains($admin2, 'admin_global_volume_series_30d') &&
     str_contains($admin2, '"recent_points" => 1') &&
     str_contains($admin2, '"middle_points" => 7') &&
-    str_contains($admin2, '"overall_title" => "Carregamentos nos últimos 30 dias"'),
-    'Velocidade deve usar 24 horas e Volume deve usar 30 intervalos diários',
+    str_contains($admin2, '"overall_title" => "Carregamentos nos últimos 20 dias"') &&
+    str_contains($admin2, 'velocity-24h-volume-20d'),
+    'Velocidade deve usar 24 horas e Volume deve alinhar 20 intervalos diários com Registros',
 );
 $assert(class_exists(\Prontoo\Infrastructure\Database\PdoQueryTelemetry::class), 'acumulador de latência PDO ausente');
 \Prontoo\Infrastructure\Database\PdoQueryTelemetry::reset();
@@ -217,10 +219,22 @@ $volumeEvents = [
         'database_query_instrumented' => true,
     ],
 ];
-$volumePages = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d_from_events('page_load', $volumeEvents, $chartNowUs);
-$volumeQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_30d_from_events('database_queries', $volumeEvents, $chartNowUs);
+$volumePages = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_volume_series_20d_from_events('page_load', $volumeEvents, $chartNowUs);
+$volumeRecordSamples = [];
+$volumeRecordWindowStart = intdiv($chartNowUs, 1000000) - 20 * 86400;
+for ($index = 0; $index < 20; $index++) {
+    $volumeRecordSamples[] = [
+        'captured_at_unix' => $volumeRecordWindowStart + $index * 86400 + 300,
+        'total_records' => 1000 + $index,
+        'delta_records' => $index + 1,
+    ];
+}
+$volumeQueries = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations03::telemetry_database_record_series_from_samples(
+    $volumeRecordSamples,
+    intdiv($chartNowUs, 1000000),
+);
 foreach ([$volumePages, $volumeQueries] as $dailySeries) {
-    $assert(count($dailySeries) === 30, 'Volume deve conter exatamente 30 pontos');
+    $assert(count($dailySeries) === 20, 'Volume deve conter exatamente 20 pontos');
     for ($index = 1; $index < count($dailySeries); $index++) {
         $assert(
             (int) $dailySeries[$index]['ts'] - (int) $dailySeries[$index - 1]['ts'] === 86400,
@@ -228,22 +242,22 @@ foreach ([$volumePages, $volumeQueries] as $dailySeries) {
         );
     }
     $assert(
-        ($dailySeries[27]['value'] ?? -1) == 0 &&
-        ($dailySeries[29]['value'] ?? -1) == 0 &&
-        !empty($dailySeries[27]['observed']) &&
-        !empty($dailySeries[29]['observed']),
-        'intervalos de Volume sem eventos devem permanecer como pontos explícitos em zero',
-    );
-    $assert(
         ($dailySeries[0]['period'] ?? '') === 'previous' &&
-        ($dailySeries[15]['period'] ?? '') === 'current',
-        'Volume deve preservar os dois períodos de 15 dias',
+        ($dailySeries[10]['period'] ?? '') === 'current',
+        'Volume deve preservar os dois períodos de 10 dias',
     );
 }
 $assert(
-    (int) $volumePages[28]['value'] === 2 &&
-    (int) $volumeQueries[28]['value'] === 3,
-    'totais de Carregamento de Páginas e Consulta por 24 horas divergiram',
+    ($volumePages[17]['value'] ?? -1) == 0 &&
+    ($volumePages[19]['value'] ?? -1) == 0 &&
+    !empty($volumePages[17]['observed']) &&
+    !empty($volumePages[19]['observed']),
+    'intervalos de page_load sem eventos devem permanecer como pontos explícitos em zero',
+);
+$assert(
+    (int) $volumePages[18]['value'] === 2 &&
+    (int) $volumeQueries[19]['value'] === 20,
+    'Volume deve alinhar Carregamento de Páginas e Consulta, com Consulta alimentada pelos deltas de database.json',
 );
 $footerRecordSamples = [];
 $footerWindowStart = intdiv($chartNowUs, 1000000) - 20 * 86400;
@@ -392,4 +406,4 @@ $assert(
     'rodapé deve preservar áreas sem stroke e opacidade histórica 0.5',
 );
 $assert(in_array('footer_telemetry_wave', \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_page_internal_routes(), true), 'rota decorativa não pode retroalimentar a telemetria');
-unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $footerRecordSamples, $footerWindowStart, $footerRecordSeries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);
+unset($root, $assert, $admin2, $admin3, $admin6, $admin9, $login, $uiRuntime, $presentation3, $speedGeometry, $appJs, $css, $querySnapshot, $loadAreaPos, $responseAreaPos, $fillOrderPos, $token, $label, $metricsStart, $routesStart, $metricsSource, $metricCardsPos, $metricChartsPos, $nowUs, $dayUs, $metricEvents, $metricSummary, $metricCurrent, $metricPrevious, $metricVariations, $routeEvent, $routeSummary, $routeOrder, $minuteUs, $chartNowUs, $chartEndUs, $minuteEvents, $speedPages, $speedQueries, $volumeDayUs, $volumeEvents, $volumePages, $volumeQueries, $volumeRecordSamples, $volumeRecordWindowStart, $footerRecordSamples, $footerWindowStart, $footerRecordSeries, $footerPageLoads, $footerDatabaseQueries, $mountainPath, $publicMountains, $clinicMountains, $dailySeries, $minuteSeries, $hourIndexes, $hourLabels, $index, $hourLabel, $chartSample, $chartHtml, $footerRoute);

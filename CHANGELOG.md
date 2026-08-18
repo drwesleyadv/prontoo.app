@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.8.18.2 — Filtros e ordenação dos consultórios por atividade
+## 1.8.18.3 — Filtro Ativos inicial e Volume alinhado a Registros
 
-- reordena os filtros da lista global para Todos, Ativos, Vencendo e Somente Leitura.
-- considera Vencendo os consultórios cuja assinatura termina entre hoje e os próximos 10 dias.
-- ordena todas as listas pelo login mais recente entre colaboradores ativos do consultório, do mais recente para o mais antigo.
-- mantém consultórios sem login de colaborador ao final e não altera schema ou banco de dados.
-- preserva a busca rápida e os demais controles existentes da tela de Consultórios do Desenvolvedor.
+- define Ativos como filtro inicial da lista global de Consultórios do Desenvolvedor.
+- mantém Todos como filtro explícito e faz Limpar retornar ao estado padrão Ativos.
+- faz a série Consulta do gráfico Volume usar a mesma variação líquida de database.json do card Registros.
+- alinha as duas séries de Volume em 20 intervalos consecutivos de 24 horas, sem misturar janelas temporais diferentes.
+- preserva a ordenação dos consultórios por login recente, a regra Vencendo de 10 dias e o schema atual.
