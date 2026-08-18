@@ -165,9 +165,19 @@ try {
     for (const [key, value] of Object.entries({ navColor: result.navColor, pageheadIconColor: result.pageheadIconColor, statIconColor: result.statIconColor })) {
       if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent (${value} != ${expected})`);
     }
-    const semantics = [result.okBg, result.okColor, result.dangerBg].map(normalize);
+    const semantics = {
+      okBg: normalize(result.okBg),
+      okColor: normalize(result.okColor),
+      dangerBg: normalize(result.dangerBg)
+    };
     if (semanticBaseline === null) semanticBaseline = semantics;
-    else if (JSON.stringify(semantics) !== JSON.stringify(semanticBaseline)) throw new Error(`${theme.name}: semantic status colors changed with clinic accent`);
+    else {
+      for (const [key, value] of Object.entries(semantics)) {
+        if (value !== semanticBaseline[key]) {
+          throw new Error(`${theme.name}: semantic ${key} changed with clinic accent (${semanticBaseline[key]} -> ${value})`);
+        }
+      }
+    }
     await context.close();
   }
 } finally {
