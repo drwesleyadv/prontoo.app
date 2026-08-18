@@ -103,7 +103,7 @@ const themes = [
   { name: 'wine', accent: '#8a2432', strong: '#6f1d2a', soft: '#fff0f2' },
   { name: 'violet', accent: '#6d3bc3', strong: '#53309a', soft: '#f4f1ff' }
 ];
-const markup = `<style>${css}</style><body><main><header class="pagehead has-operations"><nav class="pagehead-controls pagehead-controls--navigation"><a id="nav" class="pagehead-control pagehead-control--nav" aria-current="page"><span>Ativo</span></a></nav><div class="pagehead-controls--actions"><button id="primary" class="pagehead-control pagehead-control--primary">Salvar</button><button id="danger" class="pagehead-control pagehead-control--danger">Excluir</button></div></header><article id="stat" class="stat-card"><span class="material-symbols-rounded">monitoring</span><div><b>1</b><span>Indicador</span></div></article><div id="ok" class="pill ok">Concluído</div><input id="input" value="x"></main></body>`;
+const markup = `<style>${css}</style><body><main><header class="pagehead has-operations"><span id="pageheadIcon" class="pagehead-icon"><span class="material-symbols-rounded">settings</span></span><nav class="pagehead-controls pagehead-controls--navigation"><a id="nav" class="pagehead-control pagehead-control--nav" aria-current="page"><span>Ativo</span></a></nav><div class="pagehead-controls--actions"><button id="primary" class="pagehead-control pagehead-control--primary">Salvar</button><button id="danger" class="pagehead-control pagehead-control--danger">Excluir</button></div></header><article id="stat" class="stat-card"><span class="material-symbols-rounded">monitoring</span><div><b>1</b><span>Indicador</span></div></article><div id="ok" class="pill ok">Concluído</div><input id="input" value="x"></main></body>`;
 const normalize = value => value.replace(/\s+/g, '').toLowerCase();
 const browser = await chromium.launch({ headless: true });
 let semanticBaseline = null;
@@ -124,17 +124,18 @@ try {
       body.style.setProperty('--pt-theme-identity-on-accent', '#ffffff');
     }, theme);
     const result = await page.evaluate(() => {
-      const primary = getComputedStyle(document.getElementById('primary'));
       const nav = getComputedStyle(document.getElementById('nav'));
-      const icon = getComputedStyle(document.querySelector('#stat > .material-symbols-rounded'));
+      const pageheadIcon = getComputedStyle(document.getElementById('pageheadIcon'));
+      const statIcon = getComputedStyle(document.querySelector('#stat > .material-symbols-rounded'));
       const ok = getComputedStyle(document.getElementById('ok'));
       const danger = getComputedStyle(document.getElementById('danger'));
       const body = getComputedStyle(document.body);
       return {
         accent: body.getPropertyValue('--pt-sys-color-accent').trim(),
-        primaryBg: primary.backgroundColor,
+        pageheadAlias: body.getPropertyValue('--pt-pagehead-control-accent').trim(),
         navColor: nav.color,
-        iconColor: icon.color,
+        pageheadIconColor: pageheadIcon.color,
+        statIconColor: statIcon.color,
         okBg: ok.backgroundColor,
         okColor: ok.color,
         dangerBg: danger.backgroundColor
@@ -148,10 +149,10 @@ try {
       probe.remove();
       return value;
     }, theme.accent);
-    if (normalize(result.accent) !== normalize(theme.accent)) {
-      throw new Error(`${theme.name}:accent does not follow accent (${result.accent} != ${theme.accent})`);
+    for (const [key, value] of Object.entries({ accent: result.accent, pageheadAlias: result.pageheadAlias })) {
+      if (normalize(value) !== normalize(theme.accent)) throw new Error(`${theme.name}:${key} does not follow accent (${value} != ${theme.accent})`);
     }
-    for (const [key, value] of Object.entries({ primaryBg: result.primaryBg, navColor: result.navColor, iconColor: result.iconColor })) {
+    for (const [key, value] of Object.entries({ navColor: result.navColor, pageheadIconColor: result.pageheadIconColor, statIconColor: result.statIconColor })) {
       if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow accent (${value} != ${expected})`);
     }
     const semantics = [result.okBg, result.okColor, result.dangerBg].map(normalize);
