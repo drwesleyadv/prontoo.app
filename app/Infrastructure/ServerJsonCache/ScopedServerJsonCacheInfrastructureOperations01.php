@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Prontoo\Infrastructure\ServerJsonCache;
 
-use \RuntimeException;
 use \Throwable;
 
 final class ScopedServerJsonCacheInfrastructureOperations01
@@ -86,8 +85,7 @@ final class ScopedServerJsonCacheInfrastructureOperations01
             $pending = [];
         }
         foreach ($dependencies as $dependency) {
-            $token = self::server_json_cache_dependency_token($dependency);
-            $pending[$token] = $dependency;
+            $pending[self::server_json_cache_dependency_token($dependency)] = $dependency;
         }
         $GLOBALS['PRONTOO_SCOPED_CACHE_INVALIDATE_AFTER_WRITE'] = $pending;
         self::server_json_cache_register_flush_callbacks();
@@ -115,12 +113,13 @@ final class ScopedServerJsonCacheInfrastructureOperations01
                 if ($domain === '') {
                     continue;
                 }
+                $storageCategory = self::server_json_cache_storage_category($domain);
                 if ($clinicId <= 0) {
-                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$domain]);
+                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$storageCategory]);
                     continue;
                 }
                 if (!self::server_json_cache_bump_scope($clinicId, $domain, $segment)) {
-                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$domain]);
+                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$storageCategory]);
                 }
             }
         } finally {
@@ -135,12 +134,13 @@ final class ScopedServerJsonCacheInfrastructureOperations01
             if ($domain === '') {
                 continue;
             }
+            $storageCategory = self::server_json_cache_storage_category($domain);
             if ($clinicId > 0) {
                 if (!self::server_json_cache_bump_scope($clinicId, $domain, '')) {
-                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$domain]);
+                    ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$storageCategory]);
                 }
             } else {
-                ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$domain]);
+                ServerJsonCacheInfrastructureOperations01::server_json_cache_clear_categories([$storageCategory]);
             }
         }
     }
@@ -468,6 +468,15 @@ final class ScopedServerJsonCacheInfrastructureOperations01
     private static function server_json_cache_normalize_domain(string $domain): string
     {
         return preg_replace('/[^a-z0-9_\-]/i', '_', strtolower(trim($domain))) ?: '';
+    }
+
+    private static function server_json_cache_storage_category(string $domain): string
+    {
+        return match ($domain) {
+            'agenda_day' => 'agenda',
+            'financial_month' => 'financial',
+            default => $domain,
+        };
     }
 
     private static function server_json_cache_dependency_token(array $dependency): string
