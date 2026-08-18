@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.8.17.13 — Registros por variação real e sobreposição no rodapé
+## 1.8.18.1 — Cache JSON versionado por consultório e domínio
 
-- define Registros como a soma dos deltas do total exato de linhas capturado pelo Maestro, excluindo o saldo inicial.
-- mantém 20 dias móveis em database.json e compara os 10 dias recentes aos 10 imediatamente anteriores, preservando deltas negativos.
-- alinha o rodapé em 20 intervalos equivalentes, com Carregamento de Páginas e Consulta alimentada pela variação líquida de registros.
-- usa a mesma cor nas duas áreas do rodapé, com 50% de opacidade em cada uma para evidenciar sobreposição e cruzamentos.
-- mantém Volume com sua métrica própria de consultas SQL e não altera schema nem banco de dados.
+- isola chaves de cache por consultório e geração de domínio sem introduzir Redis ou outro serviço externo.
+- adiciona subgerações explícitas para read models naturalmente segmentados por dia de Agenda e mês financeiro.
+- efetiva invalidações pendentes antes do envio dos headers para preservar read-your-writes no redirect seguinte.
+- eleva TTLs de famílias versionadas e mantém falha de manifesto como cache miss seguro por geração física legada.
+- distribui arquivos de cache em 256 shards de hash e disponibiliza garbage collection assíncrona sem alterar schema ou banco.
