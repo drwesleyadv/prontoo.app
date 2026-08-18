@@ -20,5 +20,7 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
+      - name: Verify DTCG design tokens and clinic themes
+        run: node tools/design-tokens-contract.mjs
       - name: Verify computed-style UX baseline
         run: node tools/presentation-ux-contract.mjs --check
