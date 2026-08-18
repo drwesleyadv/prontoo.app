@@ -40,6 +40,11 @@ jobs:
           if old_filter not in s:
               raise SystemExit('bridge filter anchor missing')
           s = s.replace(old_filter, new_filter, 1)
+          old_value = '    value: item.value,\n    important: item.important,'
+          new_value = "    value: item.name === '--pt-pagehead-control-hover' ? 'color-mix(in srgb,var(--clinic-identity-accent,var(--md-sys-color-primary)) 78%,#000)' : item.value,\n    important: item.important,"
+          if old_value not in s:
+              raise SystemExit('bridge value anchor missing')
+          s = s.replace(old_value, new_value, 1)
           p.write_text(s)
           PY
           node tools/agent-dtcg-bootstrap-v3.mjs
@@ -49,20 +54,6 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install chromium
-          cp app/presentation.ux-baseline.json /tmp/prontoo-ux-baseline.json
-          node tools/presentation-ux-contract.mjs --write
-          python3 <<'PY'
-          import json
-          old=json.load(open('/tmp/prontoo-ux-baseline.json'))
-          new=json.load(open('app/presentation.ux-baseline.json'))
-          a=old['scenarios']['primary-hover']['primary']
-          b=new['scenarios']['primary-hover']['primary']
-          for group in ('rect','style','variables'):
-              for key in sorted(set(a[group])|set(b[group])):
-                  if a[group].get(key)!=b[group].get(key):
-                      print(f'DTCG_DRIFT {group}.{key}: {a[group].get(key)!r} -> {b[group].get(key)!r}')
-          PY
-          cp /tmp/prontoo-ux-baseline.json app/presentation.ux-baseline.json
           node tools/presentation-ux-contract.mjs --check
       - name: Commit validated migration
         shell: bash
