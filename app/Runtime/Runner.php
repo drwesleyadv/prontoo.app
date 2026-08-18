@@ -10,6 +10,7 @@ require_once __DIR__ . '/Patients/PatientComposition.php';
 require_once __DIR__ . '/Patients/PatientViewComposition.php';
 require_once __DIR__ . '/Financial/FinancialComposition.php';
 
+use Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01;
 use Prontoo\Presentation\Http\JsonResponder;
 use Prontoo\Runtime\Boot\RuntimeBootCoordinator;
 use Prontoo\Runtime\Modules\RuntimeModuleComposition;
@@ -75,12 +76,12 @@ final class Runner
                 LayeredKernel::enforceAction($route, $method, $_POST, $context);
             }
             if ($isPost) {
-                if (is_callable([\Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::class, 'server_json_cache_schedule_invalidation_for_write'])) {
-                    \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_schedule_invalidation_for_write(
-                        $route,
-                        (string) ($_POST['act'] ?? ''),
-                    );
-                }
+                ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_schedule_invalidation_for_write(
+                    $route,
+                    (string) ($_POST['act'] ?? ''),
+                    $_POST,
+                    (int) ($context['clinic_id'] ?? ($_SESSION['clinic_id'] ?? 0)),
+                );
                 if ((string) ($_POST['act'] ?? '') === 'onboarding_tip_dismiss') {
                     \Prontoo\Runtime\AuthOnboarding\AuthOnboardingRuntimeOperations01::onboarding_tip_dismiss();
                 }

@@ -106,8 +106,8 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.17.13";
-const PRONTOO_ASSET_REV_FALLBACK = "1.8.17.13";
+const PRONTOO_VERSION_FALLBACK = "1.8.18.1";
+const PRONTOO_ASSET_REV_FALLBACK = "1.8.18.1";
 function prontoo_release_metadata(): array
 {
 
@@ -241,7 +241,7 @@ const PRONTOO_HOT_LIST_LIMIT = 50;
 const PRONTOO_ADMIN_LIST_LIMIT = 100;
 const PRONTOO_DASHBOARD_COUNTER_TTL = 45;
 const PRONTOO_SERVER_JSON_CACHE = true;
-const PRONTOO_SERVER_JSON_CACHE_POLICY = "server-storage-only-domain-invalidated-short-ttl";
+const PRONTOO_SERVER_JSON_CACHE_POLICY = "filesystem-scoped-generation-read-your-writes-v2";
 const PRONTOO_PERFORMANCE_CHARTS_POLICY = "canonical-route-telemetry-velocity-and-ledger-write-series-20d";
 const PRONTOO_CMD_BAR_SHAPE_POLICY = "square-container-rounded-actions";
 if (PHP_SAPI !== "cli") {
