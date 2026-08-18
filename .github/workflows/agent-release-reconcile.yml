@@ -40,6 +40,7 @@ jobs:
           PY
           rm -f .github/workflows/agent-release-reconcile.yml
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php -l app/Infrastructure/ServerJsonCache/ScopedServerJsonCacheInfrastructureOperations01.php
           php -l app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php
