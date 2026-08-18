@@ -81,15 +81,15 @@
     "source_model": "semantic_owner_files_with_ordered_slices",
     "physical_source_file_count": 23,
     "physical_source_file_count_max": 23,
-    "sequence_segment_count": 1071,
+    "sequence_segment_count": 1074,
     "sources": [
         {
             "path": "tokens/clinic.css",
             "layer": "tokens",
             "responsibility": "clinic",
             "concern": "clinic",
-            "sha256": "586a93b994ce8fba7679df39b05c4c0b9cf906f5ad6a85ee25468631cb8c92cb",
-            "bytes": 9539,
+            "sha256": "58ba2bf0908ca4f42b3c87d0f2d882ca5bacb31acfe8565d1be47bd5b56bedf9",
+            "bytes": 13417,
             "important_count": 16,
             "route_scope_count": 0
         },
@@ -98,8 +98,8 @@
             "layer": "tokens",
             "responsibility": "material",
             "concern": "material",
-            "sha256": "f2ee98e651b1333c861ee9998a4193cdc2788cd64eb54b6d3729ad2fa29d7c34",
-            "bytes": 5243,
+            "sha256": "4cf7a30db750db7f7b04b66a6947788d66e13d5ef8377eddbd1d47fef1858d97",
+            "bytes": 8031,
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -108,8 +108,8 @@
             "layer": "tokens",
             "responsibility": "semantic",
             "concern": "semantic",
-            "sha256": "684b0c75f1b877272f65fd0462092003cf3053dc90e82b24d531984f98bcfaf3",
-            "bytes": 2035,
+            "sha256": "2c05c96a10e08ce501a5ed4c8aeb8ad8f66c3a7df1d27aec788aa74b8af8ec1e",
+            "bytes": 2037,
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -138,7 +138,7 @@
             "layer": "components",
             "responsibility": "components",
             "concern": "components",
-            "sha256": "c03abe1a60be2842c8a5e60d839fdde78c20ad5eb4a63110d12dcb3c35fbe9a6",
+            "sha256": "f027d607918b2639d079ccc583e3e058e17ea96e0e4cb520590af331e93b4817",
             "bytes": 339614,
             "important_count": 1637,
             "route_scope_count": 0
@@ -1067,7 +1067,7 @@
             "source": "components/components.css",
             "offset": 21152,
             "bytes": 4843,
-            "sha256": "a51ecc7ccd72a50aa72fdf20f1415ba887287a925e400113706a460a3271876f",
+            "sha256": "e1da59f9f95999b26c548efbf4da5e86cb6261dadadf045650a9979637b0f6a6",
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9953,11 +9953,38 @@
             "sha256": "9741b7cd3a44cc006d60ea1ef62430448f0ddf9622d18de175f2129b4d62d68e",
             "important_count": 0,
             "route_scope_count": 0
+        },
+        {
+            "source": "tokens/clinic.css",
+            "offset": 9539,
+            "bytes": 3878,
+            "sha256": "17bccb874342fdad6903b6235a64caef40109b4f26426732db7e98a141a18042",
+            "important_count": 0,
+            "route_scope_count": 0,
+            "order": 1072
+        },
+        {
+            "source": "tokens/material.css",
+            "offset": 5243,
+            "bytes": 2788,
+            "sha256": "69f205dc9e47f8c2729a21c39e97f9f6bd904c07b095b14c45a276fff643364e",
+            "important_count": 0,
+            "route_scope_count": 0,
+            "order": 1073
+        },
+        {
+            "source": "tokens/semantic.css",
+            "offset": 2035,
+            "bytes": 2,
+            "sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+            "important_count": 0,
+            "route_scope_count": 0,
+            "order": 1074
         }
     ],
     "artifact_contract": {
-        "sha256": "5cae65738691a4bb130d5ccdf9f0fae00e66d9f615abb5da4953c3d07ce78ea6",
-        "bytes": 802828,
+        "sha256": "7b500e1ee65bfe0167cc62fdad5a81923549a531fab45fdf6e6ed9c86a0386a3",
+        "bytes": 809496,
         "lines": 15104,
         "deterministic_source_required": true
     },
@@ -10009,5 +10036,13 @@
         "remaining_important_count": 4873,
         "asserted_surfaces": 396,
         "fixture_wide_removed": 16
-    }
+    },
+    "token_source_model": "dtcg-2025.10-style-dictionary-v5",
+    "token_source_root": "design/tokens",
+    "token_compiler": "tools/design-tokens-build.mjs",
+    "token_generated_sources": [
+        "tokens/clinic.css",
+        "tokens/material.css",
+        "tokens/semantic.css"
+    ]
 }

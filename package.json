@@ -3,6 +3,12 @@
     "version": "1.0.0",
     "private": true,
     "devDependencies": {
-        "playwright": "1.59.1"
+        "playwright": "1.59.1",
+        "style-dictionary": "5.5.0"
+    },
+    "scripts": {
+        "tokens:build": "node tools/design-tokens-build.mjs --write",
+        "tokens:check": "node tools/design-tokens-build.mjs --check",
+        "tokens:contract": "node tools/design-tokens-contract.mjs"
     }
 }

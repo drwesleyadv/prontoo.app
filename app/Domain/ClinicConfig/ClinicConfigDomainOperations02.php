@@ -244,6 +244,11 @@ final class ClinicConfigDomainOperations02
             "," .
             $rgb[2] .
             ",.12);";
+        $css .=
+            "--pt-theme-accent:" . $base .
+            ";--pt-theme-accent-strong:" . $strong .
+            ";--pt-theme-on-accent:" . $on .
+            ";";
         return [
             "brand" => $base,
             "brand_dark" => $strong,
