@@ -1,10 +1,10 @@
 {
-    "version": "1.8.17.13",
-    "release": "1.8.17.13",
-    "generated_at_unix": 1787004874,
-    "generated_at": "2026-08-17T18:14:34-04:00",
-    "updated_at": "2026-08-17T18:14:34-04:00",
-    "build": "1.8.17.13-database-records-20d-footer-overlap",
+    "version": "1.8.18.1",
+    "release": "1.8.18.1",
+    "generated_at_unix": 1787058920,
+    "generated_at": "2026-08-18T09:15:20-04:00",
+    "updated_at": "2026-08-18T09:15:20-04:00",
+    "build": "1.8.18.1-scoped-json-cache-generations",
     "asset_version": "1.8.17.13",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
@@ -12,8 +12,8 @@
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": true,
-    "functional_equivalence_policy": "records_kpi_and_footer_use_maestro_database_deltas_20d_10x10_with_shared_half_opacity_footer_color",
+    "visual_changes": false,
+    "functional_equivalence_policy": "json_cache_scoped_generations_read_your_writes_without_schema_or_visual_change",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Registros passa a representar a variação líquida do total exato de linhas capturado pelo Maestro em database.json; o rodapé usa 20 dias equivalentes e duas áreas da mesma cor com 50% de opacidade.",
+    "notes": "Cache JSON passa a usar gerações hierárquicas por consultório e domínio, subgerações naturais de dia/mês, TTL efetivo maior com invalidação antes dos headers e sharding de arquivos no SSD.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,13 +40,15 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.17.13-database-records-20d-footer-overlap",
-    "deployment_sync_requested_at": "2026-08-17T18:14:34-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.18.1-scoped-json-cache-generations",
+    "deployment_sync_requested_at": "2026-08-18T09:15:20-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
         "pdfs": "ssd/pdfs",
         "images": "ssd/img",
+        "server_json_cache": "ssd/cache/server-json",
+        "server_json_cache_scopes": "ssd/cache/server-json/scopes/clinic-{id}/versions.json",
         "telemetry": "ssd/telemetry/views.json",
         "telemetry_sources": {
             "database": "ssd/telemetry/database.json",
@@ -60,7 +62,7 @@
     "rewrite_scope": "superseded_release_references_and_compatibility_only",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
-    "release_date": "2026-08-17",
+    "release_date": "2026-08-18",
     "required_php_family": "8.4",
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
@@ -84,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Registros por variação real e sobreposição no rodapé",
+        "title": "Cache JSON versionado por consultório e domínio",
         "items": [
-            "define Registros como a soma dos deltas do total exato de linhas capturado pelo Maestro, excluindo o saldo inicial",
-            "mantém 20 dias móveis em database.json e compara os 10 dias recentes aos 10 imediatamente anteriores, preservando deltas negativos",
-            "alinha o rodapé em 20 intervalos equivalentes, com Carregamento de Páginas e Consulta alimentada pela variação líquida de registros",
-            "usa a mesma cor nas duas áreas do rodapé, com 50% de opacidade em cada uma para evidenciar sobreposição e cruzamentos",
-            "mantém Volume com sua métrica própria de consultas SQL e não altera schema nem banco de dados"
+            "isola chaves de cache por consultório e geração de domínio sem introduzir Redis ou outro serviço externo",
+            "adiciona subgerações explícitas para read models naturalmente segmentados por dia de Agenda e mês financeiro",
+            "efetiva invalidações pendentes antes do envio dos headers para preservar read-your-writes no redirect seguinte",
+            "eleva TTLs de famílias versionadas e mantém falha de manifesto como cache miss seguro por geração física legada",
+            "distribui arquivos de cache em 256 shards de hash e disponibiliza garbage collection assíncrona sem alterar schema ou banco"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -100,6 +102,7 @@
     "architecture_maintenance_policy": "no_new_architecture_cycle_without_failed_invariant_or_material_product_risk_refactor_on_touch",
     "runtime_refactor_on_touch_check": "tools/runtime-refactor-on-touch-check",
     "logout_policy": "logout_global_session_revocation_v1",
+    "server_json_cache_policy": "filesystem_scoped_generation_read_your_writes_v2",
     "database_record_telemetry_policy": "maestro_exact_total_snapshot_json_20d_delta_current_minus_previous_cuiaba_rolling_20d_10x10_initial_balance_excluded",
     "database_record_telemetry_path": "ssd/telemetry/database.json",
     "presentation_visual_policy": "presentation-visual-contract-v1",
