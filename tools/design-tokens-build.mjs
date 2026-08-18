@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,7 +11,6 @@ if (!['--check', '--write'].includes(mode)) {
   process.stderr.write('design-tokens-build: use --check or --write\n');
   process.exit(2);
 }
-
 const sourceGlob = path.join(root, 'design/tokens/**/*.tokens.json');
 const bridgePath = path.join(root, 'design/tokens/css-bridge.json');
 const targets = {
@@ -23,28 +23,35 @@ if (!fs.existsSync(bridgePath)) {
   process.exit(1);
 }
 const bridge = JSON.parse(fs.readFileSync(bridgePath, 'utf8'));
-if (!bridge || bridge.schema !== 'prontoo-design-token-css-bridge-v1' || !Array.isArray(bridge.entries) || !Array.isArray(bridge.rules || [])) {
+if (!bridge || bridge.schema !== 'prontoo-design-token-css-bridge-v2' || !bridge.legacy || !Array.isArray(bridge.entries)) {
   process.stderr.write('design-tokens-build: invalid css bridge\n');
   process.exit(1);
 }
-
 const vendorMeta = token => token?.original?.$extensions?.['com.prontoo'] ?? token?.$extensions?.['com.prontoo'] ?? {};
 const originalValue = token => token?.original?.$value ?? token?.$value ?? token?.original?.value ?? token?.value;
 const transformedValue = token => token?.value ?? token?.$value;
+const tokenPath = token => Array.isArray(token.path) ? token.path.join('.') : String(token.name || '');
 const cssName = token => {
-  const meta = vendorMeta(token);
-  const value = String(meta.cssName || '').trim();
-  if (!/^--[a-z0-9-]+$/i.test(value)) throw new Error(`invalid cssName for ${token.path?.join('.') || token.name}`);
+  const value = String(vendorMeta(token).cssName || '').trim();
+  if (!/^--[a-z0-9-]+$/i.test(value)) throw new Error(`invalid cssName for ${tokenPath(token)}`);
   return value;
 };
 const cssLiteral = value => {
   if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (value && typeof value === 'object' && typeof value.hex === 'string') return String(value.hex);
   throw new Error(`unsupported transformed token value ${JSON.stringify(value)}`);
 };
-const tokenPath = token => Array.isArray(token.path) ? token.path.join('.') : String(token.name || '');
+const legacyCss = target => {
+  const record = bridge.legacy[target];
+  if (!record || typeof record.base64 !== 'string' || typeof record.sha256 !== 'string') throw new Error(`legacy payload missing ${target}`);
+  const css = Buffer.from(record.base64, 'base64').toString('utf8');
+  const hash = crypto.createHash('sha256').update(css).digest('hex');
+  if (hash !== record.sha256) throw new Error(`legacy payload hash mismatch ${target}`);
+  return css;
+};
 
 StyleDictionary.registerFormat({
-  name: 'prontoo/scoped-css-variables',
+  name: 'prontoo/dtcg-with-legacy-abi',
   format: ({ dictionary, options }) => {
     const target = String(options.target || '');
     if (!Object.hasOwn(targets, target)) throw new Error(`unknown token target ${target}`);
@@ -54,14 +61,12 @@ StyleDictionary.registerFormat({
     for (const token of all) {
       const meta = vendorMeta(token);
       if (String(meta.target || '') !== target) continue;
-      const selector = String(meta.selector || ':root').trim();
       const raw = originalValue(token);
       let value = String(meta.cssValue || '').trim();
       if (!value) {
         if (typeof raw === 'string' && /^\{[^{}]+\}$/.test(raw.trim())) {
-          const ref = raw.trim().slice(1, -1);
-          const refName = names.get(ref);
-          if (!refName) throw new Error(`unknown token reference ${ref}`);
+          const refName = names.get(raw.trim().slice(1, -1));
+          if (!refName) throw new Error(`unknown token reference ${raw}`);
           value = `var(${refName})`;
         } else {
           value = cssLiteral(transformedValue(token));
@@ -73,7 +78,7 @@ StyleDictionary.registerFormat({
         return `var(${refName})`;
       });
       declarations.push({
-        selector,
+        selector: String(meta.selector || ':root'),
         name: cssName(token),
         value,
         important: meta.important === true,
@@ -83,7 +88,7 @@ StyleDictionary.registerFormat({
     for (const entry of bridge.entries) {
       if (String(entry.target || '') !== target) continue;
       declarations.push({
-        selector: String(entry.selector || ':root'),
+        selector: String(entry.selector || 'body'),
         name: String(entry.name || ''),
         value: String(entry.value || ''),
         important: entry.important === true,
@@ -94,7 +99,7 @@ StyleDictionary.registerFormat({
     const selectorOrder = [];
     const grouped = new Map();
     for (const declaration of declarations) {
-      if (!/^--[a-z0-9-]+$/i.test(declaration.name)) throw new Error(`invalid bridge token ${declaration.name}`);
+      if (!/^--[a-z0-9-]+$/i.test(declaration.name)) throw new Error(`invalid generated token ${declaration.name}`);
       if (!grouped.has(declaration.selector)) {
         grouped.set(declaration.selector, []);
         selectorOrder.push(declaration.selector);
@@ -104,17 +109,10 @@ StyleDictionary.registerFormat({
     const blocks = selectorOrder.map(selector => {
       const lines = grouped.get(selector).map(item => `  ${item.name}:${item.value}${item.important ? '!important' : ''};`).join('\n');
       return `${selector}{\n${lines}\n}`;
-    });
-    const rawRules = (bridge.rules || [])
-      .filter(rule => String(rule.target || '') === target)
-      .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-    for (const rule of rawRules) {
-      const selector = String(rule.selector || '').trim();
-      const declarationsText = String(rule.declarations || '').trim();
-      if (!selector || !declarationsText || /--[a-z0-9-]+\s*:/i.test(declarationsText)) throw new Error(`invalid non-token bridge rule for ${target}`);
-      blocks.push(`${selector}{${declarationsText}}`);
-    }
-    return blocks.join('\n\n') + '\n';
+    }).join('\n\n');
+    const legacy = legacyCss(target);
+    const separator = legacy.endsWith('\n') ? '\n' : '\n\n';
+    return legacy + separator + blocks + '\n';
   }
 });
 
@@ -129,7 +127,7 @@ try {
         buildPath: `${tempRoot}/`,
         files: Object.entries(targets).map(([target, destination]) => ({
           destination: path.basename(destination),
-          format: 'prontoo/scoped-css-variables',
+          format: 'prontoo/dtcg-with-legacy-abi',
           options: { target, showFileHeader: false }
         }))
       }
@@ -139,8 +137,7 @@ try {
   await sd.buildAllPlatforms();
   let failures = 0;
   for (const [target, destination] of Object.entries(targets)) {
-    const generatedPath = path.join(tempRoot, path.basename(destination));
-    const generated = fs.readFileSync(generatedPath, 'utf8');
+    const generated = fs.readFileSync(path.join(tempRoot, path.basename(destination)), 'utf8');
     const finalPath = path.join(root, destination);
     if (mode === '--write') {
       fs.mkdirSync(path.dirname(finalPath), { recursive: true });
@@ -154,7 +151,7 @@ try {
     }
   }
   if (failures > 0) process.exit(1);
-  process.stdout.write(`design-tokens-build: ${mode === '--write' ? 'written' : 'deterministic'} dtcg=2025.10 targets=${Object.keys(targets).length}\n`);
+  process.stdout.write(`design-tokens-build: ${mode === '--write' ? 'written' : 'deterministic'} dtcg=2025.10 legacy-abi=generated targets=${Object.keys(targets).length}\n`);
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
