@@ -1,5 +1,5 @@
 {
-    "version": "1.8.18.6",
+    "version": "1.8.18.7",
     "policy": "presentation-pagehead-control-canonical-v3",
     "architecture_scope": "presentation_ui_adapter_contract",
     "primitive": {
@@ -58,7 +58,7 @@
     },
     "delivery": {
         "artifact": "public/assets/presentation.css",
-        "current_sha256": "3f0b10fcab1189349fc03f27e06fdb0d855d27dea6891b40f780cecd9cb6b5ff",
+        "current_sha256": "83e3cd43b6cc608d02390c770de7184380d4c378eedf4a3dd8c7d5feb3d22d9c",
         "current_bytes": 809075,
         "deterministic_source": true,
         "observable_ux_contract": "app/presentation.ux-baseline.json"

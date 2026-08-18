@@ -143,10 +143,10 @@ const telemetryCards = count => Array.from({ length: count }, (_, index) => `<ar
 const telemetryFixtures = [
   {
     surface: 'developer metrics',
-    markup: `<body class="scope-global"><main id="conteudo"><section id="telemetry-layout-target" class="three admin-performance-stats admin-metrics-kpis">${telemetryCards(3)}</section></main></body>`,
+    markup: `<body class="scope-global"><main id="conteudo"><section id="telemetry-layout-target" class="wide global-telemetry-grid admin-performance-stats admin-metrics-kpis">${telemetryCards(4)}</section></main></body>`,
     expectations: [
-      { width: 1280, columns: 3, rows: 1 },
-      { width: 390, columns: 1, rows: 3 }
+      { width: 1280, columns: 4, rows: 1 },
+      { width: 390, columns: 2, rows: 2 }
     ]
   },
   {
@@ -184,6 +184,6 @@ try {
 } finally {
   await telemetryBrowser.close();
 }
-process.stdout.write('presentation-ux-contract: developer metrics 1280=3x1 390=1x3\n');
+process.stdout.write('presentation-ux-contract: developer metrics 1280=4x1 390=2x2\n');
 process.stdout.write('presentation-ux-contract: public status 1280=4x1 390=2x2\n');
 process.stdout.write(`presentation-ux-contract: ${scenarios.length} scenarios x ${targets.length} targets stable\n`);

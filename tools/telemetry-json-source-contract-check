@@ -67,7 +67,7 @@ $assert(
     !str_contains($admin6, 'admin_performance_card_html('),
     'renderers legados de telemetria não podem voltar à central do Desenvolvedor',
 );
-foreach (["Páginas", "Registros", "Landing"] as $label) {
+foreach (["Páginas", "Tempo médio", "Registros", "Landing"] as $label) {
     $assert(str_contains($presentation3, $label), 'Métricas perdeu o indicador ' . $label);
 }
 $metricsStart = strpos($presentation3, 'public static function admin_metrics_html(');
@@ -79,7 +79,7 @@ $metricCardsPos = strpos($metricsSource, 'admin-metrics-kpis');
 $metricChartsPos = strpos($metricsSource, '$telemetryCharts .');
 $assert(
     $metricCardsPos !== false && $metricChartsPos > $metricCardsPos,
-    'gráficos de Velocidade e Volume devem aparecer depois dos três cards de Métricas',
+    'gráficos de Velocidade e Volume devem aparecer depois dos quatro cards de Métricas',
 );
 $assert(
     str_contains($presentation3, 'admin_metrics_html(') &&
@@ -119,6 +119,26 @@ $assert(
     abs((float) ($metricVariations['records_pct'] ?? 999) - 80.0) < 0.000001 &&
     abs((float) ($metricVariations['landing_pct'] ?? 999) - 0.0) < 0.000001,
     'comparação 10x10 de Páginas, Registros e Landing divergente',
+);
+$averageSummary = \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations02::telemetry_developer_metrics_summary_from_events(
+    [
+        ['evento_id' => 'avg-prev-1', 'fim_unix_us' => $nowUs - 11 * $dayUs, 'rota' => 'patient', 'speed_observed' => true, 'duracao_ns' => 100000000],
+        ['evento_id' => 'avg-prev-2', 'fim_unix_us' => $nowUs - 12 * $dayUs, 'rota' => 'landing', 'speed_observed' => true, 'duracao_ns' => 300000000],
+        ['evento_id' => 'avg-current-1', 'fim_unix_us' => $nowUs - 1 * $dayUs, 'rota' => 'patient', 'speed_observed' => true, 'duracao_ns' => 200000000],
+        ['evento_id' => 'avg-current-2', 'fim_unix_us' => $nowUs - 2 * $dayUs, 'rota' => 'landing', 'speed_observed' => true, 'duracao_ns' => 400000000],
+        ['evento_id' => 'avg-current-unobserved', 'fim_unix_us' => $nowUs - 3 * $dayUs, 'rota' => 'patient', 'speed_observed' => false, 'duracao_ns' => 999000000],
+    ],
+    $nowUs,
+    ["current_total" => 0, "previous_total" => 0, "variation_pct" => 0.0],
+);
+$averageCurrent = (array) ($averageSummary['current'] ?? []);
+$averagePrevious = (array) ($averageSummary['previous'] ?? []);
+$averageVariations = (array) ($averageSummary['variations'] ?? []);
+$assert(
+    abs((float) ($averageCurrent['page_load_average_ms'] ?? -1) - 300.0) < 0.000001 &&
+    abs((float) ($averagePrevious['page_load_average_ms'] ?? -1) - 200.0) < 0.000001 &&
+    abs((float) ($averageVariations['page_load_average_ms_pct'] ?? -999) - 50.0) < 0.000001,
+    'Tempo médio deve usar apenas page loads com speed_observed na comparação 10x10',
 );
 $routeEvent = static fn(string $route, int $offsetUs, int $durationNs): array => [
     'fim_unix_us' => $nowUs - $offsetUs,
