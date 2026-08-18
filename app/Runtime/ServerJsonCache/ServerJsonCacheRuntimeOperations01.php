@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Prontoo\Runtime\ServerJsonCache;
 
+use Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01;
 use \Throwable;
 
 final class ServerJsonCacheRuntimeOperations01
@@ -32,7 +33,7 @@ final class ServerJsonCacheRuntimeOperations01
             self::server_json_cache_metric('bypass', $category);
             return null;
         }
-        $ttl = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
+        $ttl = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
             $category,
             $ttlSeconds,
         );
@@ -40,7 +41,7 @@ final class ServerJsonCacheRuntimeOperations01
             self::server_json_cache_metric('bypass', $category);
             return null;
         }
-        $file = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
+        $file = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
         $memoryFound = false;
         $memoryValue = \Prontoo\Infrastructure\ServerJsonCache\ServerJsonCacheInfrastructureOperations01::server_json_cache_memory_get($file, $memoryFound);
         if ($memoryFound) {
@@ -94,7 +95,7 @@ final class ServerJsonCacheRuntimeOperations01
         if (!self::server_json_cache_write_allowed()) {
             return $value;
         }
-        $ttl = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
+        $ttl = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
             $category,
             $ttlSeconds,
         );
@@ -120,7 +121,7 @@ final class ServerJsonCacheRuntimeOperations01
             self::server_json_cache_metric('encode_failure', $category);
             return $value;
         }
-        $file = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
+        $file = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $key);
         try {
             $suffix = bin2hex(random_bytes(4));
         } catch (Throwable $error) {
@@ -157,11 +158,11 @@ final class ServerJsonCacheRuntimeOperations01
         callable $loader,
         array $tags = [],
     ): mixed {
-        $ttl = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
+        $ttl = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_effective_ttl(
             $category,
             $ttlSeconds,
         );
-        $scopedKey = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_scoped_key(
+        $scopedKey = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_scoped_key(
             $category,
             $key,
             $tags,
@@ -173,7 +174,7 @@ final class ServerJsonCacheRuntimeOperations01
         if (!self::server_json_cache_read_allowed()) {
             return $loader();
         }
-        $file = \Prontoo\Infrastructure\ServerJsonCache\ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $scopedKey);
+        $file = ScopedServerJsonCacheInfrastructureOperations01::server_json_cache_file($category, $scopedKey);
         $lock = @fopen($file . '.lock', 'c');
         $locked = false;
         if (is_resource($lock)) {
