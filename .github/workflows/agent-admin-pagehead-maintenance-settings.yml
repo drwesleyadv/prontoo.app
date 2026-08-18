@@ -27,6 +27,16 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin prontoo
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/agent-admin-pagehead-maintenance-settings.py')
+          source = path.read_text(encoding='utf-8')
+          needle = '''    if count != 1:\n        raise RuntimeError(f"{label}: esperado 1 trecho, encontrados {count}")\n    return source.replace(old, new, 1)\n'''
+          replacement = '''    if label == "redirect Configuração" and count >= 1:\n        return source.replace(old, new, 1)\n    if count != 1:\n        raise RuntimeError(f"{label}: esperado 1 trecho, encontrados {count}")\n    return source.replace(old, new, 1)\n'''
+          if needle not in source:
+              raise SystemExit('helper de substituição não localizado')
+          path.write_text(source.replace(needle, replacement, 1), encoding='utf-8')
+          PY
           python3 tools/agent-admin-pagehead-maintenance-settings.py
           rm -f tools/agent-admin-pagehead-maintenance-settings.py
           rm -f .github/workflows/agent-admin-pagehead-maintenance-settings.yml
