@@ -1,12 +1,10 @@
 name: Agent Release Reconcile
 
 on:
-  push:
-    branches:
-      - agent/cache-json-scoped-generations
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   reconcile:
@@ -23,7 +21,7 @@ jobs:
           php-version: '8.4'
           coverage: none
           tools: none
-      - name: Reconcile canonical release files
+      - name: Generate deterministic release outputs
         shell: bash
         run: |
           set -euo pipefail
@@ -33,15 +31,5 @@ jobs:
           php -l app/Infrastructure/ServerJsonCache/ScopedServerJsonCacheInfrastructureOperations01.php
           php -l app/Runtime/ServerJsonCache/ServerJsonCacheRuntimeOperations01.php
           php -l app/Runtime/Runner.php
-      - name: Commit deterministic outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-          git commit -m "Reconcilia contratos da versão 1.8.18.1"
-          git push origin HEAD:agent/cache-json-scoped-generations
+          echo "PRONTOO_ARCHITECTURE_MANIFEST_B64=$(base64 -w0 app/architecture.manifest.json)"
+          echo "PRONTOO_UPDATE_MANIFEST_B64=$(base64 -w0 app/update.manifest.json)"
