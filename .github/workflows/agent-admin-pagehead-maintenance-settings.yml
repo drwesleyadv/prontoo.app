@@ -1,0 +1,66 @@
+name: Agent Admin PageHead Maintenance Settings
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: agent/admin-pagehead-maintenance-settings
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply product change and reconcile release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin prontoo
+          python3 tools/agent-admin-pagehead-maintenance-settings.py
+          rm -f tools/agent-admin-pagehead-maintenance-settings.py
+          rm -f .github/workflows/agent-admin-pagehead-maintenance-settings.yml
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git add -A
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/php84-runtime-contract-check
+          php tools/presentation-visual-contract-check
+          php tools/documentation-check.php
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations01.php
+          php -l app/Presentation/AdminPages/AdminPagesPresentationOperations03.php
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations05.php
+          php -l app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php
+          git show origin/prontoo:public/assets/app-icon-1.8.18.3.png | cmp - public/assets/app-icon-1.8.18.4.png
+          git show origin/prontoo:public/assets/favicon-1.8.18.3.ico | cmp - public/assets/favicon-1.8.18.4.ico
+          git show origin/prontoo:public/assets/favicon-1.8.18.3.png | cmp - public/assets/favicon-1.8.18.4.png
+          git show origin/prontoo:public/assets/pix-1.8.18.3.svg | cmp - public/assets/pix-1.8.18.4.svg
+          git show origin/prontoo:public/assets/prontoo-mark-1.8.18.3.png | cmp - public/assets/prontoo-mark-1.8.18.4.png
+          git add -A
+          git diff --cached --check
+      - name: Commit reconciled release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Move Administração para PageHead"
+          git push origin HEAD:agent/admin-pagehead-maintenance-settings
