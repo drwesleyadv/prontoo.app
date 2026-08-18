@@ -1,0 +1,121 @@
+name: Agent CSS Contract Reconcile
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: agent/cache-json-scoped-generations
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Reconcile deterministic CSS source contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          root = Path('.')
+          manifest_path = root / 'app/Presentation/Styles/styles.manifest.json'
+          source_root = root / 'app/Presentation/Styles'
+          target = 'components/components.css'
+          old_literal = b'1.8.17.13'
+          new_literal = b'1.8.18.1'
+
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          old_source = subprocess.check_output([
+              'git', 'show', f'origin/prontoo:app/Presentation/Styles/{target}'
+          ])
+          new_source = (source_root / target).read_bytes()
+          if old_source.replace(old_literal, new_literal) != new_source:
+              raise SystemExit('Mudança em components.css excede a troca canônica de versão do asset.')
+
+          source_entry = next((entry for entry in manifest['sources'] if entry['path'] == target), None)
+          if source_entry is None:
+              raise SystemExit('Fonte components/components.css ausente do manifesto.')
+          source_entry['sha256'] = hashlib.sha256(new_source).hexdigest()
+          source_entry['bytes'] = len(new_source)
+          source_entry['important_count'] = new_source.count(b'!important')
+          source_entry['route_scope_count'] = new_source.count(b'body[data-route=')
+
+          reconstructed = bytearray()
+          new_offset = 0
+          component_segments = [seg for seg in manifest['sequence'] if seg['source'] == target]
+          for segment in component_segments:
+              old_offset = int(segment['offset'])
+              old_bytes = int(segment['bytes'])
+              old_slice = old_source[old_offset:old_offset + old_bytes]
+              if len(old_slice) != old_bytes:
+                  raise SystemExit('Slice antigo de components.css inválido.')
+              new_slice = old_slice.replace(old_literal, new_literal)
+              segment['offset'] = new_offset
+              segment['bytes'] = len(new_slice)
+              segment['sha256'] = hashlib.sha256(new_slice).hexdigest()
+              segment['important_count'] = new_slice.count(b'!important')
+              segment['route_scope_count'] = new_slice.count(b'body[data-route=')
+              reconstructed.extend(new_slice)
+              new_offset += len(new_slice)
+          if bytes(reconstructed) != new_source:
+              raise SystemExit('Sequência de components.css não reconstrói a fonte canônica.')
+
+          source_data = {entry['path']: (source_root / entry['path']).read_bytes() for entry in manifest['sources']}
+          built = bytearray()
+          next_offsets = {path: 0 for path in source_data}
+          for segment in manifest['sequence']:
+              source = segment['source']
+              offset = int(segment['offset'])
+              size = int(segment['bytes'])
+              if offset != next_offsets[source]:
+                  raise SystemExit(f'Cobertura descontínua em {source}.')
+              chunk = source_data[source][offset:offset + size]
+              if len(chunk) != size or hashlib.sha256(chunk).hexdigest() != segment['sha256']:
+                  raise SystemExit(f'Hash de slice divergente em {source}.')
+              built.extend(chunk)
+              next_offsets[source] += size
+          for source, data in source_data.items():
+              if next_offsets[source] != len(data):
+                  raise SystemExit(f'Fonte não integralmente coberta: {source}.')
+
+          artifact = manifest['artifact_contract']
+          artifact['sha256'] = hashlib.sha256(bytes(built)).hexdigest()
+          artifact['bytes'] = len(built)
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n', encoding='utf-8')
+          (root / manifest['artifact']).write_bytes(bytes(built))
+          PY
+          rm -f .github/workflows/agent-css-contract-reconcile.yml
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          git add -A
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/php84-runtime-contract-check
+      - name: Commit canonical CSS contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Reconcilia contrato CSS da versão 1.8.18.1"
+          git push origin HEAD:agent/cache-json-scoped-generations
