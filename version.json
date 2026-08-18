@@ -5,7 +5,7 @@
     "generated_at": "2026-08-18T09:15:20-04:00",
     "updated_at": "2026-08-18T09:15:20-04:00",
     "build": "1.8.18.1-scoped-json-cache-generations",
-    "asset_version": "1.8.17.13",
+    "asset_version": "1.8.18.1",
     "package_type": "incremental_refinement",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
