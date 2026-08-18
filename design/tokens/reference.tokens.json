@@ -1,0 +1,412 @@
+{
+  "ref": {
+    "color": {
+      "brand": {
+        "default": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1843137254901961,
+              0.4,
+              0.3215686274509804
+            ],
+            "hex": "#2f6652"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-default",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "strong": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.11372549019607843,
+              0.34509803921568627,
+              0.24705882352941178
+            ],
+            "hex": "#1d583f"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-strong",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "soft": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8509803921568627,
+              0.9411764705882353,
+              0.8745098039215686
+            ],
+            "hex": "#d9f0df"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-soft",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9647058823529412,
+              0.984313725490196,
+              0.9686274509803922
+            ],
+            "hex": "#f6fbf7"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-subtle",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "global": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.13725490196078433,
+              0.5294117647058824,
+              0.38823529411764707
+            ],
+            "hex": "#238763"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-global",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "globalStrong": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.06274509803921569,
+              0.3686274509803922,
+              0.26666666666666666
+            ],
+            "hex": "#105e44"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-global-strong",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "public": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.17647058823529413,
+              0.43529411764705883,
+              0.3333333333333333
+            ],
+            "hex": "#2d6f55"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-brand-public",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        }
+      },
+      "neutral": {
+        "white": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              1,
+              1
+            ],
+            "hex": "#ffffff"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-neutral-white",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        }
+      },
+      "semantic": {
+        "success": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0784313725490196,
+              0.4235294117647059,
+              0.2627450980392157
+            ],
+            "hex": "#146c43"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-success",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "successContainer": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8470588235294118,
+              0.9607843137254902,
+              0.8980392156862745
+            ],
+            "hex": "#d8f5e5"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-success-container",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "successInk": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0196078431372549,
+              0.2235294117647059,
+              0.12156862745098039
+            ],
+            "hex": "#05391f"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-success-ink",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "warning": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5254901960784314,
+              0.34901960784313724,
+              0
+            ],
+            "hex": "#865900"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-warning",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "warningContainer": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.9372549019607843,
+              0.7607843137254902
+            ],
+            "hex": "#ffefc2"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-warning-container",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "warningInk": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.23921568627450981,
+              0.16862745098039217,
+              0
+            ],
+            "hex": "#3d2b00"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-warning-ink",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "info": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.1568627450980392,
+              0.4196078431372549,
+              0.45098039215686275
+            ],
+            "hex": "#286b73"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-info",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "infoContainer": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8392156862745098,
+              0.9568627450980393,
+              0.9686274509803922
+            ],
+            "hex": "#d6f4f7"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-info-container",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "infoInk": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.023529411764705882,
+              0.23137254901960785,
+              0.25882352941176473
+            ],
+            "hex": "#063b42"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-info-ink",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "error": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.7294117647058823,
+              0.10196078431372549,
+              0.10196078431372549
+            ],
+            "hex": "#ba1a1a"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-error",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "errorContainer": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1,
+              0.8549019607843137,
+              0.8392156862745098
+            ],
+            "hex": "#ffdad6"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-error-container",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        },
+        "errorInk": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.2549019607843137,
+              0,
+              0.00784313725490196
+            ],
+            "hex": "#410002"
+          },
+          "$extensions": {
+            "com.prontoo": {
+              "cssName": "--pt-ref-color-error-ink",
+              "target": "clinic",
+              "selector": ":root",
+              "order": -10000
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@bundled-es-modules/deepmerge",
+  "version": "4.3.2",
+  "description": "mirror of deepmerge, bundled and exposed as ES module",
+  "author": "Joren Broekema <joren.broekema@gmail.com>",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./index.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "node test/dev.js",
+    "build": "node scripts/build.js"
+  },
+  "keywords": [],
+  "files": [
+    "index.js",
+    "index.cjs",
+    "index.d.ts"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "deepmerge": "^4.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.18.10"
+  }
+}
