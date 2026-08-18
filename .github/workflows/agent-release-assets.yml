@@ -69,11 +69,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git show prontoo:public/assets/app-icon-1.8.17.13.png | cmp - public/assets/app-icon-1.8.18.1.png
-          git show prontoo:public/assets/favicon-1.8.17.13.ico | cmp - public/assets/favicon-1.8.18.1.ico
-          git show prontoo:public/assets/favicon-1.8.17.13.png | cmp - public/assets/favicon-1.8.18.1.png
-          git show prontoo:public/assets/pix-1.8.17.13.svg | cmp - public/assets/pix-1.8.18.1.svg
-          git show prontoo:public/assets/prontoo-mark-1.8.17.13.png | cmp - public/assets/prontoo-mark-1.8.18.1.png
+          git show origin/prontoo:public/assets/app-icon-1.8.17.13.png | cmp - public/assets/app-icon-1.8.18.1.png
+          git show origin/prontoo:public/assets/favicon-1.8.17.13.ico | cmp - public/assets/favicon-1.8.18.1.ico
+          git show origin/prontoo:public/assets/favicon-1.8.17.13.png | cmp - public/assets/favicon-1.8.18.1.png
+          git show origin/prontoo:public/assets/pix-1.8.17.13.svg | cmp - public/assets/pix-1.8.18.1.svg
+          git show origin/prontoo:public/assets/prontoo-mark-1.8.17.13.png | cmp - public/assets/prontoo-mark-1.8.18.1.png
       - name: Commit canonical assets
         shell: bash
         run: |
