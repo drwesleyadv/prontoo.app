@@ -196,13 +196,7 @@ final class AdminPagesRuntimeOperations06
     {
 
         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_administration");
-        $content = \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations03::developer_administration_tools_html(
-            static fn(string $route): string => \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href($route),
-        );
-        $body =
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Administração", "") .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($content, "developer-administration-card");
-        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page("Administração · Desenvolvedor", $body);
+        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance");
     }
 
     public static function page_admin_people(): void

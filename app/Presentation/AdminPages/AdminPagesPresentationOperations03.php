@@ -862,33 +862,6 @@ final class AdminPagesPresentationOperations03
         return $filterNav . $table;
     }
 
-    public static function developer_administration_tools_html(callable $href): string
-    {
-        $tools = [
-            ["construction", "Manutenção", "Controle de disponibilidade da plataforma.", "admin_maintenance"],
-            ["settings", "Configuração", "Parâmetros globais da operação.", "admin_settings"],
-        ];
-        $render = static function (array $tools) use ($href): string {
-            $grid = '<div class="developer-tool-grid">';
-            foreach ($tools as [$icon, $title, $description, $route]) {
-                $grid .=
-                    '<a class="developer-tool-card" href="' .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) $href($route)) .
-                    '"><span class="developer-tool-icon">' .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
-                    '</span><span><b>' .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($title) .
-                    '</b><small>' .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($description) .
-                    '</small></span><span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>';
-            }
-            return $grid . '</div>';
-        };
-        return '<div class="section-head"><div><h2>Administração</h2><p>Manutenção e configuração global da plataforma.</p></div></div>' .
-            $render($tools);
-    }
-
-
     public static function admin_metrics_html(array $summary, string $telemetryCharts): string
     {
         $current = (array) ($summary["current"] ?? []);

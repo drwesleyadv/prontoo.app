@@ -17,6 +17,8 @@ $rendererPath = $root . '/app/Presentation/UiComponents/PageHeadControlPresentat
 $renderer = is_file($rendererPath) ? (string) file_get_contents($rendererPath) : '';
 $adminClinicsPresentation = (string) file_get_contents($root . '/app/Presentation/AdminPages/AdminPagesPresentationOperations03.php');
 $adminClinicsRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations08.php');
+$adminAdministrationRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations06.php');
+$adminMaintenanceRuntime = (string) file_get_contents($root . '/app/Runtime/AdminPages/AdminPagesRuntimeOperations05.php');
 $routeRegistry = (string) file_get_contents($root . '/app/Runtime/Routing/RouteRegistry.php');
 $applicationRoot = (string) file_get_contents($root . '/app/prontoo.php');
 $maestroCron = (string) file_get_contents($root . '/cron/maestro.php');
@@ -188,7 +190,7 @@ foreach ([
 $adminClinicsDirectoryStart = strpos($adminClinicsPresentation, 'public static function developer_clinic_directory_html(');
 $adminClinicsDirectoryEnd = $adminClinicsDirectoryStart === false
     ? false
-    : strpos($adminClinicsPresentation, 'public static function developer_administration_tools_html(', $adminClinicsDirectoryStart);
+    : strpos($adminClinicsPresentation, 'public static function admin_metrics_html(', $adminClinicsDirectoryStart);
 if ($adminClinicsDirectoryStart === false || $adminClinicsDirectoryEnd === false) {
     $failures[] = ['rule' => 'admin_clinics_directory_section_missing'];
 } else {
@@ -250,7 +252,8 @@ $developerPageHeadGroups = [
         ['admin_audit', 'Auditoria', 'history'],
     ],
     'admin_administration' => [
-        ['admin_administration', 'Administração', 'tune'],
+        ['admin_maintenance', 'Manutenção', 'construction'],
+        ['admin_settings', 'Configuração', 'settings'],
     ],
 ];
 foreach ($developerPageHeadGroups as $parent => $expectedActions) {
@@ -283,24 +286,20 @@ if ($metricsStart === false || $routesStart === false || $routesStart <= $metric
         $failures[] = ['rule' => 'developer_metrics_charts_missing_or_before_cards'];
     }
 }
-$administrationStart = strpos($adminClinicsPresentation, 'public static function developer_administration_tools_html(');
-$administrationEnd = $administrationStart === false
-    ? false
-    : strpos($adminClinicsPresentation, 'public static function admin_metrics_html(', $administrationStart);
-if ($administrationStart === false || $administrationEnd === false) {
-    $failures[] = ['rule' => 'developer_administration_section_missing'];
-} else {
-    $administrationSource = substr($adminClinicsPresentation, $administrationStart, $administrationEnd - $administrationStart);
-    foreach (['admin_people', 'admin_alerts', 'admin_global_notices', 'admin_audit', 'developer-advanced-tools'] as $movedAdministrationAction) {
-        if (str_contains($administrationSource, $movedAdministrationAction)) {
-            $failures[] = ['rule' => 'developer_administration_moved_action_present', 'action' => $movedAdministrationAction];
-        }
-    }
-    foreach (['"admin_maintenance"', '"admin_settings"'] as $administrationAction) {
-        if (!str_contains($administrationSource, $administrationAction)) {
-            $failures[] = ['rule' => 'developer_administration_action_missing', 'action' => $administrationAction];
-        }
-    }
+if (str_contains($adminClinicsPresentation, 'developer_administration_tools_html(')) {
+    $failures[] = ['rule' => 'developer_administration_intermediate_screen_present'];
+}
+if (!str_contains($adminAdministrationRuntime, 'redirect("admin_maintenance")')) {
+    $failures[] = ['rule' => 'developer_administration_default_maintenance_missing'];
+}
+if (str_contains($adminMaintenanceRuntime, 'admin-maintenance-tabs')) {
+    $failures[] = ['rule' => 'developer_administration_internal_tabs_present'];
+}
+if (
+    !str_contains($adminMaintenanceRuntime, '$currentRoute === "admin_settings" ? "configuracoes" : "manutencao"') ||
+    !str_contains($adminMaintenanceRuntime, 'page_admin_maintenance();')
+) {
+    $failures[] = ['rule' => 'developer_administration_route_owned_sections_missing'];
 }
 foreach (['admin_painel', 'HealthEvidence', 'HealthCanary'] as $obsoleteDeveloperFeature) {
     if (str_contains($php, $obsoleteDeveloperFeature)) {

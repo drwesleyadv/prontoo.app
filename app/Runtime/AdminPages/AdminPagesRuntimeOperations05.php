@@ -30,16 +30,12 @@ final class AdminPagesRuntimeOperations05
     
     {
     
-        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("admin_maintenance");
-        $uid = (int) ($c["user"]["id"] ?? 0);
-        $tab = preg_replace(
-            "/[^a-z_]/",
-            "",
-            (string) ($_GET["tab"] ?? ($_POST["tab"] ?? "manutencao")),
+        $currentRoute = \Prontoo\Presentation\SupportFoundation\SupportFoundationPresentationOperations01::route();
+        $tab = $currentRoute === "admin_settings" ? "configuracoes" : "manutencao";
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can(
+            $tab === "configuracoes" ? "admin_settings" : "admin_maintenance",
         );
-        if (!in_array($tab, ["manutencao", "configuracoes"], true)) {
-            $tab = "manutencao";
-        }
+        $uid = (int) ($c["user"]["id"] ?? 0);
         if (($_SERVER["REQUEST_METHOD"] ?? "GET") === "POST") {
             $act = (string) ($_POST["act"] ?? "save_maintenance");
             if ($act === "save_maintenance") {
@@ -51,7 +47,7 @@ final class AdminPagesRuntimeOperations05
                 );
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("manutencao_atualizada", "manutencao", null, $_POST);
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Manutenção atualizada.");
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance", ["tab" => "manutencao"]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance");
             }
             if ($act === "save_settings") {
                 foreach (
@@ -121,23 +117,9 @@ final class AdminPagesRuntimeOperations05
                         "Configuração global da plataforma atualizada.",
                 ]);
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Configuração global salva.");
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance", ["tab" => "configuracoes"]);
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_settings");
             }
         }
-        $tabs =
-            '<nav class="notice-filter-chips lead-filter-chips admin-maintenance-tabs" aria-label="Operações de manutenção"><a class="lead-chip ds-filter-chip ' .
-            ($tab === "manutencao" ? "active" : "") .
-            '" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_maintenance", ["tab" => "manutencao"])) .
-            '">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("construction") .
-            '<span class="lead-chip-label">Manutenção</span></a><a class="lead-chip ds-filter-chip ' .
-            ($tab === "configuracoes" ? "active" : "") .
-            '" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_maintenance", ["tab" => "configuracoes"])) .
-            '">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("settings") .
-            '<span class="lead-chip-label">Configuração</span></a></nav>';
         if ($tab === "configuracoes") {
             $defaultPrice = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_monthly_price_cents();
             $defaultTrialDays = \Prontoo\Runtime\SubscriptionSettings\SubscriptionSettingsRuntimeOperations01::default_trial_days();
@@ -152,7 +134,7 @@ final class AdminPagesRuntimeOperations05
             $form =
                 '<form method="post" class="compact">' .
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
-                '<input type="hidden" name="tab" value="configuracoes"><input type="hidden" name="act" value="save_settings"><section class="settings-section full"><h2>Suporte</h2>' .
+                '<input type="hidden" name="act" value="save_settings"><section class="settings-section full"><h2>Suporte</h2>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "E-mail de suporte",
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("support_email", "email", \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations02::meta_get("support_email", "")),
@@ -217,8 +199,8 @@ final class AdminPagesRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("save") .
                 "<span>Salvar configuração</span></button></form>";
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-                "Manutenção e Configuração",
-                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configuração", "") . $tabs . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form),
+                "Configuração",
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Configuração", "") . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form),
             );
             return;
         }
@@ -230,7 +212,7 @@ final class AdminPagesRuntimeOperations05
         $form =
             '<form method="post" class="compact">' .
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
-            '<input type="hidden" name="tab" value="manutencao"><input type="hidden" name="act" value="save_maintenance"><label class="check"><input type="checkbox" name="active" ' .
+            '<input type="hidden" name="act" value="save_maintenance"><label class="check"><input type="checkbox" name="active" ' .
             ($active ? "checked" : "") .
             "> Ativar manutenção para colaboradores não globais</label>" .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Mensagem pública de manutenção", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea("message", $msg)) .
@@ -249,9 +231,8 @@ final class AdminPagesRuntimeOperations05
             ],
         ];
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-            "Manutenção e Configuração",
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção e Configuração", "") .
-                $tabs .
+            "Manutenção",
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Manutenção", "") .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card($form) .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::timeline($items)),
         );
@@ -262,7 +243,6 @@ final class AdminPagesRuntimeOperations05
     
     {
     
-        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::redirect("admin_maintenance", ["tab" => "configuracoes"]);
-    
+        \Prontoo\Runtime\AdminPages\AdminPagesRuntimeOperations05::page_admin_maintenance();
     }
 }
