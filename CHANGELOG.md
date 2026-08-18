@@ -1,9 +1,8 @@
 # Versão canônica
 
-## 1.8.18.1 — Cache JSON versionado por consultório e domínio
+## 1.8.18.2 — Filtros e ordenação dos consultórios por atividade
 
-- isola chaves de cache por consultório e geração de domínio sem introduzir Redis ou outro serviço externo.
-- adiciona subgerações explícitas para read models naturalmente segmentados por dia de Agenda e mês financeiro.
-- efetiva invalidações pendentes antes do envio dos headers para preservar read-your-writes no redirect seguinte.
-- eleva TTLs de famílias versionadas e mantém falha de manifesto como cache miss seguro por geração física legada.
-- distribui arquivos de cache em 256 shards de hash e disponibiliza garbage collection assíncrona sem alterar schema ou banco.
+- reordena os filtros da lista global para Todos, Ativos, Vencendo e Somente Leitura.
+- considera Vencendo os consultórios cuja assinatura termina entre hoje e os próximos 10 dias.
+- ordena todas as listas pelo login mais recente entre colaboradores ativos do consultório, do mais recente para o mais antigo.
+- mantém consultórios sem login de colaborador ao final e não altera schema ou banco de dados.
