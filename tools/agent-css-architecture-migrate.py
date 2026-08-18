@@ -150,6 +150,13 @@ def republish_assets():
     application = APPLICATION_PATH.read_text()
     application = application.replace(f"pix-{OLD_VERSION}.svg", f"pix-{NEW_VERSION}.svg")
     APPLICATION_PATH.write_text(application)
+    bootstrap = ROOT / "app/prontoo.php"
+    source = bootstrap.read_text()
+    expected = f'const PRONTOO_ASSET_REV_FALLBACK = "{OLD_VERSION}";'
+    replacement = f'const PRONTOO_ASSET_REV_FALLBACK = "{NEW_VERSION}";'
+    if expected not in source:
+        raise SystemExit("asset fallback source mismatch")
+    bootstrap.write_text(source.replace(expected, replacement, 1))
 
 
 def update_docs():
