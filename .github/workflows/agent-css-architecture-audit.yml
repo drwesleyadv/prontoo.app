@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Inspect legacy CSS dependency graph
+      - name: Inspect and isolate residual runtime tokens
         shell: bash
         run: |
           set -euo pipefail
@@ -38,54 +38,62 @@ jobs:
           print('MANIFEST_BYTES', Path('app/Presentation/Styles/styles.manifest.json').stat().st_size)
           print('BRIDGE_BYTES', Path('design/tokens/css-bridge.json').stat().st_size)
           print('BRIDGE_ENTRIES', len(bridge.get('entries', [])))
-          print('BRIDGE_LEGACY_PAYLOAD_BYTES', sum(len(base64.b64decode(v['base64'])) for v in bridge.get('legacy', {}).values()))
           source = {s['path']: Path('app/Presentation/Styles', s['path']).read_bytes() for s in manifest['sources']}
           behavior = bytearray()
           tokens = bytearray()
-          token_segments = 0
-          behavior_segments = 0
           for seg in manifest['sequence']:
               data = source[seg['source']]
               piece = data[int(seg['offset']):int(seg['offset'])+int(seg['bytes'])]
-              if seg['source'].startswith('tokens/'):
-                  tokens.extend(piece)
-                  token_segments += 1
-              else:
-                  behavior.extend(piece)
-                  behavior_segments += 1
-          print('TOKEN_SEGMENTS', token_segments)
-          print('BEHAVIOR_SEGMENTS', behavior_segments)
-          print('TOKEN_SLICE_BYTES', len(tokens))
-          print('BEHAVIOR_BYTES', len(behavior))
-          outside = []
-          custom = re.compile(rb'--[A-Za-z0-9_-]+\s*:')
-          for p in css_files:
-              if '/tokens/' in p.as_posix():
-                  continue
-              n = len(custom.findall(p.read_bytes()))
-              if n:
-                  outside.append((p.as_posix(), n))
-          print('NON_TOKEN_FILES_DEFINING_CUSTOM_PROPERTIES', json.dumps(outside, ensure_ascii=False))
+              (tokens if seg['source'].startswith('tokens/') else behavior).extend(piece)
+
+          block_re = re.compile(r'([^{}]+)\{([^{}]*)\}', re.S)
+          decl_re = re.compile(r'(--[A-Za-z0-9_-]+)\s*:\s*([^;]+?)(!important)?\s*;', re.S)
+          def declarations(css):
+              out=[]
+              for selector, body in block_re.findall(css):
+                  selector=' '.join(selector.split())
+                  for name, value, important in decl_re.findall(body):
+                      out.append((selector, name, ' '.join(value.split()), bool(important)))
+              return out
+          def render(items):
+              order=[]; groups={}
+              for selector,name,value,important in items:
+                  if selector not in groups:
+                      groups[selector]=[]; order.append(selector)
+                  groups[selector].append((name,value,important))
+              blocks=[]
+              for selector in order:
+                  lines='\n'.join(f'  {name}:{value}{"!important" if important else ""};' for name,value,important in groups[selector])
+                  blocks.append(f'{selector}{{\n{lines}\n}}')
+              return ('\n\n'.join(blocks)+'\n').encode()
+
           tails = bytearray()
-          token_paths = {
-              'clinic': Path('app/Presentation/Styles/tokens/clinic.css'),
-              'material': Path('app/Presentation/Styles/tokens/material.css'),
-              'semantic': Path('app/Presentation/Styles/tokens/semantic.css'),
-          }
-          for target, token_path in token_paths.items():
+          residual=[]
+          for target in ('clinic','material','semantic'):
+              token_path = Path(f'app/Presentation/Styles/tokens/{target}.css')
               data = token_path.read_bytes()
               legacy = base64.b64decode(bridge['legacy'][target]['base64'])
               if not data.startswith(legacy):
                   raise SystemExit(f'legacy prefix mismatch {target}')
               tail = data[len(legacy):]
-              print('DTCG_TAIL', target, len(tail))
               tails.extend(tail)
-          Path('/tmp/current.css').write_bytes(Path('public/assets/presentation.css').read_bytes())
+              tail_keys=set(declarations(tail.decode()))
+              legacy_decls=declarations(legacy.decode())
+              unique=[d for d in legacy_decls if d not in tail_keys]
+              residual.extend(unique)
+              print('TARGET', target, 'legacy_declarations', len(legacy_decls), 'tail_declarations', len(tail_keys), 'residual', len(unique))
+          residual_unique=[]; seen=set()
+          for item in residual:
+              if item in seen: continue
+              seen.add(item); residual_unique.append(item)
+          residual_css=render(residual_unique)
+          print('RESIDUAL_DECLARATIONS', len(residual_unique))
+          print('RESIDUAL_CSS_BYTES', len(residual_css))
+          print('ELIMINATED_LEGACY_BYTES', sum(len(base64.b64decode(v['base64'])) for v in bridge['legacy'].values()) - len(residual_css))
           Path('/tmp/token-first.css').write_bytes(bytes(tokens) + bytes(behavior))
           Path('/tmp/dtcg-only.css').write_bytes(bytes(tails) + bytes(behavior))
-          print('CURRENT_BYTES', Path('/tmp/current.css').stat().st_size)
-          print('TOKEN_FIRST_BYTES', Path('/tmp/token-first.css').stat().st_size)
-          print('DTCG_ONLY_BYTES', Path('/tmp/dtcg-only.css').stat().st_size)
+          Path('/tmp/deduped-runtime.css').write_bytes(residual_css + bytes(tails) + bytes(behavior))
+          Path('/tmp/residual.css').write_bytes(residual_css)
           PY
       - name: Install browser contract
         shell: bash
@@ -93,15 +101,15 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install chromium
-      - name: Probe token-first observable equivalence
+      - name: Verify movable token bundle
         shell: bash
         run: |
           set -euo pipefail
           cp /tmp/token-first.css public/assets/presentation.css
           node tools/presentation-ux-contract.mjs --check
-      - name: Probe DTCG-only observable equivalence
+      - name: Verify deduplicated residual token bundle
         shell: bash
         run: |
           set -euo pipefail
-          cp /tmp/dtcg-only.css public/assets/presentation.css
+          cp /tmp/deduped-runtime.css public/assets/presentation.css
           node tools/presentation-ux-contract.mjs --check
