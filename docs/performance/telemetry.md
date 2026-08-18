@@ -4,9 +4,9 @@ A telemetria operacional usa três fontes canônicas persistentes: `ssd/telemetr
 
 ## Janelas móveis
 
-Os cards de Métricas do Desenvolvedor usam duas janelas móveis contíguas de 10 dias. Páginas conta os carregamentos HTML concluídos; Registros soma os deltas de `ssd/telemetry/database.json`, em que cada captura do Maestro mede exatamente o total de linhas de todas as tabelas-base e registra `total atual - total imediatamente anterior`; Landing conta somente os carregamentos cuja rota canônica é `landing`. O primeiro total é saldo inicial e não entra em Registros. Deltas negativos são preservados. O percentual representa o período recente em relação aos 10 dias imediatamente anteriores; quando não há cobertura completa ou o período anterior é zero e o atual é positivo, a variação permanece indefinida.
+Os quatro cards de Métricas do Desenvolvedor usam duas janelas móveis contíguas de 10 dias. Páginas conta os carregamentos HTML concluídos; Tempo médio usa somente page loads com amostra observada em `ssd/telemetry/speed.json` e calcula `soma das durações / quantidade de amostras`; Registros soma os deltas de `ssd/telemetry/database.json`, em que cada captura do Maestro mede exatamente o total de linhas de todas as tabelas-base e registra `total atual - total imediatamente anterior`; Landing conta somente os carregamentos cuja rota canônica é `landing`. O primeiro total é saldo inicial e não entra em Registros. Deltas negativos são preservados. O percentual representa o período recente em relação aos 10 dias imediatamente anteriores; quando não há período anterior comparável, a variação permanece indefinida.
 
-Logo abaixo desses cards, a mesma tela preserva os gráficos operacionais `Velocidade` e `Volume`, com atualização automática a cada minuto. A tabela detalhada continua exclusiva da tela Rotas.
+Logo abaixo desses quatro cards, a mesma tela preserva os gráficos operacionais `Velocidade` e `Volume`, com atualização automática a cada minuto. A tabela detalhada continua exclusiva da tela Rotas.
 
 A tela Rotas usa a janela móvel recente de 240 horas. Ela agrega quantidade e duração por rota, apresenta nomes funcionais e ordena por maior quantidade de requisições e, em caso de empate, por menor tempo médio.
 

@@ -133,6 +133,9 @@ final class SupportTelemetryInfrastructureOperations02
         $previousStartUs = $currentStartUs - $periodUs;
         $empty = [
             "pages" => 0,
+            "page_load_samples" => 0,
+            "page_load_duration_ns" => 0,
+            "page_load_average_ms" => null,
             "records" => 0,
             "landing" => 0,
         ];
@@ -157,15 +160,33 @@ final class SupportTelemetryInfrastructureOperations02
             $target = $finishedUs >= $currentStartUs ? "current" : "previous";
             if ($target === "current") {
                 $current["pages"]++;
+                if (!empty($event["speed_observed"])) {
+                    $current["page_load_samples"]++;
+                    $current["page_load_duration_ns"] += max(0, (int) ($event["duracao_ns"] ?? 0));
+                }
                 if ((string) ($event["rota"] ?? "") === "landing") {
                     $current["landing"]++;
                 }
                 continue;
             }
             $previous["pages"]++;
+            if (!empty($event["speed_observed"])) {
+                $previous["page_load_samples"]++;
+                $previous["page_load_duration_ns"] += max(0, (int) ($event["duracao_ns"] ?? 0));
+            }
             if ((string) ($event["rota"] ?? "") === "landing") {
                 $previous["landing"]++;
             }
+        }
+        foreach (["current", "previous"] as $periodKey) {
+            $period =& ${$periodKey};
+            $samples = max(0, (int) ($period["page_load_samples"] ?? 0));
+            $durationNs = max(0, (int) ($period["page_load_duration_ns"] ?? 0));
+            $period["page_load_average_ms"] = $samples > 0
+                ? ($durationNs / $samples) / 1000000
+                : null;
+            unset($period["page_load_samples"], $period["page_load_duration_ns"]);
+            unset($period);
         }
         $recordsVariation = null;
         if (is_array($recordComparison)) {
@@ -186,6 +207,10 @@ final class SupportTelemetryInfrastructureOperations02
                 "pages_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(
                     $current["pages"],
                     $previous["pages"],
+                ),
+                "page_load_average_ms_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_nullable_percentage_variation(
+                    isset($current["page_load_average_ms"]) ? (float) $current["page_load_average_ms"] : null,
+                    isset($previous["page_load_average_ms"]) ? (float) $previous["page_load_average_ms"] : null,
                 ),
                 "records_pct" => $recordsVariation,
                 "landing_pct" => \Prontoo\Infrastructure\SupportTelemetry\SupportTelemetryInfrastructureOperations01::telemetry_percentage_variation(

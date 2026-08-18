@@ -870,13 +870,23 @@ final class AdminPagesPresentationOperations03
             isset($variations[$key]) && is_numeric($variations[$key])
                 ? (float) $variations[$key]
                 : null;
-        return '<section class="admin-performance-screen admin-metrics-screen"><div class="three admin-performance-stats admin-metrics-kpis" aria-label="Métricas comparativas dos últimos 10 dias">' .
+        return '<section class="admin-performance-screen admin-metrics-screen"><div class="wide global-telemetry-grid admin-performance-stats admin-metrics-kpis" aria-label="Métricas comparativas dos últimos 10 dias">' .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
                 "Páginas",
                 max(0, (int) ($current["pages"] ?? 0)),
                 "web",
                 $variation("pages_pct"),
                 "carregamentos nos últimos 10 dias",
+            ) .
+            \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
+                "Tempo médio",
+                isset($current["page_load_average_ms"]) && is_numeric($current["page_load_average_ms"])
+                    ? (float) $current["page_load_average_ms"]
+                    : null,
+                "speed",
+                $variation("page_load_average_ms_pct"),
+                "carregamento médio das páginas nos últimos 10 dias",
+                "ms",
             ) .
             \Prontoo\Presentation\AdminPages\AdminPagesPresentationOperations01::admin_metric_comparison_card_html(
                 "Registros",

@@ -247,15 +247,19 @@ final class AdminPagesPresentationOperations01
 
     public static function admin_metric_comparison_card_html(
         string $label,
-        int $value,
+        int|float|null $value,
         string $icon,
         ?float $variation,
         string $note,
+        string $valueType = "count",
     ): string {
+        $displayValue = $valueType === "ms"
+            ? ($value === null ? "—" : self::admin_metric_duration_label((float) $value))
+            : \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n((int) ($value ?? 0));
         return '<article class="stat-card telemetry-kpi-card">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($icon) .
             '<div><div class="telemetry-kpi-value"><b>' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::n($value) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($displayValue) .
             '</b>' .
             self::admin_metric_variation_badge($variation) .
             '</div><span>' .
