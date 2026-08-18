@@ -49,6 +49,20 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install chromium
+          cp app/presentation.ux-baseline.json /tmp/prontoo-ux-baseline.json
+          node tools/presentation-ux-contract.mjs --write
+          python3 <<'PY'
+          import json
+          old=json.load(open('/tmp/prontoo-ux-baseline.json'))
+          new=json.load(open('app/presentation.ux-baseline.json'))
+          a=old['scenarios']['primary-hover']['primary']
+          b=new['scenarios']['primary-hover']['primary']
+          for group in ('rect','style','variables'):
+              for key in sorted(set(a[group])|set(b[group])):
+                  if a[group].get(key)!=b[group].get(key):
+                      print(f'DTCG_DRIFT {group}.{key}: {a[group].get(key)!r} -> {b[group].get(key)!r}')
+          PY
+          cp /tmp/prontoo-ux-baseline.json app/presentation.ux-baseline.json
           node tools/presentation-ux-contract.mjs --check
       - name: Commit validated migration
         shell: bash
