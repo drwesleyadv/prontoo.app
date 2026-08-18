@@ -26,12 +26,35 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Regenerate DTCG and presentation artifacts
+      - name: Regenerate DTCG sources and source-integrity metadata
         shell: bash
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
           node tools/design-tokens-build.mjs --write
+          python3 <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          manifest_path = Path('app/Presentation/Styles/styles.manifest.json')
+          manifest = json.loads(manifest_path.read_text())
+          root = Path('app/Presentation/Styles')
+          generated = {'tokens/clinic.css', 'tokens/material.css', 'tokens/semantic.css'}
+          for source in manifest.get('sources', []):
+              rel = source.get('path')
+              if rel not in generated:
+                  continue
+              data = (root / rel).read_bytes()
+              text = data.decode('utf-8')
+              source['sha256'] = hashlib.sha256(data).hexdigest()
+              source['bytes'] = len(data)
+              source['important_count'] = text.count('!important')
+              source['route_scope_count'] = text.count('body[data-route=')
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
+          PY
+      - name: Rebuild published presentation artifact
+        shell: bash
+        run: |
+          set -euo pipefail
           php tools/presentation-css-build --write
           php tools/presentation-css-build --check
       - name: Refresh visual contract delivery metadata
