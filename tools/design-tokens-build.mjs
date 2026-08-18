@@ -49,6 +49,11 @@ const legacyCss = target => {
   if (hash !== record.sha256) throw new Error(`legacy payload hash mismatch ${target}`);
   return css;
 };
+const generatedSelector = selector => {
+  const value = String(selector || '').trim();
+  if (value === 'body') return 'body:where(*)';
+  return value || ':root';
+};
 
 StyleDictionary.registerFormat({
   name: 'prontoo/dtcg-with-legacy-abi',
@@ -78,7 +83,7 @@ StyleDictionary.registerFormat({
         return `var(${refName})`;
       });
       declarations.push({
-        selector: String(meta.selector || ':root'),
+        selector: generatedSelector(meta.selector || ':root'),
         name: cssName(token),
         value,
         important: meta.important === true,
@@ -88,7 +93,7 @@ StyleDictionary.registerFormat({
     for (const entry of bridge.entries) {
       if (String(entry.target || '') !== target) continue;
       declarations.push({
-        selector: String(entry.selector || 'body'),
+        selector: generatedSelector(entry.selector || 'body'),
         name: String(entry.name || ''),
         value: String(entry.value || ''),
         important: entry.important === true,
