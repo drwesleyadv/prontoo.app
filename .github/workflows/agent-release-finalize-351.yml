@@ -29,6 +29,7 @@ jobs:
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
           rm -f .github/workflows/agent-release-finalize-351.yml
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           git add -A
           php tools/release-version
