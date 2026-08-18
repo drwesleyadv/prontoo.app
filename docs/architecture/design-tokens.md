@@ -1,29 +1,29 @@
-# Design Tokens
+# Design System canônico
 
-O Design System do Prontoo usa Design Tokens como fonte canônica de identidade visual. Os arquivos editáveis ficam em `design/tokens/` e seguem o formato DTCG 2025.10. O Style Dictionary 5.5.0 compila essa fonte para CSS Custom Properties consumidas pelo runtime.
+## Arquitetura
 
-## Camadas
+O Design System usa DTCG 2025.10 como fonte canônica de valores. Os arquivos `design/tokens/*.tokens.json` concentram Reference, System, Component, temas e tokens runtime necessários à ABI do produto. O compilador fixado em `style-dictionary@5.5.0` produz um único artefato `design/generated/tokens.css`.
 
-- `reference.tokens.json`: valores primitivos e paletas de referência.
-- `system.tokens.json`: significado semântico, incluindo accent, superfícies, texto e estados.
-- `component.tokens.json`: aliases específicos de componentes, sem duplicar valores de identidade.
-- `themes.tokens.json`: escopos de tema Prontoo, consultório, público e somente leitura.
-- `css-bridge.json`: ABI de compatibilidade gerada para nomes CSS já consumidos pelo produto durante a migração, sem autoridade de autoria visual.
+Os seletores, estados, layouts e regras comportamentais que não são tokens vivem em `design/styles/application.css`. O artefato público `public/assets/presentation.css` é montado deterministicamente com a importação canônica de fontes no topo, seguida do bundle DTCG e do CSS comportamental.
 
-Os arquivos `app/Presentation/Styles/tokens/*.css` são artefatos gerados. Não devem ser editados manualmente. `npm run tokens:build` os regenera e `npm run tokens:check` verifica equivalência determinística.
+A arquitetura anterior de múltiplos arquivos em `app/Presentation/Styles`, o manifesto de slices e o bridge CSS codificado não fazem parte da árvore canônica. O build falha se qualquer um desses artefatos reaparecer.
 
-## Tema por consultório
+## Auditoria de migração
 
-A identidade do consultório entra no runtime como sementes de tema no `<body>`. Aliases dependentes da identidade são resolvidos nesse mesmo escopo, evitando que valores calculados em `:root` fiquem presos à cor padrão. Cores semânticas de sucesso, aviso, erro e informação permanecem independentes do accent do consultório.
+A arquitetura anterior possuía 23 arquivos CSS, 809.496 bytes de fontes, 1.074 slices de reconstrução, manifesto de 347.023 bytes e bridge de 32.369 bytes. O bridge continha 16.817 bytes de CSS codificado. A auditoria demonstrou que os 22 slices de tokens podiam ser movidos para o início da folha sem drift e que 316 declarações runtime ainda necessárias podiam ser representadas como DTCG normal.
 
-## Contratos
+O CSS comportamental resultante possui 786.011 bytes lineares. O baseline computado permaneceu estável em 12 cenários por 33 superfícies tanto com os tokens movidos quanto com as declarações residuais estruturadas.
 
-`tools/design-tokens-contract.mjs` exige:
+## Invariantes
 
-- fontes DTCG presentes e compilação determinística;
-- ausência de definições canônicas `--pt-ref-*`, `--pt-sys-*` e `--pt-cmp-*` fora do gerador;
-- propagação do accent em fixtures verde, azul, vinho e violeta;
-- invariância das cores semânticas entre temas;
-- preservação do baseline computado existente pelo `Presentation UX Contract`.
+- Tokens `--pt-ref-*`, `--pt-sys-*` e `--pt-cmp-*` só podem ser definidos pela fonte DTCG.
+- A identidade do consultório é resolvida em runtime por custom properties no `body`.
+- Sucesso, aviso, erro e informação permanecem semânticos e independentes da cor de identidade.
+- O contrato multitema cobre verde, azul, vinho e violeta.
+- O baseline computado continua bloqueando regressões de geometria, tipografia, espaçamento e fluxos.
+- `presentation.css` deve ser reproduzível exatamente pelas fontes canônicas sob `design/`.
+- Payloads Base64 de CSS, offsets de slices e manifestos de cascata são proibidos.
 
-O workflow `.github/workflows/presentation-ux.yml` executa o contrato DTCG antes do baseline computado. Assim, alterações futuras de identidade só podem ser publicadas se a fonte canônica, os artefatos gerados, a propagação multitema e a experiência visual permanecerem coerentes.
+## Fluxo de alteração
+
+Alterações de valor visual entram em `design/tokens/*.tokens.json`. Alterações de seletor ou comportamento entram em `design/styles/application.css`. Depois execute `node tools/design-tokens-build.mjs --write` e `php tools/presentation-css-build --write`. Os modos `--check` são usados pela CI e não podem aceitar drift.

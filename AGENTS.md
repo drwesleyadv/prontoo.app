@@ -10,7 +10,7 @@ Antes de alterar código, considere as fontes nesta ordem:
 2. `version.json`, fonte canônica da release;
 3. `app/architecture.manifest.json`, budgets e políticas arquiteturais;
 4. `app/application.test-contract.json`, caracterização de Application;
-5. `app/Presentation/Styles/styles.manifest.json`, contrato da fonte CSS;
+5. `design/styles/application.css`, contrato da fonte CSS;
 6. `CONTRIBUTING.md` e documentação em `docs/`;
 7. código existente e padrões locais.
 
@@ -91,7 +91,7 @@ Para qualquer mudança de persistência, leia `docs/database/` e execute os gate
 
 ## 7. Presentation e UX
 
-A fonte visual canônica está em `app/Presentation/Styles/`. `public/assets/presentation.css` é artefato gerado: nunca o edite isoladamente.
+A fonte visual canônica está em `design/styles/`. `public/assets/presentation.css` é artefato gerado: nunca o edite isoladamente.
 
 Fluxo para CSS:
 
@@ -180,7 +180,7 @@ Antes do merge:
 - `app/Presentation/`: renderização e fontes visuais;
 - `app/architecture.manifest.json`: contrato arquitetural executável;
 - `app/application.test-contract.json`: caracterização de Application;
-- `app/Presentation/Styles/styles.manifest.json`: contrato CSS;
+- `design/styles/application.css`: contrato CSS;
 - `tools/`: quality gates e reconciliadores;
 - `docs/architecture/`: modelo e fronteiras;
 - `docs/security/`: ameaças e controles;

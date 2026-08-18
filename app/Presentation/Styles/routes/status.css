@@ -1,3 +1,0 @@
-body[data-route="status"]{min-height:100vh;background:var(--md-sys-color-surface,#f7faf8);}
-body[data-route="status"] main{width:min(100%,1180px);margin:0 auto;padding:clamp(16px,4vw,48px);}
-body[data-route="status"] .admin-performance-card{margin:0;}
