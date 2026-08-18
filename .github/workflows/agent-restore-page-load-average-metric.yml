@@ -98,7 +98,7 @@ jobs:
           test -f public/assets/favicon-1.8.18.7.ico
           test -f public/assets/pix-1.8.18.7.svg
           test ! -e public/assets/app-icon-1.8.18.6.png
-          git diff --exit-code --check
+          git diff --check
       - name: Commit canonical fix
         shell: bash
         run: |
