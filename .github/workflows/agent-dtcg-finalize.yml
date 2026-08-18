@@ -93,6 +93,7 @@ jobs:
         run: |
           set -euo pipefail
           php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/release-version
       - name: Validate DTCG and visual equivalence before commit
