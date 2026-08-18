@@ -26,29 +26,82 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Regenerate DTCG sources and source-integrity metadata
+      - name: Regenerate DTCG sources and ordered-slice integrity
         shell: bash
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
           node tools/design-tokens-build.mjs --write
           python3 <<'PY'
-          import hashlib, json
+          import base64, hashlib, json
           from pathlib import Path
+
           manifest_path = Path('app/Presentation/Styles/styles.manifest.json')
           manifest = json.loads(manifest_path.read_text())
+          bridge = json.loads(Path('design/tokens/css-bridge.json').read_text())
           root = Path('app/Presentation/Styles')
-          generated = {'tokens/clinic.css', 'tokens/material.css', 'tokens/semantic.css'}
+          target_to_rel = {
+              'clinic': 'tokens/clinic.css',
+              'material': 'tokens/material.css',
+              'semantic': 'tokens/semantic.css',
+          }
+          generated = set(target_to_rel.values())
+          source_bytes = {}
+
           for source in manifest.get('sources', []):
               rel = source.get('path')
               if rel not in generated:
                   continue
               data = (root / rel).read_bytes()
               text = data.decode('utf-8')
+              source_bytes[rel] = data
               source['sha256'] = hashlib.sha256(data).hexdigest()
               source['bytes'] = len(data)
               source['important_count'] = text.count('!important')
               source['route_scope_count'] = text.count('body[data-route=')
+
+          for target, rel in target_to_rel.items():
+              legacy = base64.b64decode(bridge['legacy'][target]['base64'])
+              data = source_bytes[rel]
+              if not data.startswith(legacy):
+                  raise SystemExit(f'legacy prefix changed for {rel}')
+              tail_segments = [s for s in manifest.get('sequence', []) if s.get('source') == rel and int(s.get('offset', -1)) >= len(legacy)]
+              if len(tail_segments) != 1:
+                  raise SystemExit(f'expected one generated tail segment for {rel}, got {len(tail_segments)}')
+              tail = data[len(legacy):]
+              if not tail:
+                  raise SystemExit(f'empty generated tail for {rel}')
+              segment = tail_segments[0]
+              segment['offset'] = len(legacy)
+              segment['bytes'] = len(tail)
+              segment['sha256'] = hashlib.sha256(tail).hexdigest()
+              text = tail.decode('utf-8')
+              segment['important_count'] = text.count('!important')
+              segment['route_scope_count'] = text.count('body[data-route=')
+
+          all_sources = {s['path']: (root / s['path']).read_bytes() for s in manifest.get('sources', [])}
+          built = bytearray()
+          next_offset = {path: 0 for path in all_sources}
+          for expected_order, segment in enumerate(manifest.get('sequence', []), start=1):
+              if int(segment.get('order', 0)) != expected_order:
+                  raise SystemExit('sequence order drift')
+              rel = segment['source']
+              offset = int(segment['offset'])
+              length = int(segment['bytes'])
+              if offset != next_offset[rel]:
+                  raise SystemExit(f'sequence coverage drift {rel}')
+              piece = all_sources[rel][offset:offset + length]
+              if len(piece) != length or hashlib.sha256(piece).hexdigest() != segment['sha256']:
+                  raise SystemExit(f'sequence integrity drift {rel}:{expected_order}')
+              built.extend(piece)
+              next_offset[rel] += length
+          for rel, data in all_sources.items():
+              if next_offset[rel] != len(data):
+                  raise SystemExit(f'uncovered bytes {rel}')
+
+          artifact = manifest.setdefault('artifact_contract', {})
+          artifact['sha256'] = hashlib.sha256(built).hexdigest()
+          artifact['bytes'] = len(built)
           manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=4) + '\n')
           PY
       - name: Rebuild published presentation artifact
