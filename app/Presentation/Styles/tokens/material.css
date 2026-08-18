@@ -89,13 +89,13 @@ body.public{--md-sys-color-primary:#2d6f55;--md-ref-palette-primary30:#1d583f;--
 
 
 
-body.scope-global{
+body:is(.scope-global){
   --pt-theme-accent:#238763;
   --pt-theme-accent-strong:#105e44;
   --pt-theme-on-accent:#ffffff;
 }
 
-body.public{
+body:is(.public){
   --pt-theme-accent:#2d6f55;
   --pt-theme-accent-strong:#1d583f;
   --pt-theme-on-accent:#ffffff;

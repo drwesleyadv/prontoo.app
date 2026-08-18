@@ -98,8 +98,8 @@
             "layer": "tokens",
             "responsibility": "material",
             "concern": "material",
-            "sha256": "43e92a50325d0e4db73431d4c967f0eac2a1b32404ba1eac784e8186f762e72d",
-            "bytes": 8021,
+            "sha256": "4cf7a30db750db7f7b04b66a6947788d66e13d5ef8377eddbd1d47fef1858d97",
+            "bytes": 8031,
             "important_count": 0,
             "route_scope_count": 0
         },
@@ -9966,8 +9966,8 @@
         {
             "source": "tokens/material.css",
             "offset": 5243,
-            "bytes": 2778,
-            "sha256": "26ebf4948e4e031adef66bb089e1ece6f3611dc857a5dc0e186a2a831e5af68c",
+            "bytes": 2788,
+            "sha256": "69f205dc9e47f8c2729a21c39e97f9f6bd904c07b095b14c45a276fff643364e",
             "important_count": 0,
             "route_scope_count": 0,
             "order": 1073
@@ -9983,8 +9983,8 @@
         }
     ],
     "artifact_contract": {
-        "sha256": "5f58ba89daae9e09ae77149fa8ad8100e195606fde88bbe9e805a8e7223406c2",
-        "bytes": 809486,
+        "sha256": "8ad27b1f738316c474b1b07ac2c7d82f1ffabbac4679d540ffca1cfaa71bf4f1",
+        "bytes": 809496,
         "lines": 15104,
         "deterministic_source_required": true
     },
