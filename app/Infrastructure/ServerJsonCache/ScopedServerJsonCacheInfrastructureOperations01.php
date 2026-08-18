@@ -218,7 +218,7 @@ final class ScopedServerJsonCacheInfrastructureOperations01
         $route = strtolower(trim($route));
         $act = strtolower(trim($act));
         $domains = match ($route) {
-            'appointments' => ['agenda', 'recepcao', 'dashboard'],
+            'appointments' => ['agenda', 'recepcao', 'financial', 'gavetas', 'dashboard'],
             'financial' => ['financial', 'gavetas', 'dashboard'],
             'patient', 'patients' => ['lookup', 'auxiliary', 'agenda', 'dashboard'],
             'leads' => ['lookup', 'auxiliary', 'dashboard'],
