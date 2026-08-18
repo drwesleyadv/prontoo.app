@@ -36,6 +36,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tools/agent-restore-page-load-average-metric.py')
+          text = path.read_text()
+          old = 'replace("design/styles/application.css", f"pix-{OLD_VERSION}.svg", f"pix-{NEW_VERSION}.svg")'
+          new = 'replace("design/styles/application.css", f"pix-{OLD_VERSION}.svg", f"pix-{NEW_VERSION}.svg", 2)'
+          if text.count(old) != 1:
+              raise SystemExit('PIX migration guard drift')
+          path.write_text(text.replace(old, new))
+          PY
           python3 tools/agent-restore-page-load-average-metric.py
           sed -i 's/1\.8\.18\.6/1.8.18.7/g' docs/index.md
           php tools/presentation-css-build --write
