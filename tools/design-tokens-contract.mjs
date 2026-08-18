@@ -2,29 +2,29 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 execFileSync(process.execPath, [path.join(root, 'tools/design-tokens-build.mjs'), '--check'], { stdio: 'inherit' });
 
 const tokenSources = [
   'design/tokens/reference.tokens.json',
   'design/tokens/system.tokens.json',
   'design/tokens/component.tokens.json',
-  'design/tokens/themes.tokens.json'
+  'design/tokens/themes.tokens.json',
+  'design/tokens/runtime.tokens.json'
 ];
-const bridgeFile = 'design/tokens/css-bridge.json';
-const required = [...tokenSources, bridgeFile];
-for (const file of required) {
-  if (!fs.existsSync(path.join(root, file))) throw new Error(`design token source missing ${file}`);
+const generatedFile = 'design/generated/tokens.css';
+const applicationFile = 'design/styles/application.css';
+for (const file of [...tokenSources, generatedFile, applicationFile]) {
+  if (!fs.existsSync(path.join(root, file))) throw new Error(`design source missing ${file}`);
 }
+if (fs.existsSync(path.join(root, 'app/Presentation/Styles'))) throw new Error('legacy presentation styles directory still exists');
+if (fs.existsSync(path.join(root, 'design/tokens/css-bridge.json'))) throw new Error('legacy css bridge still exists');
 
-const generatedTargets = {
-  clinic: 'app/Presentation/Styles/tokens/clinic.css',
-  material: 'app/Presentation/Styles/tokens/material.css',
-  semantic: 'app/Presentation/Styles/tokens/semantic.css'
-};
-const expectedByTarget = new Map(Object.keys(generatedTargets).map(target => [target, new Set()]));
+const expected = new Set();
+const allowedTargets = new Set(['clinic', 'material', 'semantic']);
 const collectTokens = value => {
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) {
@@ -32,69 +32,26 @@ const collectTokens = value => {
     return;
   }
   const meta = value.$extensions?.['com.prontoo'];
-  if (Object.hasOwn(value, '$value') && meta && typeof meta.cssName === 'string' && typeof meta.target === 'string') {
-    if (!expectedByTarget.has(meta.target)) throw new Error(`unknown DTCG target ${meta.target}:${meta.cssName}`);
+  if (Object.hasOwn(value, '$value') && meta && typeof meta.cssName === 'string') {
+    if (!allowedTargets.has(String(meta.target || ''))) throw new Error(`unknown DTCG target ${meta.target}:${meta.cssName}`);
     if (!/^--[a-z0-9-]+$/i.test(meta.cssName)) throw new Error(`invalid DTCG cssName ${meta.cssName}`);
-    expectedByTarget.get(meta.target).add(meta.cssName);
+    expected.add(meta.cssName);
   }
   for (const [key, child] of Object.entries(value)) {
     if (key !== '$extensions') collectTokens(child);
   }
 };
-for (const file of tokenSources) {
-  collectTokens(JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')));
-}
+for (const file of tokenSources) collectTokens(JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')));
 
-const bridge = JSON.parse(fs.readFileSync(path.join(root, bridgeFile), 'utf8'));
-if (bridge?.schema !== 'prontoo-design-token-css-bridge-v2' || bridge?.policy?.authored_css_is_not_source_of_truth !== true || !Array.isArray(bridge?.entries)) {
-  throw new Error('design token compatibility bridge policy invalid');
+const runtimeSource = fs.readFileSync(path.join(root, 'design/tokens/runtime.tokens.json'), 'utf8');
+if (/"base64"\s*:/.test(runtimeSource)) throw new Error('encoded legacy css payload is forbidden');
+const generated = fs.readFileSync(path.join(root, generatedFile), 'utf8');
+if (!generated.trim()) throw new Error('generated token artifact empty');
+for (const name of expected) {
+  if (!generated.includes(`${name}:`)) throw new Error(`generated token missing ${name}`);
 }
-for (const entry of bridge.entries) {
-  const target = String(entry?.target || '');
-  const name = String(entry?.name || '');
-  if (!expectedByTarget.has(target)) throw new Error(`unknown bridge target ${target}:${name}`);
-  if (!/^--[a-z0-9-]+$/i.test(name)) throw new Error(`invalid bridge cssName ${name}`);
-  expectedByTarget.get(target).add(name);
-}
-
-for (const [target, file] of Object.entries(generatedTargets)) {
-  const full = path.join(root, file);
-  if (!fs.existsSync(full)) throw new Error(`generated token artifact missing ${file}`);
-  const css = fs.readFileSync(full, 'utf8');
-  if (!css.trim()) throw new Error(`generated token artifact empty ${file}`);
-  for (const name of expectedByTarget.get(target)) {
-    if (!css.includes(`${name}:`)) throw new Error(`generated token missing ${target}:${name}`);
-  }
-}
-
-const authoredRoots = [
-  'app/Presentation/Styles/foundation',
-  'app/Presentation/Styles/primitives',
-  'app/Presentation/Styles/components',
-  'app/Presentation/Styles/patterns',
-  'app/Presentation/Styles/routes',
-  'app/Presentation/Styles/utilities',
-  'app/Presentation/Styles/states'
-];
-const forbiddenDefinitions = /(^|[;{]\s*)(--pt-(?:ref|sys|cmp)-[a-z0-9-]+)\s*:/gim;
-for (const relative of authoredRoots) {
-  const base = path.join(root, relative);
-  if (!fs.existsSync(base)) continue;
-  const stack = [base];
-  while (stack.length) {
-    const current = stack.pop();
-    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
-      const full = path.join(current, entry.name);
-      if (entry.isDirectory()) stack.push(full);
-      else if (entry.isFile() && entry.name.endsWith('.css')) {
-        const source = fs.readFileSync(full, 'utf8');
-        forbiddenDefinitions.lastIndex = 0;
-        const match = forbiddenDefinitions.exec(source);
-        if (match) throw new Error(`canonical token authored outside generator ${path.relative(root, full)}:${match[2]}`);
-      }
-    }
-  }
-}
+const application = fs.readFileSync(path.join(root, applicationFile), 'utf8');
+if (/(^|[;{]\s*)(--pt-(?:ref|sys|cmp)-[a-z0-9-]+)\s*:/im.test(application)) throw new Error('canonical token authored outside DTCG generator');
 
 const css = fs.readFileSync(path.join(root, 'public/assets/presentation.css'), 'utf8').replace(/^@import[^;]+;\s*/m, '');
 const themes = [
@@ -151,7 +108,7 @@ try {
         dangerBg: danger.backgroundColor
       };
     });
-    const expected = await page.evaluate(color => {
+    const expectedColor = await page.evaluate(color => {
       const probe = document.createElement('div');
       probe.style.color = color;
       document.body.appendChild(probe);
@@ -160,10 +117,10 @@ try {
       return value;
     }, theme.accent);
     for (const [key, value] of Object.entries({ accent: result.accent, pageheadComponent: result.pageheadComponent, pageheadAlias: result.pageheadAlias })) {
-      if (normalize(value) !== normalize(theme.accent)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent (${value} != ${theme.accent})`);
+      if (normalize(value) !== normalize(theme.accent)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent`);
     }
     for (const [key, value] of Object.entries({ navColor: result.navColor, pageheadIconColor: result.pageheadIconColor, statIconColor: result.statIconColor })) {
-      if (normalize(value) !== normalize(expected)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent (${value} != ${expected})`);
+      if (normalize(value) !== normalize(expectedColor)) throw new Error(`${theme.name}:${key} does not follow clinic runtime accent`);
     }
     const semantics = {
       okBg: normalize(result.okBg),
@@ -173,9 +130,7 @@ try {
     if (semanticBaseline === null) semanticBaseline = semantics;
     else {
       for (const [key, value] of Object.entries(semantics)) {
-        if (value !== semanticBaseline[key]) {
-          throw new Error(`${theme.name}: semantic ${key} changed with clinic accent (${semanticBaseline[key]} -> ${value})`);
-        }
+        if (value !== semanticBaseline[key]) throw new Error(`${theme.name}: semantic ${key} changed with clinic accent`);
       }
     }
     await context.close();
@@ -183,5 +138,4 @@ try {
 } finally {
   await browser.close();
 }
-const canonicalCount = [...expectedByTarget.values()].reduce((sum, names) => sum + names.size, 0);
-process.stdout.write(`design-tokens-contract: dtcg sources=${required.length} generated=${Object.keys(generatedTargets).length} mapped=${canonicalCount} themes=${themes.length} semantic-status=invariant runtime=clinic-config\n`);
+process.stdout.write(`design-tokens-contract: dtcg sources=${tokenSources.length} generated=1 mapped=${expected.size} themes=${themes.length} semantic-status=invariant legacy=0 runtime=clinic-config\n`);
