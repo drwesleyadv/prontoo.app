@@ -28,15 +28,11 @@ jobs:
           set -euo pipefail
           old='1.8.17.13'
           new='1.8.18.1'
-          for stem in app-icon favicon prontoo-mark; do
-            if [[ "$stem" == "favicon" ]]; then
-              cp "public/assets/${stem}-${old}.png" "public/assets/${stem}-${new}.png"
-              cp "public/assets/${stem}-${old}.ico" "public/assets/${stem}-${new}.ico"
-            else
-              cp "public/assets/${stem}-${old}.png" "public/assets/${stem}-${new}.png"
-            fi
-          done
+          cp "public/assets/app-icon-${old}.png" "public/assets/app-icon-${new}.png"
+          cp "public/assets/favicon-${old}.png" "public/assets/favicon-${new}.png"
+          cp "public/assets/favicon-${old}.ico" "public/assets/favicon-${new}.ico"
           cp "public/assets/pix-${old}.svg" "public/assets/pix-${new}.svg"
+          cp "public/assets/prontoo-mark-${old}.png" "public/assets/prontoo-mark-${new}.png"
           rm -f \
             "public/assets/app-icon-${old}.png" \
             "public/assets/favicon-${old}.ico" \
@@ -64,6 +60,7 @@ jobs:
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
+          git add -A
           php tools/version-asset-contract-check.php
           php tools/superseded-reference-contract-check
           php tools/php84-runtime-contract-check
