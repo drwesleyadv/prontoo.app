@@ -348,7 +348,10 @@ final class AdminPagesPresentationOperations01
                 ["admin_performance", "Métricas", "monitoring"],
                 ["admin_routes", "Rotas", "route"],
             ],
-            "admin_administration" => [["admin_administration", "Administração", "tune"]],
+            "admin_administration" => [
+                ["admin_maintenance", "Manutenção", "construction"],
+                ["admin_settings", "Configuração", "settings"],
+            ],
             default => [],
         };
     }
