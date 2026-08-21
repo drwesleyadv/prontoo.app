@@ -35,11 +35,17 @@ jobs:
         run: |
           set -euo pipefail
           npm ci --ignore-scripts
-          npm install --no-save --package-lock=false postcss@8.5.6 postcss-selector-parser@7.1.0
+          npm install --no-save --package-lock=false postcss@8.5.6 postcss-selector-parser@7.1.0 postcss-safe-parser@7.0.1
       - name: Migrate to the single canonical architecture
         shell: bash
         run: |
           set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import safeParser from 'postcss-safe-parser';
+          const file = 'design/styles/application.css';
+          fs.writeFileSync(file, safeParser(fs.readFileSync(file, 'utf8')).toString());
+          NODE
           node tools/dtcg-pure-migrate.mjs
           node tools/dtcg-pure-finalize.mjs
           rm -f tools/dtcg-pure-migrate.mjs tools/dtcg-pure-finalize.mjs .github/workflows/dtcg-pure-migration.yml
