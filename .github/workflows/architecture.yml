@@ -70,22 +70,24 @@ jobs:
               raise SystemExit('canonical Avisos CSS marker missing')
           head, tail = css.split(marker, 1)
           canonical = marker + tail
+          rule_pattern = re.compile(r'([^{}]+)\{([^{}]*)\}')
 
-          canonical_selectors = []
-          for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', canonical):
-              selector = match.group(1).strip()
+          def normalize(selector: str) -> str:
+              return re.sub(r'\s+', ' ', selector.strip())
+
+          canonical_selectors = set()
+          for match in rule_pattern.finditer(canonical):
+              selector = normalize(match.group(1))
               if selector and not selector.startswith('@') and 'notice' in selector:
-                  canonical_selectors.append(selector)
+                  canonical_selectors.add(selector)
 
-          for selector in dict.fromkeys(canonical_selectors):
-              needle = selector + '{'
-              while needle in head:
-                  start = head.find(needle)
-                  end = head.find('}', start)
-                  if end < 0:
-                      raise SystemExit(f'unclosed legacy selector: {selector}')
-                  head = head[:start] + head[end + 1:]
+          def remove_superseded_notice_rule(match):
+              selector = normalize(match.group(1))
+              if selector in canonical_selectors and 'notice' in selector:
+                  return ''
+              return match.group(0)
 
+          head = rule_pattern.sub(remove_superseded_notice_rule, head)
           css = head + canonical
 
           def dedupe_notice_selector_list(match):
@@ -93,7 +95,7 @@ jobs:
               selector = raw.strip()
               if selector.startswith('@') or 'notice' not in selector or ',' not in selector:
                   return raw + '{'
-              items = [item.strip() for item in selector.split(',')]
+              items = [normalize(item) for item in selector.split(',')]
               unique = []
               for item in items:
                   if item and item not in unique:
