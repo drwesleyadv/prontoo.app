@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "policy": "prontoo-design-system-normative-v1",
+  "standards": {
+    "tokens": "DTCG 2025.10",
+    "resolver": "DTCG Resolver Module 2025.10",
+    "accessibility": "WCAG 2.2 AA",
+    "widget_patterns": "WAI-ARIA APG"
+  },
+  "sources": {
+    "tokens": "design/tokens",
+    "resolver": "design/resolvers/application.resolver.json",
+    "cssBindings": "design/platform/css.bindings.json",
+    "legacyBehavior": "design/styles/application.css",
+    "modernBehavior": "design/styles/standards.css",
+    "components": "design/components"
+  },
+  "cascadeLayers": [
+    "ds-foundation",
+    "ds-primitives",
+    "ds-components",
+    "ds-composition"
+  ],
+  "states": [
+    "default",
+    "hover",
+    "focus-visible",
+    "active",
+    "selected",
+    "disabled",
+    "readonly",
+    "invalid",
+    "loading"
+  ],
+  "lifecycle": [
+    "experimental",
+    "stable",
+    "deprecated",
+    "removed"
+  ],
+  "visualLiteralPolicy": {
+    "canonical": "tokens-only",
+    "modernCssAllows": [
+      "0",
+      "100%",
+      "1fr",
+      "CSS system colors",
+      "container query thresholds"
+    ],
+    "legacyCss": "ratchet-only"
+  },
+  "userPreferences": [
+    "prefers-reduced-motion",
+    "forced-colors"
+  ],
+  "responsivePolicy": "component-first-container-queries",
+  "removedAliases": [
+    "ds-collaborator-row-v31",
+    "procedure-kpis-refined",
+    "notice-gmail-",
+    "notice-minimal-",
+    "agenda-route-legacy",
+    "agenda-route-retired"
+  ]
+}
