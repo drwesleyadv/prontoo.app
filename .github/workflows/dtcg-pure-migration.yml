@@ -1,0 +1,112 @@
+name: DTCG Pure Design System Migration
+
+on:
+  push:
+    branches:
+      - agent/dtcg-pure-design-system
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: agent/dtcg-pure-design-system
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Install migration parser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm install --no-save --package-lock=false postcss@8.5.6 postcss-selector-parser@7.1.0
+      - name: Migrate to the single canonical architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/dtcg-pure-migrate.mjs
+          node tools/dtcg-pure-finalize.mjs
+          rm -f tools/dtcg-pure-migrate.mjs tools/dtcg-pure-finalize.mjs .github/workflows/dtcg-pure-migration.yml
+      - name: Build deterministic DTCG artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/design-tokens-build.mjs --write
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/version-asset-contract-check.php
+      - name: Install browser contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+      - name: Verify zero design debt and UX equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/design-system-purity-contract.mjs
+          node tools/design-tokens-contract.mjs
+          node tools/design-system-contract.mjs
+          node tools/design-system-a11y-contract.mjs
+          node tools/design-system-visual-contract.mjs --check
+          node tools/presentation-ux-contract.mjs --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/quality-gate --fast
+      - name: Verify canonical tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e design/styles/application.css
+          test ! -e design/styles/standards.css
+          test ! -e app/Presentation/Styles
+          test ! -e design/tokens/css-bridge.json
+          test ! -e public/assets/app-icon-1.8.21.1.png
+          test ! -e public/assets/favicon-1.8.21.1.ico
+          test ! -e public/assets/favicon-1.8.21.1.png
+          test ! -e public/assets/pix-1.8.21.1.svg
+          test ! -e public/assets/prontoo-mark-1.8.21.1.png
+          git diff --check
+      - name: Commit canonical Design System
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              design/*|docs/*|app/*|public/*|tools/*|AGENTS.md|version.json|CHANGELOG.md|.github/workflows/*)
+                if [[ -e "$file" ]]; then git add -- "$file"; else git add -u -- "$file"; fi
+                ;;
+              *) echo "unexpected changed path: $file" >&2; exit 1 ;;
+            esac
+          done < <(git diff --name-only -z)
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              design/*|docs/*|app/*|public/*|tools/*|AGENTS.md|version.json|CHANGELOG.md|.github/workflows/*) git add -- "$file" ;;
+              *) echo "unexpected untracked path: $file" >&2; exit 1 ;;
+            esac
+          done < <(git ls-files --others --exclude-standard -z)
+          git diff --cached --check
+          git status --short
+          git commit -m "Consolida Design System DTCG puro e publica 1.8.21.2"
+          git push origin HEAD:agent/dtcg-pure-design-system
