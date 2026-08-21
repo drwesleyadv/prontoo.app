@@ -24,10 +24,25 @@ try {
   }
   const targets = await page.locator('a,button:not([disabled]),[role="button"],[tabindex]:not([tabindex="-1"])').evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
-    return { tag: node.tagName, width: rect.width, height: rect.height, text: (node.textContent || '').trim().slice(0, 40) };
+    const style = getComputedStyle(node);
+    return {
+      tag: node.tagName,
+      width: rect.width,
+      height: rect.height,
+      text: (node.textContent || '').trim().slice(0, 40),
+      className: String(node.className || ''),
+      display: style.display,
+      boxSizing: style.boxSizing,
+      minBlockSize: style.minBlockSize,
+      minInlineSize: style.minInlineSize,
+      minHeight: style.minHeight,
+      minWidth: style.minWidth,
+      lineHeight: style.lineHeight,
+      touchToken: style.getPropertyValue('--pt-sys-touch-minimum').trim()
+    };
   }));
   for (const target of targets) {
-    if (target.width < 24 || target.height < 24) throw new Error(`WCAG 2.2 target-size ${target.tag}:${target.text}:${target.width}x${target.height}`);
+    if (target.width < 24 || target.height < 24) throw new Error(`WCAG 2.2 target-size ${JSON.stringify(target)}`);
   }
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   await page.locator('.ds-filter-chip[aria-current="page"]').focus();
