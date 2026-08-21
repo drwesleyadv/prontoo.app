@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/design-system-2026-modernization
+  pull_request:
+    branches:
+      - prontoo
 
 permissions:
   contents: write
