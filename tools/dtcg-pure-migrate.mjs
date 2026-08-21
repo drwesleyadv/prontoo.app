@@ -96,35 +96,80 @@ bindingsDoc.bindings = Object.fromEntries(Object.entries(newBindings).sort(([a],
 write('design/tokens/runtime.tokens.json', jsonOut(newRuntime));
 write('design/platform/css.bindings.json', jsonOut(bindingsDoc));
 
-// 3. Parse presentation CSS and convert historical route scoping into component/composition selectors.
-const stripRoute = selector => {
-  try {
-    return selectorParser(selectors => {
-      selectors.each(sel => {
-        sel.walkAttributes(attr => {
-          if (String(attr.attribute).toLowerCase() !== 'data-route') return;
-          const prev = attr.prev();
-          attr.remove();
-          if (prev?.type === 'tag' && prev.value.toLowerCase() === 'body') prev.remove();
-        });
-        while (sel.first?.type === 'combinator') sel.first.remove();
-      });
-    }).processSync(selector).trim();
-  } catch {
-    return selector
-      .replace(/body(?:\.[a-zA-Z0-9_-]+)*\[data-route(?:[^\]]*)\]\s*/g,'')
-      .replace(/^\s*[>+~]\s*/,'')
-      .trim();
-  }
-};
-
+// 3. Parse presentation CSS and replace route-conditioned selectors with
+// semantic composition guards derived from component classes present in the DOM.
+// A route selector must never be globalized: body[data-route="appointments"] main
+// becomes body:has(:is(.agenda-...)) main, not plain main.
 const appBody = replaceCustomProps(applicationRaw.startsWith(fontImport) ? applicationRaw.slice(fontImport.length).replace(/^\s+/,'') : applicationRaw);
 const standardsBody = replaceCustomProps(standardsRaw);
 const appRoot = postcss.parse(appBody);
 const standardsRoot = postcss.parse(standardsBody);
 
-appRoot.walkRules(rule => { rule.selector = stripRoute(rule.selector); if (!rule.selector) rule.remove(); });
-standardsRoot.walkRules(rule => { rule.selector = stripRoute(rule.selector); if (!rule.selector) rule.remove(); });
+const genericScopeClasses = new Set([
+  'active','is-active','selected','is-selected','open','is-open','disabled','is-disabled','readonly','is-read-only',
+  'public','scope-global','scope-clinic','compact','mobile','desktop','primary','secondary','danger','ghost','card','panel',
+  'muted','hidden','visible','loading','invalid','valid','current','checked','expanded','collapsed','material-symbols-rounded'
+]);
+const routeClassFrequency = new Map();
+const classRoutes = new Map();
+const selectorProcessor = selectorParser();
+const routeValueFromAttr = attr => String(attr.value || '').replace(/^['"]|['"]$/g,'').trim();
+const inspectSelector = selector => {
+  const ast = selectorProcessor.astSync(selector);
+  ast.each(sel => {
+    let route = '';
+    sel.walkAttributes(attr => {
+      if (String(attr.attribute).toLowerCase() === 'data-route') route = routeValueFromAttr(attr);
+    });
+    if (!route) return;
+    if (!routeClassFrequency.has(route)) routeClassFrequency.set(route,new Map());
+    const frequencies = routeClassFrequency.get(route);
+    sel.walkClasses(cls => {
+      const name = String(cls.value || '').trim();
+      if (!name || genericScopeClasses.has(name)) return;
+      frequencies.set(name,(frequencies.get(name)||0)+1);
+      if (!classRoutes.has(name)) classRoutes.set(name,new Set());
+      classRoutes.get(name).add(route);
+    });
+  });
+};
+appRoot.walkRules(rule => inspectSelector(rule.selector));
+
+const routeAnchors = new Map();
+for (const [route, frequencies] of routeClassFrequency) {
+  const candidates = [...frequencies.entries()]
+    .filter(([name]) => classRoutes.get(name)?.size === 1)
+    .sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]))
+    .slice(0,16)
+    .map(([name]) => name);
+  if (!candidates.length) throw new Error(`no semantic component anchor for historical route scope ${route}`);
+  routeAnchors.set(route,candidates);
+}
+
+const semanticScope = selector => selectorProcessor.processSync(selector, {
+  updateSelector: true,
+  lossless: true,
+  processor: selectors => selectors.each(sel => {
+    sel.walkAttributes(attr => {
+      if (String(attr.attribute).toLowerCase() !== 'data-route') return;
+      const route = routeValueFromAttr(attr);
+      const anchors = routeAnchors.get(route);
+      if (!anchors?.length) throw new Error(`missing semantic anchors for ${route}`);
+      const pseudoSelector = `:has(:is(${anchors.map(name=>`.${name}`).join(',')}))`;
+      const pseudo = selectorParser().astSync(pseudoSelector).first.first.clone();
+      attr.replaceWith(pseudo);
+    });
+  })
+});
+
+appRoot.walkRules(rule => {
+  if (rule.selector.includes('data-route')) rule.selector = semanticScope(rule.selector);
+  if (rule.selector.includes('data-route')) throw new Error(`route selector survived semantic migration: ${rule.selector}`);
+});
+standardsRoot.walkRules(rule => {
+  if (rule.selector.includes('data-route')) rule.selector = semanticScope(rule.selector);
+  if (rule.selector.includes('data-route')) throw new Error(`route selector survived semantic migration: ${rule.selector}`);
+});
 
 // 4. DTCG owns every reusable visual literal. Structural CSS remains CSS.
 const visualTokens = {};
@@ -311,13 +356,11 @@ for (const [prefix,ext] of [['app-icon','png'],['favicon','ico'],['favicon','png
   const from=path.join(root,`public/assets/${prefix}-${oldVersion}.${ext}`); const to=path.join(root,`public/assets/${prefix}-${release}.${ext}`);
   if (fs.existsSync(from)) fs.renameSync(from,to);
 }
-// Any versioned asset references in active text.
 replaceInTree(path.join(root,'app')); replaceInTree(path.join(root,'public')); replaceInTree(path.join(root,'tests')); replaceInTree(path.join(root,'tools'));
 for (const base of ['design/styles/foundation.css','design/styles/primitives.css','design/styles/components.css','design/styles/composition.css','design/styles/precedence.css']) {
   let s=read(base).split(oldVersion).join(release); write(base,s);
 }
 
-// Remove obsolete sources and the migration machinery itself before final commit.
 for (const p of ['design/styles/application.css','design/styles/standards.css']) { const f=path.join(root,p); if (fs.existsSync(f)) fs.rmSync(f); }
 
-process.stdout.write(JSON.stringify({ok:true,release,visualTokens:Object.keys(visualTokens).length,runtimeProperties:Object.keys(newRuntime.runtime.properties).length,customPropertyAliases:cssNameMap.size,layers:layerNames},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,visualTokens:Object.keys(visualTokens).length,runtimeProperties:Object.keys(newRuntime.runtime.properties).length,customPropertyAliases:cssNameMap.size,semanticRouteContexts:routeAnchors.size,layers:layerNames},null,2)+'\n');
