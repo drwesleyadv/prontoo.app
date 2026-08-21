@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import postcss from 'postcss';
@@ -6,6 +7,7 @@ import postcss from 'postcss';
 const root=process.cwd();
 const release='1.8.21.2';
 const old='1.8.21.1';
+const sha=value=>crypto.createHash('sha256').update(value).digest('hex').slice(0,12);
 const kebab=v=>String(v).replace(/([a-z0-9])([A-Z])/g,'$1-$2').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase();
 const canonical=name=>{
   if(name.startsWith('--pt-ref-material-'))return '--pt-ref-'+kebab(name.slice(18));
@@ -51,10 +53,6 @@ for(const meta of Object.values(bindingDoc.bindings||{})){
 bindingDoc.policy='css-platform-bindings-dtcg-native-v2';
 fs.writeFileSync(bindingPath,JSON.stringify(bindingDoc,null,2)+'\n');
 
-// The PIX mask is a platform asset binding, not a design value. The historical
-// source carried it in application.css; materialize exactly one canonical rule
-// in ds-components so the release asset remains observable without route scope,
-// !important, or a compatibility alias.
 const canonicalLayerNames=['foundation','primitives','components','composition','precedence'];
 for(const name of canonicalLayerNames){
   const file=path.join(root,`design/styles/${name}.css`);
@@ -72,6 +70,36 @@ pixRule.append({prop:'-webkit-mask',value:`url("/public/assets/pix-${release}.sv
 pixRule.append({prop:'mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
 componentLayer.append(pixRule);
 fs.writeFileSync(componentFile,componentAst.toString());
+
+// Complete the migration for literals embedded in layout/composite functions
+// (for example minmax(175px,1fr) or color-mix(...,#fff)). Every remaining
+// color or dimension becomes a DTCG presentation token before compilation.
+const presentationPath=path.join(root,'design/tokens/presentation.tokens.json');
+const presentationDoc=JSON.parse(fs.readFileSync(presentationPath,'utf8'));
+presentationDoc.presentation= presentationDoc.presentation && typeof presentationDoc.presentation==='object' ? presentationDoc.presentation : {};
+const rawVisualLiteral=/(?:#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|rem|em|vh|vw|vmin|vmax|ch|ex|ms|s|deg)\b)/i;
+let promotedVisualLiterals=0;
+for(const name of canonicalLayerNames){
+  const file=path.join(root,`design/styles/${name}.css`);
+  const ast=postcss.parse(fs.readFileSync(file,'utf8'));
+  ast.walkDecls(decl=>{
+    if(!rawVisualLiteral.test(decl.value))return;
+    const signature=`${decl.prop}\u0000${decl.value}`;
+    const key=`${kebab(decl.prop.replace(/^--/,''))||'value'}-${sha(signature)}`;
+    if(!presentationDoc.presentation[key]){
+      presentationDoc.presentation[key]={
+        '$type':'string',
+        '$value':decl.value,
+        '$description':`Valor visual canônico para ${decl.prop}.`
+      };
+    }
+    decl.value=`var(--pt-presentation-${key})`;
+    decl.important=false;
+    promotedVisualLiterals++;
+  });
+  fs.writeFileSync(file,ast.toString());
+}
+fs.writeFileSync(presentationPath,JSON.stringify(presentationDoc,null,2)+'\n');
 
 const agents=path.join(root,'AGENTS.md');
 let a=fs.readFileSync(agents,'utf8');
@@ -95,4 +123,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,pixMaskBinding:1,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,pixMaskBinding:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
