@@ -52,6 +52,38 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
+      - name: Diagnose CSS duplicate headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          import subprocess
+          from collections import Counter
+
+          def selector_counts(css: str) -> Counter:
+              counts = Counter()
+              for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', css):
+                  selector = re.sub(r'\s+', ' ', match.group(1).strip())
+                  if selector and not selector.startswith('@'):
+                      counts[selector] += 1
+              return counts
+
+          current = open('public/assets/presentation.css', encoding='utf-8').read()
+          base = subprocess.check_output(
+              ['git', 'show', 'origin/prontoo:public/assets/presentation.css'],
+              text=True,
+          )
+          current_counts = selector_counts(current)
+          base_counts = selector_counts(base)
+          current_dup = sum(1 for count in current_counts.values() if count > 1)
+          base_dup = sum(1 for count in base_counts.values() if count > 1)
+          print(f'duplicate_selector_headers current={current_dup} base={base_dup}')
+          for selector, count in sorted(current_counts.items()):
+              base_count = base_counts.get(selector, 0)
+              if count > 1 and (base_count <= 1 or count > base_count):
+                  print(f'NEW_DUP current={count} base={base_count} :: {selector}')
+          PY
       - name: Engineering quality gate
         shell: bash
         run: |
