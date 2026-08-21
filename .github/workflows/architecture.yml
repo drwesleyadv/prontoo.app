@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -44,7 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: agent/avisos-design-system-consolidation
           fetch-depth: 0
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -53,47 +52,6 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Finalize Design System consolidation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/temp-finalize-design-system.py
-          sed -i 's/[[:blank:]]*$//' design/styles/application.css
-          sed -i '/Avisos — Design System canônico/d' design/styles/application.css
-          rm tools/temp-finalize-design-system.py
-          git checkout origin/prontoo -- .github/workflows/architecture.yml
-          php tools/presentation-css-build --write
-          php tools/presentation-css-build --check
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --check
-          if grep -R -n -E 'ds-collaborator-row-v31|procedure-kpis-refined|notice-gmail-|notice-minimal-|notice-form-refined|notice-filter-chips|agenda-route-(dialog|overlay|backdrop)-retired' app public design/styles/application.css; then
-            echo 'Legacy Design System token remains.' >&2
-            exit 1
-          fi
-          git diff --check
-          php tools/quality-gate
-          php tools/schema-check.php
-          php tools/mysql-query-budget-check
-          php tools/install-security-check.php
-          php tools/install-window-contract-check
-          php tools/login-post-password-runtime-check
-          bash tools/login-logout-http-smoke
-          php tools/maestro-runtime-regression-check
-          php tools/critical-runtime-smoke-check
-          bash tools/http-runtime-smoke-check
-          changed="$({ git diff --name-only; git diff --cached --name-only; } | sort -u)"
-          while IFS= read -r path; do
-            [ -z "$path" ] && continue
-            case "$path" in
-              .github/workflows/architecture.yml|.github/workflows/documentation.yml|app/Infrastructure/Operational/TasksNoticesSqlCatalog06.php|app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php|app/Runtime/AuditActivity/AuditActivityRuntimeOperations05.php|app/Runtime/Documents/DocumentsRuntimeOperations06.php|app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php|app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php|app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php|app/architecture.manifest.json|app/prontoo.php|app/update.manifest.json|br/index.php|CHANGELOG.md|design/styles/application.css|public/assets/app.js|public/assets/presentation.css|tools/temp-finalize-design-system.py) ;;
-              *) echo "Unexpected changed file: $path" >&2; exit 1 ;;
-            esac
-          done <<< "$changed"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Consolida Design System sem estilos legados'
-          git push origin HEAD:agent/avisos-design-system-consolidation
       - name: Engineering quality gate
         shell: bash
         run: |
