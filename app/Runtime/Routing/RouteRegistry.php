@@ -46,7 +46,7 @@ final class RouteRegistry
         'document_print' => [\Prontoo\Runtime\Documents\DocumentsRuntimeOperations03::class, 'page_document_print', false, false, [], ['patients', 'financial']],
         'document_pdf' => [\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::class, 'page_document_pdf', false, false, [], ['patients', 'financial']],
         'document_pdf_file' => [\Prontoo\Runtime\DocumentPdf\DocumentPdfRuntimeOperations01::class, 'page_document_pdf_file', false, false, [], ['patients', 'financial']],
-        'notices' => [\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations06::class, 'page_notices', false, false, [], []],
+        'notices' => [\Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations05::class, 'page_notices', false, false, [], []],
         'users' => [\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations04::class, 'page_users', false, false, [], []],
         'user' => [\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations05::class, 'page_user', false, false, [], []],
         'permissions' => [\Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations05::class, 'page_permissions', false, false, [], []],
