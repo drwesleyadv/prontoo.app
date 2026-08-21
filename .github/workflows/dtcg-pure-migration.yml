@@ -114,6 +114,7 @@ jobs:
         run: |
           set -euo pipefail
           node tools/design-tokens-build.mjs --write
+          grep -n -C 1 -F '!important' design/styles/composition.css || true
           php tools/presentation-css-build --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
