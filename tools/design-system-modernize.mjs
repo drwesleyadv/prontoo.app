@@ -48,6 +48,13 @@ fs.writeFileSync(bindingPath, JSON.stringify({
   bindings: orderedBindings
 }, null, 2) + '\n');
 
+const applicationPath = path.join(root, 'design/styles/application.css');
+let application = fs.readFileSync(applicationPath, 'utf8');
+const selectionChipNeedle = 'min-height:var(--ds-selection-chip-height)!important;';
+if (!application.includes(selectionChipNeedle)) throw new Error('selection chip legacy ratchet marker missing');
+application = application.replace(selectionChipNeedle, 'min-height:var(--ds-selection-chip-height,36px)!important;');
+fs.writeFileSync(applicationPath, application);
+
 const release = '1.8.21.1';
 const timestamp = '2026-08-21T16:14:00-04:00';
 const versionPath = path.join(root, 'version.json');
@@ -101,4 +108,4 @@ let docsIndex = fs.readFileSync(docsIndexPath, 'utf8');
 docsIndex = docsIndex.replace(/`1\.8\.18\.7`/g, '`1.8.21.1`');
 fs.writeFileSync(docsIndexPath, docsIndex);
 
-process.stdout.write(`design-system-modernize: tokens=${files.length} bindings=${Object.keys(orderedBindings).length} release=${release}\n`);
+process.stdout.write(`design-system-modernize: tokens=${files.length} bindings=${Object.keys(orderedBindings).length} release=${release} legacy-ratchet=1\n`);
