@@ -138,20 +138,66 @@ jobs:
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           import postcss from 'postcss';
-          const files = ['foundation','primitives','components','composition','precedence'];
-          let removed = 0;
-          for (const name of files) {
+          const names = ['foundation','primitives','components','composition','precedence'];
+          const roots = new Map(names.map(name => {
             const file = `design/styles/${name}.css`;
-            const root = postcss.parse(fs.readFileSync(file,'utf8'));
+            return [name, postcss.parse(fs.readFileSync(file, 'utf8'))];
+          }));
+          const precedenceRoot = roots.get('precedence');
+          const precedenceLayer = precedenceRoot.nodes.find(node => node.type === 'atrule' && node.name === 'layer' && node.params.trim() === 'ds-precedence');
+          if (!precedenceLayer) throw new Error('ds-precedence layer missing');
+          const contextKey = at => `${at.name}\u0000${at.params}`;
+          const appendPrecedence = (rule, ancestors, declarations) => {
+            let target = precedenceLayer;
+            for (const at of ancestors) {
+              let child = target.nodes?.find(node => node.type === 'atrule' && contextKey(node) === contextKey(at));
+              if (!child) {
+                child = at.clone({nodes: []});
+                target.append(child);
+              }
+              target = child;
+            }
+            let targetRule = target.nodes?.find(node => node.type === 'rule' && node.selector === rule.selector);
+            if (!targetRule) {
+              targetRule = postcss.rule({selector: rule.selector});
+              target.append(targetRule);
+            }
+            for (const declaration of declarations) targetRule.append(declaration.clone({important: false}));
+          };
+          let promoted = 0;
+          let orphanRemoved = 0;
+          for (const name of names) {
+            const root = roots.get(name);
             root.walkDecls(decl => {
               if (decl.parent?.type === 'atrule' && decl.parent.name === 'layer') {
                 decl.remove();
-                removed++;
+                orphanRemoved++;
               }
             });
-            fs.writeFileSync(file, root.toString());
+            if (name === 'precedence') continue;
+            const rules = [];
+            root.walkRules(rule => rules.push(rule));
+            for (const rule of rules) {
+              if (!rule.parent) continue;
+              const important = (rule.nodes || []).filter(node => node.type === 'decl' && node.important);
+              if (!important.length) continue;
+              const ancestors = [];
+              let parent = rule.parent;
+              while (parent && !(parent.type === 'atrule' && parent.name === 'layer')) {
+                if (parent.type === 'atrule') ancestors.unshift(parent);
+                parent = parent.parent;
+              }
+              appendPrecedence(rule, ancestors, important);
+              for (const declaration of important) declaration.remove();
+              if ((rule.nodes || []).length === 0) rule.remove();
+              promoted += important.length;
+            }
+            const leftovers = [];
+            root.walkDecls(decl => { if (decl.important) leftovers.push(`${decl.prop}:${decl.value}`); });
+            if (leftovers.length) throw new Error(`unpromoted important declarations in ${name}: ${leftovers.join(',')}`);
           }
-          process.stdout.write(`orphan-layer-declarations-removed=${removed}\n`);
+          for (const [name, root] of roots) fs.writeFileSync(`design/styles/${name}.css`, root.toString());
+          process.stdout.write(`precedence-promoted=${promoted} orphan-layer-declarations-removed=${orphanRemoved}\n`);
           NODE
           rm -f tools/dtcg-pure-migrate.mjs tools/dtcg-pure-finalize.mjs .github/workflows/dtcg-pure-migration.yml
       - name: Build deterministic DTCG artifacts
