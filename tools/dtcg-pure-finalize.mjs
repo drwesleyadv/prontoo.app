@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import postcss from 'postcss';
 
 const root=process.cwd();
 const release='1.8.21.2';
@@ -29,9 +30,6 @@ for(const file of files){const s=fs.readFileSync(file,'utf8');for(const m of s.m
 const mapping=[...nameSet].map(n=>[n,canonical(n)]).filter(([a,b])=>a!==b).sort((a,b)=>b[0].length-a[0].length);
 for(const file of files){let s=fs.readFileSync(file,'utf8');let next=s;for(const [from,to]of mapping)next=next.split(from).join(to);if(next!==s)fs.writeFileSync(file,next);}
 
-// Asset references are design values once captured by DTCG. Promote the release
-// only inside the canonical design tree so historical release records elsewhere
-// remain intact while generated CSS resolves the current versioned asset.
 const designRoot=path.join(root,'design')+path.sep;
 let promotedDesignAssetRefs=0;
 for(const file of files){
@@ -52,6 +50,28 @@ for(const meta of Object.values(bindingDoc.bindings||{})){
 }
 bindingDoc.policy='css-platform-bindings-dtcg-native-v2';
 fs.writeFileSync(bindingPath,JSON.stringify(bindingDoc,null,2)+'\n');
+
+// The PIX mask is a platform asset binding, not a design value. The historical
+// source carried it in application.css; materialize exactly one canonical rule
+// in ds-components so the release asset remains observable without route scope,
+// !important, or a compatibility alias.
+const canonicalLayerNames=['foundation','primitives','components','composition','precedence'];
+for(const name of canonicalLayerNames){
+  const file=path.join(root,`design/styles/${name}.css`);
+  const ast=postcss.parse(fs.readFileSync(file,'utf8'));
+  ast.walkRules(rule=>{if(rule.selector.trim()==='.pix-brand-mask')rule.remove();});
+  fs.writeFileSync(file,ast.toString());
+}
+const componentFile=path.join(root,'design/styles/components.css');
+const componentAst=postcss.parse(fs.readFileSync(componentFile,'utf8'));
+const componentLayer=componentAst.nodes.find(node=>node.type==='atrule'&&node.name==='layer'&&node.params.trim()==='ds-components');
+if(!componentLayer)throw new Error('canonical ds-components layer missing');
+const pixRule=postcss.rule({selector:'.pix-brand-mask'});
+pixRule.append({prop:'background',value:'currentColor'});
+pixRule.append({prop:'-webkit-mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
+pixRule.append({prop:'mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
+componentLayer.append(pixRule);
+fs.writeFileSync(componentFile,componentAst.toString());
 
 const agents=path.join(root,'AGENTS.md');
 let a=fs.readFileSync(agents,'utf8');
@@ -75,4 +95,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,pixMaskBinding:1,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
