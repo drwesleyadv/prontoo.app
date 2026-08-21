@@ -105,6 +105,8 @@ jobs:
           cat >> design/styles/application.css <<'CSS'
           body[data-route="settings"] .settings-ds-screen{}
           body[data-route="procedures"] .procedures-ds-screen{}
+          body[data-route="profile"] .account-profile-grid{}
+          body.public[data-route="mfa"] .security-auth-card{}
           CSS
           node tools/dtcg-pure-migrate.mjs
           node tools/dtcg-pure-finalize.mjs
