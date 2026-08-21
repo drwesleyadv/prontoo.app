@@ -64,13 +64,9 @@ jobs:
             }
             if (quote !== null) {
               output += char;
-              if (escaped) {
-                escaped = false;
-              } else if (char === '\\') {
-                escaped = true;
-              } else if (char === quote) {
-                quote = null;
-              }
+              if (escaped) escaped = false;
+              else if (char === '\\') escaped = true;
+              else if (char === quote) quote = null;
               continue;
             }
             if (char === '/' && next === '*') {
@@ -108,13 +104,30 @@ jobs:
           NODE
           node tools/dtcg-pure-migrate.mjs
           node tools/dtcg-pure-finalize.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import postcss from 'postcss';
+          const files = ['foundation','primitives','components','composition','precedence'];
+          let removed = 0;
+          for (const name of files) {
+            const file = `design/styles/${name}.css`;
+            const root = postcss.parse(fs.readFileSync(file,'utf8'));
+            root.walkDecls(decl => {
+              if (decl.parent?.type === 'atrule' && decl.parent.name === 'layer') {
+                decl.remove();
+                removed++;
+              }
+            });
+            fs.writeFileSync(file, root.toString());
+          }
+          process.stdout.write(`orphan-layer-declarations-removed=${removed}\n`);
+          NODE
           rm -f tools/dtcg-pure-migrate.mjs tools/dtcg-pure-finalize.mjs .github/workflows/dtcg-pure-migration.yml
       - name: Build deterministic DTCG artifacts
         shell: bash
         run: |
           set -euo pipefail
           node tools/design-tokens-build.mjs --write
-          grep -n -C 1 -F '!important' design/styles/composition.css || true
           php tools/presentation-css-build --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --write
