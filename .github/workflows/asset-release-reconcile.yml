@@ -40,7 +40,7 @@ jobs:
           php -r '$p="version.json"; $j=json_decode((string)file_get_contents($p),true,512,JSON_THROW_ON_ERROR); $j["asset_version"]="1.8.21.1"; file_put_contents($p,json_encode($j,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL);'
           perl -0pi -e 's/PRONTOO_ASSET_REV_FALLBACK = "1\.8\.18\.7"/PRONTOO_ASSET_REV_FALLBACK = "1.8.21.1"/g' app/prontoo.php
           perl -0pi -e 's/pix-1\.8\.18\.7\.svg/pix-1.8.21.1.svg/g' design/styles/application.css
-          rm -f .github/workflows/asset-release-reconcile.yml
+          git rm -f .github/workflows/asset-release-reconcile.yml
       - name: Rebuild deterministic artifacts
         shell: bash
         run: |
@@ -57,7 +57,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- \
-            .github/workflows/asset-release-reconcile.yml \
             .github/workflows/architecture.yml \
             .github/workflows/documentation.yml \
             CHANGELOG.md \
@@ -66,16 +65,6 @@ jobs:
             app/prontoo.php \
             br/index.php \
             design/styles/application.css \
-            public/assets/app-icon-1.8.18.7.png \
-            public/assets/app-icon-1.8.21.1.png \
-            public/assets/favicon-1.8.18.7.ico \
-            public/assets/favicon-1.8.21.1.ico \
-            public/assets/favicon-1.8.18.7.png \
-            public/assets/favicon-1.8.21.1.png \
-            public/assets/pix-1.8.18.7.svg \
-            public/assets/pix-1.8.21.1.svg \
-            public/assets/prontoo-mark-1.8.18.7.png \
-            public/assets/prontoo-mark-1.8.21.1.png \
             public/assets/presentation.css \
             version.json
           git status --short
