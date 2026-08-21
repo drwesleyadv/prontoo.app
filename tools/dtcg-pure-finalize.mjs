@@ -73,6 +73,10 @@ for(const name of canonicalLayerNames){
     if(rule.selector.trim()==='[data-ds-container]')rule.remove();
     if(rule.selector.trim()==='.ds-adaptive-group')rule.remove();
   });
+  ast.walkAtRules('container',at=>{
+    at.walkRules(rule=>{if(rule.selector.trim()==='.ds-adaptive-group')rule.remove();});
+    if(!at.nodes?.length)at.remove();
+  });
   fs.writeFileSync(file,ast.toString());
 }
 const componentFile=path.join(root,'design/styles/components.css');
@@ -87,19 +91,16 @@ componentLayer.append(pixRule);
 const containerRule=postcss.rule({selector:'[data-ds-container]'});
 containerRule.append({prop:'container-type',value:'inline-size'});
 componentLayer.append(containerRule);
-const adaptiveRule=postcss.rule({selector:'.ds-adaptive-group'});
-adaptiveRule.append({prop:'display',value:'grid'});
-adaptiveRule.append({prop:'grid-template-columns',value:'repeat(3,minmax(0,1fr))'});
-componentLayer.append(adaptiveRule);
-const containerAtRule=postcss.atRule({name:'container',params:'(max-width:36rem)'});
+// Capability without changing the current DS Lab geometry: only genuinely
+// narrow embedded containers switch the group to a single-column grid.
+const containerAtRule=postcss.atRule({name:'container',params:'(max-width:15rem)'});
 const compactAdaptive=postcss.rule({selector:'.ds-adaptive-group'});
+compactAdaptive.append({prop:'display',value:'grid'});
 compactAdaptive.append({prop:'grid-template-columns',value:'1fr'});
 containerAtRule.append(compactAdaptive);
 componentLayer.append(containerAtRule);
 fs.writeFileSync(componentFile,componentAst.toString());
 
-// High-contrast focus is a deliberate last-layer override. It must outrank
-// the normal-screen outline reset without !important.
 const precedenceFile=path.join(root,'design/styles/precedence.css');
 const precedenceAst=postcss.parse(fs.readFileSync(precedenceFile,'utf8'));
 const precedenceLayer=precedenceAst.nodes.find(node=>node.type==='atrule'&&node.name==='layer'&&node.params.trim()==='ds-precedence');
