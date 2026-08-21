@@ -29,9 +29,11 @@ if (/--(?!pt-(?:ref|sys|cmp|runtime|presentation)-)[a-z0-9_-]+/i.test(css)) thro
 for (const line of css.split(/\r?\n/)) {
   const trimmed=line.trim();
   if (!trimmed || trimmed.startsWith('@container') || trimmed.startsWith('@media') || trimmed.startsWith('@layer')) continue;
-  if (/(#[0-9a-f]{3,8}\b|rgba?\(|hsla?\()/i.test(trimmed)) throw new Error(`visual color literal outside DTCG: ${trimmed.slice(0,180)}`);
-  if (/:[^;{}]*\b\d+(?:\.\d+)?(?:px|rem|em|vh|vw|vmin|vmax|ch|ex|ms|s|deg)\b/i.test(trimmed) && !/var\(--pt-(?:ref|sys|cmp|runtime|presentation)-/i.test(trimmed)) {
-    throw new Error(`visual dimension outside DTCG: ${trimmed.slice(0,180)}`);
+  const declarationText = trimmed.includes('{') ? trimmed.slice(trimmed.lastIndexOf('{') + 1) : trimmed;
+  if (!declarationText || !declarationText.includes(':')) continue;
+  if (/(#[0-9a-f]{3,8}\b|rgba?\(|hsla?\()/i.test(declarationText)) throw new Error(`visual color literal outside DTCG: ${declarationText.slice(0,180)}`);
+  if (/:[^;{}]*\b\d+(?:\.\d+)?(?:px|rem|em|vh|vw|vmin|vmax|ch|ex|ms|s|deg)\b/i.test(declarationText) && !/var\(--pt-(?:ref|sys|cmp|runtime|presentation)-/i.test(declarationText)) {
+    throw new Error(`visual dimension outside DTCG: ${declarationText.slice(0,180)}`);
   }
 }
 const runtime = JSON.parse(fs.readFileSync(path.join(root,'design/tokens/runtime.tokens.json'),'utf8'));
