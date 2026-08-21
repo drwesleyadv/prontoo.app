@@ -1,0 +1,16 @@
+{
+  "name": "button",
+  "status": "stable",
+  "anatomy": ["root", "icon", "label"],
+  "variants": ["primary", "secondary", "danger"],
+  "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
+  "tokensConsumed": ["sys.touch.minimum", "cmp.focus.ringColor", "cmp.focus.ringWidth", "cmp.focus.ringOffset"],
+  "semantics": {
+    "elements": ["button", "a"],
+    "nativeButtonPreferred": true,
+    "keyboard": ["Enter", "Space"],
+    "disabled": ["disabled", "aria-disabled"],
+    "accessibleNameRequired": true
+  },
+  "containerBehavior": "intrinsic"
+}
