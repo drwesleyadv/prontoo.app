@@ -36,6 +36,12 @@ for (const line of css.split(/\r?\n/)) {
     throw new Error(`visual dimension outside DTCG: ${declarationText.slice(0,180)}`);
   }
 }
+const diagnostics = {};
+for (const needle of ['body{','main{','.primary,',':where(.ds-inline)',':where(.ds-row-surface)',':where(.ds-dialog-surface)']) {
+  const index = css.indexOf(needle);
+  diagnostics[needle] = index < 0 ? null : css.slice(Math.max(0,index-90), Math.min(css.length,index+420)).replace(/\s+/g,' ');
+}
+process.stdout.write(`design-system-source-diagnostics=${JSON.stringify(diagnostics)}\n`);
 const runtime = JSON.parse(fs.readFileSync(path.join(root,'design/tokens/runtime.tokens.json'),'utf8'));
 if (runtime?.runtime?.residual !== undefined) throw new Error('residual token group detected');
 const bindings = JSON.parse(fs.readFileSync(path.join(root,'design/platform/css.bindings.json'),'utf8'));
