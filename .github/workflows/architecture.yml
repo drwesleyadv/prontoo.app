@@ -57,6 +57,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/!important//g' tools/temp-avisos-design-system.py
           python3 tools/temp-avisos-design-system.py
           git checkout origin/prontoo -- .github/workflows/architecture.yml
           php tools/presentation-css-build --write
