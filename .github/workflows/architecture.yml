@@ -62,48 +62,68 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import re
+          import subprocess
 
           path = Path('design/styles/application.css')
           css = path.read_text()
-          marker = '/* Avisos — linguagem canônica do Design System */'
-          if marker not in css:
-              raise SystemExit('canonical Avisos CSS marker missing')
-          head, tail = css.split(marker, 1)
-          canonical = marker + tail
+          base_css = subprocess.check_output(
+              ['git', 'show', 'origin/prontoo:design/styles/application.css'],
+              text=True,
+          )
           rule_pattern = re.compile(r'([^{}]+)\{([^{}]*)\}')
 
           def normalize(selector: str) -> str:
               return re.sub(r'\s+', ' ', selector.strip())
 
-          canonical_selectors = set()
-          for match in rule_pattern.finditer(canonical):
-              selector = normalize(match.group(1))
-              if selector and not selector.startswith('@') and 'notice' in selector:
-                  canonical_selectors.add(selector)
+          def selector_counts(source: str) -> dict[str, int]:
+              counts: dict[str, int] = {}
+              for match in rule_pattern.finditer(source):
+                  selector = normalize(match.group(1))
+                  if selector and not selector.startswith('@'):
+                      counts[selector] = counts.get(selector, 0) + 1
+              return counts
 
-          def remove_superseded_notice_rule(match):
-              selector = normalize(match.group(1))
-              if selector in canonical_selectors and 'notice' in selector:
-                  return ''
-              return match.group(0)
-
-          head = rule_pattern.sub(remove_superseded_notice_rule, head)
-          css = head + canonical
-
-          def dedupe_notice_selector_list(match):
+          def dedupe_selector_lists(match):
               raw = match.group(1)
               selector = raw.strip()
-              if selector.startswith('@') or 'notice' not in selector or ',' not in selector:
+              if selector.startswith('@') or ',' not in selector:
                   return raw + '{'
               items = [normalize(item) for item in selector.split(',')]
               unique = []
               for item in items:
                   if item and item not in unique:
                       unique.append(item)
+              if len(unique) == len(items):
+                  return raw + '{'
               prefix = raw[: len(raw) - len(raw.lstrip())]
               return prefix + ','.join(unique) + '{'
 
-          css = re.sub(r'([^{}]+)\{', dedupe_notice_selector_list, css)
+          css = re.sub(r'([^{}]+)\{', dedupe_selector_lists, css)
+          base_counts = selector_counts(base_css)
+          current_counts = selector_counts(css)
+          new_duplicates = {
+              selector
+              for selector, count in current_counts.items()
+              if count > 1 and base_counts.get(selector, 0) <= 1
+          }
+          remaining = dict(current_counts)
+
+          def remove_earlier_new_duplicate(match):
+              selector = normalize(match.group(1))
+              if selector in new_duplicates and remaining.get(selector, 0) > 1:
+                  remaining[selector] -= 1
+                  return ''
+              return match.group(0)
+
+          css = rule_pattern.sub(remove_earlier_new_duplicate, css)
+          final_counts = selector_counts(css)
+          unresolved = sorted(
+              selector
+              for selector, count in final_counts.items()
+              if count > 1 and base_counts.get(selector, 0) <= 1
+          )
+          if unresolved:
+              raise SystemExit('new duplicate selectors remain: ' + ' | '.join(unresolved))
           path.write_text(css)
           PY
           git checkout origin/prontoo -- .github/workflows/architecture.yml
