@@ -26,6 +26,109 @@ final class TasksNoticesRuntimeOperations05
     {
     }
 
+    public static function page_notices(): void
+    {
+        if (
+            ($_SERVER["REQUEST_METHOD"] ?? "GET") !== "GET" ||
+            ($_GET["new"] ?? "") !== "1"
+        ) {
+            \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations06::page_notices();
+            return;
+        }
+
+        $c = \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations04::require_can("notices");
+        if (!empty(($c["billing"] ?? [])["read_only"])) {
+            \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations06::page_notices();
+            return;
+        }
+
+        $cid = (int) $c["clinic_id"];
+        $view = preg_replace(
+            "/[^a-z_]/",
+            "",
+            (string) ($_GET["view"] ?? "received"),
+        );
+        if (!in_array($view, ["received", "sent", "archived"], true)) {
+            $view = "received";
+        }
+
+        $team = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::team_options($cid);
+        $userOpts = '<option value="">Selecione</option>';
+        foreach ($team as $id => $name) {
+            $userOpts .=
+                '<option value="' . (int) $id . '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) .
+                "</option>";
+        }
+
+        $backUrl = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view]);
+        $back =
+            '<a class="ghost small" href="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($backUrl) .
+            '">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
+            "<span>Voltar</span></a>";
+
+        $contentSection =
+            '<section class="notice-form-section form-section">' .
+            '<div class="section-head"><div><span class="eyebrow">Conteúdo</span><h2>Mensagem</h2><span class="field-help">Use um título objetivo e escreva somente o que a equipe precisa saber.</span></div></div>' .
+            '<div class="compact">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
+                "Título",
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
+                    "title",
+                    "text",
+                    "",
+                    'required placeholder="Ex.: Alteração no fluxo de atendimento"',
+                ),
+            ) .
+            '<label class="field notice-message-field"><span>Mensagem</span>' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
+                "body",
+                "",
+                'required rows="6" placeholder="Escreva a orientação que deve ser lida pela equipe."',
+            ) .
+            "</label></div></section>";
+
+        $deliverySection =
+            '<section class="notice-form-section form-section">' .
+            '<div class="section-head"><div><span class="eyebrow">Entrega</span><h2>Destinatários e leitura</h2><span class="field-help">Defina quem recebe o aviso e se a leitura precisa ser confirmada.</span></div></div>' .
+            '<div class="notice-form-grid">' .
+            '<label class="field notice-target-scope"><span>Destinatários</span><select name="target_scope" data-notice-target-scope><option value="all">Toda a clínica</option><option value="role">Colaboradores do meu cargo</option><option value="user">Colaborador específico</option></select><span class="field-help">A opção por cargo usa o seu cargo atual como referência.</span></label>' .
+            '<label class="field notice-target-user" data-notice-target-user hidden><span>Colaborador específico</span><select name="target_user_id" data-notice-target-user-select>' .
+            $userOpts .
+            '</select><span class="field-help">Selecione uma pessoa da equipe deste consultório.</span></label>' .
+            '</div><label class="check notice-ack-field"><span><strong>Confirmação de leitura</strong><small class="field-help">Mantém registrado que o destinatário confirmou a leitura do aviso.</small></span><input type="checkbox" name="requires_ack" checked></label></section>';
+
+        $form =
+            '<form method="post" class="notice-form ds-entity-form ds-standalone-form" data-notice-form>' .
+            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+            '<input type="hidden" name="view" value="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($view) .
+            '">' .
+            $contentSection .
+            $deliverySection .
+            '<div class="form-actions notice-form-actions"><a class="ghost" href="' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($backUrl) .
+            '">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
+            '<span>Cancelar</span></a><button type="submit" class="primary">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
+            "<span>Publicar aviso</span></button></div></form>";
+
+        \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
+            "Novo aviso",
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
+                "Novo aviso",
+                "Crie a comunicação, escolha quem deve recebê-la e defina como a leitura será acompanhada.",
+                $back,
+            ) .
+                '<section class="new-notice-screen form-screen">' .
+                $form .
+                "</section>",
+        );
+    }
+
     public static function readonly_support_notice_screen(array $c, string $view = "sent"): string
     
     {
