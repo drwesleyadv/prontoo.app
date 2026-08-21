@@ -21,6 +21,7 @@ for base in (root / "app", root / "public", root / "br", root / "tests"):
 
 sources = {path.relative_to(root).as_posix(): path.read_text(errors="ignore") for path in source_paths}
 all_source = "\n".join(sources.values())
+all_source_tokens = set(re.findall(r'[A-Za-z_][A-Za-z0-9_-]{2,}', all_source))
 
 class_attr_re = re.compile(r'class\s*=\s*["\\\']([^"\\\']*)["\\\']')
 escaped_class_attr_re = re.compile(r'class\\?=\\?["\\\']([^"\\\']*)["\\\']')
@@ -91,7 +92,7 @@ for cls in sorted(css_classes - source_classes):
         continue
     if cls in {"active", "hidden", "open", "selected", "disabled", "loading", "error", "success"}:
         continue
-    if re.search(rf'(?<![A-Za-z0-9_-]){re.escape(cls)}(?![A-Za-z0-9_-])', all_source):
+    if cls in all_source_tokens:
         continue
     raw_unreferenced.append({
         "class": cls,
