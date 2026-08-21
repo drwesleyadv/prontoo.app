@@ -1,0 +1,35 @@
+@layer ds-foundation, ds-primitives, ds-components, ds-composition;
+
+@layer ds-foundation {
+:where([data-ds-container]){container-type:inline-size}
+:where(.ds-focus-ring):focus-visible{outline:var(--pt-cmp-focus-ring-width) solid var(--pt-cmp-focus-ring-color);outline-offset:var(--pt-cmp-focus-ring-offset)}
+}
+
+@layer ds-primitives {
+:where(.ds-stack){display:flex;flex-direction:column;gap:var(--pt-sys-space-md)}
+:where(.ds-inline){display:flex;flex-wrap:wrap;align-items:center;gap:var(--pt-sys-space-sm)}
+:where(.ds-touch-target){display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-inline-size:var(--pt-sys-touch-minimum);min-block-size:var(--pt-sys-touch-minimum)}
+:where(.ds-adaptive-group){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--pt-sys-layout-card-min)),1fr));gap:var(--pt-sys-space-md)}
+}
+
+@layer ds-components {
+:where(.ds-dialog-surface){padding:var(--pt-sys-space-lg);border-radius:var(--pt-sys-radius-lg)}
+:where(.ds-row-surface){padding:var(--pt-sys-space-sm) var(--pt-sys-space-md);border-radius:var(--pt-sys-radius-md)}
+:where(.ds-filter-chip.ds-touch-target){padding-inline:var(--pt-sys-space-sm)}
+}
+
+@layer ds-composition {
+@container (max-width:32rem){:where(.ds-container-stack){grid-template-columns:1fr}}
+}
+
+a.ds-touch-target,button.ds-touch-target,.ds-filter-chip.ds-touch-target{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-inline-size:var(--pt-sys-touch-minimum);min-block-size:var(--pt-sys-touch-minimum)}
+
+@media (forced-colors:active){
+:where(.ds-filter-chip,.pagehead-control,.ds-touch-target,button,[role="button"]){forced-color-adjust:auto;border-color:ButtonText;background:Canvas;color:CanvasText}
+:where(.ds-filter-chip[aria-current="page"],.ds-filter-chip[aria-pressed="true"],.pagehead-control[aria-current="page"]){border-color:Highlight;background:Highlight;color:HighlightText}
+:where(a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])):focus-visible{outline:var(--pt-cmp-focus-ring-width) solid Highlight;outline-offset:var(--pt-cmp-focus-ring-offset)}
+}
+
+@media (prefers-reduced-motion:reduce){
+:where([data-ds-motion]){animation-duration:var(--pt-sys-motion-reduced);transition-duration:var(--pt-sys-motion-reduced);scroll-behavior:auto}
+}

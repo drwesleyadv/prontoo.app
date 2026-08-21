@@ -1,0 +1,15 @@
+{
+  "name": "row",
+  "status": "stable",
+  "anatomy": ["root", "leading", "main", "meta", "actions"],
+  "variants": ["static", "interactive"],
+  "states": ["default", "hover", "focus-visible", "selected", "disabled", "readonly"],
+  "tokensConsumed": ["sys.space.sm", "sys.space.md", "sys.radius.md", "cmp.focus.ringColor", "cmp.focus.ringWidth", "cmp.focus.ringOffset"],
+  "semantics": {
+    "nativeContainerPreferred": true,
+    "interactiveDescendantsMustBeNative": true,
+    "rowClickMustNotReplaceActionSemantics": true,
+    "accessibleNameRequiredWhenInteractive": true
+  },
+  "containerBehavior": "inline-size"
+}

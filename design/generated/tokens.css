@@ -421,3 +421,26 @@ body{
   --pt-ds-surface-soft:var(--md-sys-color-surface-container-low);
   --pt-ds-surface-hover:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest));
 }
+
+:root{
+  --pt-cmp-focus-ring-color:var(--pt-sys-color-accent);
+  --pt-cmp-focus-ring-offset:var(--pt-sys-focus-offset);
+  --pt-cmp-focus-ring-width:var(--pt-sys-focus-width);
+  --pt-sys-border-hairline:1px;
+  --pt-sys-focus-offset:2px;
+  --pt-sys-focus-width:2px;
+  --pt-sys-layout-card-min:320px;
+  --pt-sys-motion-fast:120ms;
+  --pt-sys-motion-reduced:1ms;
+  --pt-sys-radius-lg:16px;
+  --pt-sys-radius-md:12px;
+  --pt-sys-radius-pill:999px;
+  --pt-sys-radius-sm:8px;
+  --pt-sys-space-2xs:4px;
+  --pt-sys-space-lg:24px;
+  --pt-sys-space-md:16px;
+  --pt-sys-space-sm:12px;
+  --pt-sys-space-xl:32px;
+  --pt-sys-space-xs:8px;
+  --pt-sys-touch-minimum:44px;
+}

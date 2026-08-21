@@ -1,0 +1,18 @@
+{
+  "name": "dialog",
+  "status": "stable",
+  "anatomy": ["root", "heading", "body", "actions"],
+  "variants": ["modal", "nonmodal"],
+  "states": ["default", "focus-visible", "loading"],
+  "tokensConsumed": ["sys.space.md", "sys.radius.lg", "cmp.focus.ringColor", "cmp.focus.ringWidth", "cmp.focus.ringOffset"],
+  "semantics": {
+    "role": "dialog",
+    "modalAttribute": "aria-modal",
+    "accessibleNameRequired": true,
+    "initialFocusRequired": true,
+    "focusContainmentRequired": true,
+    "focusRestoreRequired": true,
+    "keyboard": ["Escape", "Tab", "Shift+Tab"]
+  },
+  "containerBehavior": "inline-size"
+}

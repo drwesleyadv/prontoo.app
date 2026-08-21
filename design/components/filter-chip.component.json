@@ -1,0 +1,16 @@
+{
+  "name": "filter-chip",
+  "status": "stable",
+  "cssPrimitive": "ds-filter-chip",
+  "anatomy": ["root", "icon", "label", "count"],
+  "variants": ["navigation", "toggle"],
+  "states": ["default", "hover", "focus-visible", "active", "selected", "disabled"],
+  "tokensConsumed": ["sys.touch.minimum", "cmp.focus.ringColor", "cmp.focus.ringWidth", "cmp.focus.ringOffset"],
+  "semantics": {
+    "navigationState": "aria-current",
+    "toggleState": "aria-pressed",
+    "keyboard": ["Enter", "Space"],
+    "accessibleNameRequired": true
+  },
+  "containerBehavior": "wrap"
+}

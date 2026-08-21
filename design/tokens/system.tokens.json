@@ -3,212 +3,71 @@
     "color": {
       "accent": {
         "$type": "color",
-        "$value": "{ref.color.brand.default}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-accent",
-            "target": "clinic",
-            "selector": "body",
-            "order": -9000,
-            "cssValue": "var(--pt-theme-accent,var(--clinic-accent,var(--pt-ref-color-brand-default)))"
-          }
-        }
+        "$value": "{ref.color.brand.default}"
       },
       "accentStrong": {
         "$type": "color",
-        "$value": "{ref.color.brand.strong}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-accent-strong",
-            "target": "clinic",
-            "selector": "body",
-            "order": -8999,
-            "cssValue": "var(--pt-theme-accent-strong,var(--clinic-accent-strong,var(--clinic-accent-dark,var(--pt-ref-color-brand-strong))))"
-          }
-        }
+        "$value": "{ref.color.brand.strong}"
       },
       "onAccent": {
         "$type": "color",
-        "$value": "{ref.color.neutral.white}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-on-accent",
-            "target": "clinic",
-            "selector": "body",
-            "order": -8998,
-            "cssValue": "var(--pt-theme-on-accent,var(--clinic-on-accent,var(--pt-ref-color-neutral-white)))"
-          }
-        }
+        "$value": "{ref.color.neutral.white}"
       },
       "accentContainer": {
         "$type": "color",
-        "$value": "{ref.color.brand.soft}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-accent-container",
-            "target": "clinic",
-            "selector": "body",
-            "order": -8997,
-            "cssValue": "var(--pt-theme-accent-soft,var(--clinic-accent-soft,var(--pt-ref-color-brand-soft)))"
-          }
-        }
+        "$value": "{ref.color.brand.soft}"
       },
       "accentSubtle": {
         "$type": "color",
-        "$value": "{ref.color.brand.subtle}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-accent-subtle",
-            "target": "clinic",
-            "selector": "body",
-            "order": -8996,
-            "cssValue": "var(--pt-theme-accent-subtle,var(--clinic-accent-subtle,var(--pt-ref-color-brand-subtle)))"
-          }
-        }
+        "$value": "{ref.color.brand.subtle}"
       },
       "success": {
         "$type": "color",
-        "$value": "{ref.color.semantic.success}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-success",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.success}"
       },
       "successContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.successContainer}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-success-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.successContainer}"
       },
       "onSuccessContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.successInk}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-on-success-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.successInk}"
       },
       "warning": {
         "$type": "color",
-        "$value": "{ref.color.semantic.warning}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-warning",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.warning}"
       },
       "warningContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.warningContainer}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-warning-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.warningContainer}"
       },
       "onWarningContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.warningInk}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-on-warning-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.warningInk}"
       },
       "info": {
         "$type": "color",
-        "$value": "{ref.color.semantic.info}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-info",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.info}"
       },
       "infoContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.infoContainer}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-info-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.infoContainer}"
       },
       "onInfoContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.infoInk}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-on-info-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.infoInk}"
       },
       "error": {
         "$type": "color",
-        "$value": "{ref.color.semantic.error}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-error",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.error}"
       },
       "errorContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.errorContainer}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-error-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.errorContainer}"
       },
       "onErrorContainer": {
         "$type": "color",
-        "$value": "{ref.color.semantic.errorInk}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-sys-color-on-error-container",
-            "target": "clinic",
-            "selector": ":root",
-            "order": -10000
-          }
-        }
+        "$value": "{ref.color.semantic.errorInk}"
       }
     }
   }

@@ -9,6 +9,7 @@ permissions:
 jobs:
   computed-style:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -20,7 +21,13 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
-      - name: Verify DTCG design tokens and clinic themes
+      - name: Verify DTCG 2025.10 resolver and clinic themes
         run: node tools/design-tokens-contract.mjs
+      - name: Verify normative component contracts
+        run: node tools/design-system-contract.mjs
+      - name: Verify WCAG 2.2 AA with axe-core
+        run: node tools/design-system-a11y-contract.mjs
+      - name: Verify DS Lab visual regression
+        run: node tools/design-system-visual-contract.mjs --check
       - name: Verify computed-style UX baseline
         run: node tools/presentation-ux-contract.mjs --check

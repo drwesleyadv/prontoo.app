@@ -1,0 +1,16 @@
+{
+  "name": "pagehead-control",
+  "status": "stable",
+  "renderer": "Prontoo\\Presentation\\UiComponents\\PageHeadControlPresentationOperations01",
+  "cssPrimitive": "pagehead-control",
+  "anatomy": ["root", "icon", "label"],
+  "variants": ["nav", "primary", "secondary", "danger"],
+  "states": ["default", "hover", "focus-visible", "active", "disabled"],
+  "tokensConsumed": ["cmp.pagehead.accent", "cmp.pagehead.hover", "cmp.pagehead.onAccent", "cmp.focus.ringColor", "cmp.focus.ringWidth", "cmp.focus.ringOffset"],
+  "semantics": {
+    "navigationState": "aria-current",
+    "nativeElements": ["a", "button"],
+    "accessibleNameRequired": true
+  },
+  "containerBehavior": "wrap"
+}

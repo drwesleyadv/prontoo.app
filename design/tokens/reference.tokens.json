@@ -12,14 +12,6 @@
               0.3215686274509804
             ],
             "hex": "#2f6652"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-default",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "strong": {
@@ -32,14 +24,6 @@
               0.24705882352941178
             ],
             "hex": "#1d583f"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-strong",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "soft": {
@@ -52,14 +36,6 @@
               0.8745098039215686
             ],
             "hex": "#d9f0df"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-soft",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "subtle": {
@@ -72,14 +48,6 @@
               0.9686274509803922
             ],
             "hex": "#f6fbf7"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-subtle",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "global": {
@@ -92,14 +60,6 @@
               0.38823529411764707
             ],
             "hex": "#238763"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-global",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "globalStrong": {
@@ -112,14 +72,6 @@
               0.26666666666666666
             ],
             "hex": "#105e44"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-global-strong",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "public": {
@@ -132,14 +84,6 @@
               0.3333333333333333
             ],
             "hex": "#2d6f55"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-brand-public",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         }
       },
@@ -154,14 +98,6 @@
               1
             ],
             "hex": "#ffffff"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-neutral-white",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         }
       },
@@ -176,14 +112,6 @@
               0.2627450980392157
             ],
             "hex": "#146c43"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-success",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "successContainer": {
@@ -196,14 +124,6 @@
               0.8980392156862745
             ],
             "hex": "#d8f5e5"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-success-container",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "successInk": {
@@ -216,14 +136,6 @@
               0.12156862745098039
             ],
             "hex": "#05391f"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-success-ink",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "warning": {
@@ -236,14 +148,6 @@
               0
             ],
             "hex": "#865900"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-warning",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "warningContainer": {
@@ -256,14 +160,6 @@
               0.7607843137254902
             ],
             "hex": "#ffefc2"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-warning-container",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "warningInk": {
@@ -276,14 +172,6 @@
               0
             ],
             "hex": "#3d2b00"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-warning-ink",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "info": {
@@ -296,14 +184,6 @@
               0.45098039215686275
             ],
             "hex": "#286b73"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-info",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "infoContainer": {
@@ -316,14 +196,6 @@
               0.9686274509803922
             ],
             "hex": "#d6f4f7"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-info-container",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "infoInk": {
@@ -336,14 +208,6 @@
               0.25882352941176473
             ],
             "hex": "#063b42"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-info-ink",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "error": {
@@ -356,14 +220,6 @@
               0.10196078431372549
             ],
             "hex": "#ba1a1a"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-error",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "errorContainer": {
@@ -376,14 +232,6 @@
               0.8392156862745098
             ],
             "hex": "#ffdad6"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-error-container",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         },
         "errorInk": {
@@ -396,14 +244,6 @@
               0.00784313725490196
             ],
             "hex": "#410002"
-          },
-          "$extensions": {
-            "com.prontoo": {
-              "cssName": "--pt-ref-color-error-ink",
-              "target": "clinic",
-              "selector": ":root",
-              "order": -10000
-            }
           }
         }
       }

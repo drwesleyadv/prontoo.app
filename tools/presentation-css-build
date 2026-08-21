@@ -10,6 +10,7 @@ if (PHP_SAPI !== 'cli') {
 $root = dirname(__DIR__);
 $tokenPath = $root . '/design/generated/tokens.css';
 $applicationPath = $root . '/design/styles/application.css';
+$standardsPath = $root . '/design/styles/standards.css';
 $artifactPath = $root . '/public/assets/presentation.css';
 $visualPath = $root . '/app/presentation.visual-contract.json';
 $legacyStyleRoot = $root . '/app/Presentation/Styles';
@@ -19,7 +20,7 @@ if (is_dir($legacyStyleRoot) || is_file($legacyBridge)) {
     fwrite(STDERR, "presentation-css-build: legacy css architecture present\n");
     exit(1);
 }
-foreach ([$tokenPath, $applicationPath, $visualPath] as $required) {
+foreach ([$tokenPath, $applicationPath, $standardsPath, $visualPath] as $required) {
     if (!is_file($required)) {
         fwrite(STDERR, "presentation-css-build: source missing {$required}\n");
         exit(1);
@@ -28,16 +29,19 @@ foreach ([$tokenPath, $applicationPath, $visualPath] as $required) {
 
 $tokens = (string) file_get_contents($tokenPath);
 $application = (string) file_get_contents($applicationPath);
-if ($tokens === '' || $application === '') {
+$standards = (string) file_get_contents($standardsPath);
+if ($tokens === '' || $application === '' || $standards === '') {
     fwrite(STDERR, "presentation-css-build: empty design source\n");
     exit(1);
 }
-if (preg_match('/--pt-(?:ref|sys|cmp)-[a-z0-9-]+\s*:/i', $application) === 1) {
-    fwrite(STDERR, "presentation-css-build: canonical token authored in application css\n");
-    exit(1);
+foreach ([$application, $standards] as $source) {
+    if (preg_match('/--pt-(?:ref|sys|cmp)-[a-z0-9-]+\s*:/i', $source) === 1) {
+        fwrite(STDERR, "presentation-css-build: canonical token authored outside DTCG\n");
+        exit(1);
+    }
 }
-if (str_contains($tokens, '@import')) {
-    fwrite(STDERR, "presentation-css-build: generated tokens cannot import external css\n");
+if (str_contains($tokens, '@import') || str_contains($standards, '@import')) {
+    fwrite(STDERR, "presentation-css-build: generated tokens and standards cannot import external css\n");
     exit(1);
 }
 
@@ -51,7 +55,7 @@ if (str_contains($applicationBody, '@import')) {
     fwrite(STDERR, "presentation-css-build: additional imports are forbidden\n");
     exit(1);
 }
-$built = $fontImport . "\n\n" . $tokens . $applicationBody;
+$built = $fontImport . "\n\n" . $tokens . $applicationBody . "\n" . $standards;
 $important = substr_count($built, '!important');
 $routes = substr_count($built, 'body[data-route=');
 
@@ -72,15 +76,16 @@ $mode = $argv[1] ?? '--lint';
 if ($mode === '--lint') {
     fwrite(STDOUT, json_encode([
         'ok' => true,
-        'policy' => 'design-source-direct-concatenation-v1',
-        'physical_source_files' => 2,
-        'sequence_segments' => 0,
+        'policy' => 'dtcg-plus-layered-standards-v2',
+        'physical_source_files' => 3,
         'bytes' => strlen($built),
         'sha256' => $sha,
         'important_count' => $important,
         'route_scope_count' => $routes,
+        'cascade_layers' => substr_count($standards, '@layer '),
+        'container_queries' => substr_count($standards, '@container'),
+        'forced_colors' => substr_count($standards, 'forced-colors:active'),
         'legacy_source_files' => 0,
-        'manifest_bytes' => 0,
         'font_imports' => 1,
         'deterministic_source' => true,
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);

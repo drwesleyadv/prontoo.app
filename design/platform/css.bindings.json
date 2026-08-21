@@ -1,0 +1,3474 @@
+{
+  "version": 1,
+  "policy": "css-platform-bindings-outside-dtcg-v1",
+  "bindings": {
+    "cmp.icon.foreground": {
+      "cssName": "--pt-cmp-icon-foreground",
+      "target": "clinic",
+      "selector": "body",
+      "order": -7997,
+      "cssValue": "var(--pt-sys-color-accent)"
+    },
+    "cmp.pagehead.accent": {
+      "cssName": "--pt-cmp-pagehead-accent",
+      "target": "clinic",
+      "selector": "body",
+      "order": -8000,
+      "cssValue": "var(--clinic-identity-accent,var(--pt-sys-color-accent))"
+    },
+    "cmp.pagehead.hover": {
+      "cssName": "--pt-cmp-pagehead-hover",
+      "target": "clinic",
+      "selector": "body",
+      "order": -7999,
+      "cssValue": "var(--clinic-identity-hover,var(--pt-sys-color-accent-strong))"
+    },
+    "cmp.pagehead.onAccent": {
+      "cssName": "--pt-cmp-pagehead-on-accent",
+      "target": "clinic",
+      "selector": "body",
+      "order": -7998,
+      "cssValue": "var(--clinic-identity-on-accent,var(--pt-sys-color-on-accent))"
+    },
+    "ref.color.brand.default": {
+      "cssName": "--pt-ref-color-brand-default",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.global": {
+      "cssName": "--pt-ref-color-brand-global",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.globalStrong": {
+      "cssName": "--pt-ref-color-brand-global-strong",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.public": {
+      "cssName": "--pt-ref-color-brand-public",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.soft": {
+      "cssName": "--pt-ref-color-brand-soft",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.strong": {
+      "cssName": "--pt-ref-color-brand-strong",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.brand.subtle": {
+      "cssName": "--pt-ref-color-brand-subtle",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.neutral.white": {
+      "cssName": "--pt-ref-color-neutral-white",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.error": {
+      "cssName": "--pt-ref-color-error",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.errorContainer": {
+      "cssName": "--pt-ref-color-error-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.errorInk": {
+      "cssName": "--pt-ref-color-error-ink",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.info": {
+      "cssName": "--pt-ref-color-info",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.infoContainer": {
+      "cssName": "--pt-ref-color-info-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.infoInk": {
+      "cssName": "--pt-ref-color-info-ink",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.success": {
+      "cssName": "--pt-ref-color-success",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.successContainer": {
+      "cssName": "--pt-ref-color-success-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.successInk": {
+      "cssName": "--pt-ref-color-success-ink",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.warning": {
+      "cssName": "--pt-ref-color-warning",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.warningContainer": {
+      "cssName": "--pt-ref-color-warning-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "ref.color.semantic.warningInk": {
+      "cssName": "--pt-ref-color-warning-ink",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "runtime.bridge.item0001": {
+      "cssName": "--md-ref-palette-primary40",
+      "cssValue": "var(--clinic-accent,#2f6652)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10000,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0002": {
+      "cssName": "--md-ref-palette-primary30",
+      "cssValue": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10001,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0003": {
+      "cssName": "--surface-2",
+      "cssValue": "var(--md-sys-color-surface-container-low)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10002,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0004": {
+      "cssName": "--surface-3",
+      "cssValue": "var(--md-sys-color-surface-container)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10003,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0005": {
+      "cssName": "--ink",
+      "cssValue": "var(--md-sys-color-on-surface)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10004,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0006": {
+      "cssName": "--ink-2",
+      "cssValue": "var(--md-sys-color-on-surface-variant)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10005,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0007": {
+      "cssName": "--muted",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10006,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0008": {
+      "cssName": "--line-2",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10007,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0009": {
+      "cssName": "--state-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10008,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0010": {
+      "cssName": "--state-focus",
+      "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10009,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0011": {
+      "cssName": "--pt-focus-ring",
+      "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10010,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0012": {
+      "cssName": "--pt-pagehead-control-accent",
+      "cssValue": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10011,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0013": {
+      "cssName": "--pt-pagehead-control-on-accent",
+      "cssValue": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10012,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0014": {
+      "cssName": "--pt-pagehead-control-hover",
+      "cssValue": "color-mix(in srgb,var(--clinic-identity-accent,var(--md-sys-color-primary)) 78%,#000)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10013,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0015": {
+      "cssName": "--pt-pagehead-control-container",
+      "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10014,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0016": {
+      "cssName": "--pt-pagehead-control-on-container",
+      "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+      "target": "clinic",
+      "selector": "body",
+      "important": false,
+      "order": 10015,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0017": {
+      "cssName": "--pt-module-patient",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10016,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0018": {
+      "cssName": "--pt-module-agenda",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10017,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0019": {
+      "cssName": "--pt-surface-glass",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10018,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0020": {
+      "cssName": "--pt-border-soft",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10019,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0021": {
+      "cssName": "--pt-border-strong",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10020,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0022": {
+      "cssName": "--pt-row-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10021,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0023": {
+      "cssName": "--pt-icon-surface",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10022,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0024": {
+      "cssName": "--pt-icon-surface-strong",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10023,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0025": {
+      "cssName": "--pt-floating-card-accent",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10024,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0026": {
+      "cssName": "--pt-ds-surface-line",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10025,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0027": {
+      "cssName": "--pt-ds-surface-bg",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10026,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0028": {
+      "cssName": "--pt-ds-surface-bg-hover",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10027,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0029": {
+      "cssName": "--pt-ds-accent",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10028,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0030": {
+      "cssName": "--pt-floating-surface-line",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10029,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0031": {
+      "cssName": "--pt-floating-surface-bg",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10030,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0032": {
+      "cssName": "--pt-floating-surface-bg-hover",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10031,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0033": {
+      "cssName": "--pt-ds-border",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10032,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0034": {
+      "cssName": "--pt-ds-border-soft",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10033,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0035": {
+      "cssName": "--pt-ds-surface",
+      "cssValue": "var(--md-sys-color-surface-container-lowest)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10034,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0036": {
+      "cssName": "--pt-ds-surface-soft",
+      "cssValue": "var(--md-sys-color-surface-container-low)",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10035,
+      "phase": "canonical"
+    },
+    "runtime.bridge.item0037": {
+      "cssName": "--pt-ds-surface-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": "body",
+      "important": false,
+      "order": 10036,
+      "phase": "canonical"
+    },
+    "runtime.residual.item0001": {
+      "cssName": "--md-ref-palette-primary40",
+      "cssValue": "var(--clinic-accent,#2f6652)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 1
+    },
+    "runtime.residual.item0002": {
+      "cssName": "--md-ref-palette-primary30",
+      "cssValue": "var(--clinic-accent-strong,var(--clinic-accent-dark,color-mix(in srgb,var(--md-ref-palette-primary40) 78%,#000)))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 2
+    },
+    "runtime.residual.item0003": {
+      "cssName": "--md-ref-palette-neutral98",
+      "cssValue": "#fbfdf9",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 3
+    },
+    "runtime.residual.item0004": {
+      "cssName": "--md-ref-palette-neutral95",
+      "cssValue": "#f2f5f0",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 4
+    },
+    "runtime.residual.item0005": {
+      "cssName": "--md-ref-palette-neutral90",
+      "cssValue": "#e3e8e1",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 5
+    },
+    "runtime.residual.item0006": {
+      "cssName": "--md-ref-palette-neutral80",
+      "cssValue": "#c7cec5",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 6
+    },
+    "runtime.residual.item0007": {
+      "cssName": "--md-ref-palette-neutral50",
+      "cssValue": "#747b73",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 7
+    },
+    "runtime.residual.item0008": {
+      "cssName": "--md-ref-palette-neutral30",
+      "cssValue": "#444b44",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 8
+    },
+    "runtime.residual.item0009": {
+      "cssName": "--md-ref-palette-neutral10",
+      "cssValue": "#191d1a",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 9
+    },
+    "runtime.residual.item0010": {
+      "cssName": "--md-sys-color-primary",
+      "cssValue": "var(--md-ref-palette-primary40)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 10
+    },
+    "runtime.residual.item0011": {
+      "cssName": "--md-sys-color-on-primary",
+      "cssValue": "var(--clinic-on-accent,#fff)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 11
+    },
+    "runtime.residual.item0012": {
+      "cssName": "--md-sys-color-primary-container",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 15%,#fff)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 12
+    },
+    "runtime.residual.item0013": {
+      "cssName": "--md-sys-color-on-primary-container",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 74%,#102018)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 13
+    },
+    "runtime.residual.item0014": {
+      "cssName": "--md-sys-color-secondary",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 46%,#5d6b63)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 14
+    },
+    "runtime.residual.item0015": {
+      "cssName": "--md-sys-color-on-secondary",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 15
+    },
+    "runtime.residual.item0016": {
+      "cssName": "--md-sys-color-secondary-container",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-secondary) 14%,#fff)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 16
+    },
+    "runtime.residual.item0017": {
+      "cssName": "--md-sys-color-on-secondary-container",
+      "cssValue": "#19261f",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 17
+    },
+    "runtime.residual.item0018": {
+      "cssName": "--md-sys-color-tertiary",
+      "cssValue": "#46617a",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 18
+    },
+    "runtime.residual.item0019": {
+      "cssName": "--md-sys-color-on-tertiary",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 19
+    },
+    "runtime.residual.item0020": {
+      "cssName": "--md-sys-color-tertiary-container",
+      "cssValue": "#d8e4f3",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 20
+    },
+    "runtime.residual.item0021": {
+      "cssName": "--md-sys-color-on-tertiary-container",
+      "cssValue": "#0b1c2e",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 21
+    },
+    "runtime.residual.item0022": {
+      "cssName": "--md-sys-color-error",
+      "cssValue": "#ba1a1a",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 22
+    },
+    "runtime.residual.item0023": {
+      "cssName": "--md-sys-color-on-error",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 23
+    },
+    "runtime.residual.item0024": {
+      "cssName": "--md-sys-color-error-container",
+      "cssValue": "#ffdad6",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 24
+    },
+    "runtime.residual.item0025": {
+      "cssName": "--md-sys-color-on-error-container",
+      "cssValue": "#410002",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 25
+    },
+    "runtime.residual.item0026": {
+      "cssName": "--md-sys-color-background",
+      "cssValue": "#f7faf6",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 26
+    },
+    "runtime.residual.item0027": {
+      "cssName": "--md-sys-color-on-background",
+      "cssValue": "#191d1a",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 27
+    },
+    "runtime.residual.item0028": {
+      "cssName": "--md-sys-color-surface",
+      "cssValue": "#fbfdf9",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 28
+    },
+    "runtime.residual.item0029": {
+      "cssName": "--md-sys-color-on-surface",
+      "cssValue": "#191d1a",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 29
+    },
+    "runtime.residual.item0030": {
+      "cssName": "--md-sys-color-surface-variant",
+      "cssValue": "#dce6dd",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 30
+    },
+    "runtime.residual.item0031": {
+      "cssName": "--md-sys-color-on-surface-variant",
+      "cssValue": "#414941",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 31
+    },
+    "runtime.residual.item0032": {
+      "cssName": "--md-sys-color-outline",
+      "cssValue": "#737b73",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 32
+    },
+    "runtime.residual.item0033": {
+      "cssName": "--md-sys-color-outline-variant",
+      "cssValue": "#c2cac2",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 33
+    },
+    "runtime.residual.item0034": {
+      "cssName": "--md-sys-color-surface-dim",
+      "cssValue": "#d9ddd8",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 34
+    },
+    "runtime.residual.item0035": {
+      "cssName": "--md-sys-color-surface-bright",
+      "cssValue": "#fbfdf9",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 35
+    },
+    "runtime.residual.item0036": {
+      "cssName": "--md-sys-color-surface-container-lowest",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 36
+    },
+    "runtime.residual.item0037": {
+      "cssName": "--md-sys-color-surface-container-low",
+      "cssValue": "#f2f6f1",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 37
+    },
+    "runtime.residual.item0038": {
+      "cssName": "--md-sys-color-surface-container",
+      "cssValue": "#edf2ec",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 38
+    },
+    "runtime.residual.item0039": {
+      "cssName": "--md-sys-color-surface-container-high",
+      "cssValue": "#e7ece6",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 39
+    },
+    "runtime.residual.item0040": {
+      "cssName": "--md-sys-color-surface-container-highest",
+      "cssValue": "#e1e6df",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 40
+    },
+    "runtime.residual.item0041": {
+      "cssName": "--md-sys-color-inverse-surface",
+      "cssValue": "#2e312e",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 41
+    },
+    "runtime.residual.item0042": {
+      "cssName": "--md-sys-color-inverse-on-surface",
+      "cssValue": "#eff2ed",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 42
+    },
+    "runtime.residual.item0043": {
+      "cssName": "--md-sys-color-inverse-primary",
+      "cssValue": "#98d5b8",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 43
+    },
+    "runtime.residual.item0044": {
+      "cssName": "--md-sys-color-shadow",
+      "cssValue": "rgba(0,0,0,.18)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 44
+    },
+    "runtime.residual.item0045": {
+      "cssName": "--md-sys-color-scrim",
+      "cssValue": "rgba(0,0,0,.42)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 45
+    },
+    "runtime.residual.item0046": {
+      "cssName": "--pt-color-success",
+      "cssValue": "#146c43",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 46
+    },
+    "runtime.residual.item0047": {
+      "cssName": "--pt-color-on-success",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 47
+    },
+    "runtime.residual.item0048": {
+      "cssName": "--pt-color-success-container",
+      "cssValue": "#d8f5e5",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 48
+    },
+    "runtime.residual.item0049": {
+      "cssName": "--pt-color-on-success-container",
+      "cssValue": "#05391f",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 49
+    },
+    "runtime.residual.item0050": {
+      "cssName": "--pt-color-warning",
+      "cssValue": "#865900",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 50
+    },
+    "runtime.residual.item0051": {
+      "cssName": "--pt-color-on-warning",
+      "cssValue": "#fff",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 51
+    },
+    "runtime.residual.item0052": {
+      "cssName": "--pt-color-warning-container",
+      "cssValue": "#ffefc2",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 52
+    },
+    "runtime.residual.item0053": {
+      "cssName": "--pt-color-on-warning-container",
+      "cssValue": "#3d2b00",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 53
+    },
+    "runtime.residual.item0054": {
+      "cssName": "--pt-color-info",
+      "cssValue": "#286b73",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 54
+    },
+    "runtime.residual.item0055": {
+      "cssName": "--pt-color-info-container",
+      "cssValue": "#d6f4f7",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 55
+    },
+    "runtime.residual.item0056": {
+      "cssName": "--pt-color-on-info-container",
+      "cssValue": "#063b42",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 56
+    },
+    "runtime.residual.item0057": {
+      "cssName": "--brand",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 57
+    },
+    "runtime.residual.item0058": {
+      "cssName": "--brand-dark",
+      "cssValue": "var(--md-ref-palette-primary30)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 58
+    },
+    "runtime.residual.item0059": {
+      "cssName": "--brand-soft",
+      "cssValue": "var(--md-sys-color-primary-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 59
+    },
+    "runtime.residual.item0060": {
+      "cssName": "--brand-soft-2",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 60
+    },
+    "runtime.residual.item0061": {
+      "cssName": "--on-brand",
+      "cssValue": "var(--md-sys-color-on-primary)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 61
+    },
+    "runtime.residual.item0062": {
+      "cssName": "--bg",
+      "cssValue": "var(--md-sys-color-background)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 62
+    },
+    "runtime.residual.item0063": {
+      "cssName": "--surface",
+      "cssValue": "var(--md-sys-color-surface-container-lowest)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 63
+    },
+    "runtime.residual.item0064": {
+      "cssName": "--surface-2",
+      "cssValue": "var(--md-sys-color-surface-container-low)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 64
+    },
+    "runtime.residual.item0065": {
+      "cssName": "--surface-3",
+      "cssValue": "var(--md-sys-color-surface-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 65
+    },
+    "runtime.residual.item0066": {
+      "cssName": "--ink",
+      "cssValue": "var(--md-sys-color-on-surface)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 66
+    },
+    "runtime.residual.item0067": {
+      "cssName": "--ink-2",
+      "cssValue": "var(--md-sys-color-on-surface-variant)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 67
+    },
+    "runtime.residual.item0068": {
+      "cssName": "--muted",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 68
+    },
+    "runtime.residual.item0069": {
+      "cssName": "--line",
+      "cssValue": "var(--md-sys-color-outline-variant)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 69
+    },
+    "runtime.residual.item0070": {
+      "cssName": "--line-2",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline) 60%,var(--md-sys-color-outline-variant))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 70
+    },
+    "runtime.residual.item0071": {
+      "cssName": "--ok",
+      "cssValue": "var(--pt-color-success)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 71
+    },
+    "runtime.residual.item0072": {
+      "cssName": "--ok-soft",
+      "cssValue": "var(--pt-color-success-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 72
+    },
+    "runtime.residual.item0073": {
+      "cssName": "--warn",
+      "cssValue": "var(--pt-color-warning)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 73
+    },
+    "runtime.residual.item0074": {
+      "cssName": "--warn-soft",
+      "cssValue": "var(--pt-color-warning-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 74
+    },
+    "runtime.residual.item0075": {
+      "cssName": "--danger",
+      "cssValue": "var(--md-sys-color-error)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 75
+    },
+    "runtime.residual.item0076": {
+      "cssName": "--danger-soft",
+      "cssValue": "var(--md-sys-color-error-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 76
+    },
+    "runtime.residual.item0077": {
+      "cssName": "--info",
+      "cssValue": "var(--pt-color-info)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 77
+    },
+    "runtime.residual.item0078": {
+      "cssName": "--info-soft",
+      "cssValue": "var(--pt-color-info-container)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 78
+    },
+    "runtime.residual.item0079": {
+      "cssName": "--md-sys-typescale-display-small",
+      "cssValue": "400 2.25rem/2.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 79
+    },
+    "runtime.residual.item0080": {
+      "cssName": "--md-sys-typescale-headline-medium",
+      "cssValue": "400 1.75rem/2.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 80
+    },
+    "runtime.residual.item0081": {
+      "cssName": "--md-sys-typescale-headline-small",
+      "cssValue": "400 1.5rem/2rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 81
+    },
+    "runtime.residual.item0082": {
+      "cssName": "--md-sys-typescale-title-large",
+      "cssValue": "500 1.375rem/1.75rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 82
+    },
+    "runtime.residual.item0083": {
+      "cssName": "--md-sys-typescale-title-medium",
+      "cssValue": "500 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 83
+    },
+    "runtime.residual.item0084": {
+      "cssName": "--md-sys-typescale-title-small",
+      "cssValue": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 84
+    },
+    "runtime.residual.item0085": {
+      "cssName": "--md-sys-typescale-body-large",
+      "cssValue": "400 1rem/1.5rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 85
+    },
+    "runtime.residual.item0086": {
+      "cssName": "--md-sys-typescale-body-medium",
+      "cssValue": "400 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 86
+    },
+    "runtime.residual.item0087": {
+      "cssName": "--md-sys-typescale-body-small",
+      "cssValue": "400 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 87
+    },
+    "runtime.residual.item0088": {
+      "cssName": "--md-sys-typescale-label-large",
+      "cssValue": "500 .875rem/1.25rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 88
+    },
+    "runtime.residual.item0089": {
+      "cssName": "--md-sys-typescale-label-medium",
+      "cssValue": "500 .75rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 89
+    },
+    "runtime.residual.item0090": {
+      "cssName": "--md-sys-typescale-label-small",
+      "cssValue": "500 .6875rem/1rem Roboto,system-ui,-apple-system,\"Segoe UI\",sans-serif",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 90
+    },
+    "runtime.residual.item0091": {
+      "cssName": "--type-display-sm",
+      "cssValue": "var(--md-sys-typescale-display-small)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 91
+    },
+    "runtime.residual.item0092": {
+      "cssName": "--type-headline-md",
+      "cssValue": "var(--md-sys-typescale-headline-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 92
+    },
+    "runtime.residual.item0093": {
+      "cssName": "--type-headline-sm",
+      "cssValue": "var(--md-sys-typescale-headline-small)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 93
+    },
+    "runtime.residual.item0094": {
+      "cssName": "--type-title-lg",
+      "cssValue": "var(--md-sys-typescale-title-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 94
+    },
+    "runtime.residual.item0095": {
+      "cssName": "--type-title-md",
+      "cssValue": "var(--md-sys-typescale-title-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 95
+    },
+    "runtime.residual.item0096": {
+      "cssName": "--type-title-sm",
+      "cssValue": "var(--md-sys-typescale-title-small)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 96
+    },
+    "runtime.residual.item0097": {
+      "cssName": "--type-body-lg",
+      "cssValue": "var(--md-sys-typescale-body-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 97
+    },
+    "runtime.residual.item0098": {
+      "cssName": "--type-body-md",
+      "cssValue": "var(--md-sys-typescale-body-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 98
+    },
+    "runtime.residual.item0099": {
+      "cssName": "--type-body-sm",
+      "cssValue": "var(--md-sys-typescale-body-small)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 99
+    },
+    "runtime.residual.item0100": {
+      "cssName": "--type-label-lg",
+      "cssValue": "var(--md-sys-typescale-label-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 100
+    },
+    "runtime.residual.item0101": {
+      "cssName": "--type-label-md",
+      "cssValue": "var(--md-sys-typescale-label-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 101
+    },
+    "runtime.residual.item0102": {
+      "cssName": "--md-sys-shape-corner-none",
+      "cssValue": "0",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 102
+    },
+    "runtime.residual.item0103": {
+      "cssName": "--md-sys-shape-corner-extra-small",
+      "cssValue": "4px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 103
+    },
+    "runtime.residual.item0104": {
+      "cssName": "--md-sys-shape-corner-small",
+      "cssValue": "8px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 104
+    },
+    "runtime.residual.item0105": {
+      "cssName": "--md-sys-shape-corner-medium",
+      "cssValue": "12px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 105
+    },
+    "runtime.residual.item0106": {
+      "cssName": "--md-sys-shape-corner-large",
+      "cssValue": "16px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 106
+    },
+    "runtime.residual.item0107": {
+      "cssName": "--md-sys-shape-corner-large-increased",
+      "cssValue": "20px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 107
+    },
+    "runtime.residual.item0108": {
+      "cssName": "--md-sys-shape-corner-extra-large",
+      "cssValue": "28px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 108
+    },
+    "runtime.residual.item0109": {
+      "cssName": "--md-sys-shape-corner-full",
+      "cssValue": "999px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 109
+    },
+    "runtime.residual.item0110": {
+      "cssName": "--r-xs",
+      "cssValue": "var(--md-sys-shape-corner-small)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 110
+    },
+    "runtime.residual.item0111": {
+      "cssName": "--r-sm",
+      "cssValue": "var(--md-sys-shape-corner-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 111
+    },
+    "runtime.residual.item0112": {
+      "cssName": "--r-md",
+      "cssValue": "var(--md-sys-shape-corner-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 112
+    },
+    "runtime.residual.item0113": {
+      "cssName": "--r-lg",
+      "cssValue": "var(--md-sys-shape-corner-extra-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 113
+    },
+    "runtime.residual.item0114": {
+      "cssName": "--r-xl",
+      "cssValue": "32px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 114
+    },
+    "runtime.residual.item0115": {
+      "cssName": "--md-sys-elevation-level0",
+      "cssValue": "none",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 115
+    },
+    "runtime.residual.item0116": {
+      "cssName": "--md-sys-elevation-level1",
+      "cssValue": "0 1px 2px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.06)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 116
+    },
+    "runtime.residual.item0117": {
+      "cssName": "--md-sys-elevation-level2",
+      "cssValue": "0 2px 6px rgba(0,0,0,.09),0 1px 3px rgba(0,0,0,.06)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 117
+    },
+    "runtime.residual.item0118": {
+      "cssName": "--md-sys-elevation-level3",
+      "cssValue": "0 6px 16px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 118
+    },
+    "runtime.residual.item0119": {
+      "cssName": "--md-sys-elevation-level4",
+      "cssValue": "0 10px 24px rgba(0,0,0,.12),0 4px 8px rgba(0,0,0,.07)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 119
+    },
+    "runtime.residual.item0120": {
+      "cssName": "--md-sys-elevation-level5",
+      "cssValue": "0 16px 36px rgba(0,0,0,.14),0 6px 12px rgba(0,0,0,.08)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 120
+    },
+    "runtime.residual.item0121": {
+      "cssName": "--elevation-0",
+      "cssValue": "var(--md-sys-elevation-level0)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 121
+    },
+    "runtime.residual.item0122": {
+      "cssName": "--elevation-1",
+      "cssValue": "var(--md-sys-elevation-level1)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 122
+    },
+    "runtime.residual.item0123": {
+      "cssName": "--elevation-2",
+      "cssValue": "var(--md-sys-elevation-level2)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 123
+    },
+    "runtime.residual.item0124": {
+      "cssName": "--elevation-3",
+      "cssValue": "var(--md-sys-elevation-level3)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 124
+    },
+    "runtime.residual.item0125": {
+      "cssName": "--elevation-4",
+      "cssValue": "var(--md-sys-elevation-level4)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 125
+    },
+    "runtime.residual.item0126": {
+      "cssName": "--elevation-5",
+      "cssValue": "var(--md-sys-elevation-level5)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 126
+    },
+    "runtime.residual.item0127": {
+      "cssName": "--shadow",
+      "cssValue": "var(--md-sys-elevation-level3)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 127
+    },
+    "runtime.residual.item0128": {
+      "cssName": "--shadow-soft",
+      "cssValue": "var(--md-sys-elevation-level1)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 128
+    },
+    "runtime.residual.item0129": {
+      "cssName": "--page-max",
+      "cssValue": "1184px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 129
+    },
+    "runtime.residual.item0130": {
+      "cssName": "--top-h",
+      "cssValue": "64px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 130
+    },
+    "runtime.residual.item0131": {
+      "cssName": "--role-h",
+      "cssValue": "48px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 131
+    },
+    "runtime.residual.item0132": {
+      "cssName": "--cmd-h",
+      "cssValue": "56px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 132
+    },
+    "runtime.residual.item0133": {
+      "cssName": "--space",
+      "cssValue": "16px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 133
+    },
+    "runtime.residual.item0134": {
+      "cssName": "--pt-density-row",
+      "cssValue": "58px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 134
+    },
+    "runtime.residual.item0135": {
+      "cssName": "--pt-density-card",
+      "cssValue": "18px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 135
+    },
+    "runtime.residual.item0136": {
+      "cssName": "--md-sys-state-hover-state-layer-opacity",
+      "cssValue": ".08",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 136
+    },
+    "runtime.residual.item0137": {
+      "cssName": "--md-sys-state-focus-state-layer-opacity",
+      "cssValue": ".12",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 137
+    },
+    "runtime.residual.item0138": {
+      "cssName": "--md-sys-state-pressed-state-layer-opacity",
+      "cssValue": ".12",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 138
+    },
+    "runtime.residual.item0139": {
+      "cssName": "--state-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 8%,transparent)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 139
+    },
+    "runtime.residual.item0140": {
+      "cssName": "--state-focus",
+      "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 140
+    },
+    "runtime.residual.item0141": {
+      "cssName": "--pt-focus-ring",
+      "cssValue": "0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 20%,transparent)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 141
+    },
+    "runtime.residual.item0142": {
+      "cssName": "--motion-fast",
+      "cssValue": "140ms cubic-bezier(.2,0,0,1)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 142
+    },
+    "runtime.residual.item0143": {
+      "cssName": "--motion-med",
+      "cssValue": "240ms cubic-bezier(.2,0,0,1)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 143
+    },
+    "runtime.residual.item0144": {
+      "cssName": "--pt-pagehead-control-height",
+      "cssValue": "38px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 144
+    },
+    "runtime.residual.item0145": {
+      "cssName": "--pt-pagehead-control-radius",
+      "cssValue": "var(--md-sys-shape-corner-large)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 145
+    },
+    "runtime.residual.item0146": {
+      "cssName": "--pt-pagehead-control-padding-block",
+      "cssValue": "7px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 146
+    },
+    "runtime.residual.item0147": {
+      "cssName": "--pt-pagehead-control-padding-inline",
+      "cssValue": "12px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 147
+    },
+    "runtime.residual.item0148": {
+      "cssName": "--pt-pagehead-control-gap",
+      "cssValue": "8px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 148
+    },
+    "runtime.residual.item0149": {
+      "cssName": "--pt-pagehead-control-icon-size",
+      "cssValue": "20px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 149
+    },
+    "runtime.residual.item0150": {
+      "cssName": "--pt-pagehead-control-mobile-height",
+      "cssValue": "42px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 150
+    },
+    "runtime.residual.item0151": {
+      "cssName": "--pt-pagehead-control-mobile-padding-inline",
+      "cssValue": "13px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 151
+    },
+    "runtime.residual.item0152": {
+      "cssName": "--pt-pagehead-control-font",
+      "cssValue": "var(--md-sys-typescale-label-medium)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 152
+    },
+    "runtime.residual.item0153": {
+      "cssName": "--pt-pagehead-control-weight",
+      "cssValue": "700",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 153
+    },
+    "runtime.residual.item0154": {
+      "cssName": "--pt-pagehead-operation-gap",
+      "cssValue": "3px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 154
+    },
+    "runtime.residual.item0155": {
+      "cssName": "--pt-pagehead-group-gap",
+      "cssValue": "16px",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 155
+    },
+    "runtime.residual.item0156": {
+      "cssName": "--pt-pagehead-control-accent",
+      "cssValue": "var(--clinic-identity-accent,var(--md-sys-color-primary))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 156
+    },
+    "runtime.residual.item0157": {
+      "cssName": "--pt-pagehead-control-on-accent",
+      "cssValue": "var(--clinic-identity-on-accent,var(--md-sys-color-on-primary))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 157
+    },
+    "runtime.residual.item0158": {
+      "cssName": "--pt-pagehead-control-hover",
+      "cssValue": "var(--clinic-identity-hover,var(--md-ref-palette-primary30))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 158
+    },
+    "runtime.residual.item0159": {
+      "cssName": "--pt-pagehead-control-container",
+      "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 15%,var(--md-sys-color-surface-container-lowest))",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 159
+    },
+    "runtime.residual.item0160": {
+      "cssName": "--pt-pagehead-control-on-container",
+      "cssValue": "color-mix(in srgb,var(--pt-pagehead-control-accent) 74%,#102018)",
+      "target": "clinic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 160
+    },
+    "runtime.residual.item0161": {
+      "cssName": "--clinic-accent",
+      "cssValue": "#238763",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 161
+    },
+    "runtime.residual.item0162": {
+      "cssName": "--clinic-accent-dark",
+      "cssValue": "#105e44",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 162
+    },
+    "runtime.residual.item0163": {
+      "cssName": "--clinic-accent-soft",
+      "cssValue": "#dff3ea",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 163
+    },
+    "runtime.residual.item0164": {
+      "cssName": "--clinic-on-accent",
+      "cssValue": "#ffffff",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 164
+    },
+    "runtime.residual.item0165": {
+      "cssName": "--md-sys-color-primary",
+      "cssValue": "#238763",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 165
+    },
+    "runtime.residual.item0166": {
+      "cssName": "--md-ref-palette-primary40",
+      "cssValue": "#238763",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 166
+    },
+    "runtime.residual.item0167": {
+      "cssName": "--md-ref-palette-primary30",
+      "cssValue": "#105e44",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 167
+    },
+    "runtime.residual.item0168": {
+      "cssName": "--md-sys-color-primary-container",
+      "cssValue": "#dff3ea",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 168
+    },
+    "runtime.residual.item0169": {
+      "cssName": "--md-sys-color-on-primary-container",
+      "cssValue": "#0b3322",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 169
+    },
+    "runtime.residual.item0170": {
+      "cssName": "--md-sys-color-background",
+      "cssValue": "#f6fbf7",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 170
+    },
+    "runtime.residual.item0171": {
+      "cssName": "--md-sys-color-surface",
+      "cssValue": "#fdfffd",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 171
+    },
+    "runtime.residual.item0172": {
+      "cssName": "--md-sys-color-surface-container-lowest",
+      "cssValue": "#ffffff",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 172
+    },
+    "runtime.residual.item0173": {
+      "cssName": "--md-sys-color-surface-container-low",
+      "cssValue": "#f1faf4",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 173
+    },
+    "runtime.residual.item0174": {
+      "cssName": "--md-sys-color-surface-container",
+      "cssValue": "#e8f3eb",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 174
+    },
+    "runtime.residual.item0175": {
+      "cssName": "--md-sys-color-outline-variant",
+      "cssValue": "#c1d8c8",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 175
+    },
+    "runtime.residual.item0176": {
+      "cssName": "--pt-ds-accent",
+      "cssValue": "#238763",
+      "target": "clinic",
+      "selector": "body.scope-global",
+      "important": true,
+      "phase": "residual",
+      "sequence": 176
+    },
+    "runtime.residual.item0177": {
+      "cssName": "--md-sys-color-primary",
+      "cssValue": "#2d6f55",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 177
+    },
+    "runtime.residual.item0178": {
+      "cssName": "--md-ref-palette-primary30",
+      "cssValue": "#1d583f",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 178
+    },
+    "runtime.residual.item0179": {
+      "cssName": "--md-sys-color-on-primary",
+      "cssValue": "#fff",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 179
+    },
+    "runtime.residual.item0180": {
+      "cssName": "--md-sys-color-primary-container",
+      "cssValue": "#d9f0df",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 180
+    },
+    "runtime.residual.item0181": {
+      "cssName": "--md-sys-color-on-primary-container",
+      "cssValue": "#0b3322",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 181
+    },
+    "runtime.residual.item0182": {
+      "cssName": "--md-sys-color-background",
+      "cssValue": "#f6fbf7",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 182
+    },
+    "runtime.residual.item0183": {
+      "cssName": "--md-sys-color-surface",
+      "cssValue": "#fdfffd",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 183
+    },
+    "runtime.residual.item0184": {
+      "cssName": "--md-sys-color-surface-container-low",
+      "cssValue": "#eff8f1",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 184
+    },
+    "runtime.residual.item0185": {
+      "cssName": "--md-sys-color-surface-container",
+      "cssValue": "#e8f3eb",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 185
+    },
+    "runtime.residual.item0186": {
+      "cssName": "--md-sys-color-outline-variant",
+      "cssValue": "#c1d8c8",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 186
+    },
+    "runtime.residual.item0187": {
+      "cssName": "--md-sys-color-on-surface",
+      "cssValue": "#17211b",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 187
+    },
+    "runtime.residual.item0188": {
+      "cssName": "--md-sys-color-on-surface-variant",
+      "cssValue": "#44554a",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 188
+    },
+    "runtime.residual.item0189": {
+      "cssName": "--brand",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 189
+    },
+    "runtime.residual.item0190": {
+      "cssName": "--brand-dark",
+      "cssValue": "var(--md-ref-palette-primary30)",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 190
+    },
+    "runtime.residual.item0191": {
+      "cssName": "--brand-soft",
+      "cssValue": "var(--md-sys-color-primary-container)",
+      "target": "material",
+      "selector": "body.public",
+      "important": false,
+      "phase": "residual",
+      "sequence": 191
+    },
+    "runtime.residual.item0192": {
+      "cssName": "--pt-module-patient",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 84%,#2f6f72)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 192
+    },
+    "runtime.residual.item0193": {
+      "cssName": "--pt-module-agenda",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 72%,#4565a7)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 193
+    },
+    "runtime.residual.item0194": {
+      "cssName": "--pt-module-doc",
+      "cssValue": "#4f5f72",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 194
+    },
+    "runtime.residual.item0195": {
+      "cssName": "--pt-module-finance",
+      "cssValue": "#6b5b2a",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 195
+    },
+    "runtime.residual.item0196": {
+      "cssName": "--pt-module-task",
+      "cssValue": "#4d5b6c",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 196
+    },
+    "runtime.residual.item0197": {
+      "cssName": "--pt-module-danger",
+      "cssValue": "#b3261e",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 197
+    },
+    "runtime.residual.item0198": {
+      "cssName": "--pt-surface-glass",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 198
+    },
+    "runtime.residual.item0199": {
+      "cssName": "--pt-border-soft",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 84%,transparent)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 199
+    },
+    "runtime.residual.item0200": {
+      "cssName": "--pt-border-strong",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline) 40%,var(--md-sys-color-outline-variant))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 200
+    },
+    "runtime.residual.item0201": {
+      "cssName": "--pt-row-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 201
+    },
+    "runtime.residual.item0202": {
+      "cssName": "--pt-icon-xs",
+      "cssValue": "18px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 202
+    },
+    "runtime.residual.item0203": {
+      "cssName": "--pt-icon-sm",
+      "cssValue": "20px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 203
+    },
+    "runtime.residual.item0204": {
+      "cssName": "--pt-icon-md",
+      "cssValue": "24px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 204
+    },
+    "runtime.residual.item0205": {
+      "cssName": "--pt-icon-lg",
+      "cssValue": "28px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 205
+    },
+    "runtime.residual.item0206": {
+      "cssName": "--pt-icon-box-sm",
+      "cssValue": "38px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 206
+    },
+    "runtime.residual.item0207": {
+      "cssName": "--pt-icon-box-md",
+      "cssValue": "44px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 207
+    },
+    "runtime.residual.item0208": {
+      "cssName": "--pt-icon-box-lg",
+      "cssValue": "52px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 208
+    },
+    "runtime.residual.item0209": {
+      "cssName": "--pt-action-h",
+      "cssValue": "42px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 209
+    },
+    "runtime.residual.item0210": {
+      "cssName": "--pt-action-radius",
+      "cssValue": "16px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 210
+    },
+    "runtime.residual.item0211": {
+      "cssName": "--pt-icon-surface",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 211
+    },
+    "runtime.residual.item0212": {
+      "cssName": "--pt-icon-surface-strong",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 212
+    },
+    "runtime.residual.item0213": {
+      "cssName": "--pt-floating-card-accent",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 213
+    },
+    "runtime.residual.item0214": {
+      "cssName": "--pt-floating-attention-radius",
+      "cssValue": "16px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 214
+    },
+    "runtime.residual.item0215": {
+      "cssName": "--pt-floating-attention-gap",
+      "cssValue": "6px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 215
+    },
+    "runtime.residual.item0216": {
+      "cssName": "--pt-ds-surface-radius",
+      "cssValue": "22px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 216
+    },
+    "runtime.residual.item0217": {
+      "cssName": "--pt-ds-surface-radius-compact",
+      "cssValue": "18px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 217
+    },
+    "runtime.residual.item0218": {
+      "cssName": "--pt-ds-surface-pad",
+      "cssValue": "18px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 218
+    },
+    "runtime.residual.item0219": {
+      "cssName": "--pt-ds-surface-pad-compact",
+      "cssValue": "12px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 219
+    },
+    "runtime.residual.item0220": {
+      "cssName": "--pt-ds-surface-gap",
+      "cssValue": "12px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 220
+    },
+    "runtime.residual.item0221": {
+      "cssName": "--pt-ds-surface-line",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 76%,transparent)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 221
+    },
+    "runtime.residual.item0222": {
+      "cssName": "--pt-ds-surface-bg",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 222
+    },
+    "runtime.residual.item0223": {
+      "cssName": "--pt-ds-surface-bg-hover",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 98%,var(--md-sys-color-primary) 2%))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 223
+    },
+    "runtime.residual.item0224": {
+      "cssName": "--pt-ds-surface-shadow",
+      "cssValue": "0 10px 24px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 224
+    },
+    "runtime.residual.item0225": {
+      "cssName": "--pt-ds-surface-shadow-hover",
+      "cssValue": "0 12px 30px rgba(20,37,29,.13),0 1px 0 rgba(255,255,255,.76) inset",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 225
+    },
+    "runtime.residual.item0226": {
+      "cssName": "--pt-ds-icon-size",
+      "cssValue": "36px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 226
+    },
+    "runtime.residual.item0227": {
+      "cssName": "--pt-ds-icon-size-compact",
+      "cssValue": "30px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 227
+    },
+    "runtime.residual.item0228": {
+      "cssName": "--pt-ds-icon-radius",
+      "cssValue": "14px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 228
+    },
+    "runtime.residual.item0229": {
+      "cssName": "--pt-ds-accent",
+      "cssValue": "var(--md-sys-color-primary)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 229
+    },
+    "runtime.residual.item0230": {
+      "cssName": "--pt-floating-edge-right",
+      "cssValue": "0px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 230
+    },
+    "runtime.residual.item0231": {
+      "cssName": "--pt-floating-edge-width",
+      "cssValue": "4px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 231
+    },
+    "runtime.residual.item0232": {
+      "cssName": "--pt-floating-left-safe-gap",
+      "cssValue": "12px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 232
+    },
+    "runtime.residual.item0233": {
+      "cssName": "--pt-floating-card-gap",
+      "cssValue": "8px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 233
+    },
+    "runtime.residual.item0234": {
+      "cssName": "--pt-floating-card-pad-x",
+      "cssValue": "10px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 234
+    },
+    "runtime.residual.item0235": {
+      "cssName": "--pt-floating-card-pad-y",
+      "cssValue": "7px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 235
+    },
+    "runtime.residual.item0236": {
+      "cssName": "--pt-floating-card-min-h",
+      "cssValue": "46px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 236
+    },
+    "runtime.residual.item0237": {
+      "cssName": "--pt-floating-card-icon",
+      "cssValue": "30px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 237
+    },
+    "runtime.residual.item0238": {
+      "cssName": "--pt-floating-attention-radius",
+      "cssValue": "17px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 238
+    },
+    "runtime.residual.item0239": {
+      "cssName": "--pt-floating-surface-line",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,rgba(255,255,255,.62))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 239
+    },
+    "runtime.residual.item0240": {
+      "cssName": "--pt-floating-surface-bg",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 88%,rgba(255,255,255,.86) 12%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 240
+    },
+    "runtime.residual.item0241": {
+      "cssName": "--pt-floating-surface-bg-hover",
+      "cssValue": "linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 84%,rgba(255,255,255,.90) 16%),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 3%))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 241
+    },
+    "runtime.residual.item0242": {
+      "cssName": "--pt-floating-surface-shadow",
+      "cssValue": "0 14px 34px rgba(20,37,29,.14),0 2px 8px rgba(20,37,29,.07),0 1px 0 rgba(255,255,255,.74) inset",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 242
+    },
+    "runtime.residual.item0243": {
+      "cssName": "--pt-floating-surface-shadow-hover",
+      "cssValue": "0 16px 38px rgba(20,37,29,.16),0 3px 10px rgba(20,37,29,.08),0 1px 0 rgba(255,255,255,.78) inset",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 243
+    },
+    "runtime.residual.item0244": {
+      "cssName": "--pt-ds-page-max",
+      "cssValue": "var(--page-max,1184px)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 244
+    },
+    "runtime.residual.item0245": {
+      "cssName": "--pt-ds-gap-2xs",
+      "cssValue": "4px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 245
+    },
+    "runtime.residual.item0246": {
+      "cssName": "--pt-ds-gap-xs",
+      "cssValue": "8px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 246
+    },
+    "runtime.residual.item0247": {
+      "cssName": "--pt-ds-gap-sm",
+      "cssValue": "10px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 247
+    },
+    "runtime.residual.item0248": {
+      "cssName": "--pt-ds-gap-md",
+      "cssValue": "12px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 248
+    },
+    "runtime.residual.item0249": {
+      "cssName": "--pt-ds-gap-lg",
+      "cssValue": "16px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 249
+    },
+    "runtime.residual.item0250": {
+      "cssName": "--pt-ds-gap-xl",
+      "cssValue": "20px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 250
+    },
+    "runtime.residual.item0251": {
+      "cssName": "--pt-ds-radius-sm",
+      "cssValue": "14px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 251
+    },
+    "runtime.residual.item0252": {
+      "cssName": "--pt-ds-radius-md",
+      "cssValue": "18px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 252
+    },
+    "runtime.residual.item0253": {
+      "cssName": "--pt-ds-radius-lg",
+      "cssValue": "22px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 253
+    },
+    "runtime.residual.item0254": {
+      "cssName": "--pt-ds-radius-xl",
+      "cssValue": "28px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 254
+    },
+    "runtime.residual.item0255": {
+      "cssName": "--pt-ds-row-min",
+      "cssValue": "56px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 255
+    },
+    "runtime.residual.item0256": {
+      "cssName": "--pt-ds-row-pad-y",
+      "cssValue": "10px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 256
+    },
+    "runtime.residual.item0257": {
+      "cssName": "--pt-ds-row-pad-x",
+      "cssValue": "12px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 257
+    },
+    "runtime.residual.item0258": {
+      "cssName": "--pt-ds-section-pad",
+      "cssValue": "16px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 258
+    },
+    "runtime.residual.item0259": {
+      "cssName": "--pt-ds-action-h",
+      "cssValue": "40px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 259
+    },
+    "runtime.residual.item0260": {
+      "cssName": "--pt-ds-icon-box",
+      "cssValue": "42px",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 260
+    },
+    "runtime.residual.item0261": {
+      "cssName": "--pt-ds-border",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 261
+    },
+    "runtime.residual.item0262": {
+      "cssName": "--pt-ds-border-soft",
+      "cssValue": "1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 56%,transparent)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 262
+    },
+    "runtime.residual.item0263": {
+      "cssName": "--pt-ds-surface",
+      "cssValue": "var(--md-sys-color-surface-container-lowest)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 263
+    },
+    "runtime.residual.item0264": {
+      "cssName": "--pt-ds-surface-soft",
+      "cssValue": "var(--md-sys-color-surface-container-low)",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 264
+    },
+    "runtime.residual.item0265": {
+      "cssName": "--pt-ds-surface-hover",
+      "cssValue": "color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))",
+      "target": "material",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 265
+    },
+    "runtime.residual.item0266": {
+      "cssName": "--pt-mobile-gutter",
+      "cssValue": "clamp(12px,3.6vw,16px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 266
+    },
+    "runtime.residual.item0267": {
+      "cssName": "--pt-tablet-gutter",
+      "cssValue": "clamp(16px,4vw,22px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 267
+    },
+    "runtime.residual.item0268": {
+      "cssName": "--pt-desktop-gutter",
+      "cssValue": "clamp(18px,4vw,28px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 268
+    },
+    "runtime.residual.item0269": {
+      "cssName": "--pt-safe-left",
+      "cssValue": "env(safe-area-inset-left,0px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 269
+    },
+    "runtime.residual.item0270": {
+      "cssName": "--pt-safe-right",
+      "cssValue": "env(safe-area-inset-right,0px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 270
+    },
+    "runtime.residual.item0271": {
+      "cssName": "--pt-safe-top",
+      "cssValue": "env(safe-area-inset-top,0px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 271
+    },
+    "runtime.residual.item0272": {
+      "cssName": "--pt-safe-bottom",
+      "cssValue": "env(safe-area-inset-bottom,0px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 272
+    },
+    "runtime.residual.item0273": {
+      "cssName": "--role-h",
+      "cssValue": "0px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 273
+    },
+    "runtime.residual.item0274": {
+      "cssName": "--pt-flow-gap-xs",
+      "cssValue": "8px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 274
+    },
+    "runtime.residual.item0275": {
+      "cssName": "--pt-flow-gap-sm",
+      "cssValue": "12px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 275
+    },
+    "runtime.residual.item0276": {
+      "cssName": "--pt-flow-gap-md",
+      "cssValue": "16px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 276
+    },
+    "runtime.residual.item0277": {
+      "cssName": "--pt-page-bottom",
+      "cssValue": "clamp(18px,3vw,28px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 277
+    },
+    "runtime.residual.item0278": {
+      "cssName": "--pt-card-radius-m3",
+      "cssValue": "28px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 278
+    },
+    "runtime.residual.item0279": {
+      "cssName": "--pt-card-radius-m3-compact",
+      "cssValue": "24px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 279
+    },
+    "runtime.residual.item0280": {
+      "cssName": "--pt-card-strip-width",
+      "cssValue": "5px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 280
+    },
+    "runtime.residual.item0281": {
+      "cssName": "--pt-card-strip-pad",
+      "cssValue": "18px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 281
+    },
+    "runtime.residual.item0282": {
+      "cssName": "--pt-card-inner-gap",
+      "cssValue": "12px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 282
+    },
+    "runtime.residual.item0283": {
+      "cssName": "--pt-card-section-gap",
+      "cssValue": "14px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 283
+    },
+    "runtime.residual.item0284": {
+      "cssName": "--pt-floating-card-radius",
+      "cssValue": "16px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 284
+    },
+    "runtime.residual.item0285": {
+      "cssName": "--pt-floating-card-gap",
+      "cssValue": "5px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 285
+    },
+    "runtime.residual.item0286": {
+      "cssName": "--pt-floating-card-icon",
+      "cssValue": "28px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 286
+    },
+    "runtime.residual.item0287": {
+      "cssName": "--pt-floating-card-pad-y",
+      "cssValue": "6px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 287
+    },
+    "runtime.residual.item0288": {
+      "cssName": "--pt-floating-card-pad-x",
+      "cssValue": "9px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 288
+    },
+    "runtime.residual.item0289": {
+      "cssName": "--pt-floating-card-min-h",
+      "cssValue": "44px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 289
+    },
+    "runtime.residual.item0290": {
+      "cssName": "--pt-fixed-agenda-stack-h",
+      "cssValue": "150px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 290
+    },
+    "runtime.residual.item0291": {
+      "cssName": "--pt-floating-reference-w",
+      "cssValue": "var(--agenda-floating-w,318px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 291
+    },
+    "runtime.residual.item0292": {
+      "cssName": "--ds-selection-chip-height",
+      "cssValue": "36px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 292
+    },
+    "runtime.residual.item0293": {
+      "cssName": "--ds-selection-chip-radius",
+      "cssValue": "14px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 293
+    },
+    "runtime.residual.item0294": {
+      "cssName": "--ds-selection-chip-pad-y",
+      "cssValue": "7px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 294
+    },
+    "runtime.residual.item0295": {
+      "cssName": "--ds-selection-chip-pad-x",
+      "cssValue": "12px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 295
+    },
+    "runtime.residual.item0296": {
+      "cssName": "--ds-selection-chip-gap",
+      "cssValue": "7px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 296
+    },
+    "runtime.residual.item0297": {
+      "cssName": "--pt-filter-chip-h",
+      "cssValue": "var(--ds-selection-chip-height)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 297
+    },
+    "runtime.residual.item0298": {
+      "cssName": "--pt-filter-chip-radius",
+      "cssValue": "var(--ds-selection-chip-radius)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 298
+    },
+    "runtime.residual.item0299": {
+      "cssName": "--pt-filter-chip-pad-y",
+      "cssValue": "var(--ds-selection-chip-pad-y)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 299
+    },
+    "runtime.residual.item0300": {
+      "cssName": "--pt-filter-chip-pad-x",
+      "cssValue": "var(--ds-selection-chip-pad-x)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 300
+    },
+    "runtime.residual.item0301": {
+      "cssName": "--pt-filter-chip-gap",
+      "cssValue": "var(--ds-selection-chip-gap)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 301
+    },
+    "runtime.residual.item0302": {
+      "cssName": "--pt-selection-chip-height",
+      "cssValue": "var(--ds-selection-chip-height)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 302
+    },
+    "runtime.residual.item0303": {
+      "cssName": "--pt-selection-chip-radius",
+      "cssValue": "var(--ds-selection-chip-radius)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 303
+    },
+    "runtime.residual.item0304": {
+      "cssName": "--pt-selection-chip-pad-y",
+      "cssValue": "var(--ds-selection-chip-pad-y)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 304
+    },
+    "runtime.residual.item0305": {
+      "cssName": "--pt-selection-chip-pad-x",
+      "cssValue": "var(--ds-selection-chip-pad-x)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 305
+    },
+    "runtime.residual.item0306": {
+      "cssName": "--pt-selection-chip-gap",
+      "cssValue": "var(--ds-selection-chip-gap)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 306
+    },
+    "runtime.residual.item0307": {
+      "cssName": "--ds-surface-radius",
+      "cssValue": "22px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 307
+    },
+    "runtime.residual.item0308": {
+      "cssName": "--ds-surface-pad",
+      "cssValue": "clamp(14px,2.4vw,20px)",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 308
+    },
+    "runtime.residual.item0309": {
+      "cssName": "--ds-row-radius",
+      "cssValue": "18px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 309
+    },
+    "runtime.residual.item0310": {
+      "cssName": "--ds-row-gap",
+      "cssValue": "10px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 310
+    },
+    "runtime.residual.item0311": {
+      "cssName": "--ds-row-pad",
+      "cssValue": "12px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 311
+    },
+    "runtime.residual.item0312": {
+      "cssName": "--ds-kpi-min-height",
+      "cssValue": "82px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 312
+    },
+    "runtime.residual.item0313": {
+      "cssName": "--ds-kpi-icon-size",
+      "cssValue": "42px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 313
+    },
+    "runtime.residual.item0314": {
+      "cssName": "--pt-cohesion-gap",
+      "cssValue": "12px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 314
+    },
+    "runtime.residual.item0315": {
+      "cssName": "--pt-cohesion-radius",
+      "cssValue": "22px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 315
+    },
+    "runtime.residual.item0316": {
+      "cssName": "--pt-cohesion-row-min",
+      "cssValue": "56px",
+      "target": "semantic",
+      "selector": ":root",
+      "important": false,
+      "phase": "residual",
+      "sequence": 316
+    },
+    "sys.color.accent": {
+      "cssName": "--pt-sys-color-accent",
+      "target": "clinic",
+      "selector": "body",
+      "order": -9000,
+      "cssValue": "var(--pt-theme-accent,var(--clinic-accent,var(--pt-ref-color-brand-default)))"
+    },
+    "sys.color.accentContainer": {
+      "cssName": "--pt-sys-color-accent-container",
+      "target": "clinic",
+      "selector": "body",
+      "order": -8997,
+      "cssValue": "var(--pt-theme-accent-soft,var(--clinic-accent-soft,var(--pt-ref-color-brand-soft)))"
+    },
+    "sys.color.accentStrong": {
+      "cssName": "--pt-sys-color-accent-strong",
+      "target": "clinic",
+      "selector": "body",
+      "order": -8999,
+      "cssValue": "var(--pt-theme-accent-strong,var(--clinic-accent-strong,var(--clinic-accent-dark,var(--pt-ref-color-brand-strong))))"
+    },
+    "sys.color.accentSubtle": {
+      "cssName": "--pt-sys-color-accent-subtle",
+      "target": "clinic",
+      "selector": "body",
+      "order": -8996,
+      "cssValue": "var(--pt-theme-accent-subtle,var(--clinic-accent-subtle,var(--pt-ref-color-brand-subtle)))"
+    },
+    "sys.color.error": {
+      "cssName": "--pt-sys-color-error",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.errorContainer": {
+      "cssName": "--pt-sys-color-error-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.info": {
+      "cssName": "--pt-sys-color-info",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.infoContainer": {
+      "cssName": "--pt-sys-color-info-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.onAccent": {
+      "cssName": "--pt-sys-color-on-accent",
+      "target": "clinic",
+      "selector": "body",
+      "order": -8998,
+      "cssValue": "var(--pt-theme-on-accent,var(--clinic-on-accent,var(--pt-ref-color-neutral-white)))"
+    },
+    "sys.color.onErrorContainer": {
+      "cssName": "--pt-sys-color-on-error-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.onInfoContainer": {
+      "cssName": "--pt-sys-color-on-info-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.onSuccessContainer": {
+      "cssName": "--pt-sys-color-on-success-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.onWarningContainer": {
+      "cssName": "--pt-sys-color-on-warning-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.success": {
+      "cssName": "--pt-sys-color-success",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.successContainer": {
+      "cssName": "--pt-sys-color-success-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.warning": {
+      "cssName": "--pt-sys-color-warning",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "sys.color.warningContainer": {
+      "cssName": "--pt-sys-color-warning-container",
+      "target": "clinic",
+      "selector": ":root",
+      "order": -10000
+    },
+    "theme.global.accent": {
+      "cssName": "--pt-theme-accent",
+      "target": "material",
+      "selector": "body:is(.scope-global)",
+      "order": -7000
+    },
+    "theme.global.on": {
+      "cssName": "--pt-theme-on-accent",
+      "target": "material",
+      "selector": "body:is(.scope-global)",
+      "order": -6998
+    },
+    "theme.global.strong": {
+      "cssName": "--pt-theme-accent-strong",
+      "target": "material",
+      "selector": "body:is(.scope-global)",
+      "order": -6999
+    },
+    "theme.public.accent": {
+      "cssName": "--pt-theme-accent",
+      "target": "material",
+      "selector": "body:is(.public)",
+      "order": -6980
+    },
+    "theme.public.on": {
+      "cssName": "--pt-theme-on-accent",
+      "target": "material",
+      "selector": "body:is(.public)",
+      "order": -6978
+    },
+    "theme.public.strong": {
+      "cssName": "--pt-theme-accent-strong",
+      "target": "material",
+      "selector": "body:is(.public)",
+      "order": -6979
+    }
+  }
+}
