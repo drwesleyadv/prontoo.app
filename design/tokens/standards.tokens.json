@@ -1,0 +1,46 @@
+{
+  "sys": {
+    "space": {
+      "2xs": { "$type": "dimension", "$value": { "value": 4, "unit": "px" } },
+      "xs": { "$type": "dimension", "$value": { "value": 8, "unit": "px" } },
+      "sm": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
+      "md": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } },
+      "lg": { "$type": "dimension", "$value": { "value": 24, "unit": "px" } },
+      "xl": { "$type": "dimension", "$value": { "value": 32, "unit": "px" } }
+    },
+    "radius": {
+      "sm": { "$type": "dimension", "$value": { "value": 8, "unit": "px" } },
+      "md": { "$type": "dimension", "$value": { "value": 12, "unit": "px" } },
+      "lg": { "$type": "dimension", "$value": { "value": 16, "unit": "px" } },
+      "pill": { "$type": "dimension", "$value": { "value": 999, "unit": "px" } }
+    },
+    "border": {
+      "hairline": { "$type": "dimension", "$value": { "value": 1, "unit": "px" } }
+    },
+    "touch": {
+      "minimum": {
+        "$type": "dimension",
+        "$description": "Alvo confortável para novas primitivas interativas; não substitui contratos legados menores sem migração explícita.",
+        "$value": { "value": 44, "unit": "px" }
+      }
+    },
+    "focus": {
+      "width": { "$type": "dimension", "$value": { "value": 2, "unit": "px" } },
+      "offset": { "$type": "dimension", "$value": { "value": 2, "unit": "px" } }
+    },
+    "layout": {
+      "cardMin": { "$type": "dimension", "$value": { "value": 320, "unit": "px" } }
+    },
+    "motion": {
+      "fast": { "$type": "duration", "$value": { "value": 120, "unit": "ms" } },
+      "reduced": { "$type": "duration", "$value": { "value": 1, "unit": "ms" } }
+    }
+  },
+  "cmp": {
+    "focus": {
+      "ringColor": { "$type": "color", "$value": "{sys.color.accent}" },
+      "ringWidth": { "$type": "dimension", "$value": "{sys.focus.width}" },
+      "ringOffset": { "$type": "dimension", "$value": "{sys.focus.offset}" }
+    }
+  }
+}
