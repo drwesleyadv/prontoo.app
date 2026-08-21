@@ -59,6 +59,7 @@ jobs:
           set -euo pipefail
           python3 tools/temp-finalize-design-system.py
           sed -i 's/[[:blank:]]*$//' design/styles/application.css
+          sed -i '/Avisos — Design System canônico/d' design/styles/application.css
           rm tools/temp-finalize-design-system.py
           git checkout origin/prontoo -- .github/workflows/architecture.yml
           php tools/presentation-css-build --write
