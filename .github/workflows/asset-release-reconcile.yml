@@ -1,9 +1,9 @@
 name: Asset Release Reconcile
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/design-system-2026-modernization
+      - prontoo
 
 permissions:
   contents: write
