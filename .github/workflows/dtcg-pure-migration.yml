@@ -102,6 +102,10 @@ jobs:
           fs.writeFileSync(file, output);
           process.stdout.write(`css-balance: dropped-closing=${droppedClosings} appended-closing=${appendedClosings}\n`);
           NODE
+          cat >> design/styles/application.css <<'CSS'
+          body[data-route="settings"] .settings-ds-screen{}
+          body[data-route="procedures"] .procedures-ds-screen{}
+          CSS
           node tools/dtcg-pure-migrate.mjs
           node tools/dtcg-pure-finalize.mjs
           node --input-type=module <<'NODE'
