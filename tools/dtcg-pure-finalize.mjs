@@ -24,17 +24,22 @@ const canonical=name=>{
   if(name.startsWith('--pt-'))return '--pt-runtime-'+kebab(name.slice(5));
   return name;
 };
-const files=[];
-const walk=dir=>{if(!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','vendor','ssd'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else if(/\.(?:php|css|js|mjs|html|md|json)$/i.test(e.name)||['AGENTS.md'].includes(e.name))files.push(p);}};
-for(const rel of ['app','public','tests','tools','design','docs'])walk(path.join(root,rel)); files.push(path.join(root,'AGENTS.md'));
+
+const rewriteFiles=[];
+const walkRewrite=dir=>{if(!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','vendor','ssd'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory())walkRewrite(p);else if(/\.(?:php|css|js|html|json)$/i.test(e.name))rewriteFiles.push(p);}};
+// Deliberately exclude tools/tests/docs from lexical custom-property rewriting.
+// They may contain regexes or normative examples; changing those as if they were
+// runtime CSS is itself architectural corruption. Only active runtime/design
+// sources are rewritten here.
+for(const rel of ['app','public','design'])walkRewrite(path.join(root,rel));
 const nameSet=new Set();
-for(const file of files){const s=fs.readFileSync(file,'utf8');for(const m of s.matchAll(/--[a-zA-Z0-9_-]+/g))nameSet.add(m[0]);}
+for(const file of rewriteFiles){const s=fs.readFileSync(file,'utf8');for(const m of s.matchAll(/--[a-zA-Z0-9_-]+/g))nameSet.add(m[0]);}
 const mapping=[...nameSet].map(n=>[n,canonical(n)]).filter(([a,b])=>a!==b).sort((a,b)=>b[0].length-a[0].length);
-for(const file of files){let s=fs.readFileSync(file,'utf8');let next=s;for(const [from,to]of mapping)next=next.split(from).join(to);if(next!==s)fs.writeFileSync(file,next);}
+for(const file of rewriteFiles){let s=fs.readFileSync(file,'utf8');let next=s;for(const [from,to]of mapping)next=next.split(from).join(to);if(next!==s)fs.writeFileSync(file,next);}
 
 const designRoot=path.join(root,'design')+path.sep;
 let promotedDesignAssetRefs=0;
-for(const file of files){
+for(const file of rewriteFiles){
   if(!file.startsWith(designRoot))continue;
   const s=fs.readFileSync(file,'utf8');
   const count=s.split(old).length-1;
@@ -45,10 +50,20 @@ for(const file of files){
 
 const bindingPath=path.join(root,'design/platform/css.bindings.json');
 const bindingDoc=JSON.parse(fs.readFileSync(bindingPath,'utf8'));
+let removedBridgeBindings=0;
+for(const name of Object.keys(bindingDoc.bindings||{})){
+  if(name.startsWith('runtime.bridge.')){
+    delete bindingDoc.bindings[name];
+    removedBridgeBindings++;
+  }
+}
 for(const meta of Object.values(bindingDoc.bindings||{})){
   if(meta.cssName)meta.cssName=canonical(String(meta.cssName));
   if(meta.target==='material')meta.target='system';
   if(meta.target==='clinic')meta.target='runtime';
+  delete meta.phase;
+  delete meta.sequence;
+  delete meta.important;
 }
 bindingDoc.policy='css-platform-bindings-dtcg-native-v2';
 fs.writeFileSync(bindingPath,JSON.stringify(bindingDoc,null,2)+'\n');
@@ -71,12 +86,9 @@ pixRule.append({prop:'mask',value:`url("/public/assets/pix-${release}.svg") cent
 componentLayer.append(pixRule);
 fs.writeFileSync(componentFile,componentAst.toString());
 
-// Complete the migration for literals embedded in layout/composite functions
-// (for example minmax(175px,1fr) or color-mix(...,#fff)). Every remaining
-// color or dimension becomes a DTCG presentation token before compilation.
 const presentationPath=path.join(root,'design/tokens/presentation.tokens.json');
 const presentationDoc=JSON.parse(fs.readFileSync(presentationPath,'utf8'));
-presentationDoc.presentation= presentationDoc.presentation && typeof presentationDoc.presentation==='object' ? presentationDoc.presentation : {};
+presentationDoc.presentation=presentationDoc.presentation&&typeof presentationDoc.presentation==='object'?presentationDoc.presentation:{};
 const rawVisualLiteral=/(?:#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|rem|em|vh|vw|vmin|vmax|ch|ex|ms|s|deg)\b)/i;
 let promotedVisualLiterals=0;
 for(const name of canonicalLayerNames){
@@ -87,11 +99,7 @@ for(const name of canonicalLayerNames){
     const signature=`${decl.prop}\u0000${decl.value}`;
     const key=`${kebab(decl.prop.replace(/^--/,''))||'value'}-${sha(signature)}`;
     if(!presentationDoc.presentation[key]){
-      presentationDoc.presentation[key]={
-        '$type':'string',
-        '$value':decl.value,
-        '$description':`Valor visual canônico para ${decl.prop}.`
-      };
+      presentationDoc.presentation[key]={'$type':'string','$value':decl.value,'$description':`Valor visual canônico para ${decl.prop}.`};
     }
     decl.value=`var(--pt-presentation-${key})`;
     decl.important=false;
@@ -123,4 +131,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,pixMaskBinding:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
