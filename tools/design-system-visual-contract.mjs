@@ -68,6 +68,67 @@ const capture = async (browser, sheet, theme, viewport, includeStyles = false) =
         values
       };
     }), styleProps);
+    result.ruleTrace = await page.evaluate(() => {
+      const targets = {
+        main: 'main#ds-lab',
+        primary: 'button.primary',
+        filter: '.ds-filter-chip'
+      };
+      const relevant = new Set([
+        'min-height','min-block-size','height','padding','padding-top','padding-right','padding-bottom','padding-left','padding-inline',
+        'gap','row-gap','column-gap','border-radius','width','max-width','margin','margin-left','margin-right','margin-top','margin-bottom'
+      ]);
+      const output = {};
+      const describeGroup = rule => {
+        const text = String(rule.cssText || '');
+        const brace = text.indexOf('{');
+        return (brace >= 0 ? text.slice(0, brace) : text).trim().replace(/\s+/g,' ').slice(0,240);
+      };
+      const walk = (rules, element, chain, rows, order) => {
+        for (const rule of Array.from(rules || [])) {
+          const nextOrder = order.value++;
+          if (rule.selectorText) {
+            let matches = false;
+            try { matches = element.matches(rule.selectorText); } catch {}
+            if (matches) {
+              const declarations = {};
+              for (const prop of Array.from(rule.style || [])) {
+                if (!relevant.has(prop)) continue;
+                declarations[prop] = {
+                  value: rule.style.getPropertyValue(prop).trim(),
+                  important: rule.style.getPropertyPriority(prop) === 'important'
+                };
+              }
+              if (Object.keys(declarations).length) rows.push({order:nextOrder, selector:rule.selectorText, chain, declarations});
+            }
+          }
+          if (rule.cssRules) walk(rule.cssRules, element, [...chain, describeGroup(rule)], rows, order);
+        }
+      };
+      for (const [name, selector] of Object.entries(targets)) {
+        const element = document.querySelector(selector);
+        const rows = [];
+        if (element) {
+          const order = {value:0};
+          for (const sheet of Array.from(document.styleSheets)) walk(sheet.cssRules, element, [], rows, order);
+          const computed = getComputedStyle(element);
+          output[name] = {
+            computed: {
+              minHeight:computed.minHeight,
+              minBlockSize:computed.minBlockSize,
+              height:computed.height,
+              padding:computed.padding,
+              gap:computed.gap,
+              borderRadius:computed.borderRadius,
+              width:computed.width,
+              margin:computed.margin
+            },
+            rules: rows
+          };
+        }
+      }
+      return output;
+    });
   }
   await context.close();
   return result;
@@ -76,6 +137,7 @@ const browser = await chromium.launch({ headless: true });
 const cases = {};
 const beforeCases = {};
 const diagnostics = {};
+const ruleDiagnostics = {};
 try {
   for (const [themeName, theme] of Object.entries(themes)) {
     for (const [viewportName, viewport] of Object.entries(viewports)) {
@@ -98,6 +160,7 @@ try {
             if (Object.keys(changed).length) diffs.push({ key:a.key, changed });
           }
           diagnostics[key] = diffs.slice(0, 40);
+          ruleDiagnostics[key] = {before:before.ruleTrace,after:after.ruleTrace};
         }
       }
     }
@@ -123,6 +186,7 @@ if (JSON.stringify(expected) !== JSON.stringify(current)) {
     process.stderr.write(`design-system-visual-before-matches-baseline=${Object.keys(beforeCases).every(key => expected.cases?.[key] === beforeCases[key]) ? 1 : 0}\n`);
     process.stderr.write(`design-system-visual-hashes=${JSON.stringify({expected:expected.cases,before:beforeCases,after:cases})}\n`);
     process.stderr.write(`design-system-visual-style-diff=${JSON.stringify(diagnostics)}\n`);
+    process.stderr.write(`design-system-visual-rule-trace=${JSON.stringify(ruleDiagnostics)}\n`);
   }
   throw new Error(`design system visual drift ${drift.join(',')}`);
 }
