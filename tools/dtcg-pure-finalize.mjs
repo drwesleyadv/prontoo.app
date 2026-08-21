@@ -25,6 +25,9 @@ const canonical=name=>{
   return name;
 };
 
+const preMigrationCss=path.join(root,'public/assets/presentation.css');
+if(fs.existsSync(preMigrationCss))fs.copyFileSync(preMigrationCss,'/tmp/prontoo-presentation-before-migration.css');
+
 const rewriteFiles=[];
 const walkRewrite=dir=>{if(!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','vendor','ssd'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory())walkRewrite(p);else if(/\.(?:php|css|js|html|json)$/i.test(e.name))rewriteFiles.push(p);}};
 for(const rel of ['app','public','design'])walkRewrite(path.join(root,rel));
@@ -91,8 +94,6 @@ componentLayer.append(pixRule);
 const containerRule=postcss.rule({selector:'[data-ds-container]'});
 containerRule.append({prop:'container-type',value:'inline-size'});
 componentLayer.append(containerRule);
-// Capability without changing the current DS Lab geometry: only genuinely
-// narrow embedded containers switch the group to a single-column grid.
 const containerAtRule=postcss.atRule({name:'container',params:'(max-width:15rem)'});
 const compactAdaptive=postcss.rule({selector:'.ds-adaptive-group'});
 compactAdaptive.append({prop:'display',value:'grid'});
