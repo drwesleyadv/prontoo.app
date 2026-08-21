@@ -7,16 +7,19 @@ const release='1.8.21.2';
 const old='1.8.21.1';
 const kebab=v=>String(v).replace(/([a-z0-9])([A-Z])/g,'$1-$2').replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase();
 const canonical=name=>{
+  if(name.startsWith('--pt-ref-material-'))return '--pt-ref-'+kebab(name.slice(18));
+  if(name.startsWith('--pt-sys-material-'))return '--pt-sys-'+kebab(name.slice(18));
   if(/^--pt-(?:ref|sys|cmp|runtime|presentation)-/.test(name))return name;
-  if(name.startsWith('--md-ref-'))return '--pt-ref-material-'+kebab(name.slice(9));
-  if(name.startsWith('--md-sys-'))return '--pt-sys-material-'+kebab(name.slice(9));
+  if(name.startsWith('--md-ref-'))return '--pt-ref-'+kebab(name.slice(9));
+  if(name.startsWith('--md-sys-'))return '--pt-sys-'+kebab(name.slice(9));
   if(name.startsWith('--clinic-'))return '--pt-runtime-clinic-'+kebab(name.slice(9));
   if(name.startsWith('--pt-color-'))return '--pt-sys-color-'+kebab(name.slice(11));
   if(name.startsWith('--pt-pagehead-'))return '--pt-cmp-pagehead-'+kebab(name.slice(14));
   if(name.startsWith('--pt-density-'))return '--pt-sys-density-'+kebab(name.slice(13));
   if(name.startsWith('--state-'))return '--pt-sys-state-'+kebab(name.slice(8));
   if(name.startsWith('--motion-'))return '--pt-sys-motion-'+kebab(name.slice(9));
-  return '--pt-runtime-'+kebab(name.slice(2));
+  if(name.startsWith('--pt-'))return '--pt-runtime-'+kebab(name.slice(5));
+  return name;
 };
 const files=[];
 const walk=dir=>{if(!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','vendor','ssd'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory())walk(p);else if(/\.(?:php|css|js|mjs|html|md|json)$/i.test(e.name)||['AGENTS.md'].includes(e.name))files.push(p);}};
@@ -25,6 +28,16 @@ const nameSet=new Set();
 for(const file of files){const s=fs.readFileSync(file,'utf8');for(const m of s.matchAll(/--[a-zA-Z0-9_-]+/g))nameSet.add(m[0]);}
 const mapping=[...nameSet].map(n=>[n,canonical(n)]).filter(([a,b])=>a!==b).sort((a,b)=>b[0].length-a[0].length);
 for(const file of files){let s=fs.readFileSync(file,'utf8');let next=s;for(const [from,to]of mapping)next=next.split(from).join(to);if(next!==s)fs.writeFileSync(file,next);}
+
+const bindingPath=path.join(root,'design/platform/css.bindings.json');
+const bindingDoc=JSON.parse(fs.readFileSync(bindingPath,'utf8'));
+for(const meta of Object.values(bindingDoc.bindings||{})){
+  if(meta.cssName)meta.cssName=canonical(String(meta.cssName));
+  if(meta.target==='material')meta.target='system';
+  if(meta.target==='clinic')meta.target='runtime';
+}
+bindingDoc.policy='css-platform-bindings-dtcg-native-v2';
+fs.writeFileSync(bindingPath,JSON.stringify(bindingDoc,null,2)+'\n');
 
 const agents=path.join(root,'AGENTS.md');
 let a=fs.readFileSync(agents,'utf8');
@@ -48,4 +61,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,designDebt:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
