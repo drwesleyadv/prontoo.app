@@ -124,6 +124,7 @@ jobs:
           )
           if unresolved:
               raise SystemExit('new duplicate selectors remain: ' + ' | '.join(unresolved))
+          css = css.replace('/* Avisos — linguagem canônica do Design System */', '')
           path.write_text(css)
           PY
           git checkout origin/prontoo -- .github/workflows/architecture.yml
