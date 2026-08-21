@@ -189,25 +189,25 @@ final class AdminPagesRuntimeOperations09
         $receivedActive = $view === "received";
         $sentActive = $view === "sent";
         $filters =
-            '<nav class="notice-filter-chips lead-filter-chips ds-notice-filters admin-alert-filters" aria-label="Caixas de avisos"><span class="admin-alert-filter-label">Caixa</span><a class="lead-chip ds-filter-chip ' .
-            ($receivedActive ? "active is-active" : "") .
+            '<nav class="ds-notice-filters admin-alert-filters" aria-label="Caixas de avisos"><span class="admin-alert-filter-label">Caixa</span><a class="ds-filter-chip ' .
+            ($receivedActive ? "is-active" : "") .
             '" href="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_alerts", ["view" => "received"])) .
             '"' .
             ($receivedActive ? ' aria-current="page"' : "") .
             '">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inbox") .
-            '<span class="lead-chip-label">Recebidos</span><em>' .
+            '<span>Recebidos</span><em>' .
             (int) $receivedCount .
-            '</em></a><a class="lead-chip ds-filter-chip ' .
-            ($sentActive ? "active is-active" : "") .
+            '</em></a><a class="ds-filter-chip ' .
+            ($sentActive ? "is-active" : "") .
             '" href="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("admin_alerts", ["view" => "sent"])) .
             '"' .
             ($sentActive ? ' aria-current="page"' : "") .
             '">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("send") .
-            '<span class="lead-chip-label">Enviados</span><em>' .
+            '<span>Enviados</span><em>' .
             (int) $sentCount .
             "</em></a></nav>";
         $detail = "";
@@ -407,7 +407,7 @@ final class AdminPagesRuntimeOperations09
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("shield_lock") .
             "<span>Acesso restrito</span></span></section>";
         $stats =
-            '<div class="notice-kpis notice-gmail-kpis ds-notice-kpis admin-alert-kpis"><div class="notice-kpi ds-kpi ' .
+            '<div class="notice-kpis ds-notice-kpis admin-alert-kpis"><div class="notice-kpi ds-kpi ' .
             ($unreadCount ? "notice-kpi-pending" : "") .
             '">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inbox") .

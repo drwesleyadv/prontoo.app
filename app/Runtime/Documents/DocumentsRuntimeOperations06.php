@@ -392,7 +392,7 @@ final class DocumentsRuntimeOperations06
         $avgDuration =
             $durationCount > 0 ? (int) round($durationSum / $durationCount, 0, \RoundingMode::HalfAwayFromZero) : 0;
         $stats =
-            '<div class="kpis procedure-kpis procedure-kpis-refined procedure-ds-kpis"><div>' .
+            '<div class="kpis procedure-kpis procedure-ds-kpis"><div>' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
             "<p><b>" .
             (int) $active .

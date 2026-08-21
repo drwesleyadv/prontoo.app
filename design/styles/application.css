@@ -63,7 +63,7 @@ main{width:min(var(--page-max),100%);margin:0 auto;padding:24px 16px 48px}body.p
 .card,.stat-card,.mini-stat,.form-panel,.action-panel,.empty-state,.empty,.widebox,.login-card,.signup-card,.billing-banner,.subscription-note,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],[class$="-row"],[class$="-item"]{border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px;background:var(--md-sys-color-surface-container-lowest);box-shadow:none}.card,[class$="-card"],[class$="-panel"],[class$="-box"]{padding:var(--pt-density-card);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.card:hover,[class$="-card"]:where(a,button):hover{box-shadow:var(--md-sys-elevation-level1)}.section-head,.ds-section-head,.patient-section-title,.notice-section-head,.procedure-list-head,.cash-drawer-title,.finance-drawer-heading,.agenda-action-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 14px;padding-bottom:10px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)}.section-head h2,.ds-section-head h2,.patient-section-title h2,.notice-section-head h2,.procedure-list-head h2{margin:0;font:var(--md-sys-typescale-title-large);font-weight:800;color:var(--md-sys-color-on-surface);letter-spacing:-.025em}.eyebrow{display:inline-flex;align-items:center;gap:6px;color:var(--md-sys-color-primary);font:var(--md-sys-typescale-label-small);font-weight:800;text-transform:uppercase;letter-spacing:.08em}.soft-sep{height:1px;background:var(--md-sys-color-outline-variant);margin:14px 0}
 
 
-.two,.three,.kpis,.stats-grid,.admin-grid,.admin-overview-kpis,.manager-kpis,.manager-mini-grid,.manager-operational-kpis,.reception-kpis,.reception-panel-grid,.triage-panel-grid,.global-telemetry-grid,.global-performance-charts,.doc-context-grid,.doc-template-grid,.procedure-kpis,.procedure-kpis-refined,.finance-kpis,.finance-mini-grid,.finance-account-cards,.finance-drawer-metrics,.finance-drawer-admin-grid,.finance-drawer-setup-grid,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.patient-data-list,.operations-grid,.permission-module-grid,.permission-edit-grid,.work-hours-grid,.visual-option-grid,.sector-icon-grid,.color-swatch-grid,.role-check-grid,.notice-kpis,.notice-gmail-kpis,.clinic-choice-grid,.account-env-grid,.account-profile-grid,.wizard-roles,.guardian-list,.lead-list,.reception-list,.task-board,.collaborator-card-list,.procedure-list,.doc-history-list,.notice-list,.activity-timeline,.timeline{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.kpis,.stats-grid,.admin-overview-kpis,.manager-kpis,.reception-kpis,.finance-kpis,.procedure-kpis,.procedure-kpis-refined,.notice-kpis,.notice-gmail-kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.admin-grid,.operations-grid,.doc-template-grid,.manager-mini-grid,.finance-mini-grid,.reception-panel-grid,.triage-panel-grid,.doc-context-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.two,.three,.kpis,.stats-grid,.admin-grid,.admin-overview-kpis,.manager-kpis,.manager-mini-grid,.manager-operational-kpis,.reception-kpis,.reception-panel-grid,.triage-panel-grid,.global-telemetry-grid,.global-performance-charts,.doc-context-grid,.doc-template-grid,.procedure-kpis,.finance-kpis,.finance-mini-grid,.finance-account-cards,.finance-drawer-metrics,.finance-drawer-admin-grid,.finance-drawer-setup-grid,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.patient-data-list,.operations-grid,.permission-module-grid,.permission-edit-grid,.work-hours-grid,.visual-option-grid,.sector-icon-grid,.color-swatch-grid,.role-check-grid,.notice-kpis,.clinic-choice-grid,.account-env-grid,.account-profile-grid,.wizard-roles,.guardian-list,.lead-list,.reception-list,.task-board,.collaborator-card-list,.procedure-list,.doc-history-list,.notice-list,.activity-timeline,.timeline{display:grid;gap:14px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.kpis,.stats-grid,.admin-overview-kpis,.manager-kpis,.reception-kpis,.finance-kpis,.procedure-kpis,.notice-kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.admin-grid,.operations-grid,.doc-template-grid,.manager-mini-grid,.finance-mini-grid,.reception-panel-grid,.triage-panel-grid,.doc-context-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
 
 
 .stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat,.global-compact-summary,.global-compact-pill{min-height:82px;display:flex;align-items:center;gap:12px;padding:14px 15px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-outline-variant));border-radius:20px;background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,var(--md-sys-color-primary) 2%));box-shadow:none;color:var(--md-sys-color-on-surface)}.stat-card>.material-symbols-rounded,.ds-kpi>.material-symbols-rounded,.notice-kpi>.material-symbols-rounded,.kpi-card>.material-symbols-rounded,.mini-stat>.material-symbols-rounded,.goal-mini-icon{width:44px;height:44px;border-radius:16px;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);flex:0 0 auto}.stat-card b,.ds-kpi b,.notice-kpi b,.kpi-card b,.patient-kpi-card b,.cash-drawer-metric b,.finance-drawer-metric b,.manager-stat b,.mini-stat b{display:block;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-large);font-size:1.32rem;line-height:1.65rem;font-weight:800;letter-spacing:-.035em}.stat-card span:not(.material-symbols-rounded):not(.pt-icon-glyph),.ds-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph),.notice-kpi span:not(.material-symbols-rounded):not(.pt-icon-glyph),.kpi-card span:not(.material-symbols-rounded):not(.pt-icon-glyph),.mini-stat span:not(.material-symbols-rounded):not(.pt-icon-glyph){display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.stat-card small,.kpi-card small,.mini-stat small{display:block;margin-top:2px}.stat-link{transition:background var(--motion-fast),box-shadow var(--motion-fast)}.stat-link:hover{background:var(--md-sys-color-secondary-container);text-decoration:none}
@@ -78,24 +78,24 @@ form{margin:0}.field{display:grid;gap:8px;color:var(--md-sys-color-on-surface);f
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px;overflow:hidden;box-shadow:none}th,td{padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent);text-align:left;vertical-align:top}th{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low));color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 90%,var(--md-sys-color-primary) 10%);font:var(--md-sys-typescale-label-medium);font-weight:800;text-transform:uppercase;letter-spacing:.065em}tr:last-child td{border-bottom:0}tbody tr{transition:background var(--motion-fast)}tbody tr:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))}
 
 
-.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px;border-radius:22px;background:linear-gradient(180deg,var(--md-sys-color-surface-container-low),color-mix(in srgb,var(--md-sys-color-surface-container-low) 92%,#fff));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:none;margin-bottom:14px}.patient-search-bar input,.lead-search input,.task-search input,.doc-model-search input,.doc-search-primary input{flex:1 1 240px;min-height:46px;border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}.ds-filter-chip,.patient-filter-chip,.lead-filter-chips a,.task-filter,.notice-filter-chips a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 12px;border-radius:14px;border:1px solid var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container-lowest);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:700}.ds-filter-chip.is-active,.patient-filter-chip.is-active,.task-filter.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
+.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px;border-radius:22px;background:linear-gradient(180deg,var(--md-sys-color-surface-container-low),color-mix(in srgb,var(--md-sys-color-surface-container-low) 92%,#fff));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:none;margin-bottom:14px}.patient-search-bar input,.lead-search input,.task-search input,.doc-model-search input,.doc-search-primary input{flex:1 1 240px;min-height:46px;border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}.ds-filter-chip,.patient-filter-chip,.lead-filter-chips a,.task-filter{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 12px;border-radius:14px;border:1px solid var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container-lowest);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:700}.ds-filter-chip.is-active,.patient-filter-chip.is-active,.task-filter.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
 
 
-.timeline,.activity-timeline{position:relative}.titem,.compact-audit,.notice-minimal-row,.reception-row,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.account-env-option,.clinic-choice,.credential-choice,.clinic-admin-row,.maestro-rule-row{min-height:var(--pt-density-row);display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset;color:var(--md-sys-color-on-surface);transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast)}.titem:hover,.compact-audit:hover,.notice-minimal-row:hover,.reception-row:hover,.patient-card-row:hover,.guardian-row:hover,.lead-list-item:hover,.task-card:hover,.procedure-card:hover,.doc-history-row:hover,.finance-row:hover,.notice-gmail-row:hover,.collaborator-card-row:hover,.account-env-option:hover,.clinic-choice:hover,.credential-choice:hover,.clinic-admin-row:hover,.maestro-rule-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.titem{grid-template-columns:30px minmax(0,1fr)}.titem time{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.titem h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:800}.titem p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.empty,.empty-state,.compact-empty,.procedure-empty,.task-empty,.notice-empty,.patient-directory-empty,.maestro-empty,.empty-mini,.empty-history{padding:22px;text-align:center;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-low);border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 92%,transparent);border-radius:22px}
+.timeline,.activity-timeline{position:relative}.titem,.compact-audit,.reception-row,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.collaborator-card-row,.account-env-option,.clinic-choice,.credential-choice,.clinic-admin-row,.maestro-rule-row{min-height:var(--pt-density-row);display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset;color:var(--md-sys-color-on-surface);transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast)}.titem:hover,.compact-audit:hover,.reception-row:hover,.patient-card-row:hover,.guardian-row:hover,.lead-list-item:hover,.task-card:hover,.procedure-card:hover,.doc-history-row:hover,.finance-row:hover,.collaborator-card-row:hover,.account-env-option:hover,.clinic-choice:hover,.credential-choice:hover,.clinic-admin-row:hover,.maestro-rule-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.titem{grid-template-columns:30px minmax(0,1fr)}.titem time{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.titem h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:800}.titem p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.empty,.empty-state,.compact-empty,.procedure-empty,.task-empty,.notice-empty,.patient-directory-empty,.maestro-empty,.empty-mini,.empty-history{padding:22px;text-align:center;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-low);border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 92%,transparent);border-radius:22px}
 
 
 body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-shell,.signup-wizard{width:min(1040px,100%);display:grid;gap:18px}.login-shell{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:center}.signup-wizard{grid-template-columns:minmax(0,1fr)}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{width:100%;padding:28px;border-radius:30px;background:rgba(255,255,255,.90);border:1px solid rgba(154,190,166,.52);box-shadow:0 22px 56px rgba(26,62,43,.11),0 2px 8px rgba(26,62,43,.05);backdrop-filter:blur(12px)}.login-titleline,.auth-titleline,.credential-titleline,.signup-hero,.signup-hero-stepped{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,#e5f5e9,#cfead6);color:#226146;border:1px solid rgba(45,111,85,.12);box-shadow:inset 0 0 0 1px rgba(45,111,85,.10),0 4px 12px rgba(26,62,43,.09)}.auth-brandmark-favicon{width:100%;height:100%;object-fit:contain;border-radius:inherit}.auth-brandmark[data-app-favicon-brandmark]{background:linear-gradient(145deg,#f7fcf8,#e5f5e9);padding:3px;box-shadow:0 4px 14px rgba(26,62,43,.10);overflow:hidden}.auth-brandmark[data-app-favicon-brandmark] .material-symbols-rounded{display:none!important}.login-titleline h1,.signup-hero h1,.credential-titleline h1,.auth-titleline h1{margin:0;font:var(--md-sys-typescale-headline-medium);font-weight:800;letter-spacing:-.045em}.login-titleline p,.signup-hero p,.credential-titleline p,.auth-titleline p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant)}.login-form,.signup-form,.account-form,.clinic-choice-form{display:grid;gap:14px}.login-submit{min-height:50px;border-radius:18px;font-weight:800}.auth-footer{margin-top:18px;display:flex;justify-content:center}.login-boot,.login-lock-panel,.signup-offer,.signup-pricing-card,.signup-consent,.signup-steps-card{background:rgba(242,249,244,.86);border:1px solid rgba(165,198,175,.58);border-radius:20px;box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.login-boot,.login-lock-panel{display:flex;gap:12px;align-items:flex-start;padding:14px;margin-bottom:16px}.login-lock-icon{width:40px;height:40px;border-radius:14px;background:#fff;color:var(--md-sys-color-primary);display:grid;place-items:center}.login-lock-copy strong{display:block;color:var(--md-sys-color-on-surface)}.login-lock-copy span{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.signup-trust-pills .pill{background:#fff;border-color:rgba(165,198,175,.58);color:#244c36}.signup-card{display:grid;gap:18px}.signup-stepper,.wizard-progress{display:flex;gap:8px;flex-wrap:wrap}.signup-step,.wizard-progress span{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border-radius:16px;background:#fff;border:1px solid rgba(165,198,175,.58);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:800}.signup-step.is-active,.wizard-progress .is-active{background:#d9f0df;color:#0b3322;border-color:rgba(45,111,85,.16)}.signup-step.is-complete,.wizard-progress .is-complete{background:#eaf5ed;color:#264b36}.signup-actions,.signup-step-actions,.wizard-nav{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.signup-offer,.signup-pricing-card,.signup-consent,.signup-steps-card{padding:16px}.signup-trust-pills{display:flex;gap:8px;flex-wrap:wrap}
 
 
-.patient-hero,.patient-panel,.patient-tabs-shell,.agenda-crown-page,.doc-draft-layout,.doc-editor-wrap,.finance-ledger-activity,.manager-goal,.notice-screen,.subscription-status-card,.clinic-visual-preview,.onboarding-tip-card,.permission-module-card,.permission-edit-card,.settings-section,.sector-editor,.clinic-menu-panel,.account-card,.model-clinic-card,.admin-tile,.maestro-rule{border-radius:26px;border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);background:var(--md-sys-color-surface-container-lowest);box-shadow:var(--md-sys-elevation-level1)}.patient-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest))}.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.doc-history-icon,.model-inline-icon,.agenda-floating-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:16px;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent);flex:0 0 auto}.patient-tabs-shell{background:var(--md-sys-color-surface-container-lowest);padding:8px}.patient-tab-nav,.patient-hero-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}.patient-tab-nav::-webkit-scrollbar,.patient-hero-tabs::-webkit-scrollbar{display:none}.patient-tab-radio,.patient-new-tab-btn{min-height:38px;border-radius:14px;border:1px solid transparent;background:transparent;color:var(--md-sys-color-on-surface-variant);font-weight:800}.patient-tab-radio.is-active,.patient-new-tab-btn.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.patient-clinical-card,.patient-guardian-card,.patient-existing-card,.patient-crown-record{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px}.patient-status-ok{border-left:4px solid var(--pt-color-success)}.patient-status-bad{border-left:4px solid var(--md-sys-color-error)}
+.patient-hero,.patient-panel,.patient-tabs-shell,.agenda-crown-page,.doc-draft-layout,.doc-editor-wrap,.finance-ledger-activity,.manager-goal,.notice-screen,.subscription-status-card,.clinic-visual-preview,.onboarding-tip-card,.permission-module-card,.permission-edit-card,.settings-section,.sector-editor,.clinic-menu-panel,.account-card,.model-clinic-card,.admin-tile,.maestro-rule{border-radius:26px;border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);background:var(--md-sys-color-surface-container-lowest);box-shadow:var(--md-sys-elevation-level1)}.patient-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest)),var(--md-sys-color-surface-container-lowest))}.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.doc-history-icon,.model-inline-icon,.agenda-floating-icon{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:16px;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent);flex:0 0 auto}.patient-tabs-shell{background:var(--md-sys-color-surface-container-lowest);padding:8px}.patient-tab-nav,.patient-hero-tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}.patient-tab-nav::-webkit-scrollbar,.patient-hero-tabs::-webkit-scrollbar{display:none}.patient-tab-radio,.patient-new-tab-btn{min-height:38px;border-radius:14px;border:1px solid transparent;background:transparent;color:var(--md-sys-color-on-surface-variant);font-weight:800}.patient-tab-radio.is-active,.patient-new-tab-btn.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.patient-clinical-card,.patient-guardian-card,.patient-existing-card,.patient-crown-record{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px}.patient-status-ok{border-left:4px solid var(--pt-color-success)}.patient-status-bad{border-left:4px solid var(--md-sys-color-error)}
 .agenda-crown-page,.agenda-day-shell{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:26px}.agenda-day-scale,.agenda-day-slot{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.agenda-day-slot{border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 68%,transparent)}.agenda-day-event,.agenda-day-event-block{border-radius:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-primary) 15%,#fff),color-mix(in srgb,var(--md-sys-color-primary) 8%,#fff));border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent);color:var(--md-sys-color-on-surface);box-shadow:none}.agenda-day-event-time,.reception-time,.agenda-profile-time{color:var(--md-sys-color-primary);font-weight:800}.agenda-floating-card{background:rgba(255,255,255,.92);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);backdrop-filter:blur(12px);border-radius:20px}.agenda-payment-details,.agenda-payment-fields{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-low));border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}
 .doc-draft-layout,.doc-editor-wrap,.doc-preview-step,.doc-preview-step-preview,.doc-preview-step-bindings{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.doc-editor-toolbar,.doc-google-toolbar,.doc-editor-titlebar{background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 88%,#fff);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.doc-editor-paper,.doc-a4,.doc-print-page{background:#fff;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent);border-radius:16px;box-shadow:0 14px 38px rgba(18,32,25,.09)}.doc-editor,.doc-google-editor{min-height:480px}.doc-print-identifier-pill{background:color-mix(in srgb,var(--md-sys-color-primary) 9%,#fff);color:var(--md-sys-color-primary);border-color:color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)}
 .finance-big-value{font-weight:800;color:var(--md-sys-color-on-surface);letter-spacing:-.055em}.finance-row.is-received,.finance-extract-row.is-received{border-left:4px solid var(--pt-color-success)}.finance-row.is-sent,.finance-extract-row.is-sent{border-left:4px solid var(--pt-color-warning)}.subscription-status-card,.subscription-payment-friendly,.subscription-pending-friendly,.subscription-payment-box{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.pix-key-box{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-low));border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));border-radius:18px}.pix-brand{display:inline-flex;flex:0 0 auto;vertical-align:middle;width:20px;height:20px}.pix-brand-mask{background:currentColor;-webkit-mask:url("/public/assets/pix-1.8.18.7.svg") center/contain no-repeat;mask:url("/public/assets/pix-1.8.18.7.svg") center/contain no-repeat}
-.task-board{align-items:start}.task-group{background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px;padding:12px}.task-card{background:var(--md-sys-color-surface-container-lowest)}.task-main,.notice-main,.patient-card-main,.procedure-card-main,.doc-history-copy{min-width:0}.notice-screen,.notice-compose-panel,.notice-reader,.notice-form-refined{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.activity-timeline .titem{grid-template-columns:30px minmax(0,1fr)}.activity-timeline .time-dot,.activity-timeline .dot{margin-top:4px}.permission-toggle{position:relative}.permission-toggle-knob{background:var(--md-sys-color-primary);box-shadow:none}.color-swatch,.color-swatch-option,.visual-option,.sector-icon-choice,.patient-health-icon-choice{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.color-swatch:has(input:checked),.color-swatch-option:has(input:checked),.visual-option:has(input:checked),.sector-icon-choice:has(input:checked),.patient-health-icon-choice:has(input:checked){border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))}.seq-footer{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.seq-footer-chip{background:var(--md-sys-color-surface-container-low);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.floating-clock{position:fixed;right:18px;bottom:18px;z-index:60;padding:10px 14px;border-radius:18px;background:color-mix(in srgb,var(--md-sys-color-inverse-surface) 94%,var(--md-sys-color-primary) 6%);color:var(--md-sys-color-inverse-on-surface);box-shadow:var(--md-sys-elevation-level3);font:var(--md-sys-typescale-label-large);font-weight:800}.time-dot{background:var(--md-sys-color-primary)}
+.task-board{align-items:start}.task-group{background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px;padding:12px}.task-card{background:var(--md-sys-color-surface-container-lowest)}.task-main,.notice-main,.patient-card-main,.procedure-card-main,.doc-history-copy{min-width:0}.notice-screen,.notice-compose-panel,.notice-reader{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.activity-timeline .titem{grid-template-columns:30px minmax(0,1fr)}.activity-timeline .time-dot,.activity-timeline .dot{margin-top:4px}.permission-toggle{position:relative}.permission-toggle-knob{background:var(--md-sys-color-primary);box-shadow:none}.color-swatch,.color-swatch-option,.visual-option,.sector-icon-choice,.patient-health-icon-choice{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.color-swatch:has(input:checked),.color-swatch-option:has(input:checked),.visual-option:has(input:checked),.sector-icon-choice:has(input:checked),.patient-health-icon-choice:has(input:checked){border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))}.seq-footer{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.seq-footer-chip{background:var(--md-sys-color-surface-container-low);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.floating-clock{position:fixed;right:18px;bottom:18px;z-index:60;padding:10px 14px;border-radius:18px;background:color-mix(in srgb,var(--md-sys-color-inverse-surface) 94%,var(--md-sys-color-primary) 6%);color:var(--md-sys-color-inverse-on-surface);box-shadow:var(--md-sys-elevation-level3);font:var(--md-sys-typescale-label-large);font-weight:800}.time-dot{background:var(--md-sys-color-primary)}
 
 
 @media(max-width:980px){.two,.three{grid-template-columns:1fr}.login-shell{grid-template-columns:1fr}.pagehead{grid-template-columns:1fr;align-items:start}.pagehead-controls--actions{justify-content:flex-start}.rolebar,.cmdbar,.top{padding-inline:14px}main{padding-inline:14px}.brand b,.brand small,.tenant{max-width:58vw}}
-@media(max-width:640px){:root{--top-h:60px;--role-h:46px;--cmd-h:54px;--pt-density-row:56px;--pt-density-card:14px}main{padding:18px 12px 38px}.top{padding-inline:12px}.brand-mark{width:38px;height:38px;border-radius:14px}.top-user-name{display:inline-flex}.top-icon,.notify-link,.logout{border-radius:14px}.rolebar,.cmdbar{gap:6px}.pagehead{padding:15px;border-radius:22px;margin-bottom:14px}.pagehead h1{font-size:1.34rem;line-height:1.72rem}.pagehead p{font-size:.82rem}.pagehead-icon{width:42px;height:42px;border-radius:16px}.pagehead-controls--actions :where(a,button,summary),.primary,.ghost,.danger,.danger-soft,.cmdlike{min-height:42px;padding-inline:13px}.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{border-radius:20px;padding:14px}.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{border-radius:20px;padding:10px}.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat{min-height:76px;padding:12px}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{border-radius:26px;padding:22px}body.public main{padding:22px 12px}.floating-clock{right:12px;bottom:12px;border-radius:16px}table{display:block;white-space:nowrap}.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{justify-content:flex-start}.form-actions .primary,.form-actions .ghost{flex:1 1 auto}.cmd{padding-inline:12px}.cmd:not(.active):not(.is-active):not([aria-current]){min-width:42px;padding-inline:0}}
+@media(max-width:640px){:root{--top-h:60px;--role-h:46px;--cmd-h:54px;--pt-density-row:56px;--pt-density-card:14px}main{padding:18px 12px 38px}.top{padding-inline:12px}.brand-mark{width:38px;height:38px;border-radius:14px}.top-user-name{display:inline-flex}.top-icon,.notify-link,.logout{border-radius:14px}.rolebar,.cmdbar{gap:6px}.pagehead{padding:15px;border-radius:22px;margin-bottom:14px}.pagehead h1{font-size:1.34rem;line-height:1.72rem}.pagehead p{font-size:.82rem}.pagehead-icon{width:42px;height:42px;border-radius:16px}.pagehead-controls--actions :where(a,button,summary),.primary,.ghost,.danger,.danger-soft,.cmdlike{min-height:42px;padding-inline:13px}.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{border-radius:20px;padding:14px}.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{border-radius:20px;padding:10px}.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat{min-height:76px;padding:12px}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{border-radius:26px;padding:22px}body.public main{padding:22px 12px}.floating-clock{right:12px;bottom:12px;border-radius:16px}table{display:block;white-space:nowrap}.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{justify-content:flex-start}.form-actions .primary,.form-actions .ghost{flex:1 1 auto}.cmd{padding-inline:12px}.cmd:not(.active):not(.is-active):not([aria-current]){min-width:42px;padding-inline:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 @media(prefers-contrast:more){:root{--md-sys-color-outline:#4f5851;--md-sys-color-outline-variant:#9aa49b;--pt-focus-ring:0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 34%,transparent)}.ghost,.cmdlike,input,select,textarea,.card,[class$="-card"],[class$="-panel"],[class$="-box"]{border-width:2px}}
 @media print{body{background:#fff!important;color:#111!important}.top,.rolebar,.cmdbar,.pagehead-controls--actions,.floating-clock,.form-actions,.skip-link{display:none!important}main{width:100%;padding:0}.card,[class$="-card"],[class$="-panel"],[class$="-box"],table{box-shadow:none!important;border-color:#ccc!important}.doc-editor-paper,.doc-a4,.doc-print-page{box-shadow:none!important;border:0!important}}
@@ -145,14 +145,14 @@ body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-sh
 .patient-card-last-consultation{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.patient-card-avatar{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);font-weight:900}.patient-directory-search{position:relative}.patient-panel-cadastro,.patient-panel-agenda,.patient-panel-documentos,.patient-tab-panels{min-width:0}.patient-health-icon-grid,.visual-option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}.patient-health-icon-choice,.visual-option{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer}.visual-option-mark,.sector-icon-choice-mark{width:22px;height:22px;border-radius:999px;border:2px solid var(--md-sys-color-outline-variant);display:inline-block;flex:0 0 auto}.visual-option:has(input:checked) .visual-option-mark,.sector-icon-choice:has(input:checked) .sector-icon-choice-mark{border-color:var(--md-sys-color-primary);background:radial-gradient(circle at center,var(--md-sys-color-primary) 42%,transparent 45%)}.patient-status-,.patient-status-ok,.patient-status-bad{border-left:4px solid var(--md-sys-color-outline-variant)}.patient-status-ok{border-left-color:var(--pt-color-success)}.patient-status-bad{border-left-color:var(--md-sys-color-error)}.is-total{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}
 
 
-.notice-card,.notice-recipient-pills,.task-comment-form,.ds-notice-row,.notice-minimal-row,.ds-notice-list,.notice-section-head,.ds-section-head{border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.notice-card,.task-comment-form,.ds-notice-list{display:grid;gap:12px;padding:14px}.notice-recipient-pills,.notice-actions,.task-actions{display:flex;gap:8px;flex-wrap:wrap}.notice-recipient-pill,.notice-direction-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-minimal-row,.ds-notice-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px}.notice-minimal-row:hover,.ds-notice-row:hover{background:var(--pt-row-hover)}.notice-minimal-icon{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-minimal-sender,.notice-minimal-subject{font-weight:900;color:var(--md-sys-color-on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notice-minimal-time{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.notice-section-head,.ds-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}.task-meta,.task-details,.task-copy{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.task-marker{width:10px;height:10px;border-radius:999px;background:var(--md-sys-color-primary);flex:0 0 auto}.activity-timeline .titem,.audit-mini{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}
+.notice-card,.notice-recipient-pills,.task-comment-form,.ds-notice-row,.ds-notice-list,.notice-section-head,.ds-section-head{border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.notice-card,.task-comment-form,.ds-notice-list{display:grid;gap:12px;padding:14px}.notice-recipient-pills,.notice-actions,.task-actions{display:flex;gap:8px;flex-wrap:wrap}.notice-recipient-pill,.notice-direction-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.ds-notice-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px}.ds-notice-row:hover{background:var(--pt-row-hover)}.ds-section-icon{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-section-head,.ds-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}.task-meta,.task-details,.task-copy{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.task-marker{width:10px;height:10px;border-radius:999px;background:var(--md-sys-color-primary);flex:0 0 auto}.activity-timeline .titem,.audit-mini{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}
 
 
 .sector-row,.usage-cell,.permission-compact-toolbar,.permission-row,.install-checks,.install-technical{padding:14px;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.sector-row{display:grid;gap:10px}.sector-row-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sector-icon-preview{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.permission-compact-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.permission-toggle-knob{transition:transform var(--motion-fast),background var(--motion-fast)}.billing-link{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font-weight:900}.install-checks,.install-technical{display:grid;gap:10px}.drop,.bar{border-radius:999px;background:var(--md-sys-color-primary)}
 
 
-@media(max-width:980px){.admin-grid,.stats-grid,.global-telemetry-grid,.global-performance-charts,.reception-panel-grid,.manager-goal-grid{grid-template-columns:1fr}.onboarding-tip-card{grid-template-columns:1fr}.clinic-actions-menu,.clinic-menu-billing{position:static;margin-top:8px;box-shadow:none}.agenda-profile-row,.agenda-profile-row-block,.reception-row,.manager-action{align-items:flex-start}.notice-minimal-row,.ds-notice-row{grid-template-columns:auto minmax(0,1fr)}}
-@media(max-width:640px){.version-update-pill{left:12px;right:12px;bottom:14px;transform:none;justify-content:center}.signup-actions,.signup-step-actions,.finance-lite-form,.finance-inline-form,.finance-drawer-actions,.agenda-head-action,.agenda-head-form,.agenda-edit-form,.agenda-delete-form{align-items:stretch}.signup-actions > *,.signup-step-actions > *,.finance-lite-form > *,.finance-inline-form > *,.agenda-head-action > *{flex:1 1 auto}.patient-suggest-panel,.counterparty-suggest-panel{position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-height:46vh;border-radius:24px}.read-only-locked-form::after{position:static;display:inline-flex;margin-bottom:8px}.notice-minimal-time{display:none}.doc-editor,.doc-google-editor{min-height:360px}.work-hour-fields,.procedure-form-grid,.procedure-quick-fields,.patient-location-fields{grid-template-columns:1fr}}
+@media(max-width:980px){.admin-grid,.stats-grid,.global-telemetry-grid,.global-performance-charts,.reception-panel-grid,.manager-goal-grid{grid-template-columns:1fr}.onboarding-tip-card{grid-template-columns:1fr}.clinic-actions-menu,.clinic-menu-billing{position:static;margin-top:8px;box-shadow:none}.agenda-profile-row,.agenda-profile-row-block,.reception-row,.manager-action{align-items:flex-start}.ds-notice-row{grid-template-columns:auto minmax(0,1fr)}}
+@media(max-width:640px){.version-update-pill{left:12px;right:12px;bottom:14px;transform:none;justify-content:center}.signup-actions,.signup-step-actions,.finance-lite-form,.finance-inline-form,.finance-drawer-actions,.agenda-head-action,.agenda-head-form,.agenda-edit-form,.agenda-delete-form{align-items:stretch}.signup-actions > *,.signup-step-actions > *,.finance-lite-form > *,.finance-inline-form > *,.agenda-head-action > *{flex:1 1 auto}.patient-suggest-panel,.counterparty-suggest-panel{position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-height:46vh;border-radius:24px}.read-only-locked-form::after{position:static;display:inline-flex;margin-bottom:8px}.doc-editor,.doc-google-editor{min-height:360px}.work-hour-fields,.procedure-form-grid,.procedure-quick-fields,.patient-location-fields{grid-template-columns:1fr}}
 
 
 .kpi-info-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.admin-grid-context{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.global{--pt-scope-color:var(--md-sys-color-tertiary)}.metric-chart-hit{cursor:pointer}.model-clinic-name{font:var(--md-sys-typescale-title-medium);font-weight:900;color:var(--md-sys-color-on-surface)}.admin-onboarding-legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.wiz-role{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.reception-flow{gap:10px}.t-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.agenda-crown-shell{display:grid;gap:14px}.doc-preview-only{display:grid;gap:12px}.patient-cpf-first-form,.patient-doc-create,.patient-extra-tab-form,.collaborator-add-form,.collaborator-edit-form,.permissions-compact-form,.task-create-form,.task-start-form,.task-done-form,.task-release-form,.notice-form{display:grid;gap:12px}.patient-minor-form-note,.patient-inline-note,.permission-source-note,.collaborator-list-meta,.notice-eyebrow,.notice-reader-state{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.patient-tab-add-new,.permission-save-actions,.task-comment-actions,.notice-form-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.patient-finance-row,.care-edit,.collaborator-add-panel,.collaborator-list-shell,.role-permission-tabs,.permission-toggle-list,.task-detail-grid,.task-comments,.task-comment-list,.task-list,.task-overview,.notice-reader-body,.ds-notice-kpis{display:grid;gap:12px;padding:14px;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.patient-finance-receive{background:var(--pt-color-success-container);color:var(--pt-color-on-success-container);border-color:color-mix(in srgb,var(--pt-color-success) 22%,transparent)}.patient-panel-financeiro,.patient-panel-novaanotacao,.patient-panel-novaaba{min-width:0}.role-badge-list,.permission-chip-list,.collaborator-roles{display:flex;gap:8px;flex-wrap:wrap}.role-badge-list > *,.permission-chip-list > *,.collaborator-roles > *{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collab-permission-summary,.compact-permission-summary,.permission-edit-title{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.yes{color:var(--pt-color-success)}.collaborator-main{min-width:0}.collaborator-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collaborator-open{margin-left:auto}.role-permission-tab{min-height:38px;border-radius:14px;padding:8px 12px;color:var(--md-sys-color-on-surface-variant);font-weight:900}.role-permission-tab.is-active,.role-permission-tab[aria-current]{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.is-unread{border-left:4px solid var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest))}.notice-recipient-more{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-surface-container-high);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-kpi-critical{border-left:4px solid var(--md-sys-color-error)}.notice-admin{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container)}.status-,.responsibility{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-weight:900}.task-comment-item{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}.task-overview-wide{grid-column:1/-1}.notice-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.notice-target-scope,.notice-message-field,.notice-target-user,.notice-ack-field{display:grid;gap:6px}.notice-reader-body{line-height:1.55}.notice-kpi-sent{border-left:4px solid var(--pt-color-info)}.notice-kpi-archived{opacity:.75}@media(max-width:640px){.notice-form-grid{grid-template-columns:1fr}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.permission-save-actions,.task-comment-actions,.notice-form-actions{align-items:stretch}.patient-empty-action > *,.patient-empty-cta > *,.permission-save-actions > *,.notice-form-actions > *{flex:1 1 auto}}
@@ -388,15 +388,15 @@ main{
   padding-right:max(var(--pt-mobile-gutter),var(--pt-safe-right));
   overflow-y:hidden;
 }
-.rolebar,.cmdbar,.patient-tab-nav,.patient-hero-tabs,.finance-pagehead-nav,.permission-compact-toolbar,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.task-filters{
+.rolebar,.cmdbar,.patient-tab-nav,.patient-hero-tabs,.finance-pagehead-nav,.permission-compact-toolbar,.lead-filter-chips,.patient-filter-chips,.task-filters{
   -webkit-overflow-scrolling:touch;
   scrollbar-gutter:auto;
 }
-.rolebar::-webkit-scrollbar,.cmdbar::-webkit-scrollbar,.patient-tab-nav::-webkit-scrollbar,.patient-hero-tabs::-webkit-scrollbar,.finance-pagehead-nav::-webkit-scrollbar,.permission-compact-toolbar::-webkit-scrollbar,.lead-filter-chips::-webkit-scrollbar,.patient-filter-chips::-webkit-scrollbar,.notice-filter-chips::-webkit-scrollbar,.task-filters::-webkit-scrollbar{display:none}
+.rolebar::-webkit-scrollbar,.cmdbar::-webkit-scrollbar,.patient-tab-nav::-webkit-scrollbar,.patient-hero-tabs::-webkit-scrollbar,.finance-pagehead-nav::-webkit-scrollbar,.permission-compact-toolbar::-webkit-scrollbar,.lead-filter-chips::-webkit-scrollbar,.patient-filter-chips::-webkit-scrollbar,.task-filters::-webkit-scrollbar{display:none}
 @media(min-width:1184px){.top,.rolebar,.cmdbar{padding-left:max(16px,calc((100% - var(--page-max))/2));padding-right:max(16px,calc((100% - var(--page-max))/2))}}
 
 
-:where(.top,.brand,.top-actions,.pagehead,.pagehead-copy,.pagehead-controls--actions,.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],.two,.three,.grid,.list,.timeline,.titem,form,fieldset,section,article,details,summary,label,.field,.form-panel,.action-panel,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.clinic-choice,.credential-choice,.maestro-rule-row){
+:where(.top,.brand,.top-actions,.pagehead,.pagehead-copy,.pagehead-controls--actions,.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],.two,.three,.grid,.list,.timeline,.titem,form,fieldset,section,article,details,summary,label,.field,.form-panel,.action-panel,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.collaborator-card-row,.clinic-choice,.credential-choice,.maestro-rule-row){
   min-width:0;
   max-width:100%;
 }
@@ -409,20 +409,20 @@ main{
 @media(min-width:981px){.login-shell{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:center}.signup-wizard{grid-template-columns:minmax(0,1fr)}}
 
 
-.clinic-actions-menu,.clinic-menu-billing,.patient-suggest-panel,.counterparty-suggest-panel,.agenda-route-dialog-retired,.version-update-pill{
+.clinic-actions-menu,.clinic-menu-billing,.patient-suggest-panel,.counterparty-suggest-panel,.version-update-pill{
   max-width:calc(100dvw - max(24px,calc(var(--pt-safe-left) + var(--pt-safe-right) + 24px)));
 }
 .clinic-actions-menu,.clinic-menu-billing{right:0;left:auto;overflow:auto;max-height:calc(100dvh - var(--top-h) - 24px)}
 @media(max-width:640px){
   .clinic-actions-menu,.clinic-menu-billing{position:fixed;left:max(12px,var(--pt-safe-left));right:max(12px,var(--pt-safe-right));top:calc(var(--top-h) + 8px);min-width:0;width:auto}
-  
+
   .brand b,.brand small,.tenant{max-width:calc(100dvw - 168px)}
   .top-actions{gap:6px}.top-icon,.notify-link,.logout,.logout-icon{min-width:40px;height:40px;padding-inline:10px}
 }
 
 
-.agenda-route-overlay-retired{overflow-y:auto;overscroll-behavior:contain;padding:max(12px,var(--pt-safe-top)) max(12px,var(--pt-safe-right)) max(12px,var(--pt-safe-bottom)) max(12px,var(--pt-safe-left))}
-.agenda-route-dialog-retired{width:min(620px,100%);max-height:calc(100dvh - 32px);overflow:auto;scrollbar-gutter:auto}
+
+
 .patient-suggest-panel,.counterparty-suggest-panel{overflow:auto;scrollbar-gutter:auto}
 [data-patient-live-results]{overflow:auto;max-height:min(320px,48dvh);scrollbar-gutter:auto}
 
@@ -471,12 +471,12 @@ main{
   align-items:center;
   justify-content:center;
   gap:8px;
-  
+
   min-width:max-content;
   flex:0 0 auto;
-  
+
   text-overflow:clip!important;
-  
+
   color:var(--md-sys-color-on-surface-variant);
 }
 .top .top-account.top-user-name>span:not(.material-symbols-rounded){
@@ -514,12 +514,12 @@ main{
 
 
 body[data-route="appointments"]{
-  
+
   --pt-agenda-scale-w:clamp(50px,7vw,72px);
   --pt-agenda-grid-line:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-outline-variant));
   --pt-agenda-hour-bg:color-mix(in srgb,var(--md-sys-color-primary) 7%,var(--md-sys-color-surface-container-lowest));
   --pt-agenda-band-a:color-mix(in srgb,var(--md-sys-color-primary) 3%,var(--md-sys-color-surface-container-lowest));
-  
+
   --pt-agenda-glass:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 72%,transparent);
   --pt-agenda-glass-strong:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 86%,transparent);
   --pt-agenda-glass-line:color-mix(in srgb,var(--md-sys-color-primary) 24%,rgba(255,255,255,.62));
@@ -533,8 +533,8 @@ body[data-route="appointments"] .agenda-profile.agenda-day-first,
 body[data-route="appointments"] .agenda-crown-page{max-width:none;min-width:0}
 body[data-route="appointments"] .agenda-day-shell.agenda-crown-shell,
 body[data-route="appointments"] .agenda-day-shell{
-  
-  
+
+
   position:relative!important;
   display:grid!important;
   grid-template-columns:var(--pt-agenda-scale-w) minmax(0,1fr)!important;
@@ -635,11 +635,11 @@ body[data-route="appointments"] :is(.agenda-day-event-cancelada,.agenda-day-even
 body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
 body[data-route="appointments"] > .ds-fixed-agenda-kpis,
 body[data-route="appointments"] > .agenda-floating-kpis{
-  
+
   right:clamp(14px,2.4vw,28px)!important;
-  
-  
-  
+
+
+
   z-index:130!important;
   display:flex!important;
   flex-direction:column!important;
@@ -647,17 +647,17 @@ body[data-route="appointments"] > .agenda-floating-kpis{
   gap:10px!important;
   width:min(360px,calc(100dvw - 28px))!important;
   max-width:calc(100dvw - 28px)!important;
-  
-  
-  
-  
+
+
+
+
 }
 body[data-route="appointments"] .agenda-floating-card,
 body[data-route="appointments"] [class*="agenda-floating-card-"]{
   pointer-events:auto!important;
-  
+
   display:grid!important;
-  
+
   align-items:center!important;
   gap:10px!important;
   padding:12px 14px!important;
@@ -702,27 +702,27 @@ body[data-route="appointments"] .agenda-floating-copy > span{display:block!impor
   body[data-route="appointments"] .agenda-day-shell{
     --pt-agenda-slot-h:38px;
     --pt-agenda-scale-w:48px;
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     box-shadow:none!important;
     grid-template-columns:48px minmax(0,1fr)!important;
   }
-  
+
   body[data-route="appointments"] .agenda-day-scale{min-width:48px!important}
   body[data-route="appointments"] .agenda-day-slot{padding:5px 6px 0 3px!important;font-size:.68rem!important;min-width:48px!important}
-  
-  
+
+
   body[data-route="appointments"] .agenda-day-event strong{font-size:.82rem!important;}
   body[data-route="appointments"] .agenda-day-event small{font-size:.72rem!important}
   body[data-route="appointments"] .agenda-day-event em{font-size:.68rem!important}
-  
-  
-  
+
+
+
   body[data-route="appointments"] .agenda-floating-copy b,
   body[data-route="appointments"] .agenda-floating-card b{font-size:.84rem!important;}
   body[data-route="appointments"] .agenda-floating-label,
@@ -780,11 +780,11 @@ body[data-route="appointments"] .agenda-crown-nav-card{
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-outline-variant))!important;
 }
 body[data-route="appointments"] .agenda-crown-picker{
-  
+
   grid-template-columns:44px minmax(0,1fr) 44px!important;
-  
+
   gap:8px!important;
-  
+
 }
 body[data-route="appointments"] .agenda-crown-picker select{height:46px!important;}
 body[data-route="appointments"] .agenda-crown-arrow{width:44px!important;height:44px!important;border-radius:16px!important;background:var(--md-sys-color-surface-container-low)!important;color:var(--md-sys-color-primary)!important;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-outline-variant))!important}
@@ -805,18 +805,18 @@ body[data-route="appointments"] .agenda-day-slot span{display:inline-block;max-w
 body[data-route="appointments"] .agenda-day-canvas,
 body[data-route="appointments"] [data-agenda-canvas]{content-visibility:auto;contain-intrinsic-size:900px}
 body[data-route="appointments"] .agenda-day-empty{
-  
+
   inset:14px!important;
   min-height:82px!important;
   display:grid!important;
   place-items:center!important;
   padding:16px!important;
-  
+
   border-radius:20px!important;
   background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 82%,transparent)!important;
-  
+
   font:var(--md-sys-typescale-body-medium)!important;
-  
+
 }
 body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-block),
 body[data-route="appointments"] [class*="agenda-day-event-"]{
@@ -839,7 +839,7 @@ body[data-route="appointments"] > .ds-fixed-agenda-kpis,
 body[data-route="appointments"] > .agenda-floating-kpis{
   z-index:var(--pt-agenda-float-z)!important;
   width:min(348px,calc(100dvw - 32px))!important;
-  
+
   filter:none!important;
 }
 body[data-route="appointments"] .agenda-floating-card,
@@ -856,41 +856,11 @@ body[data-route="appointments"] [class*="agenda-floating-card-occupancy"]>.mater
 body[data-route="appointments"] .agenda-floating-card-free-time .agenda-floating-icon,
 body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.material-symbols-rounded{color:var(--pt-color-success)!important;background:color-mix(in srgb,var(--pt-color-success-container) 76%,rgba(255,255,255,.72))!important}
 body[data-route="appointments"] .agenda-floating-card b{font-variant-numeric:tabular-nums!important}
-body[data-route="appointments"] .agenda-route-overlay-retired[hidden]{display:none!important}
-body[data-route="appointments"] .agenda-route-overlay-retired:not([hidden]){
-  position:fixed!important;
-  inset:0!important;
-  z-index:calc(var(--pt-agenda-float-z) + 5)!important;
-  display:grid!important;
-  place-items:center!important;
-  padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(14px + env(safe-area-inset-bottom,0px))!important;
-}
-body[data-route="appointments"] .agenda-route-backdrop-retired{position:absolute!important;inset:0!important;background:rgba(18,29,24,.42)!important;-webkit-backdrop-filter:blur(10px)!important;backdrop-filter:blur(10px)!important}
-body[data-route="appointments"] .agenda-route-dialog-retired{
-  position:relative!important;
-  z-index:1!important;
-  width:min(720px,100%)!important;
-  max-height:min(760px,calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)))!important;
-  overflow:auto!important;
-  border-radius:28px!important;
-  border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-outline-variant))!important;
-  background:var(--md-sys-color-surface-container-lowest)!important;
-  box-shadow:0 24px 70px rgba(18,29,24,.26),0 1px 0 rgba(255,255,255,.80) inset!important;
-}
-body[data-route="appointments"] .agenda-route-dialog-retired>header{
-  position:sticky!important;
-  top:0!important;
-  z-index:2!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:space-between!important;
-  gap:10px!important;
-  padding:14px 16px!important;
-  background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 92%,transparent)!important;
-  -webkit-backdrop-filter:blur(14px)!important;
-  backdrop-filter:blur(14px)!important;
-  border-bottom:1px solid var(--md-sys-color-outline-variant)!important;
-}
+
+
+
+
+
 body[data-route="appointments"] .agenda-route-form{padding:16px!important;display:grid!important;gap:12px!important}
 @media(max-width:720px){
   body[data-route="appointments"]{
@@ -956,26 +926,26 @@ body[data-route="appointments"] [class*="agenda-day-event-"]{
     bottom:var(--pt-agenda-dock-bottom)!important;
     width:auto!important;
     max-width:none!important;
-    
+
     grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    
+
     padding:0!important;
   }
   body[data-route="appointments"] .agenda-floating-card,
   body[data-route="appointments"] [class*="agenda-floating-card-"]{
     min-height:58px!important;
-    
+
     gap:6px!important;
     padding:8px 8px!important;
-    
+
   }
-  
+
   body[data-route="appointments"] .agenda-floating-copy b,
   body[data-route="appointments"] .agenda-floating-card b{font-size:.82rem!important;line-height:1.05!important;letter-spacing:-.02em!important}
   body[data-route="appointments"] .agenda-floating-label,
   body[data-route="appointments"] .agenda-floating-copy>span{font-size:.56rem!important;line-height:1.05!important;letter-spacing:.035em!important}
-  body[data-route="appointments"] .agenda-route-overlay-retired:not([hidden]){align-items:end!important;padding:10px 8px calc(10px + env(safe-area-inset-bottom,0px))!important}
-  body[data-route="appointments"] .agenda-route-dialog-retired{width:100%!important;max-height:min(84dvh,760px)!important;border-radius:26px 26px 20px 20px!important}
+
+
   body[data-route="appointments"] .agenda-route-form{padding:14px!important}
 }
 @media(max-width:380px){
@@ -999,7 +969,7 @@ body[data-route="appointments"] [class*="agenda-day-event-"]{
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   body[data-route="appointments"] .agenda-floating-card,
   body[data-route="appointments"] [class*="agenda-floating-card-"]{background:var(--pt-agenda-glass-solid)!important}
-  body[data-route="appointments"] .agenda-route-dialog-retired>header{background:var(--md-sys-color-surface-container-lowest)!important}
+
 }
 @media(prefers-reduced-motion:reduce){
   body[data-route="appointments"] :is(.agenda-day-event,.agenda-floating-card),
@@ -1007,9 +977,7 @@ body[data-route="appointments"] [class*="agenda-day-event-"],
 body[data-route="appointments"] [class*="agenda-floating-card-"]{transition:none!important;transform:none!important}
 }
 @media(prefers-reduced-transparency:reduce){
-  body[data-route="appointments"] :is(.agenda-floating-card,.agenda-route-backdrop-retired),
-body[data-route="appointments"] [class*="agenda-floating-card-"],
-body[data-route="appointments"] .agenda-route-dialog-retired>header{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  body[data-route="appointments"] :is(.agenda-floating-card),body[data-route="appointments"] [class*="agenda-floating-card-"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
   body[data-route="appointments"] .agenda-floating-card,
   body[data-route="appointments"] [class*="agenda-floating-card-"]{background:var(--pt-agenda-glass-solid)!important}
 }
@@ -1031,8 +999,8 @@ body[data-route="appointments"] > .agenda-floating-kpis{
   bottom:calc(18px + env(safe-area-inset-bottom,0px))!important;
   z-index:var(--pt-agenda-float-z,130)!important;
   display:grid!important;
-  
-  
+
+
   align-items:start!important;
   gap:9px!important;
   width:max-content!important;
@@ -1046,13 +1014,13 @@ body[data-route="appointments"] > .agenda-floating-kpis{
 }
 body[data-route="appointments"] .agenda-floating-card,
 body[data-route="appointments"] [class*="agenda-floating-card-"]{
-  
-  
-  
+
+
+
   grid-template-columns:auto minmax(0,max-content)!important;
   justify-content:start!important;
   justify-items:start!important;
-  
+
 }
 body[data-route="appointments"] :is(.agenda-floating-copy,.agenda-floating-label),
 body[data-route="appointments"] .agenda-floating-card b,
@@ -1067,9 +1035,9 @@ body[data-route="appointments"] .agenda-floating-card-occupancy .agenda-floating
 body[data-route="appointments"] [class*="agenda-floating-card-occupancy"]>.material-symbols-rounded,
 body[data-route="appointments"] .agenda-floating-card-free-time .agenda-floating-icon,
 body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.material-symbols-rounded{
-  
+
   background:color-mix(in srgb,var(--md-sys-color-primary) 14%,rgba(255,255,255,.78))!important;
-  
+
 }
 @media(max-width:720px){
   body[data-route="appointments"] main{
@@ -1079,7 +1047,7 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
   body[data-route="appointments"] > .ds-fixed-agenda-kpis,
   body[data-route="appointments"] > .agenda-floating-kpis{
     left:auto!important;
-    
+
     bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
     width:max-content!important;
     min-width:min(218px,calc(100dvw - 16px))!important;
@@ -1094,9 +1062,9 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
     grid-template-columns:auto minmax(0,max-content)!important;
     justify-items:start!important;
     text-align:left!important;
-    
+
     padding:8px 10px!important;
-    
+
   }
   body[data-route="appointments"] .agenda-floating-icon,
   body[data-route="appointments"] .agenda-floating-card>.material-symbols-rounded,
@@ -1106,7 +1074,7 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
     border-radius:12px!important;
     font-size:18px!important;
   }
-  
+
 }
 @media(max-width:380px){
   body[data-route="appointments"] main{
@@ -1123,11 +1091,11 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
   body[data-route="appointments"] [class*="agenda-floating-card-"]{
     grid-template-columns:auto minmax(0,max-content)!important;
     justify-items:start!important;
-    
+
     min-height:50px!important;
     padding:7px 9px!important;
   }
-  
+
 }
 body.public.has-top-shell{
   --pt-public-top-gap:max(8px,var(--pt-safe-top,0px));
@@ -1340,7 +1308,7 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
   body[data-route="appointments"] > .ds-fixed-agenda-kpis,
   body[data-route="appointments"] > .agenda-floating-kpis{
     right:max(3px,var(--pt-safe-right,0px))!important;
-    
+
     max-width:min(324px,calc(100dvw - 6px))!important;
     gap:6px!important;
   }
@@ -1405,14 +1373,14 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
-  
-  
+
+
   height:42px!important;
-  
-  
-  
-  
-  
+
+
+
+
+
 }
 .top form.logout:hover,
 .top form.logout:focus-within{
@@ -1456,13 +1424,13 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
 }
 .seq-footer-chip{
   min-height:32px!important;
-  
+
   padding:6px 11px 6px 10px!important;
   border-radius:999px!important;
   max-width:100%!important;
 }
 .seq-footer-label{
-  
+
   color:var(--md-sys-color-on-surface-variant)!important;
   font:var(--md-sys-typescale-label-small)!important;
   font-weight:850!important;
@@ -1524,7 +1492,7 @@ body[data-route="appointments"] [class*="agenda-floating-card-free-time"]>.mater
 
 @media(max-width:640px){
   .seq-footer{
-    
+
     margin-block-start:0!important;
     padding-block-start:var(--pt-seq-footer-gap)!important;
     padding-block-end:var(--pt-seq-footer-gap)!important;
@@ -1624,11 +1592,11 @@ body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo{
 
 
 body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
-  
-  
-  
-  
-  
+
+
+
+
+
   align-content:start!important;
 }
 body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo,
@@ -1645,18 +1613,18 @@ body.has-seq-footer:not([data-route="appointments"]) :where(.card,.pagehead,.two
   margin-block-end:0!important;
 }
 body.has-seq-footer:not([data-route="appointments"]) .seq-footer{
-  
+
   margin-block-start:0!important;
-  
-  
+
+
 }
 
 @media(max-width:640px){
   body.has-seq-footer:not([data-route="appointments"]) main#conteudo{
     min-height:0!important;
-    
+
   }
-  
+
 }
 
 
@@ -1942,7 +1910,7 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] 
 :where(.top-icon,.notify-link,.logout-icon,.icon-only,.password-toggle,.status-icon-only) .material-symbols-rounded{
   font-size:21px!important;
 }
-:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.seq-footer-icon,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
+:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.seq-footer-icon,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -1950,18 +1918,17 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] 
   overflow:visible!important;
   color:var(--md-sys-color-primary);
 }
-:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) > .material-symbols-rounded,
-:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) .pt-icon-glyph{
+:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) > .material-symbols-rounded,:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) .pt-icon-glyph{
   font-size:var(--pt-icon-md)!important;
   width:1em!important;
   height:1em!important;
   min-width:1em!important;
 }
-:where(.pagehead-icon,.brand-mark,.credential-icon,.choice-icon,.login-lock-icon,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
+:where(.pagehead-icon,.brand-mark,.credential-icon,.choice-icon,.login-lock-icon,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
   background:var(--pt-icon-surface)!important;
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
 }
-:where(.pagehead-icon,.credential-icon,.choice-icon,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
+:where(.pagehead-icon,.credential-icon,.choice-icon,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
   width:var(--pt-icon-box-md);
   height:var(--pt-icon-box-md);
   border-radius:16px;
@@ -1996,10 +1963,10 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] 
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
   font-size:24px!important;
 }
-:where(.kpis,.procedure-kpis,.finance-kpis,.reception-kpis,.manager-kpis,.notice-kpis,.notice-gmail-kpis,.admin-overview-kpis){
+:where(.kpis,.procedure-kpis,.finance-kpis,.reception-kpis,.manager-kpis,.notice-kpis,.admin-overview-kpis){
   align-items:stretch;
 }
-:where(.kpis,.procedure-kpis,.finance-kpis,.reception-kpis,.manager-kpis,.notice-kpis,.notice-gmail-kpis,.admin-overview-kpis) > *{
+:where(.kpis,.procedure-kpis,.finance-kpis,.reception-kpis,.manager-kpis,.notice-kpis,.admin-overview-kpis) > *{
   min-width:0;
 }
 
@@ -2067,7 +2034,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   .top .brand b{display:none!important;}
   .top .top-actions{gap:6px!important;}
   .top .top-account.top-user-name{padding-inline:8px!important;}
-  :where(.pagehead-icon,.credential-icon,.choice-icon,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
+  :where(.pagehead-icon,.credential-icon,.choice-icon,.doc-history-icon,.notice-icon,.ds-section-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.goal-mini-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon){
     width:40px!important;height:40px!important;border-radius:15px!important;
   }
   :where(.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat,.finance-kpis>div,.procedure-kpis>div,.reception-kpis>div,.kpis>div) > .material-symbols-rounded{
@@ -2352,31 +2319,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 
 
 
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills){
   display:grid!important;
   gap:12px!important;
   align-items:stretch!important;
@@ -2392,31 +2335,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   border-radius:0!important;
 }
 
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span){
   position:relative!important;
   min-width:0!important;
   min-height:92px!important;
@@ -2436,73 +2355,10 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   overflow:hidden!important;
   isolation:isolate!important;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .reception-pending-grid
-) > :where(article,div,a,span):has(> .material-symbols-rounded),
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .reception-pending-grid
-) > :where(article,div,a,span):has(> .pt-icon-glyph){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.reception-pending-grid) > :where(article,div,a,span):has(> .material-symbols-rounded),:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.reception-pending-grid) > :where(article,div,a,span):has(> .pt-icon-glyph){
   grid-template-columns:auto minmax(0,1fr)!important;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span)::before{
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span)::before{
   content:"";
   position:absolute;
   inset:12px auto 12px 0;
@@ -2511,31 +2367,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   background:var(--md-sys-color-primary);
   opacity:.78;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span)::after{
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span)::after{
   content:"";
   position:absolute;
   inset:auto -40px -54px auto;
@@ -2546,26 +2378,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   pointer-events:none;
   z-index:-1;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .reception-pending-grid
-) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.reception-pending-grid) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
   width:46px!important;
   height:46px!important;
   min-width:46px!important;
@@ -2580,59 +2393,11 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   font-size:25px!important;
   grid-row:1 / span 2;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span) :where(p,div,span){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span) :where(p,div,span){
   min-width:0;
   margin:0!important;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span) b{
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span) b{
   display:block!important;
   color:var(--md-sys-color-on-surface)!important;
   font:var(--md-sys-typescale-headline-small)!important;
@@ -2641,31 +2406,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   line-height:1.08!important;
   overflow-wrap:anywhere;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span) :where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span) :where(span:not(.material-symbols-rounded):not(.pt-icon-glyph),small,strong){
   color:var(--md-sys-color-on-surface-variant);
   font:var(--md-sys-typescale-label-large);
   font-weight:760;
@@ -2692,31 +2433,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 :where(.manager-mini-grid,.manager-goal-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > div{
   min-height:82px!important;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span):where(:hover,:focus-visible){
+:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span):where(:hover,:focus-visible){
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 24%,var(--md-sys-color-outline-variant))!important;
   background:
     radial-gradient(circle at 0 0,color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent),transparent 34%),
@@ -2733,114 +2450,23 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 :where(.kpi-card.warn,.patient-kpi-card.warn,.patient-kpi-card.is-warn,.patient-kpi-card.is-bad,.manager-stat.bad,.stat-card.bad)::before{background:var(--pt-color-warning)!important;}
 :where(.kpi-card.warn,.patient-kpi-card.warn,.patient-kpi-card.is-warn,.patient-kpi-card.is-bad,.manager-stat.bad,.stat-card.bad) > :where(.material-symbols-rounded,.pt-icon-glyph){color:var(--pt-color-warning)!important;background:color-mix(in srgb,var(--pt-color-warning) 12%,var(--md-sys-color-surface-container-lowest))!important;}
 @media(max-width:720px){
-  :where(
-    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-    .stats-grid,
-    .admin-overview-kpis,
-    .global-telemetry-grid,
-    .manager-kpis,
-    .manager-operational-kpis,
-    .reception-kpis,
-    .lead-overview,
-    .task-overview,
-    .patient-directory-overview,
-    .procedure-kpis,
-    .procedure-kpis-refined,
-    .notice-kpis,
-    .notice-gmail-kpis,
-    .patient-summary-cards,
-    .patient-profile-summary-cards,
-    .patient-profile-footer-cards,
-    .manager-mini-grid,
-    .manager-goal-grid,
-    .reception-pending-grid,
-    .reception-flow,
-    .finance-drawer-metrics,
-    .cash-drawer-pills
-  ){
+  :where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills){
     grid-template-columns:1fr!important;
     gap:10px!important;
   }
-  :where(
-    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-    .stats-grid,
-    .admin-overview-kpis,
-    .global-telemetry-grid,
-    .manager-kpis,
-    .manager-operational-kpis,
-    .reception-kpis,
-    .lead-overview,
-    .task-overview,
-    .patient-directory-overview,
-    .procedure-kpis,
-    .procedure-kpis-refined,
-    .notice-kpis,
-    .notice-gmail-kpis,
-    .patient-summary-cards,
-    .patient-profile-summary-cards,
-    .patient-profile-footer-cards,
-    .manager-mini-grid,
-    .manager-goal-grid,
-    .reception-pending-grid,
-    .reception-flow,
-    .finance-drawer-metrics,
-    .cash-drawer-pills
-  ) > :where(article,div,a,span){
+  :where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span){
     min-height:80px!important;
     padding:13px 14px 13px 12px!important;
     border-radius:24px!important;
   }
-  :where(
-    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-    .stats-grid,
-    .admin-overview-kpis,
-    .global-telemetry-grid,
-    .manager-kpis,
-    .manager-operational-kpis,
-    .reception-kpis,
-    .lead-overview,
-    .task-overview,
-    .patient-directory-overview,
-    .procedure-kpis,
-    .procedure-kpis-refined,
-    .notice-kpis,
-    .notice-gmail-kpis,
-    .patient-summary-cards,
-    .patient-profile-summary-cards,
-    .patient-profile-footer-cards,
-    .reception-pending-grid
-  ) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
+  :where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.reception-pending-grid) > :where(article,div,a,span) > :where(.material-symbols-rounded,.pt-icon-glyph){
     width:42px!important;
     height:42px!important;
     min-width:42px!important;
     border-radius:16px!important;
     font-size:23px!important;
   }
-  :where(
-    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-    .stats-grid,
-    .admin-overview-kpis,
-    .global-telemetry-grid,
-    .manager-kpis,
-    .manager-operational-kpis,
-    .reception-kpis,
-    .lead-overview,
-    .task-overview,
-    .patient-directory-overview,
-    .procedure-kpis,
-    .procedure-kpis-refined,
-    .notice-kpis,
-    .notice-gmail-kpis,
-    .patient-summary-cards,
-    .patient-profile-summary-cards,
-    .patient-profile-footer-cards,
-    .manager-mini-grid,
-    .manager-goal-grid,
-    .reception-pending-grid,
-    .reception-flow,
-    .finance-drawer-metrics,
-    .cash-drawer-pills
-  ) > :where(article,div,a,span) b{
+  :where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span) b{
     font:var(--md-sys-typescale-title-large)!important;
     font-weight:900!important;
   }
@@ -2850,61 +2476,11 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 
 
 
-.finance-balance-kpis > .finance-balance-card,
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span){
+.finance-balance-kpis > .finance-balance-card,:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span){
   border-radius:0 var(--pt-card-radius-m3) var(--pt-card-radius-m3) 0!important;
   padding-inline-start:var(--pt-card-strip-pad)!important;
 }
-.finance-balance-kpis > .finance-balance-card::before,
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span)::before{
+.finance-balance-kpis > .finance-balance-card::before,:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span)::before{
   inset:0 auto 0 0!important;
   width:var(--pt-card-strip-width)!important;
   border-radius:0!important;
@@ -2931,18 +2507,18 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 
 
 
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
   border-radius:0 20px 20px 0!important;
   border-left:var(--pt-card-strip-width) solid color-mix(in srgb,var(--md-sys-color-primary) 70%,var(--md-sys-color-outline-variant))!important;
   padding-inline-start:14px!important;
 }
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row):where(:hover,:focus-within){
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row):where(:hover,:focus-within){
   border-left-color:var(--md-sys-color-primary)!important;
 }
 
 
 
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row) :where(.material-symbols-rounded,.pt-icon-glyph):first-child{
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row) :where(.material-symbols-rounded,.pt-icon-glyph):first-child{
   color:var(--md-sys-color-primary)!important;
 }
 
@@ -2958,36 +2534,11 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 
 
 @media(max-width:720px){
-  .finance-balance-kpis > .finance-balance-card,
-  :where(
-    .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-    .stats-grid,
-    .admin-overview-kpis,
-    .global-telemetry-grid,
-    .manager-kpis,
-    .manager-operational-kpis,
-    .reception-kpis,
-    .lead-overview,
-    .task-overview,
-    .patient-directory-overview,
-    .procedure-kpis,
-    .procedure-kpis-refined,
-    .notice-kpis,
-    .notice-gmail-kpis,
-    .patient-summary-cards,
-    .patient-profile-summary-cards,
-    .patient-profile-footer-cards,
-    .manager-mini-grid,
-    .manager-goal-grid,
-    .reception-pending-grid,
-    .reception-flow,
-    .finance-drawer-metrics,
-    .cash-drawer-pills
-  ) > :where(article,div,a,span){
+  .finance-balance-kpis > .finance-balance-card,:where(.kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.notice-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > :where(article,div,a,span){
     border-radius:0 var(--pt-card-radius-m3-compact) var(--pt-card-radius-m3-compact) 0!important;
     padding-inline-start:16px!important;
   }
-  :where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
+  :where(.finance-row,.procedure-card,.task-card,.doc-history-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
     border-radius:0 18px 18px 0!important;
     padding-inline-start:13px!important;
   }
@@ -3273,9 +2824,9 @@ body[data-route="appointments"].has-floating-pending .context-floating-pending-c
   justify-content:stretch!important;
   justify-items:stretch!important;
   gap:9px!important;
-  
-  
-  
+
+
+
   min-height:56px!important;
   padding:9px 11px!important;
   text-align:left!important;
@@ -3435,14 +2986,14 @@ body:not([data-route="appointments"]) .context-floating-pending-card{
   padding:var(--pt-floating-card-pad-y) var(--pt-floating-card-pad-x)!important;
   gap:7px!important;
   border-radius:var(--pt-floating-card-radius)!important;
-  
+
 }
 body[data-route="appointments"].has-floating-pending .context-floating-pending-card .agenda-floating-icon,
 body:not([data-route="appointments"]) .context-floating-pending-card .agenda-floating-icon{
   width:var(--pt-floating-card-icon)!important;
   height:var(--pt-floating-card-icon)!important;
   min-width:var(--pt-floating-card-icon)!important;
-  
+
   font-size:18px!important;
 }
 
@@ -3457,7 +3008,7 @@ body[data-route="appointments"].has-floating-pending main#conteudo{
     --pt-floating-card-icon:26px;
     --pt-floating-card-pad-y:5px;
     --pt-floating-card-pad-x:7px;
-    
+
     --pt-fixed-agenda-stack-h:132px;
   }
   body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
@@ -3717,7 +3268,7 @@ main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pil
   background:var(--pt-ds-surface-bg-hover)!important;
   box-shadow:var(--pt-ds-surface-shadow-hover)!important;
 }
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice){
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice){
   position:relative;
   min-width:0;
   border:1px solid var(--pt-ds-surface-line)!important;
@@ -3725,7 +3276,7 @@ main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list
   background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%))!important;
   box-shadow:0 6px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.66) inset!important;
 }
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--pt-ds-surface-line))!important;
   background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))!important;
   box-shadow:0 8px 22px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset!important;
@@ -3737,9 +3288,7 @@ main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.m
   background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 3%),var(--md-sys-color-surface-container-lowest));
   box-shadow:0 7px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.68) inset!important;
 }
-main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card) :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,
-main [data-ds-icon-chip="1"]{
+main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card) :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,main [data-ds-icon-chip="1"]{
   width:var(--pt-ds-icon-size-compact)!important;
   height:var(--pt-ds-icon-size-compact)!important;
   min-width:var(--pt-ds-icon-size-compact)!important;
@@ -4222,7 +3771,7 @@ body[data-route="appointments"] .agenda-month-day{
   grid-template-rows:auto 1fr auto!important;
   align-content:stretch!important;
   gap:4px!important;
-  
+
   border-radius:18px 18px 0 0!important;
   overflow:hidden!important;
   background:linear-gradient(to top,var(--agenda-month-dark) 0 var(--agenda-month-fill),var(--agenda-month-light) var(--agenda-month-fill) 100%)!important;
@@ -4254,18 +3803,18 @@ body[data-route="appointments"] .agenda-month-occupancy-value{
   align-items:center!important;
   min-height:21px!important;
   padding:2px 6px!important;
-  
+
   background:color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 90%,var(--md-sys-color-primary) 10%)!important;
-  
+
   font:var(--md-sys-typescale-label-small)!important;
-  
+
   letter-spacing:-.01em!important;
   box-shadow:0 1px 0 rgba(255,255,255,.42)!important;
 }
 @media(max-width:720px){
   body[data-route="appointments"] .agenda-month-day{
     min-height:56px!important;
-    
+
     border-radius:14px 14px 0 0!important;
     gap:2px!important;
   }
@@ -4520,7 +4069,7 @@ body.scope-global .global-compact-summary{
   gap:16px!important;
 }
 body.scope-global .global-pill-list{
-  
+
   grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))!important;
 }
 body.scope-global .global-compact-pill{
@@ -4528,7 +4077,7 @@ body.scope-global .global-compact-pill{
   display:grid!important;
   grid-template-columns:auto minmax(0,1fr)!important;
   grid-template-rows:auto auto auto!important;
-  
+
   column-gap:10px!important;
   row-gap:0!important;
 }
@@ -4664,7 +4213,7 @@ body.public[data-route="login"] .auth-titleline h1{
 body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{
   width:50px!important;
   height:50px!important;
-  
+
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
 body.public[data-route="login"] .login-boot,
@@ -4745,7 +4294,7 @@ body.public[data-route="login"] .top .top-actions>a.ghost[href*="r=login"]{
 }
 @media(max-width:520px){
   body.public[data-route="login"]{--pt-public-auth-max:100%;}
-  
+
 }
 
 
@@ -5093,7 +4642,7 @@ body.public[data-route="login"] .auth-brandmark[data-app-favicon-brandmark]{widt
 
 
 .admin-alert-screen .admin-alert-compose .field-help{margin:2px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
-.admin-alert-row .notice-minimal-sender{font-weight:800;color:var(--md-sys-color-primary)}
+
 .admin-alert-row.severity-critical{border-left:4px solid var(--danger)}
 .admin-alert-row.severity-warning{border-left:4px solid var(--pt-color-warning)}
 .admin-alert-reader footer{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
@@ -5174,7 +4723,7 @@ body.scope-clinic .top .brand b{
 }
 .billing-readonly-icon .material-symbols-rounded{font-size:22px;color:currentColor}
 .billing-readonly-copy{display:grid;gap:2px;min-width:0}.billing-readonly-copy .eyebrow{font-size:.68rem;line-height:1}.billing-readonly-copy b{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface);letter-spacing:-.015em}.billing-readonly-copy small{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);line-height:1.3}.billing-readonly-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}.billing-readonly-actions a{text-decoration:none;white-space:nowrap}.billing-readonly-actions .billing-support-link{background:var(--md-sys-color-surface-container-lowest)}
-.readonly-scope-note{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));border-radius:22px;background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-on-surface);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.readonly-scope-note>.material-symbols-rounded,.readonly-scope-note>.pt-icon-glyph{width:40px;height:40px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.readonly-scope-note div{display:grid;gap:2px;min-width:0}.readonly-scope-note strong{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.readonly-scope-note span{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);line-height:1.35}.readonly-support-screen .readonly-support-compose{border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.readonly-support-help{color:var(--md-sys-color-on-surface-variant)}.readonly-support-row .notice-minimal-sender{color:var(--md-sys-color-primary);font-weight:900}
+.readonly-scope-note{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));border-radius:22px;background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-on-surface);box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.readonly-scope-note>.material-symbols-rounded,.readonly-scope-note>.pt-icon-glyph{width:40px;height:40px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.readonly-scope-note div{display:grid;gap:2px;min-width:0}.readonly-scope-note strong{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.readonly-scope-note span{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);line-height:1.35}.readonly-support-screen .readonly-support-compose{border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.readonly-support-help{color:var(--md-sys-color-on-surface-variant)}
 @media(max-width:760px){.billing-readonly-banner.ds-readonly-banner{grid-template-columns:auto minmax(0,1fr);margin-inline:10px}.billing-readonly-actions{grid-column:1/-1;width:100%;justify-content:stretch}.billing-readonly-actions a{flex:1 1 0;justify-content:center}.readonly-scope-note{grid-template-columns:auto minmax(0,1fr);align-items:start}.readonly-scope-note a{grid-column:1/-1;width:100%;justify-content:center}}
 .billing-readonly-banner nav{width:100%}.billing-readonly-banner a{flex:1;text-align:center}.readonly-scope-note{align-items:flex-start;flex-wrap:wrap}.readonly-scope-note a{width:100%;justify-content:center}}
 
@@ -6265,50 +5814,13 @@ body.public .signup-screen-flow .signup-ds-actions{
 
 
 
-:where(
-  .ds-selection-chips,
-  .patient-filter-chips,
-  .lead-filter-chips,
-  .notice-filter-chips,
-  .task-filters,
-  .activity-filter-chips,
-  .activity-period-filter,
-  .admin-alert-filters,
-  .notice-gmail-filters,
-  .ds-notice-filters,
-  .role-permission-tabs,
-  .permission-compact-toolbar,
-  .finance-pagehead-nav
-){
+:where(.ds-selection-chips,.patient-filter-chips,.lead-filter-chips,.task-filters,.activity-filter-chips,.activity-period-filter,.admin-alert-filters,.ds-notice-filters,.role-permission-tabs,.permission-compact-toolbar,.finance-pagehead-nav){
   display:flex!important;
   align-items:center!important;
   gap:8px!important;
   flex-wrap:wrap!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-){
+:where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button){
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -6329,115 +5841,30 @@ body.public .signup-screen-flow .signup-ds-actions{
   box-shadow:none!important;
   cursor:pointer!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
+:where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
   background:var(--md-sys-color-primary-container)!important;
   color:var(--md-sys-color-on-primary-container)!important;
   border-color:transparent!important;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(:hover,:focus-visible){
+:where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button):where(:hover,:focus-visible){
   color:var(--md-sys-color-on-surface)!important;
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant))!important;
   background:color-mix(in srgb,var(--md-sys-color-primary-container) 22%,var(--md-sys-color-surface-container-lowest))!important;
   text-decoration:none!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
+:where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
   color:var(--md-sys-color-on-primary-container)!important;
   border-color:transparent!important;
   background:var(--md-sys-color-primary-container)!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .notice-gmail-filters > a,
-  .ds-notice-filters > a,
-  .permission-compact-toolbar > a,
-  .finance-pagehead-nav > a
-) :where(.material-symbols-rounded,.pt-icon-glyph){
+:where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.ds-notice-filters > a,.permission-compact-toolbar > a,.finance-pagehead-nav > a) :where(.material-symbols-rounded,.pt-icon-glyph){
   font-size:18px!important;
   line-height:1!important;
   color:currentColor!important;
   font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 20;
 }
-:where(.lead-filter-chips,.notice-filter-chips) :where(.lead-chip-icon,.notice-chip-icon){
+:where(.lead-filter-chips) :where(.lead-chip-icon,.notice-chip-icon){
   display:contents!important;
   width:auto!important;
   height:auto!important;
@@ -6447,12 +5874,11 @@ body.public .signup-screen-flow .signup-ds-actions{
   background:transparent!important;
   color:currentColor!important;
 }
-:where(.lead-filter-chips,.notice-filter-chips) :where(.lead-chip-label,span),
-:where(.task-filter,.ds-filter-chip,.patient-filter-chip,.activity-filter-chip,.activity-period-chip,.role-permission-tab) span{
+:where(.lead-filter-chips) :where(.lead-chip-label,span),:where(.task-filter,.ds-filter-chip,.patient-filter-chip,.activity-filter-chip,.activity-period-chip,.role-permission-tab) span{
   color:currentColor!important;
   font-weight:700!important;
 }
-:where(.lead-filter-chips > a,.notice-filter-chips > a,.task-filter,[data-ds-filter-chip]) :where(b,em,.count,.badge){
+:where(.lead-filter-chips > a,.task-filter,[data-ds-filter-chip]) :where(b,em,.count,.badge){
   min-width:20px!important;
   height:20px!important;
   padding:0 6px!important;
@@ -6468,19 +5894,7 @@ body.public .signup-screen-flow .signup-ds-actions{
 }
 .lead-filter-chips > :where(a,button) > em{display:none!important;}
 @media(max-width:640px){
-  :where(
-    .ds-filter-chip,
-    [data-ds-filter-chip],
-    .patient-filter-chip,
-    .lead-filter-chips > a,
-    .lead-filter-chips > button,
-    .notice-filter-chips > a,
-    .notice-filter-chips > button,
-    .task-filter,
-    .activity-filter-chip,
-    .activity-period-chip,
-    .role-permission-tab
-  ){
+  :where(.ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab){
     min-height:34px!important;
     padding:6px 10px!important;
     gap:6px!important;
@@ -6497,9 +5911,9 @@ body.public .signup-screen-flow .signup-ds-actions{
   gap:5px!important;
   min-height:28px!important;
   padding:0 10px!important;
-  
+
   background:color-mix(in srgb,var(--md-sys-color-primary) 12%,var(--md-sys-color-surface-container-lowest))!important;
-  
+
   border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent)!important;
   font-weight:700!important;
   font-size:.82rem!important;
@@ -6538,10 +5952,10 @@ body.public .signup-screen-flow .signup-ds-actions{
   flex-direction:column;
   gap:clamp(12px,2.2vw,18px);
 }
-:where(.ds-filter-list-block) > :where(nav,.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.activity-filter-panel,.ds-selection-chips){
+:where(.ds-filter-list-block) > :where(nav,.patient-filter-chips,.lead-filter-chips,.task-filters,.activity-filter-panel,.ds-selection-chips){
   margin:0;
 }
-:where(.ds-filter-list-block) :where(.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.activity-period-filter){
+:where(.ds-filter-list-block) :where(.patient-filter-chips,.lead-filter-chips,.task-filters,.activity-period-filter){
   width:100%;
 }
 :where(.ds-filter-list-block) :where(.patient-directory-list,.lead-list,.task-board,.notice-list,.activity-timeline,.procedure-list,.doc-history-list){
@@ -7918,7 +7332,7 @@ body.public .signup-screen-flow .signup-ds-actions{
 .doc-overview-cards .doc-ds-metric.patient-kpi-card.kpi-card{
   min-height:82px!important;
   display:flex!important;
-  
+
   gap:12px!important;
   padding:14px 15px!important;
   border-radius:20px!important;
@@ -8366,7 +7780,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   bottom:15mm;
   display:flex;
   justify-content:flex-end;
-  
+
   max-width:calc(100% - 40mm);
 }
 .doc-print-identifier{
@@ -8398,7 +7812,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   .document-print main.doc-a4{
     width:210mm!important;
     min-height:297mm!important;
-    
+
     margin:0!important;
     box-shadow:none!important;
     border:0!important;
@@ -8484,8 +7898,8 @@ body:not(.has-floating-pending) .floating-clock.context-floating-clock-card{
   justify-items:start!important;
   gap:var(--pt-floating-card-gap,7px)!important;
   min-height:var(--pt-floating-card-min-h,44px)!important;
-  
-  
+
+
   max-width:calc(100dvw - 28px)!important;
   padding:var(--pt-floating-card-pad-y,6px) var(--pt-floating-card-pad-x,9px)!important;
   border-radius:var(--pt-floating-attention-radius,16px) 0 0 var(--pt-floating-attention-radius,16px)!important;
@@ -8628,7 +8042,7 @@ body[data-route="appointments"].has-floating-pending .context-floating-pending-c
 body:not([data-route="appointments"]) .context-floating-pending-card::before,
 body:not(.has-floating-pending) .floating-clock.context-floating-clock-card::before,
 .lead-floating-pending .agenda-floating-card::before{
-  
+
   right:0!important;
   inset:0 0 0 auto!important;
   border-radius:0!important;
@@ -9084,12 +8498,12 @@ body.scope-global dialog.clinic-actions-modal .clinic-menu-billing{
 }
 body.scope-global .clinic-attention-actions > dialog.clinic-actions-modal{justify-self:auto;}
 @media(max-width:620px){
-  
+
   body.scope-global dialog.clinic-actions-modal .clinic-actions-modal-shell,
   body.scope-global dialog.clinic-actions-modal .clinic-actions-menu{
-    
+
     border-radius:24px!important;
-    
+
   }
 }
 
@@ -9897,8 +9311,8 @@ body[data-route="appointments"] .agenda-row-expanded .journey-ux--timeline-card.
 }
 body[data-route="appointments"] .agenda-action-panel-inline{
   position:static;
-  
-  
+
+
   box-shadow:none;
   border-radius:18px;
   background:var(--md-sys-color-surface-container-low);
@@ -9931,7 +9345,7 @@ body[data-route="appointments"] .agenda-day-vertical-timeline .agenda-row-toggle
     grid-template-columns:66px minmax(0,1fr) 30px;
     gap:8px;
   }
-  
+
   body[data-route="appointments"] .agenda-row-expanded{
     padding:0 10px 10px 66px;
   }
@@ -11589,8 +11003,7 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
   display:grid!important;
   gap:8px!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31,
-.collaborator-card-row.ds-person-row.ds-collaborator-row-v31{
+.collaborator-card-row.ds-collaborator-row,.collaborator-card-row.ds-person-row.ds-collaborator-row{
   display:grid!important;
   grid-template-columns:44px minmax(0,1fr) auto!important;
   align-items:center!important;
@@ -11601,41 +11014,40 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
   border-left:0!important;
   background:var(--md-sys-color-surface-container-lowest)!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-main{
+.collaborator-card-row.ds-collaborator-row .collaborator-main{
   display:grid!important;
   gap:6px!important;
   min-width:0!important;
   color:inherit!important;
   text-decoration:none!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-titleline{
+.collaborator-card-row.ds-collaborator-row .collaborator-titleline{
   display:flex!important;
   align-items:center!important;
   gap:8px!important;
   min-width:0!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-titleline strong{
+.collaborator-card-row.ds-collaborator-row .collaborator-titleline strong{
   min-width:0!important;
   overflow:hidden!important;
   text-overflow:ellipsis!important;
   white-space:nowrap!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-meta,
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-roles{
+.collaborator-card-row.ds-collaborator-row .collaborator-meta,.collaborator-card-row.ds-collaborator-row .collaborator-roles{
   display:flex!important;
   align-items:center!important;
   flex-wrap:wrap!important;
   gap:6px 10px!important;
   min-width:0!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-roles > *{
+.collaborator-card-row.ds-collaborator-row .collaborator-roles > *{
   min-height:24px!important;
   padding:0 9px!important;
   border-radius:999px!important;
   font:var(--md-sys-typescale-label-small)!important;
   font-weight:800!important;
 }
-.collaborator-card-row.ds-collaborator-row-v31 .collaborator-actions{
+.collaborator-card-row.ds-collaborator-row .collaborator-actions{
   justify-self:end!important;
 }
 .collaborator-new-screen-card .collaborator-new-form,
@@ -11698,16 +11110,15 @@ body[data-route="procedures"] .procedure-route-form .agenda-quick-actions > *{
   .collaborator-search-bar.patient-search-bar .search-field{flex-basis:100%!important;}
   .collaborator-search-bar.patient-search-bar button,
   .collaborator-search-bar.patient-search-bar .ghost{flex:1 1 auto!important;justify-content:center!important;}
-  .collaborator-card-row.ds-collaborator-row-v31,
-  .collaborator-card-row.ds-person-row.ds-collaborator-row-v31{
+  .collaborator-card-row.ds-collaborator-row,.collaborator-card-row.ds-person-row.ds-collaborator-row{
     grid-template-columns:40px minmax(0,1fr)!important;
     align-items:start!important;
   }
-  .collaborator-card-row.ds-collaborator-row-v31 .collaborator-actions{
+  .collaborator-card-row.ds-collaborator-row .collaborator-actions{
     grid-column:2!important;
     justify-self:stretch!important;
   }
-  .collaborator-card-row.ds-collaborator-row-v31 .collaborator-actions .primary.small{
+  .collaborator-card-row.ds-collaborator-row .collaborator-actions .primary.small{
     width:100%!important;
     justify-content:center!important;
   }
@@ -11943,7 +11354,7 @@ body[data-route="appointments"] .agenda-block-scope .field{
   font-weight:900!important;
   color:var(--md-sys-color-on-surface)!important;
 }
-.activity-section-head span:not(.notice-minimal-icon):not(.material-symbols-rounded){
+.activity-section-head span:not(.ds-section-icon):not(.material-symbols-rounded){
   color:var(--md-sys-color-on-surface-variant)!important;
   font:var(--md-sys-typescale-body-small)!important;
 }
@@ -13536,8 +12947,8 @@ body[data-route="painel"] .timeline .titem{
 :where(.pagehead,.profile-hero,.patient-profile-hero,.procedure-hero,.employee-hero,.finance-hero,.document-hero){gap:var(--pt-ds-gap-lg)}
 :where(.pagehead .actions,.pagehead-controls--actions,.cmdbar-actions,.patient-card-actions,.procedure-card-actions,.finance-drawer-actions,.agenda-item-actions,.manager-actions,.lead-actions,.task-actions,.notice-actions,.compact-actions){align-items:center;gap:var(--pt-ds-gap-xs)}
 :where(.cmdbar,.context-bar,.module-bar,.workspace-bar){min-height:var(--cmd-h,56px);border-radius:var(--pt-ds-radius-lg)}
-:where(.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.directory-search,.patient-search,.ds-search,.list-search,.creditor-search,.procedure-search,.employee-search){border-radius:var(--pt-ds-radius-lg);gap:var(--pt-ds-gap-sm);padding:14px;background:linear-gradient(180deg,var(--pt-ds-surface-soft),color-mix(in srgb,var(--pt-ds-surface-soft) 92%,#fff));border:var(--pt-ds-border);box-shadow:none}
-:where(.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.filterbar,.filters,.list-filters,.finance-pagehead-nav){gap:var(--pt-ds-gap-xs);align-items:center;flex-wrap:wrap}
+:where(.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.ds-notice-filters,.directory-search,.patient-search,.ds-search,.list-search,.creditor-search,.procedure-search,.employee-search){border-radius:var(--pt-ds-radius-lg);gap:var(--pt-ds-gap-sm);padding:14px;background:linear-gradient(180deg,var(--pt-ds-surface-soft),color-mix(in srgb,var(--pt-ds-surface-soft) 92%,#fff));border:var(--pt-ds-border);box-shadow:none}
+:where(.patient-filter-chips,.lead-filter-chips,.task-filters,.filterbar,.filters,.list-filters,.finance-pagehead-nav){gap:var(--pt-ds-gap-xs);align-items:center;flex-wrap:wrap}
 :where(.kpis,.stats-grid,.metric-grid,.patient-kpi-grid,.notice-kpi-grid,.finance-kpi-grid,.manager-kpis,.reception-kpis,.procedure-kpis,.employee-kpis,.creditor-kpis){display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--pt-ds-gap-md)}
 :where(.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat,.procedure-kpi,.employee-kpi,.creditor-kpi){border-radius:var(--pt-ds-radius-lg);border:var(--pt-ds-border);background:var(--pt-ds-surface);box-shadow:var(--md-sys-elevation-level1);min-height:78px;align-items:center}
 :where(.ds-person-row,.patient-card-row,.finance-row,.activity-row,.notice-row,.task-row,.procedure-row,.creditor-row,.employee-row,.reception-row,.manager-action,.manager-action-list a,.timeline .titem){min-height:var(--pt-ds-row-min);border-radius:var(--pt-ds-radius-md);padding:var(--pt-ds-row-pad-y) var(--pt-ds-row-pad-x);background:color-mix(in srgb,var(--pt-ds-surface) 96%,var(--pt-ds-surface-soft));border:var(--pt-ds-border-soft)}
@@ -14660,7 +14071,7 @@ body.has-telemetry-mountains .login-telemetry-wave-path{stroke:none;opacity:.5}
 body:not(.public) .footer-telemetry-lines{z-index:0}
 body.has-telemetry-mountains .footer-telemetry-lines{position:fixed;right:0;bottom:0;left:0;z-index:0;display:block;width:100%;height:15vh;min-height:64px;max-height:180px;overflow:hidden;pointer-events:none;user-select:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 34%,#000 100%)}
 body.has-telemetry-mountains .footer-telemetry-lines svg{display:block;width:100%;height:100%;overflow:visible}
-body.has-telemetry-mountains .footer-telemetry-wave-path{stroke:none;opacity:.5}                                                                                       
+body.has-telemetry-mountains .footer-telemetry-wave-path{stroke:none;opacity:.5}
 body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-requests{fill:var(--clinic-accent,var(--brand,#347963))}
 body.has-telemetry-mountains .app-telemetry-mountains.is-clinic-themed .login-telemetry-wave-path.is-records{fill:var(--clinic-accent-strong,var(--brand-dark,#1f6f56))}
 
@@ -14723,3 +14134,13 @@ body.scope-global .admin-telemetry-card{
   gap:12px;
 }
 body.scope-global .developer-actions-card{min-width:0}body.scope-global .developer-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}body.scope-global .developer-tool-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px;border:1px solid rgba(15,23,42,.10);border-radius:14px;text-decoration:none;color:inherit;background:rgba(255,255,255,.62);transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}body.scope-global .developer-tool-card:hover{transform:translateY(-1px);border-color:rgba(var(--clinic-accent-rgb,35,135,99),.36);box-shadow:0 8px 22px rgba(15,23,42,.06)}body.scope-global .developer-tool-card b,body.scope-global .developer-tool-card small{display:block}body.scope-global .developer-tool-card small{margin-top:4px;line-height:1.4;opacity:.72}body.scope-global .developer-tool-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--clinic-accent-soft,#e6f3ee);color:var(--clinic-accent-dark,#105e44)}@media(max-width:820px){body.scope-global main .developer-tool-grid{grid-template-columns:1fr}}
+
+.notice-screen{display:grid;gap:var(--pt-ds-gap-md);min-width:0;background:transparent;border:0;box-shadow:none}
+.notice-list-card,.notice-system-card,.notice-reader-card{display:grid;gap:0;min-width:0;background:var(--pt-ds-surface);border:var(--pt-ds-border);border-radius:var(--pt-ds-radius-lg);box-shadow:var(--md-sys-elevation-level1)}
+.notice-list{display:grid;gap:8px}.notice-list-card .section-head,.notice-system-card .section-head{align-items:flex-start;margin:0 0 12px;padding:0 0 12px}.notice-section-count{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 10px;border-radius:999px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-label-medium);font-weight:900}.ds-notice-filters .ds-filter-chip em{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-style:normal;font-weight:900}.ds-notice-filters .ds-filter-chip.is-active em{background:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-primary-container));color:var(--md-sys-color-on-primary-container)}
+.notice-row:hover{color:var(--md-sys-color-on-surface);text-decoration:none}.notice-row-icon,.ds-section-icon{width:40px;height:40px;min-width:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:15px;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.notice-row-main{display:grid;gap:3px;min-width:0}.notice-row-title{min-width:0;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notice-row-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.3}.notice-row-time{justify-self:end;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);white-space:nowrap}.notice-row.is-unread{border-left:4px solid var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest))}.notice-row.is-unread .notice-row-title{font-weight:900}.notice-row.is-archived{opacity:.74}
+.notice-system-row{background:color-mix(in srgb,var(--md-sys-color-tertiary) 3%,var(--md-sys-color-surface-container-lowest))}.notice-system-row .notice-row-icon{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);border-color:color-mix(in srgb,var(--md-sys-color-tertiary) 14%,transparent)}.notice-status-pill{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border-radius:999px;background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-status-pill.severity-warning{background:var(--pt-color-warning-container);color:var(--pt-color-on-warning-container)}.notice-status-pill.severity-critical{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container)}.notice-system-row.severity-warning{border-left:4px solid var(--pt-color-warning)}.notice-system-row.severity-critical{border-left:4px solid var(--md-sys-color-error)}
+.notice-reader-card{padding:var(--pt-ds-section-pad)}.notice-reader{display:grid;gap:0}.notice-reader-head.section-head{align-items:flex-start;margin:0;padding:0 0 14px}.notice-reader-body{padding:18px 0;border:0;border-radius:0;background:transparent;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-body-large);line-height:1.62;white-space:normal}
+.notice-empty{display:grid;justify-items:center;align-content:center;gap:8px;min-height:152px;text-align:center}.notice-empty-icon{width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;border-radius:17px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-empty strong{color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:900}.notice-empty>span:not(.notice-empty-icon){max-width:58ch;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.notice-empty-actions{display:flex;justify-content:center;gap:8px;margin-top:4px}
+.readonly-support-screen{display:grid;gap:var(--pt-ds-gap-lg)}.notice-support-compose{display:grid;gap:0}.notice-support-compose .section-head{align-items:flex-start}.notice-support-compose .notice-form{gap:12px}.notice-support-row .notice-row-icon{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:color-mix(in srgb,var(--md-sys-color-secondary) 14%,transparent)}
+@media(max-width:760px){.notice-row{grid-template-columns:auto minmax(0,1fr);align-items:start}.notice-row-time{grid-column:2;justify-self:start}.notice-row-title{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.notice-reader-footer{align-items:stretch}.notice-reader-meta{width:100%}.notice-actions{width:100%;margin-left:0;justify-content:stretch}.notice-actions form,.notice-actions button{width:100%}.ds-notice-filters{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.ds-notice-filters::-webkit-scrollbar{display:none}.ds-notice-filters .ds-filter-chip{flex:0 0 auto}}

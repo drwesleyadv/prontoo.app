@@ -98,8 +98,8 @@ final class AuditActivityRuntimeOperations05
             return array_merge($base, $extra);
         };
         $memberChips =
-            '<nav class="activity-filter-chips" aria-label="Filtrar por membro da equipe"><a class="activity-filter-chip ' .
-            ($member <= 0 ? "active" : "") .
+            '<nav class="activity-filter-chips ds-selection-chips" aria-label="Filtrar por membro da equipe"><a class="activity-filter-chip ds-filter-chip ' .
+            ($member <= 0 ? "is-active" : "") .
             '" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["period" => $period])) .
             '">' .
@@ -107,8 +107,8 @@ final class AuditActivityRuntimeOperations05
             "<span>Todos</span></a>";
         foreach ($team as $id => $first) {
             $memberChips .=
-                '<a class="activity-filter-chip ' .
-                ($member === $id ? "active" : "") .
+                '<a class="activity-filter-chip ds-filter-chip ' .
+                ($member === $id ? "is-active" : "") .
                 '" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["member" => $id, "period" => $period])) .
                 '">' .
@@ -119,12 +119,12 @@ final class AuditActivityRuntimeOperations05
         }
         $memberChips .= "</nav>";
         $periodChips =
-            '<nav class="activity-period-filter" aria-label="Selecionar data das atividades">';
+            '<nav class="activity-period-filter ds-selection-chips" aria-label="Selecionar data das atividades">';
         foreach (\Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit_period_options($cid, $c) as $value => $label) {
             if ($value === "date") {
                 $periodChips .=
-                    '<button type="button" class="activity-period-chip ' .
-                    ($period === "date" ? "active" : "") .
+                    '<button type="button" class="activity-period-chip ds-filter-chip ' .
+                    ($period === "date" ? "is-active" : "") .
                     '" data-open-activity-date>' .
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
                     "<span>" .
@@ -132,8 +132,8 @@ final class AuditActivityRuntimeOperations05
                     "</span></button>";
             } else {
                 $periodChips .=
-                    '<a class="activity-period-chip ' .
-                    ($period === $value ? "active" : "") .
+                    '<a class="activity-period-chip ds-filter-chip ' .
+                    ($period === $value ? "is-active" : "") .
                     '" href="' .
                     \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("audit", $baseFor(["period" => $value])) .
                     '">' .
@@ -186,7 +186,7 @@ final class AuditActivityRuntimeOperations05
             $initial .
             '</div><div class="activity-load-sentinel" data-activity-sentinel aria-hidden="true"></div>';
         $sectionHead =
-            '<header class="ds-section-head activity-section-head"><span class="notice-minimal-icon">' .
+            '<header class="ds-section-head activity-section-head"><span class="ds-section-icon">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("history") .
             "</span><div><strong>Registro de atividades</strong><span>Filtros e linha do tempo em leitura compacta.</span></div></header>";
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(

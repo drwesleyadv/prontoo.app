@@ -3854,7 +3854,7 @@ function initPasswordToggle(root = document) {
     root = root || document;
     var containers = find(
       root,
-      "main :is(.kpis,.stats-grid,.lead-overview,.patient-directory-overview,.task-overview,.admin-overview-kpis,.manager-kpis,.manager-operational-kpis,.finance-kpis,.procedure-kpis,.procedure-kpis-refined,.notice-kpis,.notice-gmail-kpis,.finance-mini-grid,.manager-mini-grid,.finance-drawer-metrics,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.global-telemetry-grid,.global-performance-charts):not(.agenda-floating-kpis)",
+      "main :is(.kpis,.stats-grid,.lead-overview,.patient-directory-overview,.task-overview,.admin-overview-kpis,.manager-kpis,.manager-operational-kpis,.finance-kpis,.procedure-kpis,.notice-kpis,.finance-mini-grid,.manager-mini-grid,.finance-drawer-metrics,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.global-telemetry-grid,.global-performance-charts):not(.agenda-floating-kpis)",
     );
     containers.forEach(function (box) {
       if (excluded(box)) return;
@@ -4238,7 +4238,7 @@ function initPasswordToggle(root = document) {
     });
     find(
       root,
-      "main :is(.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice)",
+      "main :is(.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice)",
     ).forEach(function (el) {
       if (!skip(el)) set(el, "data-ds-row-kind", "surface");
     });
@@ -4250,7 +4250,7 @@ function initPasswordToggle(root = document) {
     });
     find(
       root,
-      'main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child',
+      'main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child',
     ).forEach(function (el) {
       if (!skip(el)) set(el, "data-ds-icon-chip", "1");
     });
