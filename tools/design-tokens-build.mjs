@@ -30,7 +30,7 @@ const sourceFiles = [...referencedFiles].sort();
 if (sourceFiles.length === 0 || sourceFiles.some(file => !fs.existsSync(file))) throw new Error('resolver references missing token sources');
 const bindingDocument = JSON.parse(fs.readFileSync(bindingsPath, 'utf8'));
 const bindings = bindingDocument.bindings && typeof bindingDocument.bindings === 'object' ? bindingDocument.bindings : {};
-const targetOrder = ['clinic', 'material', 'semantic'];
+const targetOrder = ['runtime', 'system', 'semantic'];
 const targetRank = new Map(targetOrder.map((target, index) => [target, index]));
 const originalValue = token => token?.original?.$value ?? token?.$value ?? token?.original?.value ?? token?.value;
 const transformedValue = token => token?.value ?? token?.$value;
@@ -98,5 +98,5 @@ try {
     const current=fs.existsSync(generatedPath)?fs.readFileSync(generatedPath,'utf8'):'';
     if (current!==generated) { process.stderr.write('design-tokens-build: generated drift\n'); process.exit(1); }
   }
-  process.stdout.write(`design-tokens-build: ${mode==='--write'?'written':'deterministic'} dtcg=2025.10 resolver=1 sources=${sourceFiles.length} bindings=${Object.keys(bindings).length} generated=1 historical-phases=0 important=0\n`);
+  process.stdout.write(`design-tokens-build: ${mode==='--write'?'written':'deterministic'} dtcg=2025.10 resolver=1 sources=${sourceFiles.length} bindings=${Object.keys(bindings).length} generated=1 historical-phases=0 important=0 parallel-design-targets=0\n`);
 } finally { fs.rmSync(tempRoot,{recursive:true,force:true}); }
