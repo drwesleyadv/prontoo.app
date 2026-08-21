@@ -58,6 +58,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/temp-design-system-css-repair.py
+          sed -i 's/[[:blank:]]*$//' design/styles/application.css
           rm tools/temp-design-system-css-repair.py
           git checkout origin/prontoo -- .github/workflows/architecture.yml
           php tools/presentation-css-build --write
