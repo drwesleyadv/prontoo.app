@@ -172,17 +172,19 @@ final class TasksNoticesRuntimeOperations06
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::action_summary_label("Novo aviso", "notifications") .
                 "</a>";
         $targetParams = \Prontoo\Domain\TasksNotices\TasksNoticesDomainOperations01::notice_target_parameters($c);
-        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.08', array_merge([$cid], $targetParams, [$uid]), [])->fetchAll();
+        $rows = \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result(
+            'operational.tasks_notices.06.page_notices.08',
+            array_merge([$uid, $cid], $targetParams, [$uid]),
+            [],
+        )->fetchAll();
         $reads = [];
-        if ($rows) {
-            $ids = \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "id");
-            $params = array_merge([$uid], $ids);
-            foreach (
-                \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.09', $params, ['itemCount' => count($ids)])->fetchAll()
-                as $r
-            ) {
-                $reads[(int) $r["notice_id"]] = $r;
-            }
+        foreach ($rows as $row) {
+            $reads[(int) $row["id"]] = [
+                "notice_id" => (int) $row["id"],
+                "read_at" => $row["read_at"] ?? null,
+                "ack_at" => $row["ack_at"] ?? null,
+                "hidden_at" => $row["hidden_at"] ?? null,
+            ];
         }
         $authors = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::fetch_map("users_name", \Prontoo\Domain\AuditActivity\AuditRecordPolicy::int_ids($rows, "created_by"));
         $targetUsers = \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations01::scoped_user_map(

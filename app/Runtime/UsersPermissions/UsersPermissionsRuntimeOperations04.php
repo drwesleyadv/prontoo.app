@@ -298,7 +298,7 @@ final class UsersPermissionsRuntimeOperations04
                 " " .
                 $status;
             $rows .=
-                '<article class="collaborator-card-row ds-person-row ds-collaborator-row ds-collaborator-row-v31 patient-card-row patient-status-' .
+                '<article class="collaborator-card-row ds-person-row ds-collaborator-row patient-card-row patient-status-' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($statusClass) .
                 '" data-ds-row-kind="surface" data-collaborator-search="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($searchData) .

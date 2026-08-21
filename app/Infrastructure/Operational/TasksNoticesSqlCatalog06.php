@@ -37,10 +37,7 @@ final class TasksNoticesSqlCatalog06
                 "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=NOW(), ack_at=NOW(), hidden_at=NULL"
             ),
             'operational.tasks_notices.06.page_notices.08' => (
-                "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at FROM pi_notices n WHERE n.clinic_id=? AND " . NoticeQuerySql::targetOrCreator('n') . " ORDER BY n.id DESC LIMIT 160"
-            ),
-            'operational.tasks_notices.06.page_notices.09' => (
-                "SELECT notice_id,read_at,ack_at,hidden_at FROM pi_notice_reads WHERE user_id=? AND notice_id IN (" . OperationalSequenceSql::placeholders((int) $itemCount) . ")"
+                "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at,r.read_at,r.ack_at,r.hidden_at FROM pi_notices n LEFT JOIN pi_notice_reads r ON r.notice_id=n.id AND r.user_id=? WHERE n.clinic_id=? AND " . NoticeQuerySql::targetOrCreator('n') . " ORDER BY n.id DESC LIMIT 160"
             ),
             'operational.tasks_notices.06.page_notices.10' => (
                 "INSERT INTO pi_notice_reads (notice_id,user_id,read_at,ack_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE read_at=COALESCE(read_at,NOW()), ack_at=COALESCE(ack_at,NOW())"

@@ -3854,7 +3854,7 @@ function initPasswordToggle(root = document) {
     root = root || document;
     var containers = find(
       root,
-      "main :is(.kpis,.stats-grid,.lead-overview,.patient-directory-overview,.task-overview,.admin-overview-kpis,.manager-kpis,.manager-operational-kpis,.finance-kpis,.procedure-kpis,.procedure-kpis-refined,.notice-kpis,.notice-gmail-kpis,.finance-mini-grid,.manager-mini-grid,.finance-drawer-metrics,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.global-telemetry-grid,.global-performance-charts):not(.agenda-floating-kpis)",
+      "main :is(.kpis,.stats-grid,.lead-overview,.patient-directory-overview,.task-overview,.admin-overview-kpis,.manager-kpis,.manager-operational-kpis,.finance-kpis,.procedure-kpis,.notice-kpis,.finance-mini-grid,.manager-mini-grid,.finance-drawer-metrics,.patient-profile-summary-cards,.patient-profile-footer-cards,.patient-summary-cards,.patient-mini-grid,.global-telemetry-grid,.global-performance-charts):not(.agenda-floating-kpis)",
     );
     containers.forEach(function (box) {
       if (excluded(box)) return;
