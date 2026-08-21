@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -44,7 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: agent/novo-aviso-design-system
           fetch-depth: 0
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -53,25 +52,6 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Reconcile Novo Aviso branch
-        shell: bash
-        run: |
-          set -euo pipefail
-          git rm .github/workflows/temp-reconcile-novo-aviso.yml
-          git checkout origin/prontoo -- .github/workflows/architecture.yml
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --check
-          unexpected="$(git status --short | grep -vE '^M  \.github/workflows/architecture\.yml$|^D  \.github/workflows/temp-reconcile-novo-aviso\.yml$|^ M app/update\.manifest\.json$' || true)"
-          if [ -n "$unexpected" ]; then
-            printf '%s\n' "$unexpected"
-            echo 'Unexpected reconciliation drift.' >&2
-            exit 1
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- .github/workflows/architecture.yml app/update.manifest.json
-          git commit -m 'Finaliza reconciliação do Novo Aviso'
-          git push origin HEAD:agent/novo-aviso-design-system
       - name: Engineering quality gate
         shell: bash
         run: |
