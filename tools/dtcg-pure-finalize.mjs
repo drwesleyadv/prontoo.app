@@ -98,14 +98,13 @@ containerAtRule.append(compactAdaptive);
 componentLayer.append(containerAtRule);
 fs.writeFileSync(componentFile,componentAst.toString());
 
-// Forced-colors must retain an explicit focus indicator because box-shadow is
-// suppressed by high-contrast rendering. Keep forced-color-adjust at auto so
-// the user agent remains authoritative for system colors.
-const foundationFile=path.join(root,'design/styles/foundation.css');
-const foundationAst=postcss.parse(fs.readFileSync(foundationFile,'utf8'));
-const foundationLayer=foundationAst.nodes.find(node=>node.type==='atrule'&&node.name==='layer'&&node.params.trim()==='ds-foundation');
-if(!foundationLayer)throw new Error('canonical ds-foundation layer missing');
-for(const node of [...(foundationLayer.nodes||[])]){
+// High-contrast focus is a deliberate last-layer override. It must outrank
+// the normal-screen outline reset without !important.
+const precedenceFile=path.join(root,'design/styles/precedence.css');
+const precedenceAst=postcss.parse(fs.readFileSync(precedenceFile,'utf8'));
+const precedenceLayer=precedenceAst.nodes.find(node=>node.type==='atrule'&&node.name==='layer'&&node.params.trim()==='ds-precedence');
+if(!precedenceLayer)throw new Error('canonical ds-precedence layer missing');
+for(const node of [...(precedenceLayer.nodes||[])]){
   if(node.type==='atrule'&&node.name==='media'&&node.params.replace(/\s+/g,'').includes('forced-colors:active')){
     node.walkRules(rule=>{if(rule.selector.includes('.ds-focus-ring')||rule.selector.includes(':focus-visible'))rule.remove();});
   }
@@ -117,8 +116,8 @@ forcedFocus.append({prop:'outline',value:'2px solid CanvasText'});
 forcedFocus.append({prop:'outline-offset',value:'2px'});
 forcedFocus.append({prop:'box-shadow',value:'none'});
 forcedColors.append(forcedFocus);
-foundationLayer.append(forcedColors);
-fs.writeFileSync(foundationFile,foundationAst.toString());
+precedenceLayer.append(forcedColors);
+fs.writeFileSync(precedenceFile,precedenceAst.toString());
 
 const presentationPath=path.join(root,'design/tokens/presentation.tokens.json');
 const presentationDoc=JSON.parse(fs.readFileSync(presentationPath,'utf8'));
