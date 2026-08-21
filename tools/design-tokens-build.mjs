@@ -11,22 +11,61 @@ if (!['--check', '--write'].includes(mode)) {
   process.stderr.write('design-tokens-build: use --check or --write\n');
   process.exit(2);
 }
-const sourceGlob = path.join(root, 'design/tokens/**/*.tokens.json');
+
+const resolverPath = path.join(root, 'design/resolvers/application.resolver.json');
+const bindingsPath = path.join(root, 'design/platform/css.bindings.json');
 const generatedPath = path.join(root, 'design/generated/tokens.css');
+if (!fs.existsSync(resolverPath) || !fs.existsSync(bindingsPath)) throw new Error('design resolver or css bindings missing');
+
+const resolver = JSON.parse(fs.readFileSync(resolverPath, 'utf8'));
+if (resolver.version !== '2025.10' || !Array.isArray(resolver.resolutionOrder)) throw new Error('invalid DTCG resolver');
+const resolverDir = path.dirname(resolverPath);
+const referencedFiles = new Set();
+const collectRefs = value => {
+  if (!value || typeof value !== 'object') return;
+  if (Array.isArray(value)) {
+    for (const item of value) collectRefs(item);
+    return;
+  }
+  if (typeof value.$ref === 'string' && !value.$ref.startsWith('#')) {
+    const ref = value.$ref.split('#')[0];
+    referencedFiles.add(path.resolve(resolverDir, ref));
+  }
+  for (const child of Object.values(value)) collectRefs(child);
+};
+collectRefs(resolver.sets);
+collectRefs(resolver.modifiers);
+const sourceFiles = [...referencedFiles].sort();
+if (sourceFiles.length === 0 || sourceFiles.some(file => !fs.existsSync(file))) throw new Error('resolver references missing token sources');
+
+const bindingDocument = JSON.parse(fs.readFileSync(bindingsPath, 'utf8'));
+const bindings = bindingDocument.bindings && typeof bindingDocument.bindings === 'object' ? bindingDocument.bindings : {};
 const targetOrder = ['clinic', 'material', 'semantic'];
 const targetRank = new Map(targetOrder.map((target, index) => [target, index]));
-const vendorMeta = token => token?.original?.$extensions?.['com.prontoo'] ?? token?.$extensions?.['com.prontoo'] ?? {};
 const originalValue = token => token?.original?.$value ?? token?.$value ?? token?.original?.value ?? token?.value;
 const transformedValue = token => token?.value ?? token?.$value;
 const tokenPath = token => Array.isArray(token.path) ? token.path.join('.') : String(token.name || '');
+const kebab = value => String(value)
+  .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+  .replace(/[^a-zA-Z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '')
+  .toLowerCase();
+const derivedBinding = name => ({
+  cssName: `--pt-${name.split('.').map(kebab).join('-')}`,
+  target: 'semantic',
+  selector: ':root',
+  order: 10000
+});
+const bindingFor = token => ({ ...derivedBinding(tokenPath(token)), ...(bindings[tokenPath(token)] || {}) });
 const cssName = token => {
-  const value = String(vendorMeta(token).cssName || '').trim();
+  const value = String(bindingFor(token).cssName || '').trim();
   if (!/^--[a-z0-9-]+$/i.test(value)) throw new Error(`invalid cssName for ${tokenPath(token)}`);
   return value;
 };
 const cssLiteral = value => {
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   if (value && typeof value === 'object' && typeof value.hex === 'string') return String(value.hex);
+  if (value && typeof value === 'object' && typeof value.value === 'number' && typeof value.unit === 'string') return `${value.value}${value.unit}`;
   throw new Error(`unsupported transformed token value ${JSON.stringify(value)}`);
 };
 const render = declarations => {
@@ -51,7 +90,7 @@ StyleDictionary.registerFormat({
     const all = [...dictionary.allTokens];
     const names = new Map(all.map(token => [tokenPath(token), cssName(token)]));
     const declarations = all.map(token => {
-      const meta = vendorMeta(token);
+      const meta = bindingFor(token);
       const target = String(meta.target || '');
       if (!targetRank.has(target)) throw new Error(`unknown target ${target}:${tokenPath(token)}`);
       const raw = originalValue(token);
@@ -96,7 +135,7 @@ StyleDictionary.registerFormat({
 const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'prontoo-design-tokens-'));
 try {
   const config = {
-    source: [sourceGlob],
+    source: sourceFiles,
     usesDtcg: true,
     platforms: {
       css: {
@@ -119,7 +158,7 @@ try {
       process.exit(1);
     }
   }
-  process.stdout.write(`design-tokens-build: ${mode === '--write' ? 'written' : 'deterministic'} dtcg=2025.10 generated=1 legacy=0\n`);
+  process.stdout.write(`design-tokens-build: ${mode === '--write' ? 'written' : 'deterministic'} dtcg=2025.10 resolver=1 sources=${sourceFiles.length} bindings=${Object.keys(bindings).length} generated=1 legacy-extensions=0\n`);
 } finally {
   fs.rmSync(tempRoot, { recursive: true, force: true });
 }
