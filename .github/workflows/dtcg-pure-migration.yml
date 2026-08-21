@@ -108,6 +108,31 @@ jobs:
           body[data-route="profile"] .account-profile-grid{}
           body.public[data-route="mfa"] .security-auth-card{}
           CSS
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'tools/dtcg-pure-migrate.mjs';
+          const source = fs.readFileSync(file, 'utf8');
+          const start = source.indexOf('const semanticScope = selector =>');
+          const end = source.indexOf('appRoot.walkRules(rule => {', start);
+          if (start < 0 || end < 0) throw new Error('semantic scope block not found');
+          const replacement = [
+            "const semanticScope = selector => selectorParser(selectors => {",
+            "  selectors.each(sel => {",
+            "    sel.walkAttributes(attr => {",
+            "      if (String(attr.attribute).toLowerCase() !== 'data-route') return;",
+            "      const route = routeValueFromAttr(attr);",
+            "      const anchors = routeAnchors.get(route);",
+            "      if (!anchors?.length) throw new Error(`missing semantic anchors for ${route}`);",
+            "      const pseudoSelector = `:has(:is(${anchors.map(name=>`.${name}`).join(',')}))`;",
+            "      const pseudo = selectorParser().astSync(pseudoSelector).first.first.clone();",
+            "      attr.replaceWith(pseudo);",
+            "    });",
+            "  });",
+            "}).processSync(selector, { lossless: true });",
+            "",
+          ].join('\n');
+          fs.writeFileSync(file, source.slice(0, start) + replacement + source.slice(end));
+          NODE
           node tools/dtcg-pure-migrate.mjs
           node tools/dtcg-pure-finalize.mjs
           node --input-type=module <<'NODE'
