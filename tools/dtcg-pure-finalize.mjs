@@ -27,10 +27,6 @@ const canonical=name=>{
 
 const rewriteFiles=[];
 const walkRewrite=dir=>{if(!fs.existsSync(dir))return;for(const e of fs.readdirSync(dir,{withFileTypes:true})){if(['.git','node_modules','vendor','ssd'].includes(e.name))continue;const p=path.join(dir,e.name);if(e.isDirectory())walkRewrite(p);else if(/\.(?:php|css|js|html|json)$/i.test(e.name))rewriteFiles.push(p);}};
-// Deliberately exclude tools/tests/docs from lexical custom-property rewriting.
-// They may contain regexes or normative examples; changing those as if they were
-// runtime CSS is itself architectural corruption. Only active runtime/design
-// sources are rewritten here.
 for(const rel of ['app','public','design'])walkRewrite(path.join(root,rel));
 const nameSet=new Set();
 for(const file of rewriteFiles){const s=fs.readFileSync(file,'utf8');for(const m of s.matchAll(/--[a-zA-Z0-9_-]+/g))nameSet.add(m[0]);}
@@ -72,7 +68,11 @@ const canonicalLayerNames=['foundation','primitives','components','composition',
 for(const name of canonicalLayerNames){
   const file=path.join(root,`design/styles/${name}.css`);
   const ast=postcss.parse(fs.readFileSync(file,'utf8'));
-  ast.walkRules(rule=>{if(rule.selector.trim()==='.pix-brand-mask')rule.remove();});
+  ast.walkRules(rule=>{
+    if(rule.selector.trim()==='.pix-brand-mask')rule.remove();
+    if(rule.selector.trim()==='[data-ds-container]')rule.remove();
+    if(rule.selector.trim()==='.ds-adaptive-group')rule.remove();
+  });
   fs.writeFileSync(file,ast.toString());
 }
 const componentFile=path.join(root,'design/styles/components.css');
@@ -84,6 +84,19 @@ pixRule.append({prop:'background',value:'currentColor'});
 pixRule.append({prop:'-webkit-mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
 pixRule.append({prop:'mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
 componentLayer.append(pixRule);
+
+const containerRule=postcss.rule({selector:'[data-ds-container]'});
+containerRule.append({prop:'container-type',value:'inline-size'});
+componentLayer.append(containerRule);
+const adaptiveRule=postcss.rule({selector:'.ds-adaptive-group'});
+adaptiveRule.append({prop:'display',value:'grid'});
+adaptiveRule.append({prop:'grid-template-columns',value:'repeat(3,minmax(0,1fr))'});
+componentLayer.append(adaptiveRule);
+const containerAtRule=postcss.atRule({name:'container',params:'(max-width:36rem)'});
+const compactAdaptive=postcss.rule({selector:'.ds-adaptive-group'});
+compactAdaptive.append({prop:'grid-template-columns',value:'1fr'});
+containerAtRule.append(compactAdaptive);
+componentLayer.append(containerAtRule);
 fs.writeFileSync(componentFile,componentAst.toString());
 
 const presentationPath=path.join(root,'design/tokens/presentation.tokens.json');
@@ -131,4 +144,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,containerQueryCapability:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
