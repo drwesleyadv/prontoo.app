@@ -59,6 +59,51 @@ jobs:
           set -euo pipefail
           sed -i 's/!important//g' tools/temp-avisos-design-system.py
           python3 tools/temp-avisos-design-system.py
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('design/styles/application.css')
+          css = path.read_text()
+          marker = '/* Avisos — linguagem canônica do Design System */'
+          if marker not in css:
+              raise SystemExit('canonical Avisos CSS marker missing')
+          head, tail = css.split(marker, 1)
+          canonical = marker + tail
+
+          canonical_selectors = []
+          for match in re.finditer(r'([^{}]+)\{([^{}]*)\}', canonical):
+              selector = match.group(1).strip()
+              if selector and not selector.startswith('@') and 'notice' in selector:
+                  canonical_selectors.append(selector)
+
+          for selector in dict.fromkeys(canonical_selectors):
+              needle = selector + '{'
+              while needle in head:
+                  start = head.find(needle)
+                  end = head.find('}', start)
+                  if end < 0:
+                      raise SystemExit(f'unclosed legacy selector: {selector}')
+                  head = head[:start] + head[end + 1:]
+
+          css = head + canonical
+
+          def dedupe_notice_selector_list(match):
+              raw = match.group(1)
+              selector = raw.strip()
+              if selector.startswith('@') or 'notice' not in selector or ',' not in selector:
+                  return raw + '{'
+              items = [item.strip() for item in selector.split(',')]
+              unique = []
+              for item in items:
+                  if item and item not in unique:
+                      unique.append(item)
+              prefix = raw[: len(raw) - len(raw.lstrip())]
+              return prefix + ','.join(unique) + '{'
+
+          css = re.sub(r'([^{}]+)\{', dedupe_notice_selector_list, css)
+          path.write_text(css)
+          PY
           git checkout origin/prontoo -- .github/workflows/architecture.yml
           php tools/presentation-css-build --write
           php tools/presentation-css-build --check
