@@ -7,7 +7,7 @@ on:
       - prontoo
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   DB_HOST: 127.0.0.1
@@ -44,7 +44,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: agent/avisos-design-system-consolidation
           fetch-depth: 0
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
@@ -53,101 +52,6 @@ jobs:
           coverage: none
           tools: none
           extensions: pdo_mysql, mbstring
-      - name: Consolidate Avisos Design System
-        shell: bash
-        run: |
-          set -euo pipefail
-          sed -i 's/!important//g' tools/temp-avisos-design-system.py
-          python3 tools/temp-avisos-design-system.py
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          import subprocess
-
-          path = Path('design/styles/application.css')
-          css = path.read_text()
-          base_css = subprocess.check_output(
-              ['git', 'show', 'origin/prontoo:design/styles/application.css'],
-              text=True,
-          )
-          rule_pattern = re.compile(r'([^{}]+)\{([^{}]*)\}')
-
-          def normalize(selector: str) -> str:
-              return re.sub(r'\s+', ' ', selector.strip())
-
-          def selector_counts(source: str) -> dict[str, int]:
-              counts: dict[str, int] = {}
-              for match in rule_pattern.finditer(source):
-                  selector = normalize(match.group(1))
-                  if selector and not selector.startswith('@'):
-                      counts[selector] = counts.get(selector, 0) + 1
-              return counts
-
-          def dedupe_selector_lists(match):
-              raw = match.group(1)
-              selector = raw.strip()
-              if selector.startswith('@') or ',' not in selector:
-                  return raw + '{'
-              items = [normalize(item) for item in selector.split(',')]
-              unique = []
-              for item in items:
-                  if item and item not in unique:
-                      unique.append(item)
-              if len(unique) == len(items):
-                  return raw + '{'
-              prefix = raw[: len(raw) - len(raw.lstrip())]
-              return prefix + ','.join(unique) + '{'
-
-          css = re.sub(r'([^{}]+)\{', dedupe_selector_lists, css)
-          base_counts = selector_counts(base_css)
-          current_counts = selector_counts(css)
-          new_duplicates = {
-              selector
-              for selector, count in current_counts.items()
-              if count > 1 and base_counts.get(selector, 0) <= 1
-          }
-          remaining = dict(current_counts)
-
-          def remove_earlier_new_duplicate(match):
-              selector = normalize(match.group(1))
-              if selector in new_duplicates and remaining.get(selector, 0) > 1:
-                  remaining[selector] -= 1
-                  return ''
-              return match.group(0)
-
-          css = rule_pattern.sub(remove_earlier_new_duplicate, css)
-          final_counts = selector_counts(css)
-          unresolved = sorted(
-              selector
-              for selector, count in final_counts.items()
-              if count > 1 and base_counts.get(selector, 0) <= 1
-          )
-          if unresolved:
-              raise SystemExit('new duplicate selectors remain: ' + ' | '.join(unresolved))
-          css = css.replace('/* Avisos — linguagem canônica do Design System */', '')
-          path.write_text(css)
-          PY
-          git checkout origin/prontoo -- .github/workflows/architecture.yml
-          php tools/presentation-css-build --write
-          php tools/presentation-css-build --check
-          php tools/release-contract-reconcile --write
-          php tools/release-contract-reconcile --check
-          php -l app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php
-          php -l app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php
-          php tools/quality-gate
-          changed="$({ git diff --name-only; git diff --cached --name-only; } | sort -u)"
-          while IFS= read -r path; do
-            [ -z "$path" ] && continue
-            case "$path" in
-              .github/workflows/architecture.yml|.github/workflows/documentation.yml|app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php|app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php|app/architecture.manifest.json|app/prontoo.php|app/update.manifest.json|br/index.php|CHANGELOG.md|design/styles/application.css|public/assets/app.js|public/assets/presentation.css|tools/temp-avisos-design-system.py) ;;
-              *) echo "Unexpected changed file: $path" >&2; exit 1 ;;
-            esac
-          done <<< "$changed"
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- .github/workflows/architecture.yml .github/workflows/documentation.yml app/Runtime/TasksNotices/TasksNoticesRuntimeOperations05.php app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php app/architecture.manifest.json app/prontoo.php app/update.manifest.json br/index.php CHANGELOG.md design/styles/application.css public/assets/app.js public/assets/presentation.css tools/temp-avisos-design-system.py
-          git commit -m 'Padroniza Avisos com o Design System'
-          git push origin HEAD:agent/avisos-design-system-consolidation
       - name: Engineering quality gate
         shell: bash
         run: |

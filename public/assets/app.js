@@ -4238,7 +4238,7 @@ function initPasswordToggle(root = document) {
     });
     find(
       root,
-      "main :is(.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice)",
+      "main :is(.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice)",
     ).forEach(function (el) {
       if (!skip(el)) set(el, "data-ds-row-kind", "surface");
     });
@@ -4250,7 +4250,7 @@ function initPasswordToggle(root = document) {
     });
     find(
       root,
-      'main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child',
+      'main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child',
     ).forEach(function (el) {
       if (!skip(el)) set(el, "data-ds-icon-chip", "1");
     });

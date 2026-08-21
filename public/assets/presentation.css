@@ -489,13 +489,10 @@ form{margin:0}.field{display:grid;gap:8px;color:var(--md-sys-color-on-surface);f
 .flash,.billing-banner,.subscription-note{display:flex;align-items:flex-start;gap:10px;margin:0 0 14px;padding:14px 16px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent);box-shadow:var(--md-sys-elevation-level1)}.pill,.lead-chip,.task-chip,.permission-chip,.role-badge,.status,.badge-soft,.global-compact-pill,.notice-direction-pill,.workspace-current-pill,.cash-drawer-pills span,.finance-inline-pills span,.procedure-tags span,.doc-print-identifier-pill{min-height:30px;display:inline-flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:6px 10px;border-radius:var(--md-sys-shape-corner-full);background:var(--md-sys-color-secondary-container);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 70%,transparent);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-medium);font-weight:700;white-space:nowrap}.flash.ok,.ok:not(.material-symbols-rounded),.pill.ok,.status.ok,.is-received{background:color-mix(in srgb,var(--pt-color-success-container) 88%,#fff);color:var(--pt-color-on-success-container);border-color:color-mix(in srgb,var(--pt-color-success) 18%,transparent)}.flash.warn,.warn:not(.material-symbols-rounded),.pill.warn,.status.warn{background:color-mix(in srgb,var(--pt-color-warning-container) 90%,#fff);color:var(--pt-color-on-warning-container);border-color:color-mix(in srgb,var(--pt-color-warning) 18%,transparent)}.flash.bad,.bad:not(.material-symbols-rounded),.pill.bad,.status.bad{background:color-mix(in srgb,var(--md-sys-color-error-container) 91%,#fff);color:var(--md-sys-color-on-error-container);border-color:color-mix(in srgb,var(--md-sys-color-error) 18%,transparent)}.flash.info,.info:not(.material-symbols-rounded),.pill.info,.status.info{background:color-mix(in srgb,var(--pt-color-info-container) 88%,#fff);color:var(--pt-color-on-info-container);border-color:color-mix(in srgb,var(--pt-color-info) 18%,transparent)}.neutral,.pill.neutral,.status.neutral{background:var(--md-sys-color-surface-container-low);color:var(--md-sys-color-on-surface-variant);border-color:var(--md-sys-color-outline-variant)}.dot,.time-dot,.task-marker{width:10px;height:10px;border-radius:50%;background:var(--md-sys-color-primary);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.dot .material-symbols-rounded{font-size:14px;color:var(--md-sys-color-on-primary)}
 
 
-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px;overflow:hidden;box-shadow:none}th,td{padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent);text-align:left;vertical-align:top}th{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low));color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 90%,var(--md-sys-color-primary) 10%);font:var(--md-sys-typescale-label-medium);font-weight:800;text-transform:uppercase;letter-spacing:.065em}tr:last-child td{border-bottom:0}tbody tr{transition:background var(--motion-fast)}tbody tr:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))}
+table{width:100%;border-collapse:separate;border-spacing:0;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:22px;overflow:hidden;box-shadow:none}th,td{padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent);text-align:left;vertical-align:top}th{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-low));color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 90%,var(--md-sys-color-primary) 10%);font:var(--md-sys-typescale-label-medium);font-weight:800;text-transform:uppercase;letter-spacing:.065em}tr:last-child td{border-bottom:0}tbody tr{transition:background var(--motion-fast)}tbody tr:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 5%,var(--md-sys-color-surface-container-lowest))}.patient-search-bar input,.lead-search input,.task-search input,.doc-model-search input,.doc-search-primary input{flex:1 1 240px;min-height:46px;border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}.ds-filter-chip,.patient-filter-chip,.lead-filter-chips a,.task-filter,.notice-filter-chips a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 12px;border-radius:14px;border:1px solid var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container-lowest);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:700}.ds-filter-chip.is-active,.patient-filter-chip.is-active,.task-filter.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
 
 
-.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px;border-radius:22px;background:linear-gradient(180deg,var(--md-sys-color-surface-container-low),color-mix(in srgb,var(--md-sys-color-surface-container-low) 92%,#fff));border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:none;margin-bottom:14px}.patient-search-bar input,.lead-search input,.task-search input,.doc-model-search input,.doc-search-primary input{flex:1 1 240px;min-height:46px;border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}.ds-filter-chip,.patient-filter-chip,.lead-filter-chips a,.task-filter,.notice-filter-chips a{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:7px 12px;border-radius:14px;border:1px solid var(--md-sys-color-outline-variant);background:var(--md-sys-color-surface-container-lowest);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:700}.ds-filter-chip.is-active,.patient-filter-chip.is-active,.task-filter.is-active{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);border-color:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}
-
-
-.timeline,.activity-timeline{position:relative}.titem,.compact-audit,.notice-minimal-row,.reception-row,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.account-env-option,.clinic-choice,.credential-choice,.clinic-admin-row,.maestro-rule-row{min-height:var(--pt-density-row);display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset;color:var(--md-sys-color-on-surface);transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast)}.titem:hover,.compact-audit:hover,.notice-minimal-row:hover,.reception-row:hover,.patient-card-row:hover,.guardian-row:hover,.lead-list-item:hover,.task-card:hover,.procedure-card:hover,.doc-history-row:hover,.finance-row:hover,.notice-gmail-row:hover,.collaborator-card-row:hover,.account-env-option:hover,.clinic-choice:hover,.credential-choice:hover,.clinic-admin-row:hover,.maestro-rule-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.titem{grid-template-columns:30px minmax(0,1fr)}.titem time{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.titem h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:800}.titem p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.empty,.empty-state,.compact-empty,.procedure-empty,.task-empty,.notice-empty,.patient-directory-empty,.maestro-empty,.empty-mini,.empty-history{padding:22px;text-align:center;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-low);border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 92%,transparent);border-radius:22px}
+.timeline,.activity-timeline{position:relative}.titem,.compact-audit,.notice-row,.reception-row,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.collaborator-card-row,.account-env-option,.clinic-choice,.credential-choice,.clinic-admin-row,.maestro-rule-row{min-height:var(--pt-density-row);display:grid;gap:10px;padding:14px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.74) inset;color:var(--md-sys-color-on-surface);transition:background var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast)}.titem:hover,.compact-audit:hover,.notice-row:hover,.reception-row:hover,.patient-card-row:hover,.guardian-row:hover,.lead-list-item:hover,.task-card:hover,.procedure-card:hover,.doc-history-row:hover,.finance-row:hover,.collaborator-card-row:hover,.account-env-option:hover,.clinic-choice:hover,.credential-choice:hover,.clinic-admin-row:hover,.maestro-rule-row:hover{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest));border-color:color-mix(in srgb,var(--md-sys-color-primary) 18%,var(--md-sys-color-outline-variant))}.titem{grid-template-columns:30px minmax(0,1fr)}.titem time{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.titem h3{margin:0;font:var(--md-sys-typescale-title-small);font-weight:800}.titem p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.empty,.empty-state,.compact-empty,.procedure-empty,.task-empty,.notice-empty,.patient-directory-empty,.maestro-empty,.empty-mini,.empty-history{padding:22px;text-align:center;color:var(--md-sys-color-on-surface-variant);background:var(--md-sys-color-surface-container-low);border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 92%,transparent);border-radius:22px}
 
 
 body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-shell,.signup-wizard{width:min(1040px,100%);display:grid;gap:18px}.login-shell{grid-template-columns:minmax(0,420px) minmax(0,1fr);align-items:center}.signup-wizard{grid-template-columns:minmax(0,1fr)}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{width:100%;padding:28px;border-radius:30px;background:rgba(255,255,255,.90);border:1px solid rgba(154,190,166,.52);box-shadow:0 22px 56px rgba(26,62,43,.11),0 2px 8px rgba(26,62,43,.05);backdrop-filter:blur(12px)}.login-titleline,.auth-titleline,.credential-titleline,.signup-hero,.signup-hero-stepped{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,#e5f5e9,#cfead6);color:#226146;border:1px solid rgba(45,111,85,.12);box-shadow:inset 0 0 0 1px rgba(45,111,85,.10),0 4px 12px rgba(26,62,43,.09)}.auth-brandmark-favicon{width:100%;height:100%;object-fit:contain;border-radius:inherit}.auth-brandmark[data-app-favicon-brandmark]{background:linear-gradient(145deg,#f7fcf8,#e5f5e9);padding:3px;box-shadow:0 4px 14px rgba(26,62,43,.10);overflow:hidden}.auth-brandmark[data-app-favicon-brandmark] .material-symbols-rounded{display:none!important}.login-titleline h1,.signup-hero h1,.credential-titleline h1,.auth-titleline h1{margin:0;font:var(--md-sys-typescale-headline-medium);font-weight:800;letter-spacing:-.045em}.login-titleline p,.signup-hero p,.credential-titleline p,.auth-titleline p{margin:4px 0 0;color:var(--md-sys-color-on-surface-variant)}.login-form,.signup-form,.account-form,.clinic-choice-form{display:grid;gap:14px}.login-submit{min-height:50px;border-radius:18px;font-weight:800}.auth-footer{margin-top:18px;display:flex;justify-content:center}.login-boot,.login-lock-panel,.signup-offer,.signup-pricing-card,.signup-consent,.signup-steps-card{background:rgba(242,249,244,.86);border:1px solid rgba(165,198,175,.58);border-radius:20px;box-shadow:0 1px 0 rgba(255,255,255,.72) inset}.login-boot,.login-lock-panel{display:flex;gap:12px;align-items:flex-start;padding:14px;margin-bottom:16px}.login-lock-icon{width:40px;height:40px;border-radius:14px;background:#fff;color:var(--md-sys-color-primary);display:grid;place-items:center}.login-lock-copy strong{display:block;color:var(--md-sys-color-on-surface)}.login-lock-copy span{display:block;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.signup-trust-pills .pill{background:#fff;border-color:rgba(165,198,175,.58);color:#244c36}.signup-card{display:grid;gap:18px}.signup-stepper,.wizard-progress{display:flex;gap:8px;flex-wrap:wrap}.signup-step,.wizard-progress span{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 12px;border-radius:16px;background:#fff;border:1px solid rgba(165,198,175,.58);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-medium);font-weight:800}.signup-step.is-active,.wizard-progress .is-active{background:#d9f0df;color:#0b3322;border-color:rgba(45,111,85,.16)}.signup-step.is-complete,.wizard-progress .is-complete{background:#eaf5ed;color:#264b36}.signup-actions,.signup-step-actions,.wizard-nav{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}.signup-offer,.signup-pricing-card,.signup-consent,.signup-steps-card{padding:16px}.signup-trust-pills{display:flex;gap:8px;flex-wrap:wrap}
@@ -505,11 +502,11 @@ body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-sh
 .agenda-crown-page,.agenda-day-shell{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:26px}.agenda-day-scale,.agenda-day-slot{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.agenda-day-slot{border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 68%,transparent)}.agenda-day-event,.agenda-day-event-block{border-radius:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-primary) 15%,#fff),color-mix(in srgb,var(--md-sys-color-primary) 8%,#fff));border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 22%,transparent);color:var(--md-sys-color-on-surface);box-shadow:none}.agenda-day-event-time,.reception-time,.agenda-profile-time{color:var(--md-sys-color-primary);font-weight:800}.agenda-floating-card{background:rgba(255,255,255,.92);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);backdrop-filter:blur(12px);border-radius:20px}.agenda-payment-details,.agenda-payment-fields{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-low));border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}
 .doc-draft-layout,.doc-editor-wrap,.doc-preview-step,.doc-preview-step-preview,.doc-preview-step-bindings{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.doc-editor-toolbar,.doc-google-toolbar,.doc-editor-titlebar{background:color-mix(in srgb,var(--md-sys-color-surface-container-low) 88%,#fff);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.doc-editor-paper,.doc-a4,.doc-print-page{background:#fff;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 74%,transparent);border-radius:16px;box-shadow:0 14px 38px rgba(18,32,25,.09)}.doc-editor,.doc-google-editor{min-height:480px}.doc-print-identifier-pill{background:color-mix(in srgb,var(--md-sys-color-primary) 9%,#fff);color:var(--md-sys-color-primary);border-color:color-mix(in srgb,var(--md-sys-color-primary) 14%,transparent)}
 .finance-big-value{font-weight:800;color:var(--md-sys-color-on-surface);letter-spacing:-.055em}.finance-row.is-received,.finance-extract-row.is-received{border-left:4px solid var(--pt-color-success)}.finance-row.is-sent,.finance-extract-row.is-sent{border-left:4px solid var(--pt-color-warning)}.subscription-status-card,.subscription-payment-friendly,.subscription-pending-friendly,.subscription-payment-box{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.pix-key-box{background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-low));border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 14%,var(--md-sys-color-outline-variant));border-radius:18px}.pix-brand{display:inline-flex;flex:0 0 auto;vertical-align:middle;width:20px;height:20px}.pix-brand-mask{background:currentColor;-webkit-mask:url("/public/assets/pix-1.8.18.7.svg") center/contain no-repeat;mask:url("/public/assets/pix-1.8.18.7.svg") center/contain no-repeat}
-.task-board{align-items:start}.task-group{background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px;padding:12px}.task-card{background:var(--md-sys-color-surface-container-lowest)}.task-main,.notice-main,.patient-card-main,.procedure-card-main,.doc-history-copy{min-width:0}.notice-screen,.notice-compose-panel,.notice-reader,.notice-form-refined{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.activity-timeline .titem{grid-template-columns:30px minmax(0,1fr)}.activity-timeline .time-dot,.activity-timeline .dot{margin-top:4px}.permission-toggle{position:relative}.permission-toggle-knob{background:var(--md-sys-color-primary);box-shadow:none}.color-swatch,.color-swatch-option,.visual-option,.sector-icon-choice,.patient-health-icon-choice{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.color-swatch:has(input:checked),.color-swatch-option:has(input:checked),.visual-option:has(input:checked),.sector-icon-choice:has(input:checked),.patient-health-icon-choice:has(input:checked){border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))}.seq-footer{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.seq-footer-chip{background:var(--md-sys-color-surface-container-low);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.floating-clock{position:fixed;right:18px;bottom:18px;z-index:60;padding:10px 14px;border-radius:18px;background:color-mix(in srgb,var(--md-sys-color-inverse-surface) 94%,var(--md-sys-color-primary) 6%);color:var(--md-sys-color-inverse-on-surface);box-shadow:var(--md-sys-elevation-level3);font:var(--md-sys-typescale-label-large);font-weight:800}.time-dot{background:var(--md-sys-color-primary)}
+.task-board{align-items:start}.task-group{background:var(--md-sys-color-surface-container-low);border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px;padding:12px}.task-card{background:var(--md-sys-color-surface-container-lowest)}.task-main,.notice-main,.patient-card-main,.procedure-card-main,.doc-history-copy{min-width:0}.notice-screen,.notice-support-compose,.notice-reader,.notice-form{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:24px}.activity-timeline .titem{grid-template-columns:30px minmax(0,1fr)}.activity-timeline .time-dot,.activity-timeline .dot{margin-top:4px}.permission-toggle{position:relative}.permission-toggle-knob{background:var(--md-sys-color-primary);box-shadow:none}.color-swatch,.color-swatch-option,.visual-option,.sector-icon-choice,.patient-health-icon-choice{background:var(--md-sys-color-surface-container-lowest);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent);border-radius:18px}.color-swatch:has(input:checked),.color-swatch-option:has(input:checked),.visual-option:has(input:checked),.sector-icon-choice:has(input:checked),.patient-health-icon-choice:has(input:checked){border-color:var(--md-sys-color-primary);box-shadow:var(--pt-focus-ring);background:color-mix(in srgb,var(--md-sys-color-primary) 8%,var(--md-sys-color-surface-container-lowest))}.seq-footer{color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 72%,transparent)}.seq-footer-chip{background:var(--md-sys-color-surface-container-low);border-color:color-mix(in srgb,var(--md-sys-color-outline-variant) 86%,transparent)}.floating-clock{position:fixed;right:18px;bottom:18px;z-index:60;padding:10px 14px;border-radius:18px;background:color-mix(in srgb,var(--md-sys-color-inverse-surface) 94%,var(--md-sys-color-primary) 6%);color:var(--md-sys-color-inverse-on-surface);box-shadow:var(--md-sys-elevation-level3);font:var(--md-sys-typescale-label-large);font-weight:800}.time-dot{background:var(--md-sys-color-primary)}
 
 
 @media(max-width:980px){.two,.three{grid-template-columns:1fr}.login-shell{grid-template-columns:1fr}.pagehead{grid-template-columns:1fr;align-items:start}.pagehead-controls--actions{justify-content:flex-start}.rolebar,.cmdbar,.top{padding-inline:14px}main{padding-inline:14px}.brand b,.brand small,.tenant{max-width:58vw}}
-@media(max-width:640px){:root{--top-h:60px;--role-h:46px;--cmd-h:54px;--pt-density-row:56px;--pt-density-card:14px}main{padding:18px 12px 38px}.top{padding-inline:12px}.brand-mark{width:38px;height:38px;border-radius:14px}.top-user-name{display:inline-flex}.top-icon,.notify-link,.logout{border-radius:14px}.rolebar,.cmdbar{gap:6px}.pagehead{padding:15px;border-radius:22px;margin-bottom:14px}.pagehead h1{font-size:1.34rem;line-height:1.72rem}.pagehead p{font-size:.82rem}.pagehead-icon{width:42px;height:42px;border-radius:16px}.pagehead-controls--actions :where(a,button,summary),.primary,.ghost,.danger,.danger-soft,.cmdlike{min-height:42px;padding-inline:13px}.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{border-radius:20px;padding:14px}.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{border-radius:20px;padding:10px}.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat{min-height:76px;padding:12px}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{border-radius:26px;padding:22px}body.public main{padding:22px 12px}.floating-clock{right:12px;bottom:12px;border-radius:16px}table{display:block;white-space:nowrap}.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{justify-content:flex-start}.form-actions .primary,.form-actions .ghost{flex:1 1 auto}.cmd{padding-inline:12px}.cmd:not(.active):not(.is-active):not([aria-current]){min-width:42px;padding-inline:0}}
+@media(max-width:640px){:root{--top-h:60px;--role-h:46px;--cmd-h:54px;--pt-density-row:56px;--pt-density-card:14px}main{padding:18px 12px 38px}.top{padding-inline:12px}.brand-mark{width:38px;height:38px;border-radius:14px}.top-user-name{display:inline-flex}.top-icon,.notify-link,.logout{border-radius:14px}.rolebar,.cmdbar{gap:6px}.pagehead{padding:15px;border-radius:22px;margin-bottom:14px}.pagehead h1{font-size:1.34rem;line-height:1.72rem}.pagehead p{font-size:.82rem}.pagehead-icon{width:42px;height:42px;border-radius:16px}.pagehead-controls--actions :where(a,button,summary),.primary,.ghost,.danger,.danger-soft,.cmdlike{min-height:42px;padding-inline:13px}.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{border-radius:20px;padding:14px}.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.ds-notice-filters,.task-filters,.lead-filter-chips,.patient-filter-chips,.notice-filter-chips,.finance-pagehead-nav,.permission-compact-toolbar{border-radius:20px;padding:10px}.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat{min-height:76px;padding:12px}.auth.login-card,.signup-card,.clinic-choice-card,.credential-shell,.widebox{border-radius:26px;padding:22px}body.public main{padding:22px 12px}.floating-clock{right:12px;bottom:12px;border-radius:16px}table{display:block;white-space:nowrap}.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{justify-content:flex-start}.form-actions .primary,.form-actions .ghost{flex:1 1 auto}.cmd{padding-inline:12px}.cmd:not(.active):not(.is-active):not([aria-current]){min-width:42px;padding-inline:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 @media(prefers-contrast:more){:root{--md-sys-color-outline:#4f5851;--md-sys-color-outline-variant:#9aa49b;--pt-focus-ring:0 0 0 4px color-mix(in srgb,var(--md-sys-color-primary) 34%,transparent)}.ghost,.cmdlike,input,select,textarea,.card,[class$="-card"],[class$="-panel"],[class$="-box"]{border-width:2px}}
 @media print{body{background:#fff!important;color:#111!important}.top,.rolebar,.cmdbar,.pagehead-controls--actions,.floating-clock,.form-actions,.skip-link{display:none!important}main{width:100%;padding:0}.card,[class$="-card"],[class$="-panel"],[class$="-box"],table{box-shadow:none!important;border-color:#ccc!important}.doc-editor-paper,.doc-a4,.doc-print-page{box-shadow:none!important;border:0!important}}
@@ -559,17 +556,17 @@ body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-sh
 .patient-card-last-consultation{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.patient-card-avatar{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary);font-weight:900}.patient-directory-search{position:relative}.patient-panel-cadastro,.patient-panel-agenda,.patient-panel-documentos,.patient-tab-panels{min-width:0}.patient-health-icon-grid,.visual-option-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px}.patient-health-icon-choice,.visual-option{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer}.visual-option-mark,.sector-icon-choice-mark{width:22px;height:22px;border-radius:999px;border:2px solid var(--md-sys-color-outline-variant);display:inline-block;flex:0 0 auto}.visual-option:has(input:checked) .visual-option-mark,.sector-icon-choice:has(input:checked) .sector-icon-choice-mark{border-color:var(--md-sys-color-primary);background:radial-gradient(circle at center,var(--md-sys-color-primary) 42%,transparent 45%)}.patient-status-,.patient-status-ok,.patient-status-bad{border-left:4px solid var(--md-sys-color-outline-variant)}.patient-status-ok{border-left-color:var(--pt-color-success)}.patient-status-bad{border-left-color:var(--md-sys-color-error)}.is-total{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}
 
 
-.notice-card,.notice-recipient-pills,.task-comment-form,.ds-notice-row,.notice-minimal-row,.ds-notice-list,.notice-section-head,.ds-section-head{border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.notice-card,.task-comment-form,.ds-notice-list{display:grid;gap:12px;padding:14px}.notice-recipient-pills,.notice-actions,.task-actions{display:flex;gap:8px;flex-wrap:wrap}.notice-recipient-pill,.notice-direction-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-minimal-row,.ds-notice-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px}.notice-minimal-row:hover,.ds-notice-row:hover{background:var(--pt-row-hover)}.notice-minimal-icon{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-minimal-sender,.notice-minimal-subject{font-weight:900;color:var(--md-sys-color-on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notice-minimal-time{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.notice-section-head,.ds-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}.task-meta,.task-details,.task-copy{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.task-marker{width:10px;height:10px;border-radius:999px;background:var(--md-sys-color-primary);flex:0 0 auto}.activity-timeline .titem,.audit-mini{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}
+.notice-card,.notice-recipient-pills,.task-comment-form,.notice-row,.notice-list,.notice-section-head,.ds-section-head{border-radius:20px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.notice-card,.task-comment-form,.notice-list{display:grid;gap:12px;padding:14px}.notice-recipient-pills,.notice-actions,.task-actions{display:flex;gap:8px;flex-wrap:wrap}.notice-recipient-pill,.notice-direction-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-minimal-icon{width:38px;height:38px;border-radius:15px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-minimal-sender,.notice-minimal-subject{font-weight:900;color:var(--md-sys-color-on-surface);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.notice-minimal-time{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.notice-section-head,.ds-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px}.task-meta,.task-details,.task-copy{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.task-marker{width:10px;height:10px;border-radius:999px;background:var(--md-sys-color-primary);flex:0 0 auto}.activity-timeline .titem,.audit-mini{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}
 
 
 .sector-row,.usage-cell,.permission-compact-toolbar,.permission-row,.install-checks,.install-technical{padding:14px;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.sector-row{display:grid;gap:10px}.sector-row-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.sector-icon-preview{width:42px;height:42px;border-radius:16px;display:grid;place-items:center;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.permission-compact-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.permission-toggle-knob{transition:transform var(--motion-fast),background var(--motion-fast)}.billing-link{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font-weight:900}.install-checks,.install-technical{display:grid;gap:10px}.drop,.bar{border-radius:999px;background:var(--md-sys-color-primary)}
 
 
-@media(max-width:980px){.admin-grid,.stats-grid,.global-telemetry-grid,.global-performance-charts,.reception-panel-grid,.manager-goal-grid{grid-template-columns:1fr}.onboarding-tip-card{grid-template-columns:1fr}.clinic-actions-menu,.clinic-menu-billing{position:static;margin-top:8px;box-shadow:none}.agenda-profile-row,.agenda-profile-row-block,.reception-row,.manager-action{align-items:flex-start}.notice-minimal-row,.ds-notice-row{grid-template-columns:auto minmax(0,1fr)}}
+@media(max-width:980px){.admin-grid,.stats-grid,.global-telemetry-grid,.global-performance-charts,.reception-panel-grid,.manager-goal-grid{grid-template-columns:1fr}.onboarding-tip-card{grid-template-columns:1fr}.clinic-actions-menu,.clinic-menu-billing{position:static;margin-top:8px;box-shadow:none}.agenda-profile-row,.agenda-profile-row-block,.reception-row,.manager-action{align-items:flex-start}}
 @media(max-width:640px){.version-update-pill{left:12px;right:12px;bottom:14px;transform:none;justify-content:center}.signup-actions,.signup-step-actions,.finance-lite-form,.finance-inline-form,.finance-drawer-actions,.agenda-head-action,.agenda-head-form,.agenda-edit-form,.agenda-delete-form{align-items:stretch}.signup-actions > *,.signup-step-actions > *,.finance-lite-form > *,.finance-inline-form > *,.agenda-head-action > *{flex:1 1 auto}.patient-suggest-panel,.counterparty-suggest-panel{position:fixed;left:12px;right:12px;top:auto;bottom:12px;max-height:46vh;border-radius:24px}.read-only-locked-form::after{position:static;display:inline-flex;margin-bottom:8px}.notice-minimal-time{display:none}.doc-editor,.doc-google-editor{min-height:360px}.work-hour-fields,.procedure-form-grid,.procedure-quick-fields,.patient-location-fields{grid-template-columns:1fr}}
 
 
-.kpi-info-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.admin-grid-context{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.global{--pt-scope-color:var(--md-sys-color-tertiary)}.metric-chart-hit{cursor:pointer}.model-clinic-name{font:var(--md-sys-typescale-title-medium);font-weight:900;color:var(--md-sys-color-on-surface)}.admin-onboarding-legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.wiz-role{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.reception-flow{gap:10px}.t-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.agenda-crown-shell{display:grid;gap:14px}.doc-preview-only{display:grid;gap:12px}.patient-cpf-first-form,.patient-doc-create,.patient-extra-tab-form,.collaborator-add-form,.collaborator-edit-form,.permissions-compact-form,.task-create-form,.task-start-form,.task-done-form,.task-release-form,.notice-form{display:grid;gap:12px}.patient-minor-form-note,.patient-inline-note,.permission-source-note,.collaborator-list-meta,.notice-eyebrow,.notice-reader-state{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.patient-tab-add-new,.permission-save-actions,.task-comment-actions,.notice-form-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.patient-finance-row,.care-edit,.collaborator-add-panel,.collaborator-list-shell,.role-permission-tabs,.permission-toggle-list,.task-detail-grid,.task-comments,.task-comment-list,.task-list,.task-overview,.notice-reader-body,.ds-notice-kpis{display:grid;gap:12px;padding:14px;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.patient-finance-receive{background:var(--pt-color-success-container);color:var(--pt-color-on-success-container);border-color:color-mix(in srgb,var(--pt-color-success) 22%,transparent)}.patient-panel-financeiro,.patient-panel-novaanotacao,.patient-panel-novaaba{min-width:0}.role-badge-list,.permission-chip-list,.collaborator-roles{display:flex;gap:8px;flex-wrap:wrap}.role-badge-list > *,.permission-chip-list > *,.collaborator-roles > *{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collab-permission-summary,.compact-permission-summary,.permission-edit-title{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.yes{color:var(--pt-color-success)}.collaborator-main{min-width:0}.collaborator-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collaborator-open{margin-left:auto}.role-permission-tab{min-height:38px;border-radius:14px;padding:8px 12px;color:var(--md-sys-color-on-surface-variant);font-weight:900}.role-permission-tab.is-active,.role-permission-tab[aria-current]{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.is-unread{border-left:4px solid var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest))}.notice-recipient-more{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-surface-container-high);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-kpi-critical{border-left:4px solid var(--md-sys-color-error)}.notice-admin{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container)}.status-,.responsibility{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-weight:900}.task-comment-item{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}.task-overview-wide{grid-column:1/-1}.notice-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.notice-target-scope,.notice-message-field,.notice-target-user,.notice-ack-field{display:grid;gap:6px}.notice-reader-body{line-height:1.55}.notice-kpi-sent{border-left:4px solid var(--pt-color-info)}.notice-kpi-archived{opacity:.75}@media(max-width:640px){.notice-form-grid{grid-template-columns:1fr}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.permission-save-actions,.task-comment-actions,.notice-form-actions{align-items:stretch}.patient-empty-action > *,.patient-empty-cta > *,.permission-save-actions > *,.notice-form-actions > *{flex:1 1 auto}}
+.kpi-info-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.admin-grid-context{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.global{--pt-scope-color:var(--md-sys-color-tertiary)}.metric-chart-hit{cursor:pointer}.model-clinic-name{font:var(--md-sys-typescale-title-medium);font-weight:900;color:var(--md-sys-color-on-surface)}.admin-onboarding-legend{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.wiz-role{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.reception-flow{gap:10px}.t-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.agenda-crown-shell{display:grid;gap:14px}.doc-preview-only{display:grid;gap:12px}.patient-cpf-first-form,.patient-doc-create,.patient-extra-tab-form,.collaborator-add-form,.collaborator-edit-form,.permissions-compact-form,.task-create-form,.task-start-form,.task-done-form,.task-release-form,.notice-form{display:grid;gap:12px}.patient-minor-form-note,.patient-inline-note,.permission-source-note,.collaborator-list-meta,.notice-eyebrow,.notice-reader-state{color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.patient-tab-add-new,.permission-save-actions,.task-comment-actions,.notice-form-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.patient-finance-row,.care-edit,.collaborator-add-panel,.collaborator-list-shell,.role-permission-tabs,.permission-toggle-list,.task-detail-grid,.task-comments,.task-comment-list,.task-list,.task-overview,.notice-reader-body,.ds-notice-kpis{display:grid;gap:12px;padding:14px;border-radius:22px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft)}.patient-finance-receive{background:var(--pt-color-success-container);color:var(--pt-color-on-success-container);border-color:color-mix(in srgb,var(--pt-color-success) 22%,transparent)}.patient-panel-financeiro,.patient-panel-novaanotacao,.patient-panel-novaaba{min-width:0}.role-badge-list,.permission-chip-list,.collaborator-roles{display:flex;gap:8px;flex-wrap:wrap}.role-badge-list > *,.permission-chip-list > *,.collaborator-roles > *{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collab-permission-summary,.compact-permission-summary,.permission-edit-title{font:var(--md-sys-typescale-title-small);font-weight:900;color:var(--md-sys-color-on-surface)}.yes{color:var(--pt-color-success)}.collaborator-main{min-width:0}.collaborator-status{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.collaborator-open{margin-left:auto}.role-permission-tab{min-height:38px;border-radius:14px;padding:8px 12px;color:var(--md-sys-color-on-surface-variant);font-weight:900}.role-permission-tab.is-active,.role-permission-tab[aria-current]{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.is-unread{border-left:4px solid var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest))}.notice-recipient-more{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;background:var(--md-sys-color-surface-container-high);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-kpi-critical{border-left:4px solid var(--md-sys-color-error)}.notice-admin{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container)}.status-,.responsibility{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-weight:900}.task-comment-item{padding:12px;border-radius:18px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}.task-overview-wide{grid-column:1/-1}.notice-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.notice-target-scope,.notice-message-field,.notice-target-user,.notice-ack-field{display:grid;gap:6px}.notice-kpi-sent{border-left:4px solid var(--pt-color-info)}.notice-kpi-archived{opacity:.75}@media(max-width:640px){.notice-form-grid{grid-template-columns:1fr}.patient-empty-action,.patient-empty-cta,.patient-hero-actions,.permission-save-actions,.task-comment-actions,.notice-form-actions{align-items:stretch}.patient-empty-action > *,.patient-empty-cta > *,.permission-save-actions > *,.notice-form-actions > *{flex:1 1 auto}}
 
 
 
@@ -686,16 +683,15 @@ body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-sh
 
 
 .notice-card-shell,
-.ds-notice-shell,
-.notice-reader-shell,
+.notice-list-card,
+.notice-reader-card,
 .notice-screen,
 [class*="notice-card-shell-"],
 [class*="notice-reader-"],
 [class*="notice-screen-"],
 [class*="notice-section-"],
 [class*="task-group-"]{min-width:0}
-.notice-card-shell,.ds-notice-shell,.notice-reader-shell{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);overflow:hidden}
-.notice-reader-shell{display:grid;gap:0}.notice-reader-shell header,.notice-reader-shell footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;background:var(--md-sys-color-surface-container-low);border-bottom:var(--pt-border-soft)}.notice-reader-shell footer{border-top:var(--pt-border-soft);border-bottom:0}.notice-reader-shell h2{padding:16px 16px 0;margin:0}.notice-reader-shell .notice-reader-body{border:0;background:transparent;padding:16px}
+.notice-card-shell,.notice-list-card,.notice-reader-card{border-radius:24px;background:var(--md-sys-color-surface-container-lowest);border:var(--pt-border-soft);overflow:hidden}.notice-reader-card footer{border-top:var(--pt-border-soft);border-bottom:0}.notice-reader-card h2{padding:16px 16px 0;margin:0}.notice-reader-card .notice-reader-body{border:0;background:transparent;padding:16px}
 .notice-card-shell-inbox,.notice-section-inbox{border-left:4px solid var(--md-sys-color-primary)}.notice-card-shell-archived,.notice-section-archived{opacity:.82}.notice-card-shell-sent,.notice-section-sent{border-left:4px solid var(--pt-color-info)}
 [class*="severity-"]{border-left:4px solid var(--pt-color-info)}.severity-warning{border-left-color:var(--pt-color-warning)}.severity-critical,.severity-error{border-left-color:var(--md-sys-color-error)}
 [class*="task-group-"]{display:grid;gap:10px;padding:12px;border-radius:20px;background:var(--md-sys-color-surface-container-low);border:var(--pt-border-soft)}
@@ -736,8 +732,8 @@ body.public main{place-items:center;padding:32px 16px;min-height:100vh}.login-sh
 
 @media(max-width:760px){
   .finance-extract-row,[class*="finance-extract-"], [class*="reception-row-"]{grid-template-columns:1fr;align-items:start}
-  .agenda-card,.finance-dashboard-card,.cash-drawer-card,.finance-drawer-admin-card,.goal-card,.maestro-card,.maestro-new-card,.reception-card,.notice-card-shell,.ds-notice-shell,.notice-reader-shell{border-radius:22px;padding:14px}
-  .notice-reader-shell header,.notice-reader-shell footer{align-items:flex-start}
+  .agenda-card,.finance-dashboard-card,.cash-drawer-card,.finance-drawer-admin-card,.goal-card,.maestro-card,.maestro-new-card,.reception-card,.notice-card-shell,.notice-list-card,.notice-reader-card{border-radius:22px;padding:14px}
+  .notice-reader-card header,.notice-reader-card footer{align-items:flex-start}
   .account-env-option{grid-template-columns:auto minmax(0,1fr)}
 }
 [class*="notice-card-"]{min-width:0}
@@ -810,7 +806,7 @@ main{
 @media(min-width:1184px){.top,.rolebar,.cmdbar{padding-left:max(16px,calc((100% - var(--page-max))/2));padding-right:max(16px,calc((100% - var(--page-max))/2))}}
 
 
-:where(.top,.brand,.top-actions,.pagehead,.pagehead-copy,.pagehead-controls--actions,.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],.two,.three,.grid,.list,.timeline,.titem,form,fieldset,section,article,details,summary,label,.field,.form-panel,.action-panel,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.clinic-choice,.credential-choice,.maestro-rule-row){
+:where(.top,.brand,.top-actions,.pagehead,.pagehead-copy,.pagehead-controls--actions,.card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"],.two,.three,.grid,.list,.timeline,.titem,form,fieldset,section,article,details,summary,label,.field,.form-panel,.action-panel,.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.finance-row,.notice-row,.collaborator-card-row,.clinic-choice,.credential-choice,.maestro-rule-row){
   min-width:0;
   max-width:100%;
 }
@@ -857,7 +853,7 @@ main{
   .pagehead{margin-bottom:12px}
   .card,[class$="-card"],[class$="-panel"],[class$="-box"],[class$="-shell"]{max-width:100%}
   .pagehead-controls--actions,.form-actions,.compact-actions,.notice-actions,.task-actions,.lead-actions,.guardian-actions,.doc-history-actions,.procedure-card-actions,.finance-action-row,.finance-drawer-actions,.patient-card-actions,.agenda-item-actions,.manager-actions{width:100%}
-  .pagehead-controls--actions > :where(a,button,summary),.form-actions > :where(a,button),.compact-actions > :where(a,button){flex:1 1 auto;min-width:0}
+  .pagehead-controls--actions > :where(a,button,summary),.form-actions > :where(a,button),.compact-actions > :where(a{flex:1 1 auto;min-width:0}
   .floating-clock{display:none}
 }
 
@@ -2013,8 +2009,7 @@ body.public.has-seq-footer:not([data-route="appointments"]) main#conteudo{
   pointer-events:none;
   transition:opacity var(--motion-fast),transform var(--motion-fast);
 }
-.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::after,
-.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::before{
+.seq-footer-chip:is(:hover,:focus-visible,:focus-within)::after,:focus-within)::before{
   opacity:1;
   transform:translate(-50%,0) rotate(0deg);
 }
@@ -2260,8 +2255,7 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"]{
   justify-items:stretch!important;
   text-align:left!important;
 }
-body.has-seq-footer[data-route="appointments"] .agenda-floating-card :where(.material-symbols-rounded,.agenda-floating-icon),
-body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] :where(.material-symbols-rounded,.agenda-floating-icon){
+body.has-seq-footer[data-route="appointments"] .agenda-floating-card :where(.material-symbols-rounded,.agenda-floating-icon),body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] :where(.material-symbols-rounded{
   color:var(--md-sys-color-primary)!important;
 }
 @media(max-width:720px){
@@ -2334,12 +2328,10 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] 
   flex:0 0 auto!important;
   color:currentColor;
 }
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .material-symbols-rounded:first-child,
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .pt-icon-glyph:first-child{
+:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .material-symbols-rounded:first-child,label) > .pt-icon-glyph:first-child{
   margin-inline-start:-1px;
 }
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .material-symbols-rounded:last-child,
-:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .pt-icon-glyph:last-child{
+:where(.primary,.ghost,.danger,.danger-soft,.cmdlike,button,a,summary,label) > .material-symbols-rounded:last-child,label) > .pt-icon-glyph:last-child{
   margin-inline-end:-1px;
 }
 :where(.top-icon,.notify-link,.logout-icon,.icon-only,.password-toggle,.status-icon-only){
@@ -2364,8 +2356,7 @@ body.has-seq-footer[data-route="appointments"] [class*="agenda-floating-card-"] 
   overflow:visible!important;
   color:var(--md-sys-color-primary);
 }
-:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) > .material-symbols-rounded,
-:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) .pt-icon-glyph{
+:where(.brand-mark,.auth-brandmark,.signup-brandmark,.credential-icon,.choice-icon,.pagehead-icon,.login-lock-icon,.offline-miniicon,.status-icon,.status-icon-only,.doc-history-icon,.notice-icon,.notice-minimal-icon,.maestro-rule-icon,.finance-movement-icon,.subscription-payment-icon,.model-inline-icon,.patient-card-avatar,.guardian-avatar,.collaborator-avatar,.finance-drawer-avatar,.goal-mini-icon,.agenda-floating-icon,.pix-key-symbol,.signup-offer-icon,.onboarding-tip-icon) > .material-symbols-rounded,.onboarding-tip-icon) .pt-icon-glyph{
   font-size:var(--pt-icon-md)!important;
   width:1em!important;
   height:1em!important;
@@ -2499,16 +2490,14 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 94%,var(--md-sys-color-primary) 2%));
   box-shadow:var(--md-sys-elevation-level1);
 }
-:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > h2:first-child,
-:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > header:first-child h2{
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > h2:first-child,.subscription-status-shell) > header:first-child h2{
   margin:0 0 12px;
   font:var(--md-sys-typescale-title-large);
   font-weight:850;
   letter-spacing:-.03em;
   color:var(--md-sys-color-on-surface);
 }
-:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > p:first-of-type,
-:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) .muted{
+:where(.manager-finance-card,.manager-goal,.card.manager-actions,.manager-procedures,.priority-actions,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.finance-drawer-intro,.finance-drawer-admin-list,.finance-drawer-setup-card,.finance-alert-card,.finance-dashboard-card,.cash-drawer-card,.admin-onboarding-card,.operations-card,.maestro-card,.maestro-list-card,.subscription-payment-card,.subscription-status-shell) > p:first-of-type,.subscription-status-shell) .muted{
   color:var(--md-sys-color-on-surface-variant);
   font:var(--md-sys-typescale-body-medium);
   line-height:1.45;
@@ -2850,46 +2839,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   overflow:hidden!important;
   isolation:isolate!important;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .reception-pending-grid
-) > :where(article,div,a,span):has(> .material-symbols-rounded),
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .reception-pending-grid
-) > :where(article,div,a,span):has(> .pt-icon-glyph){
+:where( .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.procedure-kpis-refined,.notice-kpis,.notice-gmail-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.reception-pending-grid ) > :where(article,div,a,span):has(> .material-symbols-rounded),span):has(> .pt-icon-glyph){
   grid-template-columns:auto minmax(0,1fr)!important;
 }
 :where(
@@ -2994,31 +2944,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   font-size:25px!important;
   grid-row:1 / span 2;
 }
-:where(
-  .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),
-  .stats-grid,
-  .admin-overview-kpis,
-  .global-telemetry-grid,
-  .manager-kpis,
-  .manager-operational-kpis,
-  .reception-kpis,
-  .lead-overview,
-  .task-overview,
-  .patient-directory-overview,
-  .procedure-kpis,
-  .procedure-kpis-refined,
-  .notice-kpis,
-  .notice-gmail-kpis,
-  .patient-summary-cards,
-  .patient-profile-summary-cards,
-  .patient-profile-footer-cards,
-  .manager-mini-grid,
-  .manager-goal-grid,
-  .reception-pending-grid,
-  .reception-flow,
-  .finance-drawer-metrics,
-  .cash-drawer-pills
-) > :where(article,div,a,span) :where(p,div,span){
+:where( .kpis:not(.finance-balance-kpis):not(.agenda-floating-kpis),.stats-grid,.admin-overview-kpis,.global-telemetry-grid,.manager-kpis,.manager-operational-kpis,.reception-kpis,.lead-overview,.task-overview,.patient-directory-overview,.procedure-kpis,.procedure-kpis-refined,.notice-kpis,.notice-gmail-kpis,.patient-summary-cards,.patient-profile-summary-cards,.patient-profile-footer-cards,.manager-mini-grid,.manager-goal-grid,.reception-pending-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills ) > :where(article,div,a,span) :where(p,span){
   min-width:0;
   margin:0!important;
 }
@@ -3090,8 +3016,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
 :where(.reception-pending-grid) > a small{
   display:block;
 }
-:where(.patient-profile-summary-cards,.patient-profile-footer-cards) > article > span,
-:where(.patient-profile-summary-cards,.patient-profile-footer-cards) > article > b{
+:where(.patient-profile-summary-cards,.patient-profile-footer-cards) > article > span,.patient-profile-footer-cards) > article > b{
   grid-column:2;
 }
 :where(.patient-profile-summary-cards,.patient-profile-footer-cards) > article > span{
@@ -3102,8 +3027,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   font:var(--md-sys-typescale-title-small)!important;
   line-height:1.2!important;
 }
-:where(.manager-goal-grid,.manager-mini-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > span,
-:where(.manager-mini-grid,.manager-goal-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > div{
+:where(.manager-goal-grid,.manager-mini-grid,.reception-flow,.finance-drawer-metrics,.cash-drawer-pills) > span,:where(.manager-mini-grid,.manager-goal-grid,.cash-drawer-pills) > div{
   min-height:82px!important;
 }
 :where(
@@ -3332,31 +3256,22 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
   color:var(--md-sys-color-on-surface)!important;
   letter-spacing:-.03em!important;
 }
-:where(.card,.form-panel,.action-panel,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(p,.muted,.hint):first-child,
-:where(.card,.form-panel,.action-panel,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(h1,h2,h3):first-child + :where(p,.muted,.hint){
+:where(.card,.form-panel,.action-panel,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(p,.muted,.hint):first-child,.subscription-payment-card) > :where(h1,h2,h3):first-child + :where(p,.hint){
   margin-block:0 var(--pt-card-section-gap)!important;
   color:var(--md-sys-color-on-surface-variant)!important;
   font:var(--md-sys-typescale-body-medium)!important;
   line-height:1.42!important;
 }
-:where(.card,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(.form-actions,.compact-actions,.finance-action-row,.manager-actions,.patient-card-actions):last-child{
+:where(.card,.manager-finance-card,.manager-goal,.manager-actions,.manager-procedures,.finance-report-card,.finance-ledger-card,.finance-form,.finance-list,.finance-accounts-panel,.finance-goal-card-panel,.operations-card,.maestro-card,.subscription-payment-card) > :where(.form-actions,.compact-actions,.finance-action-row,.patient-card-actions):last-child{
   margin-block-start:var(--pt-card-section-gap)!important;
 }
-
-
-
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
-  border-radius:0 20px 20px 0!important;
-  border-left:var(--pt-card-strip-width) solid color-mix(in srgb,var(--md-sys-color-primary) 70%,var(--md-sys-color-outline-variant))!important;
-  padding-inline-start:14px!important;
-}
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row):where(:hover,:focus-within){
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row):where(:hover,:focus-within){
   border-left-color:var(--md-sys-color-primary)!important;
 }
 
 
 
-:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row) :where(.material-symbols-rounded,.pt-icon-glyph):first-child{
+:where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row) :where(.material-symbols-rounded,.pt-icon-glyph):first-child{
   color:var(--md-sys-color-primary)!important;
 }
 
@@ -3401,7 +3316,7 @@ body.public .auth-brandmark-favicon{display:block!important;width:100%!important
     border-radius:0 var(--pt-card-radius-m3-compact) var(--pt-card-radius-m3-compact) 0!important;
     padding-inline-start:16px!important;
   }
-  :where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-minimal-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
+  :where(.finance-row,.procedure-card,.task-card,.doc-history-row,.notice-row,.patient-card-row,.guardian-row,.lead-list-item,.collaborator-card-row,.maestro-rule-row,.clinic-admin-row,.reception-row){
     border-radius:0 18px 18px 0!important;
     padding-inline-start:13px!important;
   }
@@ -3642,8 +3557,7 @@ details.procedure-edit-details[open]{
   border:1px dashed color-mix(in srgb,var(--md-sys-color-outline-variant) 82%,transparent)!important;
   color:var(--md-sys-color-on-surface-variant)!important;
 }
-:where(.empty,.empty-state) .pt-icon-glyph,
-:where(.empty,.empty-state) .material-symbols-rounded{
+:where(.empty,.empty-state) .pt-icon-glyph,.empty-state) .material-symbols-rounded{
   color:var(--md-sys-color-primary)!important;
 }
 .context-floating-pending-card-tasks .agenda-floating-icon{background:var(--md-sys-color-primary-container)!important;color:var(--md-sys-color-primary)!important}
@@ -4131,7 +4045,7 @@ main :is(.card,.widebox,.dashboard-card,.panel-card,.reception-board,.global-pil
   background:var(--pt-ds-surface-bg-hover)!important;
   box-shadow:var(--pt-ds-surface-shadow-hover)!important;
 }
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice){
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row,.clinic-choice,.credential-choice){
   position:relative;
   min-width:0;
   border:1px solid var(--pt-ds-surface-line)!important;
@@ -4139,7 +4053,7 @@ main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list
   background:linear-gradient(180deg,var(--md-sys-color-surface-container-lowest),color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%))!important;
   box-shadow:0 6px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.66) inset!important;
 }
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
+main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row):hover{
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--pt-ds-surface-line))!important;
   background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 2%),var(--md-sys-color-surface-container-lowest))!important;
   box-shadow:0 8px 22px rgba(20,37,29,.10),0 1px 0 rgba(255,255,255,.72) inset!important;
@@ -4151,9 +4065,7 @@ main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.m
   background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 96%,var(--md-sys-color-primary) 3%),var(--md-sys-color-surface-container-lowest));
   box-shadow:0 7px 18px rgba(20,37,29,.075),0 1px 0 rgba(255,255,255,.68) inset!important;
 }
-main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card) :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,
-main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-gmail-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,
-main [data-ds-icon-chip="1"]{
+main :is([data-ds-kpi-scope="1"] > *,[data-ds-card-kind="compact"],.stat-card,.mini-stat,.ds-kpi,.notice-kpi,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.global-compact-summary,.audit-mini,.kpi-card,.patient-kpi-card,.patient-stat-pill,.finance-balance-card) :is(.material-symbols-rounded,.material-symbol,.material-icons):first-child,main :is([data-ds-row-kind="surface"],.patient-card-row,.guardian-row,.lead-list-item,.task-card,.procedure-card,.doc-history-row,.doc-model-card,.document-issued-row,.finance-row,.notice-row,.collaborator-card-row,.audit-row,.maestro-rule-row) > :is(.material-symbols-rounded,main [data-ds-icon-chip="1"]{
   width:var(--pt-ds-icon-size-compact)!important;
   height:var(--pt-ds-icon-size-compact)!important;
   min-width:var(--pt-ds-icon-size-compact)!important;
@@ -4986,8 +4898,7 @@ body.scope-global .metric-chart-pills .material-symbols-rounded{
 
 
 
-body.scope-global :is(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.global-pill-title,.metric-chart-title,.clinic-menu-item,.admin-onboarding-legend) > :is(.material-symbols-rounded,.pt-icon-glyph),
-body.scope-global :is(.metric-chart-pills,.top-icon,.pagehead-icon,.credential-icon) :is(.material-symbols-rounded,.pt-icon-glyph){
+body.scope-global :is(.admin-tile,.stat-card,.stat-link,.mini-stat,.global-compact-pill,.global-pill-title,.metric-chart-title,.clinic-menu-item,.admin-onboarding-legend) > :is(.material-symbols-rounded,.pt-icon-glyph),body.scope-global :is(.metric-chart-pills,.top-icon,.pagehead-icon,.credential-icon) :is(.material-symbols-rounded{
   font-family:"Material Symbols Rounded","Material Icons Round","Material Icons",sans-serif!important;
   font-weight:normal!important;
   font-style:normal!important;
@@ -6679,50 +6590,13 @@ body.public .signup-screen-flow .signup-ds-actions{
 
 
 
-:where(
-  .ds-selection-chips,
-  .patient-filter-chips,
-  .lead-filter-chips,
-  .notice-filter-chips,
-  .task-filters,
-  .activity-filter-chips,
-  .activity-period-filter,
-  .admin-alert-filters,
-  .notice-gmail-filters,
-  .ds-notice-filters,
-  .role-permission-tabs,
-  .permission-compact-toolbar,
-  .finance-pagehead-nav
-){
+:where( .ds-selection-chips,.patient-filter-chips,.lead-filter-chips,.notice-filter-chips,.task-filters,.activity-filter-chips,.activity-period-filter,.admin-alert-filters,.ds-notice-filters,.role-permission-tabs,.permission-compact-toolbar,.finance-pagehead-nav ){
   display:flex!important;
   align-items:center!important;
   gap:8px!important;
   flex-wrap:wrap!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-){
+:where( .ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.notice-filter-chips > a,.notice-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button ){
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -6743,109 +6617,24 @@ body.public .signup-screen-flow .signup-ds-actions{
   box-shadow:none!important;
   cursor:pointer!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
+:where( .ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.notice-filter-chips > a,.notice-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button ):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]){
   background:var(--md-sys-color-primary-container)!important;
   color:var(--md-sys-color-on-primary-container)!important;
   border-color:transparent!important;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .lead-filter-chips .lead-chip,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(:hover,:focus-visible){
+:where( .ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.lead-filter-chips .lead-chip,.notice-filter-chips > a,.notice-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button ):where(:hover,:focus-visible){
   color:var(--md-sys-color-on-surface)!important;
   border-color:color-mix(in srgb,var(--md-sys-color-primary) 34%,var(--md-sys-color-outline-variant))!important;
   background:color-mix(in srgb,var(--md-sys-color-primary-container) 22%,var(--md-sys-color-surface-container-lowest))!important;
   text-decoration:none!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .admin-alert-filters > button,
-  .notice-gmail-filters > a,
-  .notice-gmail-filters > button,
-  .ds-notice-filters > a,
-  .ds-notice-filters > button,
-  .permission-compact-toolbar > a,
-  .permission-compact-toolbar > button,
-  .finance-pagehead-nav > a,
-  .finance-pagehead-nav > button
-):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
+:where( .ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.notice-filter-chips > a,.notice-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.admin-alert-filters > button,.ds-notice-filters > a,.ds-notice-filters > button,.permission-compact-toolbar > a,.permission-compact-toolbar > button,.finance-pagehead-nav > a,.finance-pagehead-nav > button ):where(.active,.is-active,[aria-current="page"],[aria-selected="true"],[data-active="true"]):where(:hover,:focus-visible){
   color:var(--md-sys-color-on-primary-container)!important;
   border-color:transparent!important;
   background:var(--md-sys-color-primary-container)!important;
 }
-:where(
-  .ds-filter-chip,
-  [data-ds-filter-chip],
-  .patient-filter-chip,
-  .lead-filter-chips > a,
-  .lead-filter-chips > button,
-  .notice-filter-chips > a,
-  .notice-filter-chips > button,
-  .task-filter,
-  .activity-filter-chip,
-  .activity-period-chip,
-  .role-permission-tab,
-  .admin-alert-filters > a,
-  .notice-gmail-filters > a,
-  .ds-notice-filters > a,
-  .permission-compact-toolbar > a,
-  .finance-pagehead-nav > a
-) :where(.material-symbols-rounded,.pt-icon-glyph){
+:where( .ds-filter-chip,[data-ds-filter-chip],.patient-filter-chip,.lead-filter-chips > a,.lead-filter-chips > button,.notice-filter-chips > a,.notice-filter-chips > button,.task-filter,.activity-filter-chip,.activity-period-chip,.role-permission-tab,.admin-alert-filters > a,.ds-notice-filters > a,.permission-compact-toolbar > a,.finance-pagehead-nav > a ) :where(.material-symbols-rounded,.pt-icon-glyph){
   font-size:18px!important;
   line-height:1!important;
   color:currentColor!important;
@@ -7087,8 +6876,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   color:var(--md-sys-color-primary)!important;
   box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--md-sys-color-primary) 10%,transparent)!important;
 }
-.ds-person-avatar :where(.material-symbols-rounded,.pt-icon-glyph),
-.patient-card-avatar :where(.material-symbols-rounded,.pt-icon-glyph){
+.ds-person-avatar :where(.material-symbols-rounded,.pt-icon-glyph),.patient-card-avatar :where(.material-symbols-rounded{
   font-size:23px!important;
   font-variation-settings:"FILL" 0,"wght" 500,"GRAD" 0,"opsz" 24!important;
 }
@@ -7136,10 +6924,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   min-width:0!important;
   max-width:100%!important;
 }
-.ds-person-meta :where(.material-symbols-rounded,.pt-icon-glyph),
-.patient-card-meta :where(.material-symbols-rounded,.pt-icon-glyph),
-.patient-card-created :where(.material-symbols-rounded,.pt-icon-glyph),
-.patient-card-last-consultation :where(.material-symbols-rounded,.pt-icon-glyph){
+.ds-person-meta :where(.material-symbols-rounded,.pt-icon-glyph),.patient-card-meta :where(.material-symbols-rounded,.patient-card-created :where(.material-symbols-rounded,.patient-card-last-consultation :where(.material-symbols-rounded{
   font-size:16px!important;
   line-height:1!important;
   color:color-mix(in srgb,var(--md-sys-color-on-surface-variant) 78%,transparent)!important;
@@ -7261,42 +7046,21 @@ body.public .signup-screen-flow .signup-ds-actions{
 @media(min-width:721px){
   .patient-card-last-consultation{white-space:nowrap!important;}
 }
-
-
-
-
-.ds-person-actions > :where(a.primary.small,button.primary.small),
-.patient-card-actions > :where(a.primary.small,button.primary.small){
-  --pt-patient-action-bg:var(--clinic-accent-strong,var(--brand-dark,var(--md-ref-palette-primary30)));
-  --pt-patient-action-fg:#fff;
-  min-height:38px!important;
-  border-radius:14px!important;
-  background:var(--pt-patient-action-bg)!important;
-  color:var(--pt-patient-action-fg)!important;
-  border:1px solid color-mix(in srgb,var(--pt-patient-action-bg) 84%,#000 16%)!important;
-  box-shadow:0 1px 0 rgba(255,255,255,.16) inset,0 6px 14px color-mix(in srgb,var(--pt-patient-action-bg) 20%,transparent)!important;
-  font-weight:800!important;
-  text-shadow:none!important;
-}
-.ds-person-actions > :where(a.primary.small,button.primary.small) :where(.material-symbols-rounded,.pt-icon-glyph,span),
-.patient-card-actions > :where(a.primary.small,button.primary.small) :where(.material-symbols-rounded,.pt-icon-glyph,span){
+.ds-person-actions > :where(a.primary.small,button.primary.small) :where(.material-symbols-rounded,.pt-icon-glyph,span),.patient-card-actions > :where(a.primary.small{
   color:inherit!important;
 }
-.ds-person-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible),
-.patient-card-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible){
+.ds-person-actions > :where(a.primary.small,button.primary.small):where(:hover,:focus-visible),.patient-card-actions > :where(a.primary.small{
   background:color-mix(in srgb,var(--pt-patient-action-bg) 86%,#000 14%)!important;
   color:var(--pt-patient-action-fg)!important;
   border-color:color-mix(in srgb,var(--pt-patient-action-bg) 72%,#000 28%)!important;
   box-shadow:0 0 0 3px color-mix(in srgb,var(--md-sys-color-primary) 24%,transparent),0 8px 18px color-mix(in srgb,var(--pt-patient-action-bg) 24%,transparent)!important;
 }
-.ds-person-actions > :where(a.primary.small,button.primary.small):active,
-.patient-card-actions > :where(a.primary.small,button.primary.small):active{
+.ds-person-actions > :where(a.primary.small,button.primary.small):active,.patient-card-actions > :where(a.primary.small{
   transform:translateY(1px)!important;
   box-shadow:0 1px 0 rgba(255,255,255,.12) inset!important;
 }
 @media(max-width:420px){
-  .ds-person-actions > :where(a.primary.small,button.primary.small),
-  .patient-card-actions > :where(a.primary.small,button.primary.small){
+  .ds-person-actions > :where(a.primary.small,button.primary.small),.patient-card-actions > :where(a.primary.small{
     background:var(--pt-patient-action-bg)!important;
     color:var(--pt-patient-action-fg)!important;
   }
@@ -8514,8 +8278,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   line-height:1!important;
   border-radius:999px!important;
 }
-.doc-issued-row-compact .doc-ds-meta-chip :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph),
-.doc-issued-row-compact .doc-ds-chip :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph){
+.doc-issued-row-compact .doc-ds-meta-chip :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph),.doc-issued-row-compact .doc-ds-chip :is(.material-symbols-rounded{
   font-size:14px!important;
   line-height:1!important;
 }
@@ -8531,16 +8294,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   flex-wrap:nowrap!important;
   align-self:center!important;
 }
-.doc-issued-row-compact .doc-issued-actions :where(a,button),
-.doc-issued-row-compact .doc-ds-row-actions :where(a,button){
-  min-height:34px!important;
-  padding:7px 10px!important;
-  border-radius:13px!important;
-  font-size:.78rem!important;
-  white-space:nowrap!important;
-}
-.doc-issued-row-compact .doc-issued-actions :where(a,button) :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph),
-.doc-issued-row-compact .doc-ds-row-actions :where(a,button) :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph){
+.doc-issued-row-compact .doc-issued-actions :where(a,button) :is(.material-symbols-rounded,.material-symbol,.material-icons,.pt-icon-glyph),.doc-issued-row-compact .doc-ds-row-actions :where(a{
   font-size:17px!important;
 }
 @media(max-width:760px){
@@ -8563,8 +8317,7 @@ body.public .signup-screen-flow .signup-ds-actions{
     justify-content:stretch!important;
     width:100%!important;
   }
-  .doc-issued-row-compact .doc-issued-actions :where(a,button),
-  .doc-issued-row-compact .doc-ds-row-actions :where(a,button){
+  .doc-issued-row-compact .doc-issued-actions :where(a,button),.doc-issued-row-compact .doc-ds-row-actions :where(a{
     flex:1 1 0!important;
     justify-content:center!important;
   }
@@ -9874,8 +9627,7 @@ body[data-route="procedures"] .pagehead-controls--navigation .pagehead-control--
 .procedures-ds-screen .field{
   align-content:start;
 }
-.settings-ds-screen :where(input,select,textarea),
-.procedures-ds-screen :where(input,select,textarea){
+.settings-ds-screen :where(input,select,textarea),.procedures-ds-screen :where(input{
   min-width:0;
 }
 .settings-ds-actions{
@@ -13950,7 +13702,7 @@ body[data-route="painel"] .timeline .titem{
 :where(.pagehead,.profile-hero,.patient-profile-hero,.procedure-hero,.employee-hero,.finance-hero,.document-hero){gap:var(--pt-ds-gap-lg)}
 :where(.pagehead .actions,.pagehead-controls--actions,.cmdbar-actions,.patient-card-actions,.procedure-card-actions,.finance-drawer-actions,.agenda-item-actions,.manager-actions,.lead-actions,.task-actions,.notice-actions,.compact-actions){align-items:center;gap:var(--pt-ds-gap-xs)}
 :where(.cmdbar,.context-bar,.module-bar,.workspace-bar){min-height:var(--cmd-h,56px);border-radius:var(--pt-ds-radius-lg)}
-:where(.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.notice-gmail-filters,.ds-notice-filters,.directory-search,.patient-search,.ds-search,.list-search,.creditor-search,.procedure-search,.employee-search){border-radius:var(--pt-ds-radius-lg);gap:var(--pt-ds-gap-sm);padding:14px;background:linear-gradient(180deg,var(--pt-ds-surface-soft),color-mix(in srgb,var(--pt-ds-surface-soft) 92%,#fff));border:var(--pt-ds-border);box-shadow:none}
+:where(.patient-search-bar,.lead-search,.task-search,.doc-model-search,.doc-search-primary,.ds-notice-filters,.directory-search,.patient-search,.ds-search,.list-search,.creditor-search,.procedure-search,.employee-search){border-radius:var(--pt-ds-radius-lg);gap:var(--pt-ds-gap-sm);padding:14px;background:linear-gradient(180deg,var(--pt-ds-surface-soft),color-mix(in srgb,var(--pt-ds-surface-soft) 92%,#fff));border:var(--pt-ds-border);box-shadow:none}
 :where(.patient-filter-chips,.lead-filter-chips,.task-filters,.notice-filter-chips,.filterbar,.filters,.list-filters,.finance-pagehead-nav){gap:var(--pt-ds-gap-xs);align-items:center;flex-wrap:wrap}
 :where(.kpis,.stats-grid,.metric-grid,.patient-kpi-grid,.notice-kpi-grid,.finance-kpi-grid,.manager-kpis,.reception-kpis,.procedure-kpis,.employee-kpis,.creditor-kpis){display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--pt-ds-gap-md)}
 :where(.stat-card,.ds-kpi,.notice-kpi,.kpi-card,.patient-kpi-card,.cash-drawer-metric,.finance-drawer-metric,.manager-stat,.mini-stat,.procedure-kpi,.employee-kpi,.creditor-kpi){border-radius:var(--pt-ds-radius-lg);border:var(--pt-ds-border);background:var(--pt-ds-surface);box-shadow:var(--md-sys-elevation-level1);min-height:78px;align-items:center}
@@ -14910,7 +14662,7 @@ body.public[data-route="mfa"] .flash{width:min(var(--pt-security-auth-max),100%)
 .security-auth-card{width:min(var(--pt-security-auth-max,560px),100%)!important;max-width:var(--pt-security-auth-max,560px)!important;display:grid!important;gap:18px!important;padding:clamp(20px,3vw,28px)!important;border-radius:28px!important;background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 97%,#fff),color-mix(in srgb,var(--md-sys-color-primary-container) 10%,var(--md-sys-color-surface-container-lowest)))!important;border:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)!important;box-shadow:0 18px 44px rgba(26,62,43,.10),0 1px 0 rgba(255,255,255,.78) inset!important}
 .security-auth-titleline{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;align-items:center!important;gap:14px!important;margin:0!important}
 .auth-brandmark.security-auth-icon,.security-reauth-icon{display:grid!important;place-items:center!important;width:52px!important;height:52px!important;min-width:52px!important;border-radius:19px!important;color:var(--md-sys-color-primary)!important;background:color-mix(in srgb,var(--md-sys-color-primary-container) 78%,var(--md-sys-color-surface-container-lowest))!important;border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 15%,transparent)!important;box-shadow:0 4px 14px color-mix(in srgb,var(--md-sys-color-primary) 10%,transparent)!important}
-.auth-brandmark.security-auth-icon :is(.material-symbols-rounded,.pt-icon-glyph),.security-reauth-icon :is(.material-symbols-rounded,.pt-icon-glyph){font-size:27px!important}
+.auth-brandmark.security-auth-icon :is(.material-symbols-rounded,.pt-icon-glyph),.security-reauth-icon :is(.material-symbols-rounded{font-size:27px!important}
 .security-auth-titleline .eyebrow,.security-reauth-head .eyebrow{margin-bottom:4px}
 .security-auth-titleline h1{margin:0!important;color:var(--md-sys-color-on-surface)!important;font:var(--md-sys-typescale-headline-small)!important;font-weight:900!important;letter-spacing:-.035em!important}
 .security-auth-titleline p,.security-reauth-head p{margin:4px 0 0!important;color:var(--md-sys-color-on-surface-variant)!important;font:var(--md-sys-typescale-body-medium)!important;line-height:1.45!important}
@@ -15137,3 +14889,14 @@ body.scope-global .admin-telemetry-card{
   gap:12px;
 }
 body.scope-global .developer-actions-card{min-width:0}body.scope-global .developer-tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}body.scope-global .developer-tool-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:16px;border:1px solid rgba(15,23,42,.10);border-radius:14px;text-decoration:none;color:inherit;background:rgba(255,255,255,.62);transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}body.scope-global .developer-tool-card:hover{transform:translateY(-1px);border-color:rgba(var(--clinic-accent-rgb,35,135,99),.36);box-shadow:0 8px 22px rgba(15,23,42,.06)}body.scope-global .developer-tool-card b,body.scope-global .developer-tool-card small{display:block}body.scope-global .developer-tool-card small{margin-top:4px;line-height:1.4;opacity:.72}body.scope-global .developer-tool-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--clinic-accent-soft,#e6f3ee);color:var(--clinic-accent-dark,#105e44)}@media(max-width:820px){body.scope-global main .developer-tool-grid{grid-template-columns:1fr}}
+
+
+.notice-screen{display:grid;gap:var(--pt-ds-gap-md);min-width:0;background:transparent;border:0;box-shadow:none}
+.notice-list-card,.notice-system-card,.notice-reader-card{display:grid;gap:0;min-width:0;background:var(--pt-ds-surface);border:var(--pt-ds-border);border-radius:var(--pt-ds-radius-lg);box-shadow:var(--md-sys-elevation-level1)}
+.notice-list{display:grid;gap:8px}.notice-list-card .section-head,.notice-system-card .section-head{align-items:flex-start;margin:0 0 12px;padding:0 0 12px}.notice-section-count{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:30px;padding:0 10px;border-radius:999px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-label-medium);font-weight:900}.ds-notice-filters .ds-filter-chip em{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:var(--md-sys-color-surface-container-high);color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-label-small);font-style:normal;font-weight:900}.ds-notice-filters .ds-filter-chip.is-active em{background:color-mix(in srgb,var(--md-sys-color-primary) 16%,var(--md-sys-color-primary-container));color:var(--md-sys-color-on-primary-container)}.notice-row:hover{color:var(--md-sys-color-on-surface);text-decoration:none}.notice-row-icon{width:40px;height:40px;min-width:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:15px;background:color-mix(in srgb,var(--md-sys-color-primary) 10%,var(--md-sys-color-surface-container-lowest));color:var(--md-sys-color-primary);border:1px solid color-mix(in srgb,var(--md-sys-color-primary) 12%,transparent)}.notice-row-main{display:grid;gap:3px;min-width:0}.notice-row-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small);line-height:1.3}.notice-row.is-unread{border-left:4px solid var(--md-sys-color-primary);background:color-mix(in srgb,var(--md-sys-color-primary) 4%,var(--md-sys-color-surface-container-lowest))}.notice-row.is-unread .notice-row-title{font-weight:900}.notice-row.is-archived{opacity:.74}
+.notice-system-row{background:color-mix(in srgb,var(--md-sys-color-tertiary) 3%,var(--md-sys-color-surface-container-lowest))}.notice-system-row .notice-row-icon{background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);border-color:color-mix(in srgb,var(--md-sys-color-tertiary) 14%,transparent)}.notice-status-pill{display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border-radius:999px;background:var(--md-sys-color-tertiary-container);color:var(--md-sys-color-on-tertiary-container);font:var(--md-sys-typescale-label-small);font-weight:900}.notice-status-pill.severity-warning{background:var(--pt-color-warning-container);color:var(--pt-color-on-warning-container)}.notice-status-pill.severity-critical{background:var(--md-sys-color-error-container);color:var(--md-sys-color-on-error-container)}.notice-system-row.severity-warning{border-left:4px solid var(--pt-color-warning)}.notice-system-row.severity-critical{border-left:4px solid var(--md-sys-color-error)}
+.notice-reader-card{padding:var(--pt-ds-section-pad)}.notice-reader{display:grid;gap:0}.notice-reader-head.section-head{align-items:flex-start;margin:0;padding:0 0 14px}.notice-reader-body{padding:18px 0;border:0;border-radius:0;background:transparent;color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-body-large);line-height:1.62;white-space:normal}
+.notice-empty{display:grid;justify-items:center;align-content:center;gap:8px;min-height:152px;text-align:center}.notice-empty-icon{width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;border-radius:17px;background:var(--md-sys-color-primary-container);color:var(--md-sys-color-primary)}.notice-empty strong{color:var(--md-sys-color-on-surface);font:var(--md-sys-typescale-title-small);font-weight:900}.notice-empty>span:not(.notice-empty-icon){max-width:58ch;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-medium)}.notice-empty-actions{display:flex;justify-content:center;gap:8px;margin-top:4px}
+.readonly-support-screen{display:grid;gap:var(--pt-ds-gap-lg)}.notice-support-compose{display:grid;gap:0}.notice-support-compose .section-head{align-items:flex-start}.notice-support-compose .notice-form{gap:12px}.notice-support-row .notice-row-icon{background:var(--md-sys-color-secondary-container);color:var(--md-sys-color-on-secondary-container);border-color:color-mix(in srgb,var(--md-sys-color-secondary) 14%,transparent)}
+@media(max-width:760px){.notice-row{grid-template-columns:auto minmax(0,1fr);align-items:start}.notice-row-time{grid-column:2;justify-self:start}.notice-row-title{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.notice-reader-footer{align-items:stretch}.notice-reader-meta{width:100%}.notice-actions{width:100%;margin-left:0;justify-content:stretch}.notice-actions form,.notice-actions button{width:100%}.ds-notice-filters{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.ds-notice-filters::-webkit-scrollbar{display:none}.ds-notice-filters .ds-filter-chip{flex:0 0 auto}}
+

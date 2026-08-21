@@ -164,62 +164,6 @@ final class TasksNoticesRuntimeOperations06
         }
         $openId = (int) ($_GET["notice"] ?? 0);
         $team = \Prontoo\Runtime\UsersPermissions\UsersPermissionsRuntimeOperations02::team_options($cid);
-        $userOpts = '<option value="">Selecione</option>';
-        foreach ($team as $id => $name) {
-            $userOpts .=
-                '<option value="' . (int) $id . '">' . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($name) . "</option>";
-        }
-        $noticeCreateForm =
-            '<form method="post" class="compact notice-form notice-form-refined ds-entity-form ds-standalone-form" data-notice-form>' .
-            \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
-            '<input type="hidden" name="view" value="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($view) .
-            '"><div class="notice-form-grid">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
-                "Título",
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
-                    "title",
-                    "text",
-                    "",
-                    'required placeholder="Assunto do aviso"',
-                ),
-            ) .
-            '<label class="field notice-target-scope"><span>Destinatários</span><select name="target_scope" data-notice-target-scope><option value="all">Toda a clínica</option><option value="role">Colaboradores do meu cargo</option><option value="user">Colaborador específico</option></select></label><label class="field notice-message-field"><span>Mensagem</span>' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(
-                "body",
-                "",
-                'required rows="5" placeholder="Escreva a orientação que precisa ser lida pela equipe."',
-            ) .
-            '</label><label class="field notice-target-user" data-notice-target-user><span>Colaborador específico</span><select name="target_user_id" data-notice-target-user-select>' .
-            $userOpts .
-            '</select></label><label class="check notice-ack-field"><input type="checkbox" name="requires_ack" checked> Exigir confirmação de leitura</label></div><div class="form-actions notice-form-actions"><a class="ghost" href="' .
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view]) .
-            '">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
-            '<span>Cancelar</span></a><button type="submit" class="primary">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
-            "<span>Publicar</span></button></div></form>";
-        if (!$readOnly && ($_GET["new"] ?? "") === "1") {
-            $back =
-                '<a class="ghost small" href="' .
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view]) .
-                '">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
-                "<span>Voltar</span></a>";
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-                "Novo aviso",
-                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
-                    "Novo aviso",
-                    "Publique uma orientação em tela própria, mantendo a lista de Avisos limpa para leitura e acompanhamento.",
-                    $back,
-                ) .
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                        $noticeCreateForm,
-                        "notice-card-shell notice-create-shell ds-form-shell",
-                    ),
-            );
-            return;
-        }
         $form = $readOnly
             ? ""
             : '<a class="pagehead-control pagehead-control--primary" href="' .
@@ -265,31 +209,49 @@ final class TasksNoticesRuntimeOperations06
                 }
             }
         }
-        $filters =
-            '<nav class="notice-filter-chips lead-filter-chips notice-gmail-filters ds-notice-filters" aria-label="Filtros de avisos">' .
-            '<a class="lead-chip ds-filter-chip ' .
-            ($view === "received" ? "active" : "") .
-            '" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "received"])) .
-            '"><span class="material-symbols-rounded">inbox</span><span class="lead-chip-label">Recebidas</span><em>' .
-            (int) $receivedCount .
-            "</em></a>" .
-            '<a class="lead-chip ds-filter-chip ' .
-            ($view === "sent" ? "active" : "") .
-            '" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "sent"])) .
-            '"><span class="material-symbols-rounded">send</span><span class="lead-chip-label">Enviadas</span><em>' .
-            (int) $sentCount .
-            "</em></a>" .
-            '<a class="lead-chip ds-filter-chip ' .
-            ($view === "archived" ? "active" : "") .
-            '" href="' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "archived"])) .
-            '"><span class="material-symbols-rounded">archive</span><span class="lead-chip-label">Arquivadas</span><em>' .
-            (int) $hiddenCount .
-            "</em></a>" .
-            "</nav>";
+        if ($readOnly) {
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
+                "Avisos",
+                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
+                    "Avisos",
+                    "Fale com o suporte sobre pagamento, liberação ou acesso aos seus dados.",
+                ) .
+                    '<section class="readonly-support-screen form-screen">' .
+                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations05::readonly_support_notice_screen($c, $view) .
+                    "</section>",
+            );
+            return;
+        }
+
+        $filterItems = [
+            ["received", "inbox", "Recebidas", $receivedCount],
+            ["sent", "send", "Enviadas", $sentCount],
+            ["archived", "archive", "Arquivadas", $hiddenCount],
+        ];
+        $filters = '<nav class="ds-notice-filters" aria-label="Caixas de avisos">';
+        foreach ($filterItems as [$filterView, $filterIcon, $filterLabel, $filterCount]) {
+            $active = $view === $filterView;
+            $filters .=
+                '<a class="ds-filter-chip' .
+                ($active ? " is-active" : "") .
+                '" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $filterView]),
+                ) .
+                '"' .
+                ($active ? ' aria-current="page"' : "") .
+                '>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($filterIcon) .
+                '<span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($filterLabel) .
+                '</span><em>' .
+                (int) $filterCount .
+                "</em></a>";
+        }
+        $filters .= "</nav>";
+
         $detail = "";
+        $detailView = $view;
         if ($openId > 0) {
             $openRow = null;
             foreach ($rows as $r) {
@@ -305,6 +267,9 @@ final class TasksNoticesRuntimeOperations06
                     \Prontoo\Runtime\Operational\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.10', [$openId, $uid], []);
                     \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "notice_reads");
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("leitura_registrada", "comunicado", $openId);
+                    if ((int) ($openRow["requires_ack"] ?? 0) === 1 && $pendingCount > 0) {
+                        $pendingCount--;
+                    }
                     $read["read_at"] = $read["read_at"] ?? date("Y-m-d H:i:s");
                     $read["ack_at"] = $read["ack_at"] ?? date("Y-m-d H:i:s");
                     $reads[$openId] = $read;
@@ -312,21 +277,8 @@ final class TasksNoticesRuntimeOperations06
                 $author = $authors[(int) ($openRow["created_by"] ?? 0)] ?? [];
                 $authorFirst = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($author["name"] ?? "Sistema"));
                 $archived = !empty($read["hidden_at"]);
-                $detailView = $archived
-                    ? "archived"
-                    : ($isMine
-                        ? "sent"
-                        : "received");
-                $status = $archived
-                    ? "Arquivada"
-                    : ($isMine
-                        ? "Enviada"
-                        : "Recebida · leitura registrada");
-                $iconName = $archived
-                    ? "archive"
-                    : ($isMine
-                        ? "outgoing_mail"
-                        : "mark_email_read");
+                $detailView = $archived ? "archived" : ($isMine ? "sent" : "received");
+                $status = $archived ? "Arquivada" : ($isMine ? "Enviada" : "Recebida · leitura registrada");
                 $direction = $isMine
                     ? '<span class="notice-direction-pill is-sent">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("north_east") .
@@ -343,47 +295,46 @@ final class TasksNoticesRuntimeOperations06
                         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="unhide"><input type="hidden" name="view" value="archived"><input type="hidden" name="id" value="' .
                         $openId .
-                        '"><button type="submit" class="small ghost">Restaurar</button></form>'
+                        '"><button type="submit" class="small ghost">' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("unarchive") .
+                        '<span>Restaurar</span></button></form>'
                     : '<form method="post" class="inline">' .
                         \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                         '<input type="hidden" name="act" value="hide"><input type="hidden" name="view" value="' .
-                        $detailView .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($detailView) .
                         '"><input type="hidden" name="id" value="' .
                         $openId .
-                        '"><button type="submit" class="small ghost">Arquivar</button></form>';
+                        '"><button type="submit" class="small ghost">' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("archive") .
+                        '<span>Arquivar</span></button></form>';
                 $detail = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
                     '<article class="notice-reader notice-reader-' .
                         $detailView .
-                        '"><header><a class="ghost small" href="' .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $detailView])) .
-                        '">' .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
-                        '<span>Voltar</span></a><span class="notice-reader-state">' .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconName) .
-                        " " .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) .
-                        "</span><time>" .
-                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($openRow["created_at"])) .
-                        "</time></header><h2>" .
+                        '"><div class="section-head notice-reader-head"><div><span class="eyebrow">Aviso</span><h2 id="notice-reader-title">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($openRow["title"]) .
-                        '</h2><div class="notice-reader-body">' .
+                        '</h2><span class="field-help">' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($status) .
+                        " · " .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($openRow["created_at"])) .
+                        '</span></div></div><div class="notice-reader-body">' .
                         nl2br(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($openRow["body"])) .
-                        "</div><footer>" .
+                        '</div><footer class="notice-reader-footer"><div class="notice-reader-meta">' .
                         $direction .
-                        '<div class="notice-actions">' .
+                        '</div><div class="notice-actions">' .
                         $action .
                         "</div></footer></article>",
-                    "notice-card-shell notice-reader-shell",
+                    "notice-reader-card",
                 );
             } else {
                 $detail = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                    '<div class="notice-empty">' .
+                    '<div class="notice-empty ds-empty"><span class="notice-empty-icon" aria-hidden="true">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("campaign") .
-                        "<strong>Aviso não encontrado.</strong><span>Ela pode ter sido removida ou não estar disponível para sua credencial.</span></div>",
-                    "notice-card-shell",
+                        '</span><strong>Aviso não encontrado.</strong><span>Ele pode ter sido removido ou não estar disponível para sua credencial.</span></div>',
+                    "notice-reader-card",
                 );
             }
         }
+
         $cards = "";
         foreach ($rows as $r) {
             $read = $reads[(int) $r["id"]] ?? [];
@@ -400,61 +351,90 @@ final class TasksNoticesRuntimeOperations06
             }
             $author = $authors[(int) ($r["created_by"] ?? 0)] ?? [];
             $authorFirst = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name((string) ($author["name"] ?? "Sistema"));
-            $needsAck =
-                !$isMine &&
-                (int) $r["requires_ack"] === 1 &&
-                empty($read["ack_at"]);
-            $stateClass = $archived
-                ? "archived"
-                : ($isMine
-                    ? "sent"
-                    : ($needsAck
-                        ? "received-unread"
-                        : "received-read"));
-            $rowIcon = $archived
-                ? "archive"
-                : ($isMine
-                    ? "send"
-                    : ($needsAck
-                        ? "mail"
-                        : "drafts"));
-            $senderName = $isMine
+            $needsAck = !$isMine && (int) $r["requires_ack"] === 1 && empty($read["ack_at"]);
+            $rowIcon = $archived ? "archive" : ($isMine ? "send" : ($needsAck ? "mail" : "drafts"));
+            $context = $isMine
                 ? \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations01::notice_recipient_phrase($r, $targetUsers)
                 : $authorFirst;
+            $stateLabel = $archived ? "Arquivada" : ($isMine ? "Enviada" : ($needsAck ? "Leitura pendente" : "Lida"));
             $openUrl = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $view, "notice" => (int) $r["id"]]),
             );
             $cards .=
-                '<a class="notice-card notice-gmail-row ds-notice-row notice-minimal-row notice-card-' .
-                $stateClass .
-                " " .
-                ($needsAck ? "needs-ack" : "is-read") .
-                " " .
-                ($archived
-                    ? "is-archived"
-                    : ($isMine
-                        ? "is-sent"
-                        : "is-received")) .
-                '" href="' .
+                '<a class="notice-row' .
+                ($needsAck ? " is-unread" : "") .
+                ($archived ? " is-archived" : "") .
+                '" data-ds-row-kind="surface" href="' .
                 $openUrl .
-                '">' .
-                '<span class="notice-minimal-icon" aria-hidden="true">' .
+                '"><span class="notice-row-icon" data-ds-icon-chip="1" aria-hidden="true">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($rowIcon) .
-                "</span>" .
-                '<span class="notice-minimal-sender">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($senderName) .
-                "</span>" .
-                '<span class="notice-minimal-subject">' .
+                '</span><span class="notice-row-main"><strong class="notice-row-title">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($r["title"]) .
-                "</span>" .
-                '<time class="notice-minimal-time">' .
+                '</strong><span class="notice-row-meta"><span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($context) .
+                '</span><span aria-hidden="true">·</span><span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($stateLabel) .
+                '</span></span></span><time class="notice-row-time">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($r["created_at"])) .
-                "</time>" .
-                "</a>";
+                "</time></a>";
         }
-        $globalCards = "";
-        $globalCount = 0;
+
+        $titleMap = ["received" => "Recebidas", "sent" => "Enviadas", "archived" => "Arquivadas"];
+        $countMap = ["received" => $receivedCount, "sent" => $sentCount, "archived" => $hiddenCount];
+        $iconMap = ["received" => "inbox", "sent" => "send", "archived" => "archive"];
+        $descriptionMap = [
+            "received" => "Orientações recebidas de outros colaboradores deste consultório.",
+            "sent" => "Avisos publicados por você para a equipe.",
+            "archived" => "Avisos retirados da caixa principal e disponíveis para restauração.",
+        ];
+        $sectionTitle = $titleMap[$view] ?? "Recebidas";
+        $sectionCount = (int) ($countMap[$view] ?? 0);
+        if ($cards === "") {
+            $emptyTitle = $view === "received"
+                ? "Nenhum aviso recebido."
+                : ($view === "sent" ? "Nenhum aviso publicado." : "Nenhum aviso arquivado.");
+            $emptyText = $view === "received"
+                ? "Quando alguém da equipe publicar uma orientação para você, ela aparecerá aqui."
+                : ($view === "sent"
+                    ? "Publique uma orientação para sua equipe e acompanhe o envio nesta caixa."
+                    : "Os avisos arquivados ficam disponíveis aqui para restauração.");
+            $emptyAction = $view === "sent"
+                ? '<div class="notice-empty-actions"><a class="primary small" href="' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                        \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => "sent", "new" => 1]),
+                    ) .
+                    '">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notifications") .
+                    '<span>Novo aviso</span></a></div>'
+                : "";
+            $cards =
+                '<div class="notice-empty ds-empty"><span class="notice-empty-icon" aria-hidden="true">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconMap[$view] ?? "campaign") .
+                '</span><strong>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyTitle) .
+                '</strong><span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyText) .
+                "</span>" .
+                $emptyAction .
+                "</div>";
+        }
+        $list = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+            '<div class="section-head ds-section-head"><div><span class="eyebrow">Caixa</span><h2>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sectionTitle) .
+                '</h2><span class="field-help">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($descriptionMap[$view] ?? $descriptionMap["received"]) .
+                '</span></div><span class="notice-section-count">' .
+                $sectionCount .
+                '</span></div><div class="notice-list">' .
+                $cards .
+                "</div>",
+            "notice-list-card",
+        );
+
+        $systemList = "";
         if ($view === "received") {
+            $globalCards = "";
+            $globalCount = 0;
             $globalMeta = [
                 "critical" => ["Crítico", "priority_high"],
                 "warning" => ["Atenção", "warning"],
@@ -466,110 +446,64 @@ final class TasksNoticesRuntimeOperations06
                     $globalCount++;
                     $gm = $globalMeta[$sev] ?? $globalMeta["info"];
                     $globalCards .=
-                        '<article class="notice-card global ds-notice-row notice-minimal-row severity-' .
+                        '<article class="notice-row notice-system-row severity-' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sev) .
-                        '"><span class="notice-minimal-icon" aria-hidden="true">' .
+                        '" data-ds-row-kind="surface"><span class="notice-row-icon" data-ds-icon-chip="1" aria-hidden="true">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($gm[1]) .
-                        '</span><span class="notice-minimal-sender">Prontoo</span><span class="notice-minimal-subject">' .
+                        '</span><span class="notice-row-main"><strong class="notice-row-title">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($g["title"]) .
-                        '</span><time class="notice-minimal-time">' .
+                        '</strong><span class="notice-row-meta"><span>Prontoo</span><span class="notice-status-pill severity-' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sev) .
+                        '">' .
+                        \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($gm[0]) .
+                        '</span></span></span><time class="notice-row-time">' .
                         \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::dt_notice_br($g["created_at"])) .
                         "</time></article>";
                 }
             }
+            if ($globalCards !== "") {
+                $systemList = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
+                    '<div class="section-head ds-section-head"><div><span class="eyebrow">Prontoo</span><h2>Comunicados do Prontoo</h2><span class="field-help">Informações institucionais separadas das mensagens internas da equipe.</span></div><span class="notice-section-count">' .
+                        (int) $globalCount .
+                        '</span></div><div class="notice-list notice-system-list">' .
+                        $globalCards .
+                        "</div>",
+                    "notice-system-card",
+                );
+            }
         }
-        if ($readOnly) {
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
-                "Avisos",
-                \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Avisos") .
-                    '<section class="notice-screen admin-alert-screen readonly-support-screen">' .
-                    \Prontoo\Runtime\TasksNotices\TasksNoticesRuntimeOperations05::readonly_support_notice_screen($c, $view) .
-                    "</section>",
-            );
-            return;
+
+        $pageDescription = "Comunique orientações à equipe e acompanhe as informações recebidas.";
+        if ($pendingCount > 0) {
+            $pageDescription .= " " .
+                $pendingCount .
+                ($pendingCount === 1 ? " aviso aguarda sua leitura." : " avisos aguardam sua leitura.");
         }
-        $titleMap = [
-            "received" => "Recebidas",
-            "sent" => "Enviadas",
-            "archived" => "Arquivadas",
-        ];
-        $countMap = [
-            "received" => $receivedCount,
-            "sent" => $sentCount,
-            "archived" => $hiddenCount,
-        ];
-        $iconMap = [
-            "received" => "inbox",
-            "sent" => "send",
-            "archived" => "archive",
-        ];
-        $sectionTitle = $titleMap[$view] ?? "Recebidas";
-        $sectionCount = (int) ($countMap[$view] ?? 0);
-        if ($cards === "") {
-            $emptyMsg =
-                $view === "received"
-                    ? "Nenhum aviso recebido."
-                    : ($view === "sent"
-                        ? "Nenhum aviso enviado."
-                        : "Nenhum aviso arquivado.");
-            $cards =
-                '<div class="notice-empty">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($iconMap[$view] ?? "campaign") .
-                "<strong>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($emptyMsg) .
-                "</strong></div>";
+        $pageAction = $form;
+        $content = $filters . $list . $systemList;
+        if ($detail !== "") {
+            $pageDescription = "Leia a comunicação, confira os destinatários e gerencie seu arquivamento.";
+            $pageAction =
+                '<a class="ghost small" href="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("notices", ["view" => $detailView]),
+                ) .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
+                '<span>Voltar</span></a>';
+            $content = $detail;
         }
-        $list = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-            '<div class="notice-section-head ds-section-head notice-section-' .
-                $view .
-                '"><h2>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($sectionTitle) .
-                "</h2><span>" .
-                $sectionCount .
-                '</span></div><div class="notice-list ds-notice-list">' .
-                $cards .
-                "</div>",
-            "notice-card-shell ds-notice-shell notice-card-shell-" . $view,
-        );
-        if ($globalCards !== "") {
-            $list .= \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::card(
-                '<div class="notice-section-head ds-section-head"><h2>Avisos do Prontoo</h2><span>' .
-                    (int) $globalCount .
-                    '</span></div><div class="notice-list ds-notice-list">' .
-                    $globalCards .
-                    "</div>",
-                "notice-card-shell ds-notice-shell",
-            );
-        }
-        $stats =
-            '<div class="notice-kpis notice-gmail-kpis ds-notice-kpis"><div class="notice-kpi ds-kpi ' .
-            ($pendingCount ? "notice-kpi-pending" : "") .
-            '">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("inbox") .
-            "<div><b>" .
-            (int) $receivedCount .
-            '</b><span>Recebidas</span></div></div><div class="notice-kpi ds-kpi notice-kpi-sent">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("send") .
-            "<div><b>" .
-            (int) $sentCount .
-            '</b><span>Enviadas</span></div></div><div class="notice-kpi ds-kpi notice-kpi-archived">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("archive") .
-            "<div><b>" .
-            (int) $hiddenCount .
-            "</b><span>Arquivadas</span></div></div></div>";
+
         \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
             "Avisos",
-            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head("Avisos", "", $form) .
-                '<section class="notice-screen notice-screen-' .
-                $view .
-                '">' .
-                $stats .
-                '<section class="notice-filter-list-block ds-filter-list-block" aria-label="Filtros e lista de avisos">' .
-                $filters .
-                $detail .
-                $list .
-                "</section></section>",
+            \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(
+                "Avisos",
+                $pageDescription,
+                $pageAction,
+            ) .
+                '<section class="notice-screen">' .
+                $content .
+                "</section>",
         );
-    
     }
 }
