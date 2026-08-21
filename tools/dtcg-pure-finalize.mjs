@@ -29,6 +29,20 @@ for(const file of files){const s=fs.readFileSync(file,'utf8');for(const m of s.m
 const mapping=[...nameSet].map(n=>[n,canonical(n)]).filter(([a,b])=>a!==b).sort((a,b)=>b[0].length-a[0].length);
 for(const file of files){let s=fs.readFileSync(file,'utf8');let next=s;for(const [from,to]of mapping)next=next.split(from).join(to);if(next!==s)fs.writeFileSync(file,next);}
 
+// Asset references are design values once captured by DTCG. Promote the release
+// only inside the canonical design tree so historical release records elsewhere
+// remain intact while generated CSS resolves the current versioned asset.
+const designRoot=path.join(root,'design')+path.sep;
+let promotedDesignAssetRefs=0;
+for(const file of files){
+  if(!file.startsWith(designRoot))continue;
+  const s=fs.readFileSync(file,'utf8');
+  const count=s.split(old).length-1;
+  if(count===0)continue;
+  fs.writeFileSync(file,s.split(old).join(release));
+  promotedDesignAssetRefs+=count;
+}
+
 const bindingPath=path.join(root,'design/platform/css.bindings.json');
 const bindingDoc=JSON.parse(fs.readFileSync(bindingPath,'utf8'));
 for(const meta of Object.values(bindingDoc.bindings||{})){
@@ -61,4 +75,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
