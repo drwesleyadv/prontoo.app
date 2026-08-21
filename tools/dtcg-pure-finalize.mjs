@@ -84,7 +84,6 @@ pixRule.append({prop:'background',value:'currentColor'});
 pixRule.append({prop:'-webkit-mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
 pixRule.append({prop:'mask',value:`url("/public/assets/pix-${release}.svg") center/contain no-repeat`});
 componentLayer.append(pixRule);
-
 const containerRule=postcss.rule({selector:'[data-ds-container]'});
 containerRule.append({prop:'container-type',value:'inline-size'});
 componentLayer.append(containerRule);
@@ -99,6 +98,28 @@ containerAtRule.append(compactAdaptive);
 componentLayer.append(containerAtRule);
 fs.writeFileSync(componentFile,componentAst.toString());
 
+// Forced-colors must retain an explicit focus indicator because box-shadow is
+// suppressed by high-contrast rendering. Keep forced-color-adjust at auto so
+// the user agent remains authoritative for system colors.
+const foundationFile=path.join(root,'design/styles/foundation.css');
+const foundationAst=postcss.parse(fs.readFileSync(foundationFile,'utf8'));
+const foundationLayer=foundationAst.nodes.find(node=>node.type==='atrule'&&node.name==='layer'&&node.params.trim()==='ds-foundation');
+if(!foundationLayer)throw new Error('canonical ds-foundation layer missing');
+for(const node of [...(foundationLayer.nodes||[])]){
+  if(node.type==='atrule'&&node.name==='media'&&node.params.replace(/\s+/g,'').includes('forced-colors:active')){
+    node.walkRules(rule=>{if(rule.selector.includes('.ds-focus-ring')||rule.selector.includes(':focus-visible'))rule.remove();});
+  }
+}
+const forcedColors=postcss.atRule({name:'media',params:'(forced-colors:active)'});
+const forcedFocus=postcss.rule({selector:':focus-visible,.ds-focus-ring:focus-visible'});
+forcedFocus.append({prop:'forced-color-adjust',value:'auto'});
+forcedFocus.append({prop:'outline',value:'2px solid CanvasText'});
+forcedFocus.append({prop:'outline-offset',value:'2px'});
+forcedFocus.append({prop:'box-shadow',value:'none'});
+forcedColors.append(forcedFocus);
+foundationLayer.append(forcedColors);
+fs.writeFileSync(foundationFile,foundationAst.toString());
+
 const presentationPath=path.join(root,'design/tokens/presentation.tokens.json');
 const presentationDoc=JSON.parse(fs.readFileSync(presentationPath,'utf8'));
 presentationDoc.presentation=presentationDoc.presentation&&typeof presentationDoc.presentation==='object'?presentationDoc.presentation:{};
@@ -111,9 +132,7 @@ for(const name of canonicalLayerNames){
     if(!rawVisualLiteral.test(decl.value))return;
     const signature=`${decl.prop}\u0000${decl.value}`;
     const key=`${kebab(decl.prop.replace(/^--/,''))||'value'}-${sha(signature)}`;
-    if(!presentationDoc.presentation[key]){
-      presentationDoc.presentation[key]={'$type':'string','$value':decl.value,'$description':`Valor visual canônico para ${decl.prop}.`};
-    }
+    if(!presentationDoc.presentation[key])presentationDoc.presentation[key]={'$type':'string','$value':decl.value,'$description':`Valor visual canônico para ${decl.prop}.`};
     decl.value=`var(--pt-presentation-${key})`;
     decl.important=false;
     promotedVisualLiterals++;
@@ -144,4 +163,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,containerQueryCapability:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,containerQueryCapability:1,forcedColorsFocus:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
