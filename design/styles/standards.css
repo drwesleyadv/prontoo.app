@@ -8,7 +8,7 @@
 @layer ds-primitives {
 :where(.ds-stack){display:flex;flex-direction:column;gap:var(--pt-sys-space-md)}
 :where(.ds-inline){display:flex;flex-wrap:wrap;align-items:center;gap:var(--pt-sys-space-sm)}
-:where(.ds-touch-target){min-inline-size:var(--pt-sys-touch-minimum);min-block-size:var(--pt-sys-touch-minimum)}
+:where(.ds-touch-target){display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-inline-size:var(--pt-sys-touch-minimum);min-block-size:var(--pt-sys-touch-minimum)}
 :where(.ds-adaptive-group){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--pt-sys-layout-card-min)),1fr));gap:var(--pt-sys-space-md)}
 }
 
