@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prontoo Design System Lab</title>
+</head>
+<body>
+<main id="ds-lab" class="ds-stack" data-ds-container>
+<h1>Prontoo Design System</h1>
+<section aria-labelledby="actions-title" class="ds-stack">
+<h2 id="actions-title">Ações</h2>
+<div class="ds-inline">
+<button class="primary ds-touch-target ds-focus-ring">Salvar</button>
+<button class="secondary ds-touch-target ds-focus-ring">Cancelar</button>
+<button class="danger ds-touch-target ds-focus-ring">Excluir</button>
+<button class="ds-touch-target ds-focus-ring" disabled>Indisponível</button>
+</div>
+</section>
+<section aria-labelledby="filters-title" class="ds-stack">
+<h2 id="filters-title">Filtros</h2>
+<nav aria-label="Exemplo de filtros" class="ds-inline">
+<a href="#received" class="ds-filter-chip ds-touch-target ds-focus-ring" aria-current="page">Recebidos</a>
+<a href="#sent" class="ds-filter-chip ds-touch-target ds-focus-ring">Enviados</a>
+<button type="button" class="ds-filter-chip ds-touch-target ds-focus-ring" aria-pressed="false">Somente ativos</button>
+</nav>
+</section>
+<section aria-labelledby="rows-title" class="ds-stack">
+<h2 id="rows-title">Linhas</h2>
+<div class="ds-stack">
+<article class="ds-row-surface"><strong>Paciente</strong><span>Conteúdo estático</span></article>
+<article class="ds-row-surface"><strong>Aviso</strong><a href="#detail" class="ds-touch-target ds-focus-ring">Abrir detalhes</a></article>
+</div>
+</section>
+<section role="dialog" aria-modal="false" aria-labelledby="dialog-title" class="ds-dialog-surface ds-stack">
+<h2 id="dialog-title">Diálogo</h2>
+<p>Superfície de referência para geometria, foco e semântica.</p>
+<div class="ds-inline">
+<button class="primary ds-touch-target ds-focus-ring">Confirmar</button>
+<button class="secondary ds-touch-target ds-focus-ring">Fechar</button>
+</div>
+</section>
+<section aria-labelledby="container-title" class="ds-stack" data-ds-container>
+<h2 id="container-title">Container query</h2>
+<div class="ds-adaptive-group ds-container-stack">
+<article class="ds-row-surface">Primeiro</article>
+<article class="ds-row-surface">Segundo</article>
+<article class="ds-row-surface">Terceiro</article>
+</div>
+</section>
+<div id="received" tabindex="-1"></div>
+<div id="sent" tabindex="-1"></div>
+<div id="detail" tabindex="-1"></div>
+</main>
+</body>
+</html>
