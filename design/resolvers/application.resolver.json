@@ -1,0 +1,50 @@
+{
+  "$schema": "https://www.designtokens.org/schemas/2025.10/resolver.json",
+  "name": "Prontoo Application",
+  "version": "2025.10",
+  "description": "Resolução canônica dos tokens do Prontoo por superfície sem acoplar a fonte DTCG ao CSS.",
+  "sets": {
+    "reference": {
+      "sources": [
+        { "$ref": "../tokens/reference.tokens.json" }
+      ]
+    },
+    "system": {
+      "sources": [
+        { "$ref": "../tokens/system.tokens.json" },
+        { "$ref": "../tokens/standards.tokens.json" }
+      ]
+    },
+    "components": {
+      "sources": [
+        { "$ref": "../tokens/component.tokens.json" }
+      ]
+    },
+    "runtime": {
+      "sources": [
+        { "$ref": "../tokens/runtime.tokens.json" }
+      ]
+    }
+  },
+  "modifiers": {
+    "surface": {
+      "description": "Identidade visual aplicada à superfície de produto ou à superfície pública.",
+      "contexts": {
+        "application": [
+          { "$ref": "../tokens/themes.tokens.json#/theme/global" }
+        ],
+        "public": [
+          { "$ref": "../tokens/themes.tokens.json#/theme/public" }
+        ]
+      },
+      "default": "application"
+    }
+  },
+  "resolutionOrder": [
+    { "$ref": "#/sets/reference" },
+    { "$ref": "#/sets/system" },
+    { "$ref": "#/sets/components" },
+    { "$ref": "#/sets/runtime" },
+    { "$ref": "#/modifiers/surface" }
+  ]
+}
