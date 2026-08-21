@@ -51,12 +51,18 @@ foreach ($layerOrder as $index => $name) {
         fwrite(STDERR, "presentation-css-build: layer identity mismatch {$name}\n");
         exit(1);
     }
-    if (str_contains($source, '!important') || str_contains($source, 'body[data-route=')) {
-        fwrite(STDERR, "presentation-css-build: zero-debt invariant violated {$name}\n");
+    $importantCount = substr_count($source, '!important');
+    $routeScopeCount = substr_count($source, 'body[data-route=');
+    if ($importantCount !== 0 || $routeScopeCount !== 0) {
+        fwrite(STDERR, "presentation-css-build: zero-debt invariant violated {$name} important={$importantCount} route_scope={$routeScopeCount}\n");
         exit(1);
     }
     if (preg_match('/--(?!pt-(?:ref|sys|cmp|runtime|presentation)-)[a-z0-9_-]+/i', $source) === 1) {
         fwrite(STDERR, "presentation-css-build: noncanonical custom property namespace {$name}\n");
+        exit(1);
+    }
+    if (preg_match('/--pt-(?:ref|sys)-material-/i', $source) === 1) {
+        fwrite(STDERR, "presentation-css-build: parallel design namespace {$name}\n");
         exit(1);
     }
     $layerSources[] = $source;
@@ -64,8 +70,10 @@ foreach ($layerOrder as $index => $name) {
 $fontImport = '@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap");';
 $layerHeader = '@layer ' . implode(', ', array_map(static fn(string $name): string => 'ds-' . $name, $layerOrder)) . ';';
 $built = $fontImport . "\n\n" . $tokens . "\n" . $layerHeader . "\n\n" . implode("\n", $layerSources);
-if (substr_count($built, '!important') !== 0 || substr_count($built, 'body[data-route=') !== 0) {
-    fwrite(STDERR, "presentation-css-build: built artifact has historical cascade debt\n");
+$builtImportantCount = substr_count($built, '!important');
+$builtRouteCount = substr_count($built, 'body[data-route=');
+if ($builtImportantCount !== 0 || $builtRouteCount !== 0) {
+    fwrite(STDERR, "presentation-css-build: built artifact has historical cascade debt important={$builtImportantCount} route_scope={$builtRouteCount}\n");
     exit(1);
 }
 $sha = hash('sha256', $built);
@@ -79,6 +87,7 @@ if ($mode === '--lint') {
         'legacy_sources' => 0,
         'important_count' => 0,
         'route_scope_count' => 0,
+        'parallel_design_namespaces' => 0,
         'bytes' => strlen($built),
         'sha256' => $sha,
         'deterministic_source' => true,
