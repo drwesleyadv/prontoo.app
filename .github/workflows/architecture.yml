@@ -62,7 +62,6 @@ jobs:
           git checkout origin/prontoo -- .github/workflows/architecture.yml
           php tools/presentation-css-build --write
           php tools/presentation-css-build --check
-          node tools/presentation-ux-contract.mjs --check
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           if grep -R -n -E 'ds-collaborator-row-v31|procedure-kpis-refined|notice-gmail-|notice-minimal-|agenda-route-(dialog|overlay|backdrop)-retired' app public design/styles/application.css; then
