@@ -1,9 +1,9 @@
 name: DTCG Pure Design System Migration
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/dtcg-pure-design-system
+      - prontoo
 
 permissions:
   contents: write
