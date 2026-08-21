@@ -69,7 +69,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- .github/workflows/architecture.yml .github/workflows/temp-reconcile-novo-aviso.yml app/update.manifest.json
+          git add -- .github/workflows/architecture.yml app/update.manifest.json
           git commit -m 'Finaliza reconciliação do Novo Aviso'
           git push origin HEAD:agent/novo-aviso-design-system
       - name: Engineering quality gate
