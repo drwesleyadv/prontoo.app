@@ -275,7 +275,7 @@ for (const layer of Object.values(layers)) cleanContainer(layer);
 
 for (const [name, layer] of Object.entries(layers)) {
   const wrapper = postcss.atRule({name:'layer',params:name});
-  for (const node of layer.nodes || []) wrapper.append(node);
+  for (const node of [...(layer.nodes || [])]) wrapper.append(node);
   const out = postcss.root({nodes:[wrapper]}).toString().trim()+'\n';
   write(`design/styles/${name.replace('ds-','')}.css`, out);
 }
