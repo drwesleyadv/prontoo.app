@@ -31,11 +31,11 @@ write(documents_path, documents)
 
 audit_path = "app/Runtime/AuditActivity/AuditActivityRuntimeOperations05.php"
 audit = read(audit_path)
-audit = replace_required(audit, 'class=\\"notice-minimal-icon\\"', 'class=\\"ds-section-icon\\"', "activity section icon")
-audit = replace_required(audit, 'class=\\"activity-filter-chips\\"', 'class=\\"activity-filter-chips ds-selection-chips\\"', "activity selection group")
-audit = replace_required(audit, 'class=\\"activity-filter-chip ', 'class=\\"activity-filter-chip ds-filter-chip ', "activity member chip", 2)
-audit = replace_required(audit, 'class=\\"activity-period-filter\\"', 'class=\\"activity-period-filter ds-selection-chips\\"', "activity period group")
-audit = replace_required(audit, 'class=\\"activity-period-chip ', 'class=\\"activity-period-chip ds-filter-chip ', "activity period chip", 2)
+audit = replace_required(audit, 'class="notice-minimal-icon"', 'class="ds-section-icon"', "activity section icon")
+audit = replace_required(audit, 'class="activity-filter-chips"', 'class="activity-filter-chips ds-selection-chips"', "activity selection group")
+audit = replace_required(audit, 'class="activity-filter-chip ', 'class="activity-filter-chip ds-filter-chip ', "activity member chip", 2)
+audit = replace_required(audit, 'class="activity-period-filter"', 'class="activity-period-filter ds-selection-chips"', "activity period group")
+audit = replace_required(audit, 'class="activity-period-chip ', 'class="activity-period-chip ds-filter-chip ', "activity period chip", 2)
 for expression in ('$member <= 0', '$member === $id', '$period === "date"', '$period === $value'):
     audit = audit.replace(f'{expression} ? "active" : ""', f'{expression} ? "is-active" : ""')
 write(audit_path, audit)
@@ -51,7 +51,7 @@ admin = replace_required(
 )
 admin = replace_required(admin, 'lead-chip ds-filter-chip ', 'ds-filter-chip ', "admin canonical filter chip", 2)
 admin = replace_required(admin, 'active is-active', 'is-active', "admin active filter state", 2)
-admin = replace_required(admin, ' class=\\"lead-chip-label\\"', '', "admin filter label alias", 2)
+admin = replace_required(admin, ' class="lead-chip-label"', '', "admin filter label alias", 2)
 write(admin_path, admin)
 
 js_path = "public/assets/app.js"
