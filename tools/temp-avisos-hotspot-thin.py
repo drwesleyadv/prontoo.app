@@ -1,190 +1,167 @@
-from __future__ import annotations
-
-from collections import Counter, defaultdict
 from pathlib import Path
-import json
 import re
 
 root = Path(__file__).resolve().parents[1]
-css_path = root / "design/styles/application.css"
-css = css_path.read_text()
 
-source_paths = []
-for base in (root / "app", root / "public", root / "br", root / "tests"):
-    if not base.exists():
-        continue
-    for path in base.rglob("*"):
-        if path.is_file() and path.suffix.lower() in {".php", ".js", ".mjs", ".html"}:
-            if path.as_posix().endswith("public/assets/presentation.css"):
-                continue
-            source_paths.append(path)
 
-sources = {path.relative_to(root).as_posix(): path.read_text(errors="ignore") for path in source_paths}
-all_source = "\n".join(sources.values())
-all_source_tokens = set(re.findall(r'[A-Za-z_][A-Za-z0-9_-]{2,}', all_source))
+def read(path):
+    return (root / path).read_text()
 
-class_attr_re = re.compile(r'class\s*=\s*["\\\']([^"\\\']*)["\\\']')
-escaped_class_attr_re = re.compile(r'class\\?=\\?["\\\']([^"\\\']*)["\\\']')
-class_token_re = re.compile(r'^[A-Za-z_][A-Za-z0-9_-]*$')
-class_usage = Counter()
-class_files = defaultdict(set)
-class_sets = []
 
-for rel, text in sources.items():
-    matches = list(class_attr_re.finditer(text)) + list(escaped_class_attr_re.finditer(text))
-    seen_spans = set()
-    for match in matches:
-        if match.span() in seen_spans:
-            continue
-        seen_spans.add(match.span())
-        tokens = [token for token in re.split(r'\s+', match.group(1).strip()) if class_token_re.match(token)]
-        if not tokens:
-            continue
-        class_sets.append((rel, tuple(tokens)))
-        for token in tokens:
-            class_usage[token] += 1
-            class_files[token].add(rel)
+def write(path, text):
+    (root / path).write_text(text)
 
-rule_re = re.compile(r'([^{}]+)\{([^{}]*)\}')
-class_selector_re = re.compile(r'\.([A-Za-z_][A-Za-z0-9_-]*)')
-rules = []
-selector_header_counts = Counter()
-class_rule_counts = Counter()
-important_by_class = Counter()
-for match in rule_re.finditer(css):
-    selector = re.sub(r'\s+', ' ', match.group(1).strip())
-    body = match.group(2)
-    if not selector or selector.startswith('@'):
-        continue
-    selector_header_counts[selector] += 1
-    classes = tuple(class_selector_re.findall(selector))
-    rules.append((selector, body, classes))
-    for cls in set(classes):
-        class_rule_counts[cls] += 1
-        important_by_class[cls] += body.count('!important')
 
-css_classes = set(class_rule_counts)
-source_classes = set(class_usage)
+def replace_required(text, old, new, label, minimum=1):
+    count = text.count(old)
+    if count < minimum:
+        raise SystemExit(f"replacement not found: {label} ({count})")
+    return text.replace(old, new)
 
-legacy_marker_re = re.compile(r'(?:^|[-_])(gmail|minimal|refined|legacy|deprecated|obsolete|old|classic|previous|v[0-9]+)(?:$|[-_])', re.I)
-legacy_active = []
-for cls in sorted(source_classes & css_classes):
-    if legacy_marker_re.search(cls):
-        legacy_active.append({
-            "class": cls,
-            "uses": class_usage[cls],
-            "css_rules": class_rule_counts[cls],
-            "files": sorted(class_files[cls])[:20],
-        })
 
-canonical_prefixes = ("ds-", "pagehead-", "form-", "field", "card", "pill", "flash", "stat-")
-alias_pairs = Counter()
-for rel, tokens in class_sets:
-    legacy = [token for token in tokens if legacy_marker_re.search(token)]
-    canonical = [token for token in tokens if token.startswith(canonical_prefixes)]
-    for left in legacy:
-        for right in canonical:
-            alias_pairs[(left, right, rel)] += 1
+users_path = "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations04.php"
+users = read(users_path)
+users = replace_required(users, " ds-collaborator-row-v31", "", "collaborator version alias")
+write(users_path, users)
 
-raw_unreferenced = []
-for cls in sorted(css_classes - source_classes):
-    if len(cls) < 4:
-        continue
-    if cls in {"active", "hidden", "open", "selected", "disabled", "loading", "error", "success"}:
-        continue
-    if cls in all_source_tokens:
-        continue
-    raw_unreferenced.append({
-        "class": cls,
-        "css_rules": class_rule_counts[cls],
-        "important": important_by_class[cls],
-    })
+documents_path = "app/Runtime/Documents/DocumentsRuntimeOperations06.php"
+documents = read(documents_path)
+documents = replace_required(documents, " procedure-kpis-refined", "", "procedure refined alias")
+write(documents_path, documents)
 
-inline_styles = []
-for rel, text in sources.items():
-    count = len(re.findall(r'\bstyle\\?=\\?["\\\']', text))
-    if count:
-        inline_styles.append({"file": rel, "count": count})
+audit_path = "app/Runtime/AuditActivity/AuditActivityRuntimeOperations05.php"
+audit = read(audit_path)
+audit = replace_required(audit, 'class=\\"notice-minimal-icon\\"', 'class=\\"ds-section-icon\\"', "activity section icon")
+audit = replace_required(audit, 'class=\\"activity-filter-chips\\"', 'class=\\"activity-filter-chips ds-selection-chips\\"', "activity selection group")
+audit = replace_required(audit, 'class=\\"activity-filter-chip ', 'class=\\"activity-filter-chip ds-filter-chip ', "activity member chip", 2)
+audit = replace_required(audit, 'class=\\"activity-period-filter\\"', 'class=\\"activity-period-filter ds-selection-chips\\"', "activity period group")
+audit = replace_required(audit, 'class=\\"activity-period-chip ', 'class=\\"activity-period-chip ds-filter-chip ', "activity period chip", 2)
+for expression in ('$member <= 0', '$member === $id', '$period === "date"', '$period === $value'):
+    audit = audit.replace(f'{expression} ? "active" : ""', f'{expression} ? "is-active" : ""')
+write(audit_path, audit)
 
-page_renderers = []
-for rel, text in sources.items():
-    if not rel.startswith("app/") or not rel.endswith(".php"):
-        continue
-    page_calls = text.count("UiComponentsRuntimeOperations02::page(")
-    if not page_calls:
-        continue
-    page_renderers.append({
-        "file": rel,
-        "page_calls": page_calls,
-        "page_head_calls": text.count("UiComponentsRuntimeOperations03::page_head("),
-        "raw_pagehead": text.count('class="pagehead'),
-        "form_panel": text.count('form-panel'),
-        "form_section": text.count('form-section'),
-        "ds_empty": text.count('ds-empty'),
-        "ds_filter_chip": text.count('ds-filter-chip'),
-    })
+admin_path = "app/Runtime/AdminPages/AdminPagesRuntimeOperations09.php"
+admin = read(admin_path)
+admin = replace_required(admin, " notice-gmail-kpis", "", "admin gmail KPI alias")
+admin = replace_required(
+    admin,
+    'notice-filter-chips lead-filter-chips ds-notice-filters admin-alert-filters',
+    'ds-notice-filters admin-alert-filters',
+    "admin canonical filter group",
+)
+admin = replace_required(admin, 'lead-chip ds-filter-chip ', 'ds-filter-chip ', "admin canonical filter chip", 2)
+admin = replace_required(admin, 'active is-active', 'is-active', "admin active filter state", 2)
+admin = replace_required(admin, ' class=\\"lead-chip-label\\"', '', "admin filter label alias", 2)
+write(admin_path, admin)
 
-route_registry = (root / "app/Runtime/Routing/RouteRegistry.php").read_text()
-route_re = re.compile(r"'([^']+)'\s*=>\s*\[\\Prontoo\\Runtime\\([^:]+)::class,\s*'([^']+)'")
-routes = []
-for route, class_path, method in route_re.findall(route_registry):
-    file_path = "app/Runtime/" + class_path.replace('\\', '/') + ".php"
-    text = sources.get(file_path, "")
-    routes.append({
-        "route": route,
-        "handler": file_path,
-        "method": method,
-        "json_like": any(token in route for token in ("lookup", "suggest", "wave")),
-        "file_has_page_head": "UiComponentsRuntimeOperations03::page_head(" in text,
-        "file_has_page": "UiComponentsRuntimeOperations02::page(" in text,
-    })
+js_path = "public/assets/app.js"
+js = read(js_path)
+js = js.replace(",.procedure-kpis-refined", "")
+js = js.replace(",.notice-gmail-kpis", "")
+write(js_path, js)
 
-selector_alias_groups = []
-body_groups = defaultdict(list)
-for selector, body, classes in rules:
-    normalized_body = re.sub(r'\s+', ' ', body.strip())
-    if not normalized_body or len(normalized_body) < 12:
-        continue
-    body_groups[normalized_body].append((selector, classes))
-for body, group in body_groups.items():
-    if len(group) < 2:
-        continue
-    flat_classes = {cls for _, classes in group for cls in classes}
-    has_canonical = any(cls.startswith(("ds-", "pagehead-", "form-")) for cls in flat_classes)
-    has_legacy = any(legacy_marker_re.search(cls) for cls in flat_classes)
-    if has_canonical and has_legacy:
-        selector_alias_groups.append({
-            "selectors": [selector for selector, _ in group][:12],
-            "classes": sorted(flat_classes)[:24],
-        })
+runtime_path = "app/Runtime/TasksNotices/TasksNoticesRuntimeOperations06.php"
+runtime = read(runtime_path)
+old_read_block = '''        $targetParams = \\Prontoo\\Domain\\TasksNotices\\TasksNoticesDomainOperations01::notice_target_parameters($c);
+        $rows = \\Prontoo\\Runtime\\Operational\\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.08', array_merge([$cid], $targetParams, [$uid]), [])->fetchAll();
+        $reads = [];
+        if ($rows) {
+            $ids = \\Prontoo\\Domain\\AuditActivity\\AuditRecordPolicy::int_ids($rows, "id");
+            $params = array_merge([$uid], $ids);
+            foreach (
+                \\Prontoo\\Runtime\\Operational\\OperationalComposition::tasks()->result('operational.tasks_notices.06.page_notices.09', $params, ['itemCount' => count($ids)])->fetchAll()
+                as $r
+            ) {
+                $reads[(int) $r["notice_id"]] = $r;
+            }
+        }
+'''
+new_read_block = '''        $targetParams = \\Prontoo\\Domain\\TasksNotices\\TasksNoticesDomainOperations01::notice_target_parameters($c);
+        $rows = \\Prontoo\\Runtime\\Operational\\OperationalComposition::tasks()->result(
+            'operational.tasks_notices.06.page_notices.08',
+            array_merge([$uid, $cid], $targetParams, [$uid]),
+            [],
+        )->fetchAll();
+        $reads = [];
+        foreach ($rows as $row) {
+            $reads[(int) $row["id"]] = [
+                "notice_id" => (int) $row["id"],
+                "read_at" => $row["read_at"] ?? null,
+                "ack_at" => $row["ack_at"] ?? null,
+                "hidden_at" => $row["hidden_at"] ?? null,
+            ];
+        }
+'''
+runtime = replace_required(runtime, old_read_block, new_read_block, "notice read join")
+write(runtime_path, runtime)
 
-report = {
-    "policy": "global-design-system-audit-v1",
-    "source_files": len(sources),
-    "css": {
-        "bytes": len(css.encode()),
-        "lines": css.count("\n") + 1,
-        "important": css.count("!important"),
-        "duplicate_selector_headers": sum(count - 1 for count in selector_header_counts.values() if count > 1),
-        "unique_classes": len(css_classes),
-    },
-    "markup": {
-        "unique_static_classes": len(source_classes),
-        "legacy_active_count": len(legacy_active),
-        "legacy_active": legacy_active,
-        "legacy_canonical_cooccurrences": [
-            {"legacy": left, "canonical": right, "file": rel, "count": count}
-            for (left, right, rel), count in alias_pairs.most_common(100)
-        ],
-        "inline_style_files": sorted(inline_styles, key=lambda item: (-item["count"], item["file"])),
-    },
-    "css_candidates": {
-        "unreferenced_class_count": len(raw_unreferenced),
-        "unreferenced_top": sorted(raw_unreferenced, key=lambda item: (-item["css_rules"], -item["important"], item["class"]))[:250],
-        "canonical_legacy_identical_rule_groups": selector_alias_groups[:100],
-    },
-    "page_renderers": sorted(page_renderers, key=lambda item: item["file"]),
-    "routes": routes,
-}
+catalog_path = "app/Infrastructure/Operational/TasksNoticesSqlCatalog06.php"
+catalog = read(catalog_path)
+old_query = '''            'operational.tasks_notices.06.page_notices.08' => (
+                "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at FROM pi_notices n WHERE n.clinic_id=? AND " . NoticeQuerySql::targetOrCreator('n') . " ORDER BY n.id DESC LIMIT 160"
+            ),
+            'operational.tasks_notices.06.page_notices.09' => (
+                "SELECT notice_id,read_at,ack_at,hidden_at FROM pi_notice_reads WHERE user_id=? AND notice_id IN (" . OperationalSequenceSql::placeholders((int) $itemCount) . ")"
+            ),
+'''
+new_query = '''            'operational.tasks_notices.06.page_notices.08' => (
+                "SELECT n.id,n.title,n.body,n.requires_ack,n.target_scope,n.target_role,n.target_user_id,n.created_by,n.created_at,r.read_at,r.ack_at,r.hidden_at FROM pi_notices n LEFT JOIN pi_notice_reads r ON r.notice_id=n.id AND r.user_id=? WHERE n.clinic_id=? AND " . NoticeQuerySql::targetOrCreator('n') . " ORDER BY n.id DESC LIMIT 160"
+            ),
+'''
+catalog = replace_required(catalog, old_query, new_query, "notice read SQL consolidation")
+write(catalog_path, catalog)
 
-print(json.dumps(report, ensure_ascii=False, indent=2))
+css_path = "design/styles/application.css"
+css = read(css_path)
+css = css.replace(".ds-collaborator-row-v31", ".ds-collaborator-row")
+css = css.replace(".notice-minimal-icon", ".ds-section-icon")
+
+for legacy in ("procedure-kpis-refined", "notice-gmail-kpis"):
+    token = "." + legacy
+    previous = None
+    while previous != css:
+        previous = css
+        css = re.sub(rf"{re.escape(token)}\s*,\s*", "", css)
+        css = re.sub(rf",\s*{re.escape(token)}(?=\s*[,):{{])", "", css)
+    if token in css:
+        raise SystemExit(f"legacy KPI selector remains: {token}")
+
+simple_rule = re.compile(r"([^{}]+)\{([^{}]*)\}")
+forbidden_selector = re.compile(r"\.(?:agenda-route-(?:dialog|overlay|backdrop)-retired|notice-minimal-[A-Za-z0-9_-]+|notice-gmail-[A-Za-z0-9_-]+)")
+
+def remove_abandoned_rule(match):
+    selector = match.group(1)
+    if forbidden_selector.search(selector):
+        return ""
+    return match.group(0)
+
+css = simple_rule.sub(remove_abandoned_rule, css)
+write(css_path, css)
+
+for path in (
+    users_path,
+    documents_path,
+    audit_path,
+    admin_path,
+    js_path,
+    runtime_path,
+    catalog_path,
+    css_path,
+):
+    text = read(path)
+    for forbidden in (
+        "ds-collaborator-row-v31",
+        "procedure-kpis-refined",
+        "notice-gmail-kpis",
+        "notice-minimal-icon",
+        "agenda-route-dialog-retired",
+        "agenda-route-overlay-retired",
+        "agenda-route-backdrop-retired",
+    ):
+        if forbidden in text:
+            raise SystemExit(f"forbidden legacy token remains in {path}: {forbidden}")
+
+if "operational.tasks_notices.06.page_notices.09" in read(runtime_path) or "operational.tasks_notices.06.page_notices.09" in read(catalog_path):
+    raise SystemExit("abandoned notice read operation remains")
+
+print("global-design-system-consolidation: source migration complete")
