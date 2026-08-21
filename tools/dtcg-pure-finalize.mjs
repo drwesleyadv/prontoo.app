@@ -126,6 +126,7 @@ const presentationDoc=JSON.parse(fs.readFileSync(presentationPath,'utf8'));
 presentationDoc.presentation=presentationDoc.presentation&&typeof presentationDoc.presentation==='object'?presentationDoc.presentation:{};
 const rawVisualLiteral=/(?:#[0-9a-f]{3,8}\b|rgba?\(|hsla?\(|\b\d*\.?\d+(?:px|rem|em|vh|vw|vmin|vmax|ch|ex|ms|s|deg)\b)/i;
 let promotedVisualLiterals=0;
+let removedOrphanImportantDeclarations=0;
 for(const name of canonicalLayerNames){
   const file=path.join(root,`design/styles/${name}.css`);
   const ast=postcss.parse(fs.readFileSync(file,'utf8'));
@@ -137,6 +138,11 @@ for(const name of canonicalLayerNames){
     decl.value=`var(--pt-presentation-${key})`;
     decl.important=false;
     promotedVisualLiterals++;
+  });
+  ast.walkDecls(decl=>{
+    if(!decl.important||decl.parent?.type==='rule')return;
+    decl.remove();
+    removedOrphanImportantDeclarations++;
   });
   fs.writeFileSync(file,ast.toString());
 }
@@ -164,4 +170,4 @@ fs.writeFileSync(visualPath,JSON.stringify(visual,null,2)+'\n');
 const prontoo=path.join(root,'app/prontoo.php');
 let p=fs.readFileSync(prontoo,'utf8');p=p.replace(`PRONTOO_ASSET_REV_FALLBACK = "${old}"`,`PRONTOO_ASSET_REV_FALLBACK = "${release}"`);fs.writeFileSync(prontoo,p);
 
-process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,containerQueryCapability:1,forcedColorsFocus:1,promotedVisualLiterals,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
+process.stdout.write(JSON.stringify({ok:true,release,canonicalizedCustomProperties:mapping.length,promotedDesignAssetRefs,removedBridgeBindings,pixMaskBinding:1,containerQueryCapability:1,forcedColorsFocus:1,promotedVisualLiterals,removedOrphanImportantDeclarations,designDebt:0,parallelDesignNamespaces:0},null,2)+'\n');
