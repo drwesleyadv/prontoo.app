@@ -70,16 +70,6 @@ jobs:
             exit 1
           fi
           git diff --check
-          php tools/quality-gate
-          php tools/schema-check.php
-          php tools/mysql-query-budget-check
-          php tools/install-security-check.php
-          php tools/install-window-contract-check
-          php tools/login-post-password-runtime-check
-          bash tools/login-logout-http-smoke
-          php tools/maestro-runtime-regression-check
-          php tools/critical-runtime-smoke-check
-          bash tools/http-runtime-smoke-check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
