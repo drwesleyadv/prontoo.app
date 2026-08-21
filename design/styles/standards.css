@@ -22,6 +22,8 @@
 @container (max-width:32rem){:where(.ds-container-stack){grid-template-columns:1fr}}
 }
 
+a.ds-touch-target,button.ds-touch-target,.ds-filter-chip.ds-touch-target{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-inline-size:var(--pt-sys-touch-minimum);min-block-size:var(--pt-sys-touch-minimum)}
+
 @media (forced-colors:active){
 :where(.ds-filter-chip,.pagehead-control,.ds-touch-target,button,[role="button"]){forced-color-adjust:auto;border-color:ButtonText;background:Canvas;color:CanvasText}
 :where(.ds-filter-chip[aria-current="page"],.ds-filter-chip[aria-pressed="true"],.pagehead-control[aria-current="page"]){border-color:Highlight;background:Highlight;color:HighlightText}
