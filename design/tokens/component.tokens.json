@@ -3,57 +3,21 @@
     "pagehead": {
       "accent": {
         "$type": "color",
-        "$value": "{sys.color.accent}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-cmp-pagehead-accent",
-            "target": "clinic",
-            "selector": "body",
-            "order": -8000,
-            "cssValue": "var(--clinic-identity-accent,var(--pt-sys-color-accent))"
-          }
-        }
+        "$value": "{sys.color.accent}"
       },
       "hover": {
         "$type": "color",
-        "$value": "{sys.color.accentStrong}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-cmp-pagehead-hover",
-            "target": "clinic",
-            "selector": "body",
-            "order": -7999,
-            "cssValue": "var(--clinic-identity-hover,var(--pt-sys-color-accent-strong))"
-          }
-        }
+        "$value": "{sys.color.accentStrong}"
       },
       "onAccent": {
         "$type": "color",
-        "$value": "{sys.color.onAccent}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-cmp-pagehead-on-accent",
-            "target": "clinic",
-            "selector": "body",
-            "order": -7998,
-            "cssValue": "var(--clinic-identity-on-accent,var(--pt-sys-color-on-accent))"
-          }
-        }
+        "$value": "{sys.color.onAccent}"
       }
     },
     "icon": {
       "foreground": {
         "$type": "color",
-        "$value": "{sys.color.accent}",
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-cmp-icon-foreground",
-            "target": "clinic",
-            "selector": "body",
-            "order": -7997,
-            "cssValue": "var(--pt-sys-color-accent)"
-          }
-        }
+        "$value": "{sys.color.accent}"
       }
     }
   }

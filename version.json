@@ -1,19 +1,19 @@
 {
-    "version": "1.8.18.7",
-    "release": "1.8.18.7",
-    "generated_at_unix": 1787090370,
-    "generated_at": "2026-08-18T17:59:30-04:00",
-    "updated_at": "2026-08-18T17:59:30-04:00",
-    "build": "1.8.18.7-restore-page-load-average-metric",
+    "version": "1.8.21.1",
+    "release": "1.8.21.1",
+    "generated_at_unix": 1787343240,
+    "generated_at": "2026-08-21T16:14:00-04:00",
+    "updated_at": "2026-08-21T16:14:00-04:00",
+    "build": "1.8.21.1-modern-design-system-contracts",
     "asset_version": "1.8.18.7",
-    "package_type": "incremental_refinement",
+    "package_type": "incremental_design_system_modernization",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
     "visual_changes": true,
-    "functional_equivalence_policy": "developer_metrics_restores_page_load_average_card_from_existing_speed_telemetry_without_schema_change",
+    "functional_equivalence_policy": "default_product_visuals_preserved_while_new_design_system_primitives_are_token_driven_accessible_and_contract_verified",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
     "architecture_manifest": "app/architecture.manifest.json",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Restaura o card Tempo médio em Métricas usando a duração observada de page loads em speed.json, mantendo a comparação 10x10 e os gráficos existentes.",
+    "notes": "Moderniza o Design System com DTCG Resolver 2025.10, bindings CSS externos aos tokens, contratos de componentes, WCAG 2.2 AA, APG, cascade layers, container queries, forced-colors, DS Lab, axe-core e regressão visual.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.18.7-restore-page-load-average-metric",
-    "deployment_sync_requested_at": "2026-08-18T17:59:30-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.21.1-modern-design-system-contracts",
+    "deployment_sync_requested_at": "2026-08-21T16:14:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -62,7 +62,7 @@
     "rewrite_scope": "superseded_release_references_and_compatibility_only",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
-    "release_date": "2026-08-18",
+    "release_date": "2026-08-21",
     "required_php_family": "8.4",
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
@@ -86,14 +86,14 @@
         ]
     },
     "changelog": {
-        "title": "Restaura Tempo médio em Métricas",
+        "title": "Design System moderno e normativo",
         "items": [
-            "restaura o quarto card Tempo médio na tela Métricas do Desenvolvedor",
-            "calcula o valor somente com page loads cuja duração foi observada pela fonte canônica speed.json",
-            "mantém a comparação móvel dos 10 dias recentes contra os 10 dias imediatamente anteriores",
-            "restaura o grid responsivo de quatro KPIs em 4x1 no desktop e 2x2 no mobile",
-            "adiciona contrato executável para impedir nova supressão do card e excluir eventos sem speed_observed da média",
-            "preserva os gráficos Velocidade e Volume, o banco de dados e o schema sem novas coletas"
+            "adota o Resolver Module DTCG 2025.10 e separa metadados de plataforma CSS da fonte de tokens",
+            "formaliza contratos executáveis para componentes, estados, acessibilidade WCAG 2.2 AA e padrões WAI-ARIA APG",
+            "introduz Cascade Layers, Container Queries, forced-colors e reduced-motion nas novas primitivas canônicas",
+            "adiciona catálogo executável DS Lab com Playwright, axe-core e regressão visual determinística",
+            "impede novos valores visuais arbitrários no CSS moderno e mantém a folha legada sob ratchet sem aumentar dívida",
+            "preserva banco, schema e o baseline visual padrão do produto"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
@@ -117,5 +117,12 @@
     "design_token_contract": "tools/design-tokens-contract.mjs",
     "design_token_artifact": "design/generated/tokens.css",
     "design_style_source": "design/styles/application.css",
-    "presentation_build_policy": "font_import_then_tokens_plus_application_css"
+    "presentation_build_policy": "font_import_then_tokens_plus_application_css",
+    "design_system_policy": "dtcg_2025_10_resolver_component_contracts_wcag22_apg_v1",
+    "design_system_resolver": "design/resolvers/application.resolver.json",
+    "design_system_css_bindings": "design/platform/css.bindings.json",
+    "design_system_component_contract": "design/design-system.contract.json",
+    "design_system_accessibility_policy": "wcag_2_2_aa_wai_aria_apg_axe_playwright",
+    "design_system_cascade_policy": "layered_new_primitives_legacy_ratchet_v1",
+    "design_system_responsive_policy": "container_query_component_first_v1"
 }

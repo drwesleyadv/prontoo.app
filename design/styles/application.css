@@ -5825,7 +5825,7 @@ body.public .signup-screen-flow .signup-ds-actions{
   align-items:center!important;
   justify-content:center!important;
   gap:var(--ds-selection-chip-gap)!important;
-  min-height:var(--ds-selection-chip-height)!important;
+  min-height:var(--ds-selection-chip-height,36px)!important;
   width:max-content!important;
   max-width:100%!important;
   padding:var(--ds-selection-chip-pad-y) var(--ds-selection-chip-pad-x)!important;

@@ -1,10 +1,10 @@
 # Versão canônica
 
-## 1.8.18.7 — Restaura Tempo médio em Métricas
+## 1.8.21.1 — Design System moderno e normativo
 
-- restaura o quarto card Tempo médio na tela Métricas do Desenvolvedor.
-- calcula o valor somente com page loads cuja duração foi observada pela fonte canônica speed.json.
-- mantém a comparação móvel dos 10 dias recentes contra os 10 dias imediatamente anteriores.
-- restaura o grid responsivo de quatro KPIs em 4x1 no desktop e 2x2 no mobile.
-- adiciona contrato executável para impedir nova supressão do card e excluir eventos sem speed_observed da média.
-- preserva os gráficos Velocidade e Volume, o banco de dados e o schema sem novas coletas.
+- adota o Resolver Module DTCG 2025.10 e separa metadados de plataforma CSS da fonte de tokens.
+- formaliza contratos executáveis para componentes, estados, acessibilidade WCAG 2.2 AA e padrões WAI-ARIA APG.
+- introduz Cascade Layers, Container Queries, forced-colors e reduced-motion nas novas primitivas canônicas.
+- adiciona catálogo executável DS Lab com Playwright, axe-core e regressão visual determinística.
+- impede novos valores visuais arbitrários no CSS moderno e mantém a folha legada sob ratchet sem aumentar dívida.
+- preserva banco, schema e o baseline visual padrão do produto.

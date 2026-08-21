@@ -1,5 +1,5 @@
 {
-    "version": "1.8.18.7",
+    "version": "1.8.21.1",
     "policy": "presentation-pagehead-control-canonical-v3",
     "architecture_scope": "presentation_ui_adapter_contract",
     "primitive": {

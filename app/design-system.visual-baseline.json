@@ -1,0 +1,14 @@
+{
+  "policy": "ds-lab-playwright-visual-regression-v1",
+  "playwright": "1.59.1",
+  "cases": {
+    "green-desktop": "9f4811779fef8d5cd1bcf2d12f79b4b73d5f71de932ab73bca3bda301c31125e",
+    "green-compact": "73817be03ab757c64b182fd909981b893f50cfdc011ba20a5dea3b79574d8cb4",
+    "blue-desktop": "9f4811779fef8d5cd1bcf2d12f79b4b73d5f71de932ab73bca3bda301c31125e",
+    "blue-compact": "73817be03ab757c64b182fd909981b893f50cfdc011ba20a5dea3b79574d8cb4",
+    "wine-desktop": "9f4811779fef8d5cd1bcf2d12f79b4b73d5f71de932ab73bca3bda301c31125e",
+    "wine-compact": "73817be03ab757c64b182fd909981b893f50cfdc011ba20a5dea3b79574d8cb4",
+    "violet-desktop": "9f4811779fef8d5cd1bcf2d12f79b4b73d5f71de932ab73bca3bda301c31125e",
+    "violet-compact": "73817be03ab757c64b182fd909981b893f50cfdc011ba20a5dea3b79574d8cb4"
+  }
+}

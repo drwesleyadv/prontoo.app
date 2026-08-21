@@ -11,14 +11,6 @@
             0.38823529411764707
           ],
           "hex": "#238763"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-accent",
-            "target": "material",
-            "selector": "body:is(.scope-global)",
-            "order": -7000
-          }
         }
       },
       "strong": {
@@ -31,14 +23,6 @@
             0.26666666666666666
           ],
           "hex": "#105e44"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-accent-strong",
-            "target": "material",
-            "selector": "body:is(.scope-global)",
-            "order": -6999
-          }
         }
       },
       "on": {
@@ -51,14 +35,6 @@
             1
           ],
           "hex": "#ffffff"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-on-accent",
-            "target": "material",
-            "selector": "body:is(.scope-global)",
-            "order": -6998
-          }
         }
       }
     },
@@ -73,14 +49,6 @@
             0.3333333333333333
           ],
           "hex": "#2d6f55"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-accent",
-            "target": "material",
-            "selector": "body:is(.public)",
-            "order": -6980
-          }
         }
       },
       "strong": {
@@ -93,14 +61,6 @@
             0.24705882352941178
           ],
           "hex": "#1d583f"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-accent-strong",
-            "target": "material",
-            "selector": "body:is(.public)",
-            "order": -6979
-          }
         }
       },
       "on": {
@@ -113,14 +73,6 @@
             1
           ],
           "hex": "#ffffff"
-        },
-        "$extensions": {
-          "com.prontoo": {
-            "cssName": "--pt-theme-on-accent",
-            "target": "material",
-            "selector": "body:is(.public)",
-            "order": -6978
-          }
         }
       }
     }

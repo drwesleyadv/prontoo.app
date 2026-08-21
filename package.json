@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "devDependencies": {
+        "axe-core": "^4.12.1",
         "playwright": "1.59.1",
         "style-dictionary": "5.5.0"
     },
