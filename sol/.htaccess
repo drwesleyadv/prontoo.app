@@ -1,0 +1,16 @@
+Options -Indexes
+DirectoryIndex index.php
+<FilesMatch "\.(?:log|json)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^(?:bootstrap|cron|learn)\.php$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^app(?:/|$) - [F,L,NC]
+  RewriteRule ^logs(?:/|$) - [F,L,NC]
+</IfModule>
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+</IfModule>
