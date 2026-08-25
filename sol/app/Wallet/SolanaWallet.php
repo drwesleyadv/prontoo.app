@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace Pro\Wallet;
+
 use Pro\Core\Config;
 use Pro\Core\HttpClient;
 
@@ -9,38 +10,42 @@ final class SolanaWallet
     public static function balances(string $address): array
     {
         if ($address === '') return [];
-        $out = [];
         $rpc = (string)Config::get('solana_rpc');
-
-        $b = HttpClient::postJson($rpc, [
-            'jsonrpc'=>'2.0',
-            'id'=>1,
-            'method'=>'getBalance',
-            'params'=>[$address]
+        $responses = HttpClient::postJson($rpc, [
+            [
+                'jsonrpc' => '2.0',
+                'id' => 1,
+                'method' => 'getBalance',
+                'params' => [$address],
+            ],
+            [
+                'jsonrpc' => '2.0',
+                'id' => 2,
+                'method' => 'getTokenAccountsByOwner',
+                'params' => [
+                    $address,
+                    ['mint' => 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'],
+                    ['encoding' => 'jsonParsed'],
+                ],
+            ],
         ]);
-        if (isset($b['result']['value']) && is_numeric($b['result']['value'])) {
-            $out['sol_balance'] = ((int)$b['result']['value']) / 1e9;
+        if (!is_array($responses)) return [];
+        $byId = [];
+        foreach ($responses as $response) {
+            if (is_array($response) && isset($response['id'])) $byId[(int)$response['id']] = $response;
         }
-
-        $t = HttpClient::postJson($rpc, [
-            'jsonrpc'=>'2.0',
-            'id'=>1,
-            'method'=>'getTokenAccountsByOwner',
-            'params'=>[
-                $address,
-                ['mint'=>'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'],
-                ['encoding'=>'jsonParsed']
-            ]
-        ]);
-        if (isset($t['result']['value']) && is_array($t['result']['value'])) {
+        $out = [];
+        $lamports = $byId[1]['result']['value'] ?? null;
+        if (is_numeric($lamports)) $out['sol_balance'] = ((int)$lamports) / 1e9;
+        $accounts = $byId[2]['result']['value'] ?? null;
+        if (is_array($accounts)) {
             $usdc = 0.0;
-            foreach ($t['result']['value'] as $a) {
-                $info = $a['account']['data']['parsed']['info'] ?? [];
+            foreach ($accounts as $account) {
+                $info = $account['account']['data']['parsed']['info'] ?? [];
                 $usdc += (float)($info['tokenAmount']['uiAmount'] ?? 0);
             }
             $out['usdc_balance'] = $usdc;
         }
-
         return $out;
     }
 }
