@@ -21,7 +21,8 @@ final class JupiterPortfolio
             return $cached;
         }
 
-        $base = rtrim((string)Config::get('jupiter_portfolio_url'), '/');
+        $base = (string)Config::get('jupiter_portfolio_url');
+        $base = preg_replace('#/+$#u', '', $base) ?? $base;
         $raw = HttpClient::get($base . '/' . rawurlencode($address), 8, 1);
         if (is_string($raw)) {
             $payload = json_decode($raw, true);
