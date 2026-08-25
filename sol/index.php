@@ -25,6 +25,11 @@ function apiFilesEtag(array $files): string
     return '"' . sha1(implode('|', $parts)) . '"';
 }
 
+function unicodeTrim(string $value): string
+{
+    return preg_replace('/^\s+|\s+$/u', '', $value) ?? '';
+}
+
 function enforceWalletRateLimit(): void
 {
     $limit = (int)Config::get('wallet_lookup_limit_per_minute', 12);
@@ -44,7 +49,7 @@ if ($api === 'ai' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $etag = apiFilesEtag($files);
     header('ETag: ' . $etag);
     header('Cache-Control: no-cache, max-age=0');
-    if (trim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
+    if (unicodeTrim((string)($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
         http_response_code(304);
         exit;
     }
@@ -60,7 +65,7 @@ if ($api === 'ai' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($api === 'wallet' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     enforceWalletRateLimit();
     $payload = json_decode((string)file_get_contents('php://input'), true);
-    $address = trim((string)(is_array($payload) ? ($payload['address'] ?? '') : ''));
+    $address = unicodeTrim((string)(is_array($payload) ? ($payload['address'] ?? '') : ''));
     if (!preg_match('/^[1-9A-HJ-NP-Za-km-z]{32,44}$/', $address)) jsonResponse(['ok' => false, 'error' => 'invalid_address'], 400);
     $balances = SolanaWallet::balances($address);
     jsonResponse(['ok' => true, 'balances' => $balances, 'updated_at' => time()]);
