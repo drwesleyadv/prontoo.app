@@ -55,12 +55,13 @@ final class ArchitectureVerifier
             if ($compositionRole !== null) {
                 $compositionRoleCounts[$compositionRole] = ($compositionRoleCounts[$compositionRole] ?? 0) + 1;
             }
-            if (LayerMap::isNativePath($relative)) {
+            $isNative = LayerMap::isNativePath($relative);
+            if ($isNative) {
                 $nativeFiles[] = $relative;
-            } else {
+            } elseif (str_starts_with($relative, 'app/') && $compositionRole === null) {
                 $transitionalFiles[] = $relative;
             }
-            if (LayerMap::isNativePath($relative)) {
+            if ($isNative) {
                 self::inspectDependencies($root, $relative, $layer, $errors);
                 self::inspectLayerNativeFile($root, $relative, $layer, $errors);
             }

@@ -106,7 +106,7 @@
         "app/Application/SecurityAccess/MfaRecordService.php": "b5f485f592e6b4c6eb4f1540c9e1e937dffeea2808bef0a78f76d55b8af2a070",
         "app/Application/SecurityAccess/SecurityIncidentPort.php": "11ef9f7c9978987c8ad1fc246db3c7b6564f27bf52b50160fd07523713302b6a",
         "app/Application/SecurityAccess/SecurityIncidentService.php": "10f405246a40a4c95312cdd3125091c8c9e2c88471ad71f7be994c73eb63685d",
-        "app/Core/Architecture/ArchitectureVerifier.php": "b386be29d1c257b2b587c112f351b3841388e5182cc91612f12aee1a1e37e9c7",
+        "app/Core/Architecture/ArchitectureVerifier.php": "0934ec55dcb7009a0344fea9021d3350f50b7635b1f005a1dc4bbd839a76628d",
         "app/Core/Architecture/LayerMap.php": "86d8df9d7fce1dbb96f7829578b9dcd2794df74375fdf27ed4269ece32f5ed04",
         "app/Core/Database/SchemaMutationLock.php": "cfe446e66d38654d496ca16334bb59b9c5e405df2cf5271803709e0ec4b63e29",
         "app/Core/Install/InstallAccess.php": "b0ac94d531a344eead1275fc54de3d1dae2ae096f6c52def7d5e60371dd4e367",
