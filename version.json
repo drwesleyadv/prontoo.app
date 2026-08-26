@@ -5,7 +5,7 @@
     "generated_at": "2026-08-26T15:40:34-04:00",
     "updated_at": "2026-08-26T15:40:34-04:00",
     "build": "1.8.26.1-vps-homologation-mfa-fix",
-    "asset_version": "1.8.21.1",
+    "asset_version": "1.8.26.1",
     "package_type": "runtime_infrastructure_compatibility_fix",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
