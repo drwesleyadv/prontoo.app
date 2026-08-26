@@ -1,0 +1,25 @@
+name: PR 371 Architecture Repair Simple
+on:
+  push:
+    branches:
+      - fix/vps-homologation-mfa
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/vps-homologation-mfa
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Repair
+        run: python3 tools/pr371_architecture_repair.py
