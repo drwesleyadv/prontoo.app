@@ -4,33 +4,37 @@ namespace Pro\Core;
 
 final class HttpClient
 {
-    public static function get(string $url, int $timeout = 20, int $attempts = 3): ?string
+    public static function get(string $url, int $timeout = 20, int $attempts = 3, array $headers = []): ?string
     {
         for ($attempt = 0; $attempt < $attempts; $attempt++) {
             if ($attempt > 0) usleep(120000 * $attempt);
-            $result = self::request('GET', $url, null, $timeout);
+            $result = self::request('GET', $url, null, $timeout, $headers);
             if ($result !== null) return $result;
         }
         return null;
     }
 
-    public static function postJson(string $url, array $payload, int $timeout = 15): ?array
+    public static function postJson(string $url, array $payload, int $timeout = 15, array $headers = []): ?array
     {
         $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($body === false) return null;
-        $raw = self::request('POST', $url, $body, $timeout);
+        $raw = self::request('POST', $url, $body, $timeout, $headers);
         if ($raw === null) return null;
         $data = json_decode($raw, true);
         return is_array($data) ? $data : null;
     }
 
-    private static function request(string $method, string $url, ?string $body, int $timeout): ?string
+    private static function request(string $method, string $url, ?string $body, int $timeout, array $extraHeaders): ?string
     {
+        $headers = ['Accept: application/json', 'User-Agent: sol-dashboard/2.1'];
+        foreach ($extraHeaders as $header) {
+            if (is_string($header) && $header !== '') $headers[] = $header;
+        }
+        if ($body !== null) $headers[] = 'Content-Type: application/json';
+
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             if ($ch === false) return null;
-            $headers = ['Accept: application/json', 'User-Agent: sol-dashboard/2.0'];
-            if ($body !== null) $headers[] = 'Content-Type: application/json';
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
@@ -48,13 +52,12 @@ final class HttpClient
             return null;
         }
 
-        $headers = "Accept: application/json\r\nUser-Agent: sol-dashboard/2.0\r\n";
-        if ($body !== null) $headers .= "Content-Type: application/json\r\n";
+        $headerText = implode("\r\n", $headers) . "\r\n";
         $context = stream_context_create(['http' => [
             'method' => $method,
             'timeout' => $timeout,
             'ignore_errors' => true,
-            'header' => $headers,
+            'header' => $headerText,
             'content' => $body ?? '',
         ]]);
         $raw = @file_get_contents($url, false, $context);
