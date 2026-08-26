@@ -4,6 +4,7 @@ namespace Pro\Wallet;
 
 use Pro\Core\Config;
 use Pro\Core\HttpClient;
+use Pro\Core\Storage;
 
 final class SolanaWallet
 {
@@ -12,7 +13,36 @@ final class SolanaWallet
 
     public static function balances(string $address): array
     {
-        if ($address === '') return [];
+        if ($address === '') return self::unavailable();
+        $now = time();
+        $cachePath = 'cache/runtime/solana-wallet-' . hash('sha256', $address) . '.json';
+        $cached = Storage::read($cachePath, []);
+        $fetchedAt = (int)($cached['fetched_at'] ?? 0);
+        $freshFor = (int)Config::get('solana_wallet_cache_seconds', 20);
+        if ($fetchedAt > 0 && $now - $fetchedAt <= $freshFor) {
+            $cached['wallet_status'] = 'cached';
+            return $cached;
+        }
+
+        $live = self::fetch($address);
+        if ($live !== null) {
+            $live['wallet_status'] = 'live';
+            $live['wallet_updated_at'] = $now;
+            $live['fetched_at'] = $now;
+            Storage::write($cachePath, $live);
+            return $live;
+        }
+
+        $staleFor = (int)Config::get('solana_wallet_stale_seconds', 300);
+        if ($fetchedAt > 0 && $now - $fetchedAt <= $staleFor) {
+            $cached['wallet_status'] = 'stale';
+            return $cached;
+        }
+        return self::unavailable();
+    }
+
+    private static function fetch(string $address): ?array
+    {
         $rpc = (string)Config::get('solana_rpc');
         $responses = HttpClient::postJson($rpc, [
             [
@@ -31,47 +61,46 @@ final class SolanaWallet
                     ['encoding' => 'jsonParsed'],
                 ],
             ],
-            self::stakeRequest(3, $address, 12),
-            self::stakeRequest(4, $address, 44),
+            self::stakeRequest($address),
         ]);
-        if (!is_array($responses)) return [];
+        if (!is_array($responses)) return null;
+
         $byId = [];
         foreach ($responses as $response) {
             if (is_array($response) && isset($response['id'])) $byId[(int)$response['id']] = $response;
         }
 
-        $out = ['sol_balance' => 0.0, 'usdc_balance' => 0.0, 'stake_balance' => 0.0];
         $lamports = $byId[1]['result']['value'] ?? null;
-        if (is_numeric($lamports)) $out['sol_balance'] = ((int)$lamports) / 1e9;
-
         $accounts = $byId[2]['result']['value'] ?? null;
-        if (is_array($accounts)) {
-            foreach ($accounts as $account) {
-                $info = $account['account']['data']['parsed']['info'] ?? [];
-                $out['usdc_balance'] += (float)($info['tokenAmount']['uiAmount'] ?? 0);
-            }
+        $stakeRows = $byId[3]['result'] ?? null;
+        if (!is_numeric($lamports) || !is_array($accounts) || !is_array($stakeRows)) return null;
+
+        $out = [
+            'sol_balance' => ((int)$lamports) / 1e9,
+            'usdc_balance' => 0.0,
+            'stake_balance' => 0.0,
+        ];
+        foreach ($accounts as $account) {
+            $info = $account['account']['data']['parsed']['info'] ?? [];
+            $amount = $info['tokenAmount']['uiAmount'] ?? null;
+            if (is_numeric($amount)) $out['usdc_balance'] += (float)$amount;
         }
 
-        $stakeAccounts = [];
-        foreach ([3, 4] as $id) {
-            $rows = $byId[$id]['result'] ?? null;
-            if (!is_array($rows)) continue;
-            foreach ($rows as $row) {
-                if (!is_array($row)) continue;
-                $pubkey = (string)($row['pubkey'] ?? '');
-                $stakeLamports = $row['account']['lamports'] ?? null;
-                if ($pubkey !== '' && is_numeric($stakeLamports)) $stakeAccounts[$pubkey] = (int)$stakeLamports;
-            }
+        $stakeLamports = 0;
+        foreach ($stakeRows as $row) {
+            if (!is_array($row)) continue;
+            $amount = $row['account']['lamports'] ?? null;
+            if (is_numeric($amount)) $stakeLamports += (int)$amount;
         }
-        if ($stakeAccounts) $out['stake_balance'] = array_sum($stakeAccounts) / 1e9;
+        $out['stake_balance'] = $stakeLamports / 1e9;
         return $out;
     }
 
-    private static function stakeRequest(int $id, string $address, int $offset): array
+    private static function stakeRequest(string $address): array
     {
         return [
             'jsonrpc' => '2.0',
-            'id' => $id,
+            'id' => 3,
             'method' => 'getProgramAccounts',
             'params' => [
                 self::STAKE_PROGRAM,
@@ -79,10 +108,20 @@ final class SolanaWallet
                     'encoding' => 'base64',
                     'dataSlice' => ['offset' => 0, 'length' => 0],
                     'filters' => [
-                        ['memcmp' => ['offset' => $offset, 'bytes' => $address]],
+                        ['memcmp' => ['offset' => 44, 'bytes' => $address]],
                     ],
                 ],
             ],
+        ];
+    }
+
+    private static function unavailable(): array
+    {
+        return [
+            'sol_balance' => 0.0,
+            'usdc_balance' => 0.0,
+            'stake_balance' => 0.0,
+            'wallet_status' => 'unavailable',
         ];
     }
 }
