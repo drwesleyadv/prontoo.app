@@ -14,6 +14,13 @@ final class JupiterPortfolio
         $now = time();
         $cachePath = 'cache/runtime/jupiter-perps-' . hash('sha256', $address) . '.json';
         $cached = Storage::read($cachePath, []);
+        if (is_array($cached) && $cached) {
+            $migrated = self::normalizeCachedEquity($cached);
+            if ($migrated !== $cached) {
+                $cached = $migrated;
+                Storage::write($cachePath, $cached);
+            }
+        }
         $fetchedAt = (int)($cached['fetched_at'] ?? 0);
         $freshFor = (int)Config::get('jupiter_perps_cache_seconds', 25);
         if ($fetchedAt > 0 && $now - $fetchedAt <= $freshFor) {
@@ -56,10 +63,10 @@ final class JupiterPortfolio
         foreach ($rows as $row) {
             if (!is_array($row)) continue;
             $asset = strtoupper((string)($row['asset'] ?? ''));
-            $positionEquity = self::microUsd($row['valueUsd'] ?? 0);
             $positionPnl = self::microUsd($row['pnlAfterFeesUsd'] ?? 0);
             $positionNotional = self::microUsd($row['sizeUsd'] ?? 0);
             $positionCollateral = self::microUsd($row['collateralUsd'] ?? 0);
+            $positionEquity = $positionCollateral + $positionPnl;
             $positionFees = self::microUsd($row['totalFeesUsd'] ?? 0);
             $entryPrice = self::microUsd($row['entryPriceUsd'] ?? 0);
             $markPrice = self::microUsd($row['markPriceUsd'] ?? 0);
@@ -107,8 +114,30 @@ final class JupiterPortfolio
             'perps_average_entry_price_usd' => $solEntryWeight > 0 ? $solEntryWeighted / $solEntryWeight : 0.0,
             'perps_positions' => $positions,
             'perps_updated_at' => $updatedAt > 0 ? $updatedAt : $now,
+            'accounting_basis' => 'collateral_plus_pnl_after_fees_v1',
             'fetched_at' => $now,
         ];
+    }
+
+    private static function normalizeCachedEquity(array $cached): array
+    {
+        if (($cached['accounting_basis'] ?? '') === 'collateral_plus_pnl_after_fees_v1') return $cached;
+        $positions = isset($cached['perps_positions']) && is_array($cached['perps_positions']) ? $cached['perps_positions'] : [];
+        $equity = 0.0;
+        if ($positions) {
+            foreach ($positions as $index => $position) {
+                if (!is_array($position)) continue;
+                $positionEquity = (float)($position['collateral_usd'] ?? 0) + (float)($position['pnl_usd'] ?? 0);
+                $positions[$index]['equity_usd'] = $positionEquity;
+                $equity += $positionEquity;
+            }
+            $cached['perps_positions'] = $positions;
+        } else {
+            $equity = (float)($cached['perps_collateral_usd'] ?? 0) + (float)($cached['perps_unrealized_pnl_usd'] ?? 0);
+        }
+        $cached['perps_equity_usd'] = $equity;
+        $cached['accounting_basis'] = 'collateral_plus_pnl_after_fees_v1';
+        return $cached;
     }
 
     private static function unavailable(): array
