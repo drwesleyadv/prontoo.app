@@ -56,10 +56,10 @@ final class JupiterPortfolio
         foreach ($rows as $row) {
             if (!is_array($row)) continue;
             $asset = strtoupper((string)($row['asset'] ?? ''));
-            $positionEquity = self::microUsd($row['valueUsd'] ?? 0);
             $positionPnl = self::microUsd($row['pnlAfterFeesUsd'] ?? 0);
             $positionNotional = self::microUsd($row['sizeUsd'] ?? 0);
             $positionCollateral = self::microUsd($row['collateralUsd'] ?? 0);
+            $positionEquity = $positionCollateral + $positionPnl;
             $positionFees = self::microUsd($row['totalFeesUsd'] ?? 0);
             $entryPrice = self::microUsd($row['entryPriceUsd'] ?? 0);
             $markPrice = self::microUsd($row['markPriceUsd'] ?? 0);
