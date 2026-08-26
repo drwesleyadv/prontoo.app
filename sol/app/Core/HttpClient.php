@@ -48,7 +48,7 @@ final class HttpClient
             $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
             curl_close($ch);
             if (is_string($raw) && $status >= 200 && $status < 300) return $raw;
-            Log::warn('HTTP ' . $status . ' em ' . $url);
+            Log::warn('HTTP ' . $status . ' em ' . self::logUrl($url));
             return null;
         }
 
@@ -64,7 +64,7 @@ final class HttpClient
         if ($raw === false) return null;
         $status = self::status($http_response_header ?? []);
         if ($status >= 200 && $status < 300) return $raw;
-        Log::warn('HTTP ' . $status . ' em ' . $url);
+        Log::warn('HTTP ' . $status . ' em ' . self::logUrl($url));
         return null;
     }
 
@@ -72,5 +72,16 @@ final class HttpClient
     {
         if (!$headers) return 0;
         return preg_match('#\\s(\\d{3})\\s#', (string)$headers[0], $match) ? (int)$match[1] : 0;
+    }
+
+    private static function logUrl(string $url): string
+    {
+        $parts = parse_url($url);
+        if (!is_array($parts)) return '[url-invalida]';
+        $scheme = (string)($parts['scheme'] ?? 'https');
+        $host = (string)($parts['host'] ?? 'desconhecido');
+        $port = isset($parts['port']) ? ':' . (int)$parts['port'] : '';
+        $path = (string)($parts['path'] ?? '/');
+        return $scheme . '://' . $host . $port . $path;
     }
 }
