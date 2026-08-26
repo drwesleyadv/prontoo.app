@@ -14,6 +14,8 @@ final class Config
             'symbol' => 'SOLUSDT',
             'binance_klines' => 'https://api.binance.com/api/v3/klines',
             'solana_rpc' => 'https://api.mainnet-beta.solana.com',
+            'solana_wallet_cache_seconds' => 20,
+            'solana_wallet_stale_seconds' => 300,
             'jupiter_perps_url' => 'https://perps-api.jup.ag/v2/positions',
             'jupiter_perps_cache_seconds' => 25,
             'jupiter_perps_stale_seconds' => 900,

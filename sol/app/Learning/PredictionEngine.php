@@ -116,12 +116,17 @@ final class PredictionEngine
         Storage::write('cache/runtime/prediction-history.json',$hist);
 
         $teorica=Storage::read('cache/teorica.json', []);
-        if(empty($teorica) || (($teorica['ledger_version'] ?? '') !== 'progressive_historical_replay_wallet_v1')){
+        $ledgerVersion='immutable_signal_execution_v3';
+        $signalCount=count($hist);
+        $needsTheoretical=empty($teorica)
+            || (($teorica['ledger_version'] ?? '') !== $ledgerVersion)
+            || ((int)($teorica['source_signal_count'] ?? -1) !== $signalCount);
+        if($needsTheoretical){
             $teorica=TheoreticalWallet::simulate($hist,$c30,$policy);
+            if(is_array($teorica))$teorica['source_signal_count']=$signalCount;
             Storage::write('cache/teorica.json',$teorica ?: []);
         }
 
-        $payload['historico']=$hist;
         $payload['teorica_resumo']=$teorica ? [
             'variacao_percentual'=>$teorica['variacao_percentual'] ?? 0,
             'num_trades'=>$teorica['num_trades'] ?? 0,
