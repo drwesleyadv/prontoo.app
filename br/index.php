@@ -34,7 +34,7 @@ if (PHP_SAPI !== "cli") {
     $brSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     $brHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $brHost = preg_replace('/:\d+$/', '', $brHost) ?? "";
-    if (!$brSecure || $brHost !== "prontoo.app") {
+    if (!$brSecure || !in_array($brHost, ["prontoo.app", "srv.prontoo.app"], true)) {
         $brUri = (string) ($_SERVER["REQUEST_URI"] ?? "/");
         if ($brUri === "" || !str_starts_with($brUri, "/")) {
             $brUri = "/";
@@ -47,7 +47,7 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.8.21.1";
+const BR_LANDING_VERSION_FALLBACK = "1.8.26.1";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-data.php";
 require __DIR__ . "/runtime-schema.php";
