@@ -9,6 +9,18 @@ use Pro\Learning\HistoricalReplay;
 use Pro\Learning\PredictionEngine;
 use Pro\Market\BinanceCandles;
 use Pro\Market\CandleRepository;
+use Pro\Wallet\JupiterPortfolio;
+use Pro\Wallet\WalletState;
+
+$wallet = WalletState::read();
+$walletAddress = (string)($wallet['address'] ?? '');
+if ($walletAddress !== '') {
+    try {
+        JupiterPortfolio::leverage($walletAddress);
+    } catch (\Throwable $error) {
+        Log::warn('cron perps cache: ' . $error->getMessage());
+    }
+}
 
 $lock = Storage::acquireLock('cache/runtime/scientific-jobs.lock');
 if ($lock === null) {
