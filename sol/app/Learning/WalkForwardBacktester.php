@@ -145,7 +145,7 @@ final class WalkForwardBacktester
             elseif($actual!==0)$fn++;
         }
         $precision=$tp/max(1,$tp+$fp);$recall=$tp/max(1,$tp+$fn);$f1=($precision+$recall)>0?2*$precision*$recall/($precision+$recall):0.0;
-        $sim=TheoreticalWallet::backtestActions($actions,$meta,$policy);
+        $sim=TheoreticalWallet::backtest($actions,$meta,$policy);
         return array_merge($sim,['policy_precision'=>$precision,'policy_recall'=>$recall,'policy_f1'=>$f1]);
     }
 
