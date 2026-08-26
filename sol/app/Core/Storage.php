@@ -40,6 +40,28 @@ final class Storage
         }
     }
 
+    public static function acquireLock(string $relative): mixed
+    {
+        $file = Config::path($relative);
+        $dir = dirname($file);
+        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        $handle = @fopen($file, 'c');
+        if ($handle === false) return null;
+        @chmod($file, 0600);
+        if (!flock($handle, LOCK_EX | LOCK_NB)) {
+            fclose($handle);
+            return null;
+        }
+        return $handle;
+    }
+
+    public static function releaseLock(mixed $handle): void
+    {
+        if (!is_resource($handle)) return;
+        flock($handle, LOCK_UN);
+        fclose($handle);
+    }
+
     public static function appendLog(string $relative, string $line): void
     {
         $file = Config::path($relative);
