@@ -93,7 +93,9 @@ final class SolanaWallet
             if (is_numeric($amount)) $stakeLamports += (int)$amount;
         }
         $out['stake_balance'] = $stakeLamports / 1e9;
-        return $out;
+
+        $spot = SpotPnl::snapshot($address);
+        return array_merge($out, $spot);
     }
 
     private static function stakeRequest(string $address): array
@@ -121,6 +123,14 @@ final class SolanaWallet
             'sol_balance' => 0.0,
             'usdc_balance' => 0.0,
             'stake_balance' => 0.0,
+            'spot_pnl_status' => 'unavailable',
+            'spot_realized_pnl_usd' => 0.0,
+            'spot_unrealized_cost_usd' => 0.0,
+            'spot_cost_basis_usd' => 0.0,
+            'spot_position_sol' => 0.0,
+            'spot_avg_cost_usd' => 0.0,
+            'spot_swap_count' => 0,
+            'spot_history_complete' => false,
             'wallet_status' => 'unavailable',
         ];
     }

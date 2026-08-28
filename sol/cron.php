@@ -10,6 +10,7 @@ use Pro\Learning\PredictionEngine;
 use Pro\Market\BinanceCandles;
 use Pro\Market\CandleRepository;
 use Pro\Wallet\JupiterPortfolio;
+use Pro\Wallet\SpotPnl;
 use Pro\Wallet\WalletState;
 
 $wallet = WalletState::read();
@@ -17,8 +18,9 @@ $walletAddress = (string)($wallet['address'] ?? '');
 if ($walletAddress !== '') {
     try {
         JupiterPortfolio::leverage($walletAddress);
+        SpotPnl::snapshot($walletAddress);
     } catch (\Throwable $error) {
-        Log::warn('cron perps cache: ' . $error->getMessage());
+        Log::warn('cron wallet cache: ' . $error->getMessage());
     }
 }
 
