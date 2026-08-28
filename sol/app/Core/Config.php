@@ -16,6 +16,8 @@ final class Config
             'solana_rpc' => 'https://api.mainnet-beta.solana.com',
             'solana_wallet_cache_seconds' => 20,
             'solana_wallet_stale_seconds' => 300,
+            'spot_pnl_cache_seconds' => 300,
+            'spot_pnl_history_signatures' => 500,
             'jupiter_perps_url' => 'https://perps-api.jup.ag/v2/positions',
             'jupiter_perps_cache_seconds' => 25,
             'jupiter_perps_stale_seconds' => 900,
