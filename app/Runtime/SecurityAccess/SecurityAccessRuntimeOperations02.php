@@ -108,7 +108,7 @@ final class SecurityAccessRuntimeOperations02
             }
             $codes = \Prontoo\Infrastructure\SecurityAccess\SecurityAccessInfrastructureOperations01::mfa_recovery_codes_generate();
             $record["recovery"] = array_map(
-                "mfa_recovery_code_hash",
+                [\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::class, "mfa_recovery_code_hash"],
                 $codes,
             );
             $record["updated_at"] = time();
@@ -160,7 +160,7 @@ final class SecurityAccessRuntimeOperations02
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, [
                 "v" => 1,
                 "secret" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_encrypt($newSecret),
-                "recovery" => array_map("mfa_recovery_code_hash", $codes),
+                "recovery" => array_map([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::class, "mfa_recovery_code_hash"], $codes),
                 "last_counter" => $counter,
                 "enrolled_at" => (int) ($record["enrolled_at"] ?? time()),
                 "replaced_at" => time(),

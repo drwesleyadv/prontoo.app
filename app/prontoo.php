@@ -34,7 +34,7 @@ if (PHP_SAPI !== "cli") {
     $prontooRequestSecure = \Prontoo\Runtime\SecurityPrivacy\SecurityPrivacyRuntimeOperations01::security_https_active();
     $prontooRequestHost = strtolower(mb_trim((string) ($_SERVER["HTTP_HOST"] ?? "")));
     $prontooRequestHost = preg_replace('/:\d+$/', '', $prontooRequestHost) ?? "";
-    if (!$prontooRequestSecure || $prontooRequestHost !== "prontoo.app") {
+    if (!$prontooRequestSecure || !in_array($prontooRequestHost, ["prontoo.app", "srv.prontoo.app"], true)) {
         $prontooRequestUri = (string) ($_SERVER["REQUEST_URI"] ?? "/");
         if ($prontooRequestUri === "" || !str_starts_with($prontooRequestUri, "/")) {
             $prontooRequestUri = "/";
@@ -106,8 +106,8 @@ if (!function_exists("h")) {
         );
     }
 }
-const PRONTOO_VERSION_FALLBACK = "1.8.21.1";
-const PRONTOO_ASSET_REV_FALLBACK = "1.8.21.1";
+const PRONTOO_VERSION_FALLBACK = "1.8.26.1";
+const PRONTOO_ASSET_REV_FALLBACK = "1.8.26.1";
 function prontoo_release_metadata(): array
 {
 

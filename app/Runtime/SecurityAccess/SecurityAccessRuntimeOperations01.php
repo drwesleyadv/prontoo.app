@@ -503,7 +503,7 @@ final class SecurityAccessRuntimeOperations01
             \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_record_save($uid, [
                 "v" => 1,
                 "secret" => \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::mfa_secret_encrypt($secret),
-                "recovery" => array_map("mfa_recovery_code_hash", $codes),
+                "recovery" => array_map([\Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::class, "mfa_recovery_code_hash"], $codes),
                 "last_counter" => $counter,
                 "enrolled_at" => time(),
                 "updated_at" => time(),

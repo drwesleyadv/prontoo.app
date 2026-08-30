@@ -1,18 +1,18 @@
 {
-    "version": "1.8.21.1",
-    "release": "1.8.21.1",
-    "generated_at_unix": 1787343240,
-    "generated_at": "2026-08-21T16:14:00-04:00",
-    "updated_at": "2026-08-21T16:14:00-04:00",
-    "build": "1.8.21.1-modern-design-system-contracts",
-    "asset_version": "1.8.21.1",
-    "package_type": "incremental_design_system_modernization",
+    "version": "1.8.26.1",
+    "release": "1.8.26.1",
+    "generated_at_unix": 1787773234,
+    "generated_at": "2026-08-26T15:40:34-04:00",
+    "updated_at": "2026-08-26T15:40:34-04:00",
+    "build": "1.8.26.1-vps-homologation-mfa-fix",
+    "asset_version": "1.8.26.1",
+    "package_type": "runtime_infrastructure_compatibility_fix",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": true,
+    "visual_changes": false,
     "functional_equivalence_policy": "default_product_visuals_preserved_while_new_design_system_primitives_are_token_driven_accessible_and_contract_verified",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Moderniza o Design System com DTCG Resolver 2025.10, bindings CSS externos aos tokens, contratos de componentes, WCAG 2.2 AA, APG, cascade layers, container queries, forced-colors, DS Lab, axe-core e regressão visual.",
+    "notes": "Adapta o runtime ao host HTTPS de homologação srv.prontoo.app e corrige os callbacks estáticos de geração dos códigos de recuperação MFA.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.8.21.1-modern-design-system-contracts",
-    "deployment_sync_requested_at": "2026-08-21T16:14:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.8.26.1-vps-homologation-mfa-fix",
+    "deployment_sync_requested_at": "2026-08-26T15:40:34-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -62,7 +62,7 @@
     "rewrite_scope": "superseded_release_references_and_compatibility_only",
     "documentation_policy": "documentation_as_code_markdown_adrs_c4_runbooks",
     "code_comment_policy": "no_inline_code_comments",
-    "release_date": "2026-08-21",
+    "release_date": "2026-08-26",
     "required_php_family": "8.4",
     "native_consolidation_path_decompositions": {
         "app/Domain/AuditActivity/AuditActivityDomainOperations01.php": [
@@ -86,14 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Design System moderno e normativo",
+        "title": "Homologação VPS e correção do MFA",
         "items": [
-            "adota o Resolver Module DTCG 2025.10 e separa metadados de plataforma CSS da fonte de tokens",
-            "formaliza contratos executáveis para componentes, estados, acessibilidade WCAG 2.2 AA e padrões WAI-ARIA APG",
-            "introduz Cascade Layers, Container Queries, forced-colors e reduced-motion nas novas primitivas canônicas",
-            "adiciona catálogo executável DS Lab com Playwright, axe-core e regressão visual determinística",
-            "impede novos valores visuais arbitrários no CSS moderno e mantém a folha legada sob ratchet sem aumentar dívida",
-            "preserva banco, schema e o baseline visual padrão do produto"
+            "permite o host HTTPS srv.prontoo.app como ambiente explícito de homologação",
+            "preserva prontoo.app como domínio canônico de produção e mantém o redirecionamento de hosts desconhecidos",
+            "corrige o callback de hash dos códigos de recuperação durante o primeiro cadastro do MFA",
+            "corrige o mesmo callback nos fluxos de regeneração e substituição do autenticador",
+            "preserva banco, schema, credenciais locais e política de MFA obrigatório do Desenvolvedor"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
