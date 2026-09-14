@@ -1201,7 +1201,9 @@
         : chips
           ? chips.innerHTML
           : "";
+      $$(".patient-directory-result-count", box).forEach((node) => node.remove());
       let initial = box.innerHTML,
+        initialCount = $$("[data-patient-row]", box).length,
         timer = null,
         seq = 0;
       const norm = (v) =>
@@ -1214,18 +1216,41 @@
         const n = $(sel, el);
         if (n) n.textContent = val || "";
       };
+      const normalizedCount = (count) =>
+        Math.max(0, Number(count) || 0);
+      const syncActiveFilterCount = (count) => {
+        if (!chips) return;
+        const active = $(
+          ".patient-filter-chip.active:not(.patient-filter-found)",
+          chips,
+        );
+        if (!active) return;
+        const label = $$("span", active).find(
+          (node) => !node.classList.contains("material-symbols-rounded"),
+        );
+        if (!label) return;
+        const base =
+          active.dataset.patientFilterLabel ||
+          String(label.textContent || "")
+            .replace(/\s*\(\d+\)\s*$/, "")
+            .trim();
+        active.dataset.patientFilterLabel = base;
+        label.textContent = `${base} (${normalizedCount(count)})`;
+      };
       const foundChip = (count) =>
-        '<span class="patient-filter-chip active is-active patient-filter-found" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">manage_search</span><span>Encontrados</span><small>' +
-        String(Math.max(0, Number(count) || 0)) +
-        "</small></span>";
+        '<span class="patient-filter-chip active is-active patient-filter-found" aria-current="page"><span class="material-symbols-rounded" aria-hidden="true">manage_search</span><span>Encontrados (' +
+        String(normalizedCount(count)) +
+        ")</span></span>";
       const syncFound = (q, count) => {
         if (!chips) return;
         if (!q) {
           chips.innerHTML = baseChips;
+          syncActiveFilterCount(initialCount);
           return;
         }
         chips.innerHTML = foundChip(count) + baseChips;
       };
+      syncActiveFilterCount(initialCount);
       const row = (o) => {
         const a = d.createElement("article");
         const level = ["ok", "warn", "bad"].includes(o.status_level)

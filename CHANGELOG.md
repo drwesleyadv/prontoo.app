@@ -1,10 +1,10 @@
 # Versão canônica
 
-## 1.9.14.4 — Filtro Todos e contagem em Pacientes
+## 1.9.14.5 — Contagem integrada ao filtro ativo de Pacientes
 
-- Adiciona Todos após Aniversariantes na tela de Pacientes.
-- Restringe Todos aos perfis Administrador e Médico, inclusive contra acesso direto por parâmetro.
-- Recupera todos os pacientes ativos do consultório quando Todos está selecionado, sem o limite padrão de 120.
-- Mantém o limite atual nos demais filtros e nas buscas.
-- Exibe N encontrados. ao final da listagem, alinhado à direita em tom médio.
-- Preserva schema, persistência e regras dos filtros existentes.
+- Remove a informação N encontrados. do rodapé direito da listagem de Pacientes.
+- Exibe o total recuperado diretamente no título do filtro ativo no formato Nome (N).
+- Mantém a contagem sincronizada ao restaurar o filtro após uma busca dinâmica.
+- Normaliza o chip de busca para Encontrados (N), sem badge numérico separado.
+- Preserva as regras de acesso do filtro Todos e todos os critérios de consulta existentes.
+- Não altera schema, persistência ou limites dos filtros existentes.
