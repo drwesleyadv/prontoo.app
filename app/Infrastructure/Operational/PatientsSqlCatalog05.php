@@ -39,7 +39,7 @@ final class PatientsSqlCatalog05
                                 " FROM pi_patients pp JOIN pi_persons p ON p.id=pp.person_id WHERE pp.clinic_id=? AND pp.active=1" .
                                 PatientDirectorySql::filter($filter) .
                                 PatientDirectorySql::search($searchKind) .
-                                " ORDER BY " . PatientDirectorySql::order($filter, $searchKind) . " LIMIT 120"
+                                " ORDER BY " . PatientDirectorySql::order($filter, $searchKind) . PatientDirectorySql::limit($filter, $searchKind)
             ),
             'operational.patients.05.page_patients.08' => (
                 "SELECT COUNT(DISTINCT patient_link_id) FROM pi_appointments WHERE clinic_id=? AND patient_link_id IS NOT NULL AND start_at>=? AND start_at<? AND status NOT IN ('cancelado','nao_compareceu')"

@@ -156,6 +156,11 @@ final class PatientsRuntimeOperations05
         if (!array_key_exists($filter, \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options())) {
             $filter = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
         }
+        $role = (string) ($c["role"] ?? "");
+        $canViewAllPatients = in_array($role, ["gerente", "medico"], true);
+        if ($filter === "all" && !$canViewAllPatients) {
+            $filter = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default();
+        }
         $searchMode = $search !== "";
         $params = [$cid];
         if (!$searchMode) {
@@ -229,6 +234,9 @@ final class PatientsRuntimeOperations05
         $filterIcons = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_icons();
         $normalFilters = "";
         foreach (\Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options() as $key => $label) {
+            if ($key === "all" && !$canViewAllPatients) {
+                continue;
+            }
             $paramsLink = ["f" => $key];
             $normalFilters .=
                 '<a class="patient-filter-chip ' .
@@ -241,9 +249,10 @@ final class PatientsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</span></a>";
         }
+        $resultCount = count($base);
         $filters = $normalFilters;
         if ($searchMode) {
-            $foundCount = count($base);
+            $foundCount = $resultCount;
             $filters =
                 '<span class="patient-filter-chip active is-active patient-filter-found" aria-current="page">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("manage_search") .
@@ -260,8 +269,12 @@ final class PatientsRuntimeOperations05
             $search !== ""
                 ? "Nenhum paciente encontrado para esta busca."
                 : "Nenhum paciente neste filtro.";
+        $resultCountHtml =
+            '<p class="patient-directory-result-count">' .
+            number_format($resultCount, 0, ",", ".") .
+            " encontrados.</p>";
         $list =
-            $rows !== ""
+            ($rows !== ""
                 ? '<div class="patient-directory-list ds-person-list ds-patient-list">' .
                     $rows .
                     "</div>"
@@ -269,7 +282,8 @@ final class PatientsRuntimeOperations05
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("manage_search") .
                     "<strong>" .
                     $empty .
-                    "</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>";
+                    "</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>") .
+            $resultCountHtml;
         $clear =
             $search !== "" || $filter !== \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_default()
                 ? '<a class="ghost small" href="' .
