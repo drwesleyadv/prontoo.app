@@ -195,18 +195,8 @@ final class MaestroRuntimeOperations05
     
     {
         try {
-            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_record_job_run.01', [
-                    $startedAt,
-                    (int) ($result["duration_ms"] ?? 0),
-                    (int) ($result["rules_seen"] ?? 0),
-                    (int) ($result["rules_run"] ?? 0),
-                    (int) ($result["actions_created"] ?? 0),
-                    (int) ($result["deferred"] ?? 0),
-                    (int) ($result["errors"] ?? 0),
-                    !empty($result["success"]) ? 1 : 0,
-                    (float) ($result["load_score"] ?? 0),
-                    mb_substr((string) ($result["note"] ?? ""), 0, 255),
-                ], []);
+            \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+                ->recordJobRun($startedAt, $result);
         } catch (Throwable $error) {
             error_log("[Prontoo Maestro job run] " . $error->getMessage());
         }
