@@ -24,4 +24,7 @@ jobs:
           coverage: none
           tools: none
       - name: Apply patient filter count presentation
-        run: bash tools/tmp-patient-active-filter-count
+        shell: bash
+        run: |
+          sed -i 's/^git rm /git rm -f /' tools/tmp-patient-active-filter-count
+          bash tools/tmp-patient-active-filter-count
