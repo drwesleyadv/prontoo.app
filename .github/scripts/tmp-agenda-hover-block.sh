@@ -145,6 +145,13 @@ p = Path('version.json')
 data = json.loads(p.read_text())
 data['asset_version'] = '1.9.14.2'
 p.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+app = Path('app/prontoo.php')
+content = app.read_text()
+old = 'const PRONTOO_ASSET_REV_FALLBACK = "1.9.14.1";'
+new = 'const PRONTOO_ASSET_REV_FALLBACK = "1.9.14.2";'
+if old not in content:
+    raise SystemExit('asset fallback marker missing')
+app.write_text(content.replace(old, new, 1))
 PY
 
 git mv public/assets/app-icon-1.9.14.1.png public/assets/app-icon-1.9.14.2.png
