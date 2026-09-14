@@ -1,6 +1,6 @@
 # Consolidação pós-auditoria — 2026-09-14
 
-Base auditada para esta consolidação: `cbc47ee6ad7075eb22e50f778fbad13be81ad597` (`1.8.21.1`). A auditoria ampla iniciada antes desta publicação permanece parcial; este documento não declara leitura integral dos 657 arquivos rastreados nem cobertura funcional total.
+Base auditada para esta consolidação: `cbc47ee6ad7075eb22e50f778fbad13be81ad597`. A auditoria ampla iniciada antes desta publicação permanece parcial; este documento não declara leitura integral dos 657 arquivos rastreados nem cobertura funcional total.
 
 ## Correções materializadas
 
