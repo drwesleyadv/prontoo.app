@@ -14587,8 +14587,8 @@ body.scope-global .developer-actions-card{min-width:0}body.scope-global .develop
 .agenda-day-block-hover .material-symbols-rounded,.agenda-day-block-hover .pt-icon-glyph{font-size:18px}
 @media(hover:none){.agenda-day-block-hover{display:none}}
 
-.patient-directory-result-count{margin:12px 0 0;text-align:right;color:var(--ink-2);font-size:.875rem;font-weight:500}
-.patient-directory-result-count{display:none}
+.patient-directory-result-count{
+  display:none;margin:12px 0 0;text-align:right;color:var(--ink-2);font-size:.875rem;font-weight:500}
 
 @layer ds-foundation, ds-primitives, ds-components, ds-composition;
 
