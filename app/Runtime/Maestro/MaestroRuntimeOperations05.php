@@ -195,18 +195,8 @@ final class MaestroRuntimeOperations05
     
     {
         try {
-            \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_record_job_run.01', [
-                    $startedAt,
-                    (int) ($result["duration_ms"] ?? 0),
-                    (int) ($result["rules_seen"] ?? 0),
-                    (int) ($result["rules_run"] ?? 0),
-                    (int) ($result["actions_created"] ?? 0),
-                    (int) ($result["deferred"] ?? 0),
-                    (int) ($result["errors"] ?? 0),
-                    !empty($result["success"]) ? 1 : 0,
-                    (float) ($result["load_score"] ?? 0),
-                    mb_substr((string) ($result["note"] ?? ""), 0, 255),
-                ], []);
+            \Prontoo\Runtime\Operational\OperationalComposition::maestroCommands()
+                ->recordJobRun($startedAt, $result);
         } catch (Throwable $error) {
             error_log("[Prontoo Maestro job run] " . $error->getMessage());
         }
@@ -264,7 +254,7 @@ final class MaestroRuntimeOperations05
             $rules = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.01', [], [])->fetchAll();
             $stats = [];
             if ($rules !== []) {
-                $keys = array_values(array_unique(array_map("maestro_routine_key", $rules)));
+                $keys = array_values(array_unique(array_map([\Prontoo\Domain\Maestro\MaestroDomainOperations02::class, "maestro_routine_key"], $rules)));
                 foreach (
                     \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $row
@@ -399,7 +389,7 @@ final class MaestroRuntimeOperations05
             $seen = count($rules);
             $stats = [];
             if ($rules) {
-                $keys = array_map("maestro_routine_key", $rules);
+                $keys = array_map([\Prontoo\Domain\Maestro\MaestroDomainOperations02::class, "maestro_routine_key"], $rules);
                 foreach (
                     \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $s

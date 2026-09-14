@@ -587,13 +587,13 @@
             "id": "operational.maestro.commands",
             "service": "Prontoo\\Application\\Operational\\MaestroCommandService",
             "service_file": "app/Application/Operational/MaestroCommandService.php",
-            "entry_points": ["grantRuntimeAccess", "updateStats", "createClaimedAction", "createSupervisedAction"],
+            "entry_points": ["grantRuntimeAccess", "updateStats", "recordJobRun", "createClaimedAction", "createSupervisedAction"],
             "ports": [
                 {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
             ],
             "criticality": "critical",
             "characteristics": ["happy_path", "idempotency", "conflict", "atomicity", "deterministic_return"],
-            "assertions": ["application.maestro_commands.actions", "application.maestro_commands.stats_insert", "application.maestro_commands.supervised_sequence"]
+            "assertions": ["application.maestro_commands.actions", "application.maestro_commands.stats_insert", "application.maestro_commands.job_run", "application.maestro_commands.supervised_sequence"]
         },
         {
             "id": "operational.subscription.claim",

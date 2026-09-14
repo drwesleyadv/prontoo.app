@@ -1522,6 +1522,17 @@ $maestroCommands = new MaestroCommandService($maestroWorkflow);
 $maestroCommands->grantRuntimeAccess();
 $maestroCommands->updateStats('rule:1', 125.0, 3, 81.5);
 $maestroCommands->updateStats('rule:2', 0.0, 0, 20.0, true);
+$maestroCommands->recordJobRun(123.5, [
+    'duration_ms' => 240,
+    'rules_seen' => 4,
+    'rules_run' => 3,
+    'actions_created' => 2,
+    'deferred' => 1,
+    'errors' => 0,
+    'success' => true,
+    'load_score' => 8.333,
+    'note' => 'ok',
+]);
 $maestroActions = [];
 $maestroCommands->createClaimedAction(
     ['id' => 9],
@@ -1547,6 +1558,14 @@ $maestroCommands->createSupervisedAction(
     },
 );
 $same(['claimed', 'supervised'], $maestroActions, 'application.maestro_commands.actions');
+$assert(
+    in_array(
+        'operational.maestro.05.maestro_supervised_record_job_run.01',
+        array_column($operationalWorkflowPort->calls, 0),
+        true,
+    ),
+    'application.maestro_commands.job_run',
+);
 $assert(
     in_array(
         'operational.maestro.04.maestro_stats_update.05',
