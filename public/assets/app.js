@@ -3632,6 +3632,59 @@ document.addEventListener(
     var day = canvas.dataset.day || new Date().toISOString().slice(0, 10);
     return day + "T" + pad(Math.floor(total / 60)) + ":" + pad(total % 60);
   }
+  function agendaSlotIndexFromPointer(canvas, ev) {
+    var rect = canvas.getBoundingClientRect();
+    var y = Math.max(0, Math.min(rect.height, ev.clientY - rect.top));
+    var slotHeight =
+      parseFloat(
+        getComputedStyle(canvas).getPropertyValue("--agenda-slot-height"),
+      ) || 34;
+    return Math.max(0, Math.floor(y / slotHeight));
+  }
+  function agendaSlotOccupied(canvas, slotIndex) {
+    return Array.prototype.some.call(
+      canvas.querySelectorAll(".agenda-day-event"),
+      function (event) {
+        var top = parseFloat(
+          event.style.getPropertyValue("--event-top") || "NaN",
+        );
+        var height = parseFloat(
+          event.style.getPropertyValue("--event-height") || "NaN",
+        );
+        return (
+          Number.isFinite(top) &&
+          Number.isFinite(height) &&
+          top < slotIndex + 1 &&
+          top + height > slotIndex
+        );
+      },
+    );
+  }
+  function agendaBlockActionBase() {
+    var action = document.querySelector(
+      'body[data-route="appointments"] .pagehead a[href*="mode=block"]',
+    );
+    return action ? action.href : "";
+  }
+  function agendaBlockHoverLink(canvas) {
+    var link = canvas.querySelector(".agenda-day-block-hover");
+    if (link) return link;
+    link = document.createElement("a");
+    link.className = "agenda-day-block-hover";
+    link.setAttribute("title", "Bloquear horário");
+    link.innerHTML =
+      '<span class="material-symbols-rounded pt-icon-glyph" aria-hidden="true">lock</span>';
+    canvas.appendChild(link);
+    return link;
+  }
+  function hideAgendaBlockHover(exceptCanvas) {
+    document
+      .querySelectorAll(".agenda-day-block-hover.is-visible")
+      .forEach(function (link) {
+        if (!exceptCanvas || link.parentElement !== exceptCanvas)
+          link.classList.remove("is-visible");
+      });
+  }
   function procedureDuration(select) {
     var duration = 30;
     if (select && select.selectedOptions && select.selectedOptions[0]) {
@@ -3648,6 +3701,36 @@ document.addEventListener(
     if (!start || !end || !start.value) return;
     end.value = addMinutes(start.value, procedureDuration(proc));
   }
+  document.addEventListener("mousemove", function (ev) {
+    var canvas = ev.target.closest && ev.target.closest("[data-agenda-canvas]");
+    hideAgendaBlockHover(canvas || null);
+    if (!canvas || canvas.closest(".agenda-week-day-shell")) return;
+    var base = agendaBlockActionBase();
+    if (!base) return;
+    var slotIndex = agendaSlotIndexFromPointer(canvas, ev);
+    var link = agendaBlockHoverLink(canvas);
+    if (agendaSlotOccupied(canvas, slotIndex)) {
+      link.classList.remove("is-visible");
+      return;
+    }
+    var startValue = roundSlotFromClick(canvas, ev);
+    var url = new URL(base, window.location.href);
+    url.searchParams.set("start", startValue);
+    var slotHeight =
+      parseFloat(
+        getComputedStyle(canvas).getPropertyValue("--agenda-slot-height"),
+      ) || 34;
+    link.href = url.toString();
+    link.style.setProperty(
+      "--agenda-block-hover-y",
+      slotIndex * slotHeight + "px",
+    );
+    link.setAttribute(
+      "aria-label",
+      "Bloquear horário às " + startValue.slice(11, 16),
+    );
+    link.classList.add("is-visible");
+  });
   document.addEventListener("click", function (ev) {
     if (
       ev.target.closest &&
