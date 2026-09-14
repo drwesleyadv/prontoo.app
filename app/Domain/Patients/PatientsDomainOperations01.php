@@ -151,6 +151,7 @@ final class PatientsDomainOperations01
             "week" => "Essa semana",
             "dropouts" => "Desistentes",
             "birthdays" => "Aniversariantes",
+            "all" => "Todos",
         ];
     
     }
@@ -172,6 +173,7 @@ final class PatientsDomainOperations01
             "week" => "calendar_month",
             "dropouts" => "event_busy",
             "birthdays" => "cake",
+            "all" => "groups",
         ];
     
     }

@@ -29,8 +29,14 @@ final class PatientDirectorySql
             'today', 'week' => " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.start_at>=? AND pa.start_at<? AND pa.status NOT IN ('cancelado','nao_compareceu'))",
             'dropouts' => " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.status IN ('cancelado','nao_compareceu') AND COALESCE(pa.updated_at,pa.created_at,pa.start_at)>=DATE_SUB(NOW(), INTERVAL 30 DAY))",
             'birthdays' => " AND p.birth_date IS NOT NULL AND MONTH(p.birth_date)=MONTH(CURDATE()) AND DAY(p.birth_date)=DAY(CURDATE())",
+            'all' => '',
             default => '',
         };
+    }
+
+    public static function limit(string $filter, string $searchMode): string
+    {
+        return $filter === 'all' && $searchMode === 'none' ? '' : ' LIMIT 120';
     }
 
     public static function search(string $mode): string
