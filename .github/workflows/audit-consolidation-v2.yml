@@ -192,7 +192,7 @@ jobs:
 
           ## Evidência incorporada ao commit
 
-          O commit de consolidação só é criado após sucesso de `tools/release-version`, `tools/release-contract-reconcile --write`, `tools/release-contract-reconcile --check`, prova de exclusão de `app/config.php` não rastreado, `tools/runtime-symbol-contract-check`, `tools/quality-gate --fast`, `tools/documentation-check.php`, `tools/code-comment-check.php` e `git diff --check`. Os workflows do PR permanecem a evidência autoritativa para as suítes integrais e contratos dependentes de MySQL/HTTP/Playwright antes do merge.
+          O commit de consolidação só é criado após sucesso de `tools/release-version`, `tools/release-contract-reconcile --write`, `tools/release-contract-reconcile --check`, prova de exclusão de `app/config.php` não rastreado, `tools/runtime-symbol-contract-check`, `tools/quality-gate --fast`, `tools/documentation-check.php` e `git diff --check`. `tools/code-comment-check.php` é executado novamente após a remoção do workflow temporário. Os workflows do PR permanecem a evidência autoritativa para as suítes integrais e contratos dependentes de MySQL/HTTP/Playwright antes do merge.
 
           ## Pendências deliberadamente não tratadas como falhas confirmadas
 
@@ -243,7 +243,6 @@ jobs:
           php tools/runtime-symbol-contract-check
           php tools/quality-gate --fast
           php tools/documentation-check.php
-          php tools/code-comment-check.php
           git diff --check
 
       - name: Commit consolidation
