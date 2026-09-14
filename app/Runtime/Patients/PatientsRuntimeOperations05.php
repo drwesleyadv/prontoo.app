@@ -197,14 +197,15 @@ final class PatientsRuntimeOperations05
         [$todayStart, $todayEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_today_utc_range($cid);
         $base = \Prontoo\Runtime\Operational\OperationalComposition::patients()->result('operational.patients.05.page_patients.07', $params, compact('filter', 'searchKind', 'todayStart', 'todayEnd'))->fetchAll();
         [$weekStart, $weekEnd] = \Prontoo\Runtime\Patients\PatientsRuntimeOperations02::patient_week_utc_range($cid);
-        $todayCount =
-            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.08', [$cid, $todayStart, $todayEnd], []) ?? 0);
-        $weekCount =
-            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.09', [$cid, $weekStart, $weekEnd], []) ?? 0);
-        $dropoutCount =
-            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.10', [$cid], []) ?? 0);
-        $incompleteCount =
-            (int) (\Prontoo\Runtime\Operational\OperationalComposition::patients()->scalar('operational.patients.05.page_patients.11', [$cid], []) ?? 0);
+        $directoryStats = \Prontoo\Runtime\Operational\OperationalComposition::patients()->row(
+            'operational.patients.05.page_patients.08',
+            [$cid, $todayStart, $todayEnd, $cid, $weekStart, $weekEnd, $cid, $cid],
+            [],
+        ) ?? [];
+        $todayCount = (int) ($directoryStats["today_count"] ?? 0);
+        $weekCount = (int) ($directoryStats["week_count"] ?? 0);
+        $dropoutCount = (int) ($directoryStats["dropout_count"] ?? 0);
+        $incompleteCount = (int) ($directoryStats["incomplete_count"] ?? 0);
         $statHtml =
             '<section class="patient-directory-overview kpis kpi-info-strip" aria-label="Resumo de pacientes"><div class="patient-kpi-card kpi-card ' .
             ($todayCount > 0 ? "is-total" : "is-muted") .
