@@ -1,0 +1,102 @@
+name: Temporary patient all filter release v2
+
+on:
+  push:
+    branches:
+      - feature/patient-all-filter-count-1-9-14-4
+    paths:
+      - .github/workflows/tmp-patient-all-filter-release-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply focused patient list release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          def one(path, old, new):
+              p=Path(path); text=p.read_text(); n=text.count(old)
+              if n != 1: raise SystemExit(f'{path}: expected one match, got {n}')
+              p.write_text(text.replace(old,new,1))
+          one('app/Domain/Patients/PatientsDomainOperations01.php','            "birthdays" => "Aniversariantes",\n        ];','            "birthdays" => "Aniversariantes",\n            "all" => "Todos",\n        ];')
+          one('app/Domain/Patients/PatientsDomainOperations01.php','            "birthdays" => "cake",\n        ];','            "birthdays" => "cake",\n            "all" => "groups",\n        ];')
+          one('app/Infrastructure/Operational/PatientDirectorySql.php','            \'birthdays\' => " AND p.birth_date IS NOT NULL AND MONTH(p.birth_date)=MONTH(CURDATE()) AND DAY(p.birth_date)=DAY(CURDATE())",\n            default => \'\',','            \'birthdays\' => " AND p.birth_date IS NOT NULL AND MONTH(p.birth_date)=MONTH(CURDATE()) AND DAY(p.birth_date)=DAY(CURDATE())",\n            \'all\' => \'\',\n            default => \'\',')
+          one('app/Infrastructure/Operational/PatientDirectorySql.php',"    public static function search(string $mode): string\n    {\n","    public static function limit(string $filter, string $searchMode): string\n    {\n        return $filter === 'all' && $searchMode === 'none' ? '' : ' LIMIT 120';\n    }\n\n    public static function search(string $mode): string\n    {\n")
+          one('app/Infrastructure/Operational/PatientsSqlCatalog05.php','                                " ORDER BY " . PatientDirectorySql::order($filter, $searchKind) . " LIMIT 120"','                                " ORDER BY " . PatientDirectorySql::order($filter, $searchKind) . PatientDirectorySql::limit($filter, $searchKind)')
+          one('app/Runtime/Patients/PatientsRuntimeOperations05.php','        if (!array_key_exists($filter, \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_options())) {\n            $filter = \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_default();\n        }\n        $searchMode = $search !== "";','        if (!array_key_exists($filter, \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_options())) {\n            $filter = \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_default();\n        }\n        $role = (string) ($c["role"] ?? "");\n        $canViewAllPatients = in_array($role, ["gerente", "medico"], true);\n        if ($filter === "all" && !$canViewAllPatients) {\n            $filter = \\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_default();\n        }\n        $searchMode = $search !== "";')
+          one('app/Runtime/Patients/PatientsRuntimeOperations05.php','        foreach (\\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_options() as $key => $label) {\n            $paramsLink = ["f" => $key];','        foreach (\\Prontoo\\Domain\\Patients\\PatientsDomainOperations01::patient_directory_filter_options() as $key => $label) {\n            if ($key === "all" && !$canViewAllPatients) {\n                continue;\n            }\n            $paramsLink = ["f" => $key];')
+          one('app/Runtime/Patients/PatientsRuntimeOperations05.php','        $filters = $normalFilters;\n        if ($searchMode) {\n            $foundCount = count($base);','        $resultCount = count($base);\n        $filters = $normalFilters;\n        if ($searchMode) {\n            $foundCount = $resultCount;')
+          one('app/Runtime/Patients/PatientsRuntimeOperations05.php','        $empty =\n            $search !== ""\n                ? "Nenhum paciente encontrado para esta busca."\n                : "Nenhum paciente neste filtro.";\n        $list =\n            $rows !== ""\n                ? \'<div class="patient-directory-list ds-person-list ds-patient-list">\' .\n                    $rows .\n                    "</div>"\n                : \'<div class="empty patient-directory-empty">\' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("manage_search") .\n                    "<strong>" .\n                    $empty .\n                    "</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>";','        $empty =\n            $search !== ""\n                ? "Nenhum paciente encontrado para esta busca."\n                : "Nenhum paciente neste filtro.";\n        $resultCountHtml =\n            \'<p class="patient-directory-result-count">\' .\n            number_format($resultCount, 0, ",", ".") .\n            " encontrados.</p>";\n        $list =\n            ($rows !== ""\n                ? \'<div class="patient-directory-list ds-person-list ds-patient-list">\' .\n                    $rows .\n                    "</div>"\n                : \'<div class="empty patient-directory-empty">\' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("manage_search") .\n                    "<strong>" .\n                    $empty .\n                    "</strong><span>Altere a busca ou escolha outro filtro para ampliar os resultados.</span></div>") .\n            $resultCountHtml;')
+          p=Path('design/styles/application.css'); text=p.read_text()
+          if '.patient-directory-result-count{' in text: raise SystemExit('result count CSS already present')
+          p.write_text(text.rstrip()+'\n\n.patient-directory-result-count{margin:12px 0 0;text-align:right;color:var(--ink-2);font-size:.875rem;font-weight:500}\n')
+          PY
+
+          git rm -f .github/workflows/tmp-patient-all-filter-release.yml .github/workflows/tmp-patient-all-filter-release-v2.yml
+
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build":"1.9.14.4-patient-all-filter-count",
+            "package_type":"micro_ux",
+            "notes":"Adiciona o filtro Todos à tela de Pacientes apenas para os perfis Administrador e Médico e informa, ao final das listagens, quantos registros foram recuperados, sem alterar schema ou persistência.",
+            "logic_changes":true,
+            "visual_changes":true,
+            "documentation_changes":true,
+            "changelog":{"title":"Filtro Todos e contagem em Pacientes","items":["Adiciona Todos após Aniversariantes na tela de Pacientes","Restringe Todos aos perfis Administrador e Médico, inclusive contra acesso direto por parâmetro","Recupera todos os pacientes ativos do consultório quando Todos está selecionado, sem o limite padrão de 120","Mantém o limite atual nos demais filtros e nas buscas","Exibe N encontrados. ao final da listagem, alinhado à direita em tom médio","Preserva schema, persistência e regras dos filtros existentes"]}
+          }
+          JSON
+          php tools/release-version --write --date=2026-09-14 --timestamp=2026-09-14T17:16:00-04:00 --expected-current=1.9.14.3 --metadata-file=/tmp/release.json
+          python3 <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          v=Path('version.json'); data=json.loads(v.read_text()); old='1.9.14.3'; new=data['version']
+          if new!='1.9.14.4': raise SystemExit(f'unexpected version {new}')
+          data['asset_version']=new; v.write_text(json.dumps(data,ensure_ascii=False,indent=4)+'\n')
+          for raw in subprocess.check_output(['git','ls-files','-z']).split(b'\0'):
+              if not raw: continue
+              p=Path(raw.decode())
+              if not p.is_file(): continue
+              b=p.read_bytes()
+              if b'\0' not in b and old.encode() in b: p.write_bytes(b.replace(old.encode(),new.encode()))
+          PY
+          for asset in public/assets/*-1.9.14.3.*; do [ -e "$asset" ] || continue; git mv "$asset" "${asset/1.9.14.3/1.9.14.4}"; done
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/test-fast
+          php -l app/Domain/Patients/PatientsDomainOperations01.php
+          php -l app/Infrastructure/Operational/PatientDirectorySql.php
+          php -l app/Infrastructure/Operational/PatientsSqlCatalog05.php
+          php -l app/Runtime/Patients/PatientsRuntimeOperations05.php
+          grep -F '"all" => "Todos"' app/Domain/Patients/PatientsDomainOperations01.php
+          grep -F '$canViewAllPatients = in_array($role, ["gerente", "medico"], true);' app/Runtime/Patients/PatientsRuntimeOperations05.php
+          grep -F 'if ($filter === "all" && !$canViewAllPatients)' app/Runtime/Patients/PatientsRuntimeOperations05.php
+          grep -F 'if ($key === "all" && !$canViewAllPatients)' app/Runtime/Patients/PatientsRuntimeOperations05.php
+          grep -F "return \$filter === 'all' && \$searchMode === 'none' ? '' : ' LIMIT 120';" app/Infrastructure/Operational/PatientDirectorySql.php
+          grep -F 'patient-directory-result-count' app/Runtime/Patients/PatientsRuntimeOperations05.php
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Adiciona filtro Todos e contagem em Pacientes'
+          git push origin HEAD:feature/patient-all-filter-count-1-9-14-4
