@@ -7,7 +7,7 @@ permissions:
   contents: write
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[agenda-hover-ready]') }}
+    if: "${{ !contains(github.event.head_commit.message, '[agenda-hover-ready]') }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
