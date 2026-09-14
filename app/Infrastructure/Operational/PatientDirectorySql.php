@@ -28,7 +28,7 @@ final class PatientDirectorySql
         return match ($filter) {
             'today', 'week' => " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.start_at>=? AND pa.start_at<? AND pa.status NOT IN ('cancelado','nao_compareceu'))",
             'dropouts' => " AND EXISTS (SELECT 1 FROM pi_appointments pa WHERE pa.clinic_id=pp.clinic_id AND pa.patient_link_id=pp.id AND pa.status IN ('cancelado','nao_compareceu') AND COALESCE(pa.updated_at,pa.created_at,pa.start_at)>=DATE_SUB(NOW(), INTERVAL 30 DAY))",
-            'incomplete' => " AND ((p.birth_date IS NOT NULL AND p.birth_date>DATE_SUB(CURDATE(), INTERVAL 18 YEAR) AND NOT EXISTS (SELECT 1 FROM pi_patient_guardians pg WHERE pg.clinic_id=pp.clinic_id AND pg.patient_link_id=pp.id AND pg.active=1)) OR COALESCE(pp.phone,'')='' OR COALESCE(pp.updated_at,pp.created_at,0)<DATE_SUB(NOW(), INTERVAL 180 DAY))",
+            'birthdays' => " AND p.birth_date IS NOT NULL AND MONTH(p.birth_date)=MONTH(CURDATE()) AND DAY(p.birth_date)=DAY(CURDATE())",
             default => '',
         };
     }

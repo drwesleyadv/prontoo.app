@@ -47,7 +47,7 @@ if (PHP_SAPI !== "cli") {
     }
     unset($brSecure, $brHost, $brUri);
 }
-const BR_LANDING_VERSION_FALLBACK = "1.9.14.2";
+const BR_LANDING_VERSION_FALLBACK = "1.9.14.3";
 require __DIR__ . "/runtime-core.php";
 require __DIR__ . "/runtime-data.php";
 require __DIR__ . "/runtime-schema.php";
