@@ -1,0 +1,60 @@
+name: Temporary patient count CSS consolidation
+
+on:
+  push:
+    branches:
+      - feature/patient-active-filter-count-1-9-14-5
+    paths:
+      - .github/workflows/tmp-patient-count-css-consolidate.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Consolidate CSS rule
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('design/styles/application.css')
+          text = p.read_text()
+          text = text.replace('\n.patient-directory-result-count{display:none}\n', '\n')
+          marker = '.patient-directory-result-count{'
+          if text.count(marker) != 1:
+              raise SystemExit(f'expected one canonical selector, got {text.count(marker)}')
+          start = text.index(marker)
+          end = text.index('}', start)
+          block = text[start:end + 1]
+          if 'display:none' not in block.replace(' ', ''):
+              block = block.replace(marker, marker + '\n  display:none;', 1)
+              text = text[:start] + block + text[end + 1:]
+          p.write_text(text)
+          PY
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --check
+          git rm .github/workflows/tmp-patient-count-css-consolidate.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/presentation-visual-contract-check
+          php tools/test-fast
+          node --check public/assets/app.js
+          git diff --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Consolida regra visual da contagem em Pacientes'
+          git push origin HEAD:feature/patient-active-filter-count-1-9-14-5
