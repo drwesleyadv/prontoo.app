@@ -78,7 +78,7 @@ jobs:
           php tools/release-contract-reconcile --check
           php tools/version-asset-contract-check.php
           php tools/superseded-reference-contract-check
-          php tools/presentation-css-source-contract-check
+          php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
           php tools/quality-gate --fast
           php tools/documentation-check.php
