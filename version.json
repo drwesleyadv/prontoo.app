@@ -1,11 +1,11 @@
 {
-    "version": "1.9.14.2",
-    "release": "1.9.14.2",
-    "generated_at_unix": 1789416900,
-    "generated_at": "2026-09-14T16:15:00-04:00",
-    "updated_at": "2026-09-14T16:15:00-04:00",
-    "build": "1.9.14.2-agenda-hover-block",
-    "asset_version": "1.9.14.2",
+    "version": "1.9.14.3",
+    "release": "1.9.14.3",
+    "generated_at_unix": 1789419300,
+    "generated_at": "2026-09-14T16:55:00-04:00",
+    "updated_at": "2026-09-14T16:55:00-04:00",
+    "build": "1.9.14.3-patient-birthdays",
+    "asset_version": "1.9.14.3",
     "package_type": "micro_ux",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Adiciona na Agenda diária um cadeado contextual para abrir Bloquear Horário com o intervalo apontado pré-selecionado, sem alterar regras de agendamento, bloqueio ou schema.",
+    "notes": "Substitui o filtro Cadastro Incompleto por Aniversariantes na tela de Pacientes, listando somente pacientes ativos cujo dia e mês de nascimento coincidem com a data corrente, sem alterar os demais filtros, schema ou fluxo de cadastro.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.9.14.2-release",
-    "deployment_sync_requested_at": "2026-09-14T16:15:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.14.3-release",
+    "deployment_sync_requested_at": "2026-09-14T16:55:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Bloqueio contextual na Agenda diária",
+        "title": "Aniversariantes nos filtros de Pacientes",
         "items": [
-            "exibe um cadeado discreto na lateral direita do intervalo apontado na visualização diária",
-            "mostra o atalho somente quando o intervalo sob o cursor não está ocupado por consulta ou bloqueio existente",
-            "reutiliza a operação canônica Bloquear Horário sem criar novo endpoint ou regra de domínio",
-            "abre o formulário de bloqueio com o horário apontado já pré-selecionado",
-            "preserva permissões, agendamentos existentes, persistência, schema e demais visualizações da Agenda"
+            "substitui o filtro Cadastro Incompleto por Aniversariantes na tela de Pacientes",
+            "mantém Hoje, Essa semana e Desistentes sem alteração de comportamento",
+            "filtra aniversariantes pelo dia e mês de nascimento correspondentes à data corrente",
+            "considera apenas pacientes ativos do consultório atual, preservando o isolamento existente",
+            "não altera schema, persistência, fluxo de cadastro nem regras dos demais filtros"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",

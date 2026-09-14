@@ -150,7 +150,7 @@ final class PatientsDomainOperations01
             "today" => "Hoje",
             "week" => "Essa semana",
             "dropouts" => "Desistentes",
-            "incomplete" => "Cadastro Incompleto",
+            "birthdays" => "Aniversariantes",
         ];
     
     }
@@ -171,7 +171,7 @@ final class PatientsDomainOperations01
             "today" => "today",
             "week" => "calendar_month",
             "dropouts" => "event_busy",
-            "incomplete" => "fact_check",
+            "birthdays" => "cake",
         ];
     
     }
