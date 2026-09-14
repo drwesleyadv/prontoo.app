@@ -1,0 +1,62 @@
+name: Temporary finalize agenda release
+on:
+  push:
+    branches:
+      - feature/agenda-hover-block-1-9-14-2
+    paths:
+      - .github/workflows/tmp-finalize-agenda-release.yml
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Synchronize canonical release references
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          visual = Path('app/presentation.visual-contract.json')
+          data = json.loads(visual.read_text())
+          data['version'] = '1.9.14.2'
+          visual.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+
+          docs = Path('docs/index.md')
+          text = docs.read_text()
+          old = 'A única baseline mantida, suportada e publicável na árvore corrente é `1.9.14.1`.'
+          new = 'A única baseline mantida, suportada e publicável na árvore corrente é `1.9.14.2`.'
+          if old not in text:
+              raise SystemExit('baseline docs marker missing')
+          docs.write_text(text.replace(old, new, 1))
+
+          version = Path('version.json')
+          meta = json.loads(version.read_text())
+          meta['documentation_changes'] = True
+          version.write_text(json.dumps(meta, ensure_ascii=False, indent=4) + '\n')
+          PY
+
+          git rm --cached .github/workflows/tmp-finalize-agenda-release.yml
+          rm .github/workflows/tmp-finalize-agenda-release.yml
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/test-fast
+          node --check public/assets/app.js
+          git add -A
+          git diff --cached --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Sincroniza referências canônicas da release 1.9.14.2"
+          git push
