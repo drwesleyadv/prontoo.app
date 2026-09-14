@@ -43,6 +43,7 @@ jobs:
 
           old = '1.8.21.1'
           new = '1.9.14.1'
+          temporary_workflow = Path('.github/workflows/audit-release-assets.yml')
           audit = Path('docs/AUDIT_CONSOLIDATION_2026-09-14.md')
           audit_text = audit.read_text()
           audit_text = audit_text.replace(f' (`{old}`)', '')
@@ -53,7 +54,7 @@ jobs:
               if not raw:
                   continue
               path = Path(raw.decode())
-              if not path.is_file():
+              if path == temporary_workflow or not path.is_file():
                   continue
               data = path.read_bytes()
               if b'\0' in data or old.encode() not in data:
@@ -84,6 +85,7 @@ jobs:
           php tools/documentation-check.php
           php tools/code-comment-check.php
           git diff --check
+          git reset HEAD -- .github/workflows/audit-release-assets.yml
 
       - name: Commit release asset synchronization
         shell: bash
