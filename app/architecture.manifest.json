@@ -243,7 +243,7 @@
     "requires_empty_database": true,
     "installer_locked": false,
     "deployment_sync_id": "github-prontoo-1.9.14.2-release",
-    "documentation_changes": false,
+    "documentation_changes": true,
     "appointment_price_snapshot_policy": "price_cents_is_captured_when_the_appointment_is_created_preserved_during_catalog_repricing_and_refreshed_only_when_the_selected_procedure_changes",
     "read_write_chart_visual_policy": "velocity_uses_opaque_05391f_page_load_and_ddf6e8_query_fills_while_volume_preserves_its_palette_and_both_remain_without_visible_contours",
     "login_telemetry_wave_policy": "public_tombstone_only_all_html_surfaces_render_server_volume_plot_projection_filled_footer_areas_without_client_redraw",

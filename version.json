@@ -32,7 +32,7 @@
     "minimum_mysql": "8.0.30",
     "minimum_php": "8.4.0",
     "database_policy": "clean-schema-layer2-ledger-v1",
-    "documentation_changes": false,
+    "documentation_changes": true,
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
     "public_install_window_start_unix": 1785770400,
