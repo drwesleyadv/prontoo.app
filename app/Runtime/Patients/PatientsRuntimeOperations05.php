@@ -205,7 +205,7 @@ final class PatientsRuntimeOperations05
         $todayCount = (int) ($directoryStats["today_count"] ?? 0);
         $weekCount = (int) ($directoryStats["week_count"] ?? 0);
         $dropoutCount = (int) ($directoryStats["dropout_count"] ?? 0);
-        $incompleteCount = (int) ($directoryStats["incomplete_count"] ?? 0);
+        $birthdayCount = (int) ($directoryStats["birthday_count"] ?? 0);
         $statHtml =
             '<section class="patient-directory-overview kpis kpi-info-strip" aria-label="Resumo de pacientes"><div class="patient-kpi-card kpi-card ' .
             ($todayCount > 0 ? "is-total" : "is-muted") .
@@ -226,12 +226,12 @@ final class PatientsRuntimeOperations05
             "<p><b>" .
             number_format($dropoutCount, 0, ",", ".") .
             '</b><span>Desistentes</span></p></div><div class="patient-kpi-card kpi-card ' .
-            ($incompleteCount > 0 ? "is-bad warn" : "is-ok") .
+            ($birthdayCount > 0 ? "is-ok" : "is-muted") .
             '">' .
-            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("fact_check") .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("cake") .
             "<p><b>" .
-            number_format($incompleteCount, 0, ",", ".") .
-            "</b><span>Cadastro incompleto</span></p></div></section>";
+            number_format($birthdayCount, 0, ",", ".") .
+            "</b><span>Aniversariantes</span></p></div></section>";
         $filterIcons = \Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_icons();
         $normalFilters = "";
         foreach (\Prontoo\Domain\Patients\PatientsDomainOperations01::patient_directory_filter_options() as $key => $label) {
