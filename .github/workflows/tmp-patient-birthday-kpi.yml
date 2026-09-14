@@ -1,0 +1,27 @@
+name: Temporary patient birthday KPI
+
+on:
+  push:
+    branches:
+      - feature/patient-birthday-kpi-1-9-14-6
+    paths:
+      - .github/workflows/tmp-patient-birthday-kpi.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply birthday KPI change
+        run: bash tools/tmp-patient-birthday-kpi
