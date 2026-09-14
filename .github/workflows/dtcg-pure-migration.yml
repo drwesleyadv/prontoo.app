@@ -1,0 +1,269 @@
+name: DTCG Pure Design System Migration
+
+on:
+  pull_request:
+    branches:
+      - prontoo
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: agent/dtcg-pure-design-system
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Install migration parser
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm install --no-save --package-lock=false postcss@8.5.6 postcss-selector-parser@7.1.0
+      - name: Migrate to the single canonical architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'design/styles/application.css';
+          const source = fs.readFileSync(file, 'utf8');
+          let output = '';
+          let depth = 0;
+          let quote = null;
+          let escaped = false;
+          let comment = false;
+          let droppedClosings = 0;
+          for (let index = 0; index < source.length; index++) {
+            const char = source[index];
+            const next = source[index + 1] || '';
+            if (comment) {
+              output += char;
+              if (char === '*' && next === '/') {
+                output += next;
+                index++;
+                comment = false;
+              }
+              continue;
+            }
+            if (quote !== null) {
+              output += char;
+              if (escaped) escaped = false;
+              else if (char === '\\') escaped = true;
+              else if (char === quote) quote = null;
+              continue;
+            }
+            if (char === '/' && next === '*') {
+              output += char + next;
+              index++;
+              comment = true;
+              continue;
+            }
+            if (char === '"' || char === "'") {
+              quote = char;
+              output += char;
+              continue;
+            }
+            if (char === '{') {
+              depth++;
+              output += char;
+              continue;
+            }
+            if (char === '}') {
+              if (depth === 0) {
+                droppedClosings++;
+                continue;
+              }
+              depth--;
+              output += char;
+              continue;
+            }
+            output += char;
+          }
+          if (quote !== null || comment) throw new Error('historical CSS ends inside string/comment');
+          const appendedClosings = depth;
+          if (depth > 0) output += '}'.repeat(depth);
+          fs.writeFileSync(file, output);
+          process.stdout.write(`css-balance: dropped-closing=${droppedClosings} appended-closing=${appendedClosings}\n`);
+          NODE
+          cat >> design/styles/application.css <<'CSS'
+          body[data-route="settings"] .settings-ds-screen{}
+          body[data-route="procedures"] .procedures-ds-screen{}
+          body[data-route="profile"] .account-profile-grid{}
+          body.public[data-route="mfa"] .security-auth-card{}
+          CSS
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const file = 'tools/dtcg-pure-migrate.mjs';
+          const source = fs.readFileSync(file, 'utf8');
+          const start = source.indexOf('const semanticScope = selector =>');
+          const end = source.indexOf('appRoot.walkRules(rule => {', start);
+          if (start < 0 || end < 0) throw new Error('semantic scope block not found');
+          const replacement = [
+            "const semanticScope = selector => selectorParser(selectors => {",
+            "  selectors.each(sel => {",
+            "    sel.walkAttributes(attr => {",
+            "      if (String(attr.attribute).toLowerCase() !== 'data-route') return;",
+            "      const route = routeValueFromAttr(attr);",
+            "      const anchors = routeAnchors.get(route);",
+            "      if (!anchors?.length) throw new Error(`missing semantic anchors for ${route}`);",
+            "      const pseudoSelector = `:has(:is(${anchors.map(name=>`.${name}`).join(',')}))`;",
+            "      const pseudo = selectorParser().astSync(pseudoSelector).first.first.clone();",
+            "      attr.replaceWith(pseudo);",
+            "    });",
+            "  });",
+            "}).processSync(selector, { lossless: true });",
+            "",
+          ].join('\n');
+          fs.writeFileSync(file, source.slice(0, start) + replacement + source.slice(end));
+          NODE
+          node tools/dtcg-pure-migrate.mjs
+          node tools/dtcg-pure-finalize.mjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import postcss from 'postcss';
+          const names = ['foundation','primitives','components','composition','precedence'];
+          const roots = new Map(names.map(name => {
+            const file = `design/styles/${name}.css`;
+            return [name, postcss.parse(fs.readFileSync(file, 'utf8'))];
+          }));
+          const precedenceRoot = roots.get('precedence');
+          const precedenceLayer = precedenceRoot.nodes.find(node => node.type === 'atrule' && node.name === 'layer' && node.params.trim() === 'ds-precedence');
+          if (!precedenceLayer) throw new Error('ds-precedence layer missing');
+          const contextKey = at => `${at.name}\u0000${at.params}`;
+          const appendPrecedence = (rule, ancestors, declarations) => {
+            let target = precedenceLayer;
+            for (const at of ancestors) {
+              let child = target.nodes?.find(node => node.type === 'atrule' && contextKey(node) === contextKey(at));
+              if (!child) {
+                child = at.clone({nodes: []});
+                target.append(child);
+              }
+              target = child;
+            }
+            let targetRule = target.nodes?.find(node => node.type === 'rule' && node.selector === rule.selector);
+            if (!targetRule) {
+              targetRule = postcss.rule({selector: rule.selector});
+              target.append(targetRule);
+            }
+            for (const declaration of declarations) targetRule.append(declaration.clone({important: false}));
+          };
+          let promoted = 0;
+          let orphanRemoved = 0;
+          for (const name of names) {
+            const root = roots.get(name);
+            root.walkDecls(decl => {
+              if (decl.parent?.type === 'atrule' && decl.parent.name === 'layer') {
+                decl.remove();
+                orphanRemoved++;
+              }
+            });
+            if (name === 'precedence') continue;
+            const rules = [];
+            root.walkRules(rule => rules.push(rule));
+            for (const rule of rules) {
+              if (!rule.parent) continue;
+              const important = (rule.nodes || []).filter(node => node.type === 'decl' && node.important);
+              if (!important.length) continue;
+              const ancestors = [];
+              let parent = rule.parent;
+              while (parent && !(parent.type === 'atrule' && parent.name === 'layer')) {
+                if (parent.type === 'atrule') ancestors.unshift(parent);
+                parent = parent.parent;
+              }
+              appendPrecedence(rule, ancestors, important);
+              for (const declaration of important) declaration.remove();
+              if ((rule.nodes || []).length === 0) rule.remove();
+              promoted += important.length;
+            }
+            const leftovers = [];
+            root.walkDecls(decl => { if (decl.important) leftovers.push(`${decl.prop}:${decl.value}`); });
+            if (leftovers.length) throw new Error(`unpromoted important declarations in ${name}: ${leftovers.join(',')}`);
+          }
+          for (const [name, root] of roots) fs.writeFileSync(`design/styles/${name}.css`, root.toString());
+          process.stdout.write(`precedence-promoted=${promoted} orphan-layer-declarations-removed=${orphanRemoved}\n`);
+          NODE
+          rm -f tools/dtcg-pure-migrate.mjs tools/dtcg-pure-finalize.mjs .github/workflows/dtcg-pure-migration.yml
+      - name: Build deterministic DTCG artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/design-tokens-build.mjs --write
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/version-asset-contract-check.php
+      - name: Install browser contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+      - name: Verify zero design debt and UX equivalence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/design-system-purity-contract.mjs
+          node tools/design-tokens-contract.mjs
+          node tools/design-system-contract.mjs
+          node tools/design-system-a11y-contract.mjs
+          node tools/design-system-visual-contract.mjs --check
+          node tools/presentation-ux-contract.mjs --check
+          php tools/presentation-visual-contract-check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/quality-gate --fast
+      - name: Verify canonical tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e design/styles/application.css
+          test ! -e design/styles/standards.css
+          test ! -e app/Presentation/Styles
+          test ! -e design/tokens/css-bridge.json
+          test ! -e public/assets/app-icon-1.8.21.1.png
+          test ! -e public/assets/favicon-1.8.21.1.ico
+          test ! -e public/assets/favicon-1.8.21.1.png
+          test ! -e public/assets/pix-1.8.21.1.svg
+          test ! -e public/assets/prontoo-mark-1.8.21.1.png
+          git diff --check
+      - name: Commit canonical Design System
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              design/*|docs/*|app/*|public/*|tools/*|AGENTS.md|version.json|CHANGELOG.md|.github/workflows/*)
+                if [[ -e "$file" ]]; then git add -- "$file"; else git add -u -- "$file"; fi
+                ;;
+              *) echo "unexpected changed path: $file" >&2; exit 1 ;;
+            esac
+          done < <(git diff --name-only -z)
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              design/*|docs/*|app/*|public/*|tools/*|AGENTS.md|version.json|CHANGELOG.md|.github/workflows/*) git add -- "$file" ;;
+              *) echo "unexpected untracked path: $file" >&2; exit 1 ;;
+            esac
+          done < <(git ls-files --others --exclude-standard -z)
+          git diff --cached --check
+          git status --short
+          git commit -m "Consolida Design System DTCG puro e publica 1.8.21.2"
+          git push origin HEAD:agent/dtcg-pure-design-system

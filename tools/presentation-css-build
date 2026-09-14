@@ -9,84 +9,87 @@ if (PHP_SAPI !== 'cli') {
 
 $root = dirname(__DIR__);
 $tokenPath = $root . '/design/generated/tokens.css';
-$applicationPath = $root . '/design/styles/application.css';
-$standardsPath = $root . '/design/styles/standards.css';
 $artifactPath = $root . '/public/assets/presentation.css';
-$visualPath = $root . '/app/presentation.visual-contract.json';
-$legacyStyleRoot = $root . '/app/Presentation/Styles';
-$legacyBridge = $root . '/design/tokens/css-bridge.json';
-
-if (is_dir($legacyStyleRoot) || is_file($legacyBridge)) {
-    fwrite(STDERR, "presentation-css-build: legacy css architecture present\n");
-    exit(1);
-}
-foreach ([$tokenPath, $applicationPath, $standardsPath, $visualPath] as $required) {
-    if (!is_file($required)) {
-        fwrite(STDERR, "presentation-css-build: source missing {$required}\n");
+$layerOrder = [
+    'foundation',
+    'primitives',
+    'components',
+    'composition',
+    'precedence',
+];
+$layerPaths = array_map(
+    static fn(string $name): string => $root . '/design/styles/' . $name . '.css',
+    $layerOrder,
+);
+$forbiddenPaths = [
+    $root . '/design/styles/application.css',
+    $root . '/design/styles/standards.css',
+    $root . '/app/Presentation/Styles',
+    $root . '/design/tokens/css-bridge.json',
+];
+foreach ($forbiddenPaths as $forbidden) {
+    if (file_exists($forbidden)) {
+        fwrite(STDERR, "presentation-css-build: noncanonical design source present {$forbidden}\n");
         exit(1);
     }
 }
-
+foreach ([$tokenPath, ...$layerPaths] as $required) {
+    if (!is_file($required) || (string) file_get_contents($required) === '') {
+        fwrite(STDERR, "presentation-css-build: canonical source missing {$required}\n");
+        exit(1);
+    }
+}
 $tokens = (string) file_get_contents($tokenPath);
-$application = (string) file_get_contents($applicationPath);
-$standards = (string) file_get_contents($standardsPath);
-if ($tokens === '' || $application === '' || $standards === '') {
-    fwrite(STDERR, "presentation-css-build: empty design source\n");
+if (str_contains($tokens, '@import') || str_contains($tokens, '!important')) {
+    fwrite(STDERR, "presentation-css-build: generated DTCG artifact violates purity contract\n");
     exit(1);
 }
-foreach ([$application, $standards] as $source) {
-    if (preg_match('/--pt-(?:ref|sys|cmp)-[a-z0-9-]+\s*:/i', $source) === 1) {
-        fwrite(STDERR, "presentation-css-build: canonical token authored outside DTCG\n");
+$layerSources = [];
+foreach ($layerOrder as $index => $name) {
+    $source = (string) file_get_contents($layerPaths[$index]);
+    if (!str_contains($source, '@layer ds-' . $name)) {
+        fwrite(STDERR, "presentation-css-build: layer identity mismatch {$name}\n");
         exit(1);
     }
+    $importantCount = substr_count($source, '!important');
+    $routeScopeCount = substr_count($source, 'body[data-route=');
+    if ($importantCount !== 0 || $routeScopeCount !== 0) {
+        fwrite(STDERR, "presentation-css-build: zero-debt invariant violated {$name} important={$importantCount} route_scope={$routeScopeCount}\n");
+        exit(1);
+    }
+    if (preg_match('/--(?!pt-(?:ref|sys|cmp|runtime|presentation)-)[a-z0-9_-]+/i', $source) === 1) {
+        fwrite(STDERR, "presentation-css-build: noncanonical custom property namespace {$name}\n");
+        exit(1);
+    }
+    if (preg_match('/--pt-(?:ref|sys)-material-/i', $source) === 1) {
+        fwrite(STDERR, "presentation-css-build: parallel design namespace {$name}\n");
+        exit(1);
+    }
+    $layerSources[] = $source;
 }
-if (str_contains($tokens, '@import') || str_contains($standards, '@import')) {
-    fwrite(STDERR, "presentation-css-build: generated tokens and standards cannot import external css\n");
-    exit(1);
-}
-
 $fontImport = '@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-25..200&display=swap");';
-if (!str_starts_with($application, $fontImport)) {
-    fwrite(STDERR, "presentation-css-build: canonical font import missing\n");
+$layerHeader = '@layer ' . implode(', ', array_map(static fn(string $name): string => 'ds-' . $name, $layerOrder)) . ';';
+$built = $fontImport . "\n\n" . $tokens . "\n" . $layerHeader . "\n\n" . implode("\n", $layerSources);
+$builtImportantCount = substr_count($built, '!important');
+$builtRouteCount = substr_count($built, 'body[data-route=');
+if ($builtImportantCount !== 0 || $builtRouteCount !== 0) {
+    fwrite(STDERR, "presentation-css-build: built artifact has historical cascade debt important={$builtImportantCount} route_scope={$builtRouteCount}\n");
     exit(1);
 }
-$applicationBody = ltrim(substr($application, strlen($fontImport)), "\r\n");
-if (str_contains($applicationBody, '@import')) {
-    fwrite(STDERR, "presentation-css-build: additional imports are forbidden\n");
-    exit(1);
-}
-$built = $fontImport . "\n\n" . $tokens . $applicationBody . "\n" . $standards;
-$important = substr_count($built, '!important');
-$routes = substr_count($built, 'body[data-route=');
-
-try {
-    $visual = json_decode((string) file_get_contents($visualPath), true, 512, JSON_THROW_ON_ERROR);
-} catch (Throwable $error) {
-    fwrite(STDERR, "presentation-css-build: invalid visual contract\n");
-    exit(1);
-}
-$budget = is_array($visual['debt_budget'] ?? null) ? $visual['debt_budget'] : [];
-if ($important > (int) ($budget['important_count'] ?? -1) || $routes > (int) ($budget['route_scope_count'] ?? -1)) {
-    fwrite(STDERR, "presentation-css-build: visual debt budget increased\n");
-    exit(1);
-}
-
 $sha = hash('sha256', $built);
 $mode = $argv[1] ?? '--lint';
 if ($mode === '--lint') {
     fwrite(STDOUT, json_encode([
         'ok' => true,
-        'policy' => 'dtcg-plus-layered-standards-v2',
-        'physical_source_files' => 3,
+        'policy' => 'dtcg-native-contract-driven-layered-zero-debt-v1',
+        'dtcg_sources' => 1,
+        'layer_sources' => count($layerSources),
+        'legacy_sources' => 0,
+        'important_count' => 0,
+        'route_scope_count' => 0,
+        'parallel_design_namespaces' => 0,
         'bytes' => strlen($built),
         'sha256' => $sha,
-        'important_count' => $important,
-        'route_scope_count' => $routes,
-        'cascade_layers' => substr_count($standards, '@layer '),
-        'container_queries' => substr_count($standards, '@container'),
-        'forced_colors' => substr_count($standards, 'forced-colors:active'),
-        'legacy_source_files' => 0,
-        'font_imports' => 1,
         'deterministic_source' => true,
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL);
     exit(0);
