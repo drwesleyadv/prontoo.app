@@ -264,7 +264,7 @@ final class MaestroRuntimeOperations05
             $rules = \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.01', [], [])->fetchAll();
             $stats = [];
             if ($rules !== []) {
-                $keys = array_values(array_unique(array_map("maestro_routine_key", $rules)));
+                $keys = array_values(array_unique(array_map([\Prontoo\Domain\Maestro\MaestroDomainOperations02::class, "maestro_routine_key"], $rules)));
                 foreach (
                     \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_supervised_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $row
@@ -399,7 +399,7 @@ final class MaestroRuntimeOperations05
             $seen = count($rules);
             $stats = [];
             if ($rules) {
-                $keys = array_map("maestro_routine_key", $rules);
+                $keys = array_map([\Prontoo\Domain\Maestro\MaestroDomainOperations02::class, "maestro_routine_key"], $rules);
                 foreach (
                     \Prontoo\Runtime\Operational\OperationalComposition::maestro()->result('operational.maestro.05.maestro_cron_run.02', $keys, ['itemCount' => count($keys)])->fetchAll()
                     as $s

@@ -94,7 +94,7 @@ if ($write) {
     $currentRelease = trim((string) ($version['release'] ?? ''));
     $currentDate = trim((string) ($version['release_date'] ?? ''));
     if ($targetDate === '' || $timestamp === '' || $expectedCurrent === '') {
-        $fail('Use --write --date=YYYY-MM-DD --timestamp=ISO8601 --expected-current=x.y.z.n.');
+        $fail('Use --write --date=YYYY-MM-DD --timestamp=ISO8601 --expected-current=x.y.z.n. --metadata-file=/caminho/release.json.');
     }
     if ($current !== $expectedCurrent || $currentRelease !== $current) {
         $fail('Versão canônica mudou desde a preparação da publicação.');
@@ -109,30 +109,43 @@ if ($write) {
     $version['generated_at_unix'] = $instant->getTimestamp();
     $version['generated_at'] = $timestamp;
     $version['updated_at'] = $timestamp;
-    $version['build'] = $next . '-architecture-21';
-    $version['logic_changes'] = true;
-    $version['documentation_changes'] = true;
-    $version['functional_equivalence_policy'] = 'architecture_16_21_semantic_closure_without_behavioral_or_visual_change';
+    $metadataFile = trim((string) ($argument('metadata-file') ?? ''));
+    if ($metadataFile === '' || !is_file($metadataFile)) {
+        $fail('Arquivo de metadados da release ausente.');
+    }
+    try {
+        $metadata = json_decode((string) file_get_contents($metadataFile), true, 512, JSON_THROW_ON_ERROR);
+    } catch (Throwable $error) {
+        $fail('Metadados da release inválidos: ' . $error->getMessage());
+    }
+    if (!is_array($metadata)) {
+        $fail('Metadados da release inválidos.');
+    }
+    foreach (['build', 'package_type', 'notes', 'changelog'] as $requiredMetadata) {
+        if (!array_key_exists($requiredMetadata, $metadata)) {
+            $fail('Metadado obrigatório ausente: ' . $requiredMetadata);
+        }
+    }
+    $metadataChangelog = (array) $metadata['changelog'];
+    if (trim((string) ($metadataChangelog['title'] ?? '')) === '' || count((array) ($metadataChangelog['items'] ?? [])) < 5) {
+        $fail('Changelog da release deve conter título e ao menos cinco itens.');
+    }
+    $version['build'] = (string) $metadata['build'];
+    $version['package_type'] = (string) $metadata['package_type'];
+    $version['notes'] = (string) $metadata['notes'];
+    $version['changelog'] = $metadataChangelog;
+    $version['logic_changes'] = (bool) ($metadata['logic_changes'] ?? true);
+    $version['visual_changes'] = (bool) ($metadata['visual_changes'] ?? false);
+    $version['documentation_changes'] = (bool) ($metadata['documentation_changes'] ?? true);
+    if (array_key_exists('functional_equivalence_policy', $metadata)) {
+        $version['functional_equivalence_policy'] = (string) $metadata['functional_equivalence_policy'];
+    }
     $version['version_policy'] = 'version_json_is_unique_canonical_source_and_release_version_bump_is_explicit';
     $version['version_format'] = '1.month.day.sequence';
     $version['version_sequence_policy'] = 'sequence_starts_at_1_and_resets_each_publication_day';
     $version['release_version_policy'] = 'explicit_date_sequence_generator_v1';
     $version['release_version_generator'] = 'tools/release-version';
-    $version['notes'] = 'Engenharia 16–21: fechamento semântico do Runtime financeiro, identidade e módulos operacionais; matriz integral de Application; budgets reais MySQL ampliados; e contrato final de arquitetura.';
-    $version['changelog'] = [
-        'title' => 'Engenharia arquitetural 16–21 e consolidação',
-        'items' => [
-            'institui análise tokenizada e baseline monotônica para a fronteira Runtime',
-            'remove do Runtime a persistência financeira, de autenticação, MFA, permissões e módulos operacionais sem alterar comportamento',
-            'mantém SQL de negócio, PDO direto, adapters concretos fora dos composition roots e transações de caso de uso em zero no Runtime',
-            'cataloga 49 casos críticos de 30 Application Services, ligados a 15 ports e 127 assertivas rastreáveis dentro de 194 assertivas rápidas sem banco',
-            'amplia de 2 para 11 os budgets reais MySQL e mede SELECT, INSERT, UPDATE, DELETE e REPLACE sem usar tempo absoluto frágil',
-            'move renderizadores concretos de consultas de Domain e Core para Infrastructure e perfila Composition por responsabilidade',
-            'consolida em CI os contratos finais de classificação, SOLID, símbolos, documentação, release e performance',
-            'publica a conclusão das fases 16–21 sem mudança de schema, banco ou interface',
-        ],
-    ];
-    $version['deployment_sync_id'] = 'github-prontoo-' . $next . '-architecture-21';
+    $version['deployment_sync_id'] = (string) ($metadata['deployment_sync_id'] ?? ('github-prontoo-' . $next . '-release'));
     $version['deployment_sync_requested_at'] = $timestamp;
     $version['release_reconciliation_policy'] = 'version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only';
     $version['release_date'] = $targetDate;

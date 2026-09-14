@@ -1,10 +1,11 @@
 # Versão canônica
 
-## 1.8.21.1 — Design System moderno e normativo
+## 1.9.14.1 — Consolidação pós-auditoria
 
-- adota o Resolver Module DTCG 2025.10 e separa metadados de plataforma CSS da fonte de tokens.
-- formaliza contratos executáveis para componentes, estados, acessibilidade WCAG 2.2 AA e padrões WAI-ARIA APG.
-- introduz Cascade Layers, Container Queries, forced-colors e reduced-motion nas novas primitivas canônicas.
-- adiciona catálogo executável DS Lab com Playwright, axe-core e regressão visual determinística.
-- impede novos valores visuais arbitrários no CSS moderno e mantém a folha legada sob ratchet sem aumentar dívida.
-- preserva banco, schema e o baseline visual padrão do produto.
+- corrige callbacks MFA convertidos para métodos estáticos nos fluxos de cadastro, regeneração e substituição do autenticador.
+- corrige callbacks do Maestro para usar o método estático canônico de chave de rotina.
+- classifica como transitórios apenas arquivos internos de app que realmente pertencem à migração arquitetural.
+- faz o manifesto de release enumerar exclusivamente arquivos rastreados pelo Git e ignorar arquivos operacionais locais.
+- calcula hashes do manifesto a partir do conteúdo final dos artefatos derivados para convergir em uma única execução.
+- remove metadados históricos hardcoded do gerador de versão e exige metadados explícitos por publicação.
+- preserva schema, banco, aparência, navegação e contratos visuais.

@@ -223,38 +223,38 @@ $manifest['architecture'] = array_replace(
     ],
 );
 
-$manifestFiles = [];
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),
-);
-$rootPrefix = rtrim(str_replace('\\', '/', $root), '/') . '/';
-foreach ($iterator as $file) {
-    if (!$file instanceof SplFileInfo || !$file->isFile()) {
-        continue;
-    }
-    $absolute = str_replace('\\', '/', $file->getPathname());
-    $relative = str_starts_with($absolute, $rootPrefix)
-        ? substr($absolute, strlen($rootPrefix))
-        : $absolute;
-    if ($relative === '' || $relative === '.git' || str_starts_with($relative, '.git/') || str_starts_with($relative, 'ssd/') || str_starts_with($relative, 'vendor/') || str_starts_with($relative, 'node_modules/')) {
-        continue;
-    }
-    if ($relative === 'app/update.manifest.json') {
-        continue;
-    }
-    $manifestFiles[$relative] = hash_file('sha256', $absolute);
-}
-ksort($manifestFiles, SORT_STRING);
-$manifest['files'] = $manifestFiles;
-$manifestContent = $encodeJson($manifest);
-
-$expected = [
+$derivedFiles = [
     $architectureWorkflowPath => $architectureWorkflow,
     $root . '/.github/workflows/documentation.yml' => $documentationWorkflow,
     $prontooPath => $prontoo,
     $landingPath => $landing,
     $changelogPath => $changelog,
     $architecturePath => $architectureContent,
+];
+
+$rootPrefix = rtrim(str_replace('\\', '/', $root), '/') . '/';
+$tracked = shell_exec('git -C ' . escapeshellarg($root) . ' ls-files -z --cached');
+if (!is_string($tracked)) {
+    throw new RuntimeException('Não foi possível enumerar os arquivos rastreados pelo Git.');
+}
+$manifestFiles = [];
+foreach (explode("\0", $tracked) as $relative) {
+    if ($relative === '' || $relative === 'app/update.manifest.json') {
+        continue;
+    }
+    $absolute = $root . '/' . $relative;
+    if (!is_file($absolute)) {
+        continue;
+    }
+    $manifestFiles[$relative] = array_key_exists($absolute, $derivedFiles)
+        ? hash('sha256', $derivedFiles[$absolute])
+        : hash_file('sha256', $absolute);
+}
+ksort($manifestFiles, SORT_STRING);
+$manifest['files'] = $manifestFiles;
+$manifestContent = $encodeJson($manifest);
+
+$expected = $derivedFiles + [
     $manifestPath => $manifestContent,
 ];
 
