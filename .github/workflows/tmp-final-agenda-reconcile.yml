@@ -1,0 +1,38 @@
+name: Temporary final agenda reconcile
+on:
+  push:
+    branches:
+      - feature/agenda-hover-block-1-9-14-2
+    paths:
+      - .github/workflows/tmp-final-agenda-reconcile.yml
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - name: Reconcile against final tracked tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm --cached .github/workflows/tmp-final-agenda-reconcile.yml
+          rm .github/workflows/tmp-final-agenda-reconcile.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/presentation-css-build --check
+          php tools/test-fast
+          node --check public/assets/app.js
+          git add -A
+          git diff --cached --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git commit -m "Reconcilia release final do bloqueio contextual"
+          git push
