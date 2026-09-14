@@ -1,0 +1,96 @@
+name: Audit Release Assets
+
+on:
+  push:
+    branches:
+      - audit/consolidation-1-9-14-1
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: audit/consolidation-1-9-14-1
+
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+
+      - name: Synchronize release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          old='1.8.21.1'
+          new='1.9.14.1'
+          for stem in app-icon prontoo-mark favicon; do
+            if [ -f "public/assets/${stem}-${old}.png" ]; then
+              git mv "public/assets/${stem}-${old}.png" "public/assets/${stem}-${new}.png"
+            fi
+          done
+          git mv "public/assets/favicon-${old}.ico" "public/assets/favicon-${new}.ico"
+          git mv "public/assets/pix-${old}.svg" "public/assets/pix-${new}.svg"
+          python3 <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          old = '1.8.21.1'
+          new = '1.9.14.1'
+          audit = Path('docs/AUDIT_CONSOLIDATION_2026-09-14.md')
+          audit_text = audit.read_text()
+          audit_text = audit_text.replace(f' (`{old}`)', '')
+          audit.write_text(audit_text)
+
+          tracked = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
+          for raw in tracked:
+              if not raw:
+                  continue
+              path = Path(raw.decode())
+              if not path.is_file():
+                  continue
+              data = path.read_bytes()
+              if b'\0' in data or old.encode() not in data:
+                  continue
+              try:
+                  text = data.decode('utf-8')
+              except UnicodeDecodeError:
+                  continue
+              path.write_text(text.replace(old, new))
+          PY
+
+      - name: Reconcile and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm --cached .github/workflows/audit-release-assets.yml
+          php tools/release-contract-reconcile --write
+          if grep -q 'audit-release-assets.yml' app/update.manifest.json; then
+            echo 'workflow temporário contaminou o manifest' >&2
+            exit 1
+          fi
+          php tools/release-contract-reconcile --check
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/presentation-css-source-contract-check
+          php tools/presentation-css-build --check
+          php tools/quality-gate --fast
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          git diff --check
+
+      - name: Commit release asset synchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Sincroniza assets com a versão 1.9.14.1"
+          git push origin HEAD:audit/consolidation-1-9-14-1
