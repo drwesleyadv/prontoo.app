@@ -138,6 +138,7 @@ final class AppointmentCommandService
         string $blockEndAt,
         int $userId,
         bool $blocked,
+        bool $canRemoveAnyBlock,
     ): int {
         if ($clinicId <= 0 || $doctorUserId <= 0 || $userId <= 0) {
             throw new RuntimeException('Não foi possível identificar consultório, profissional e usuário para alterar o dia.');
@@ -167,6 +168,7 @@ final class AppointmentCommandService
             $blockEndAt,
             $userId,
             $blocked,
+            $canRemoveAnyBlock,
         ): int {
             $this->data->result(
                 'operational.appointments.05.page_appointments.22',
@@ -183,6 +185,14 @@ final class AppointmentCommandService
                 'operational.appointments.05.page_appointments.44',
                 [$clinicId, $doctorUserId, $blockStartAt, $blockEndAt],
             );
+            if (
+                !$blocked &&
+                $existing &&
+                !$canRemoveAnyBlock &&
+                (int) ($existing['created_by'] ?? 0) !== $userId
+            ) {
+                throw new RuntimeException('Esse bloqueio não foi criado por você.');
+            }
             if (!$blocked) {
                 $this->data->result(
                     'operational.appointments.05.page_appointments.45',

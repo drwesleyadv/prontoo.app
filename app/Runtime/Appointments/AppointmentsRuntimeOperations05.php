@@ -156,6 +156,7 @@ final class AppointmentsRuntimeOperations05
                         $toggleBlockEnd,
                         $uid,
                         $shouldBlockDay,
+                        $role === "gerente",
                     );
                 } catch (RuntimeException $error) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -2410,6 +2411,7 @@ final class AppointmentsRuntimeOperations05
                 "</option>";
         }
         $dayBlocked = false;
+        $dayBlockCreatorId = 0;
         if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {
             foreach ($blocks as $dayBlock) {
                 if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
@@ -2419,6 +2421,7 @@ final class AppointmentsRuntimeOperations05
                 $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
                 if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {
                     $dayBlocked = true;
+                    $dayBlockCreatorId = (int) ($dayBlock["created_by"] ?? 0);
                     break;
                 }
             }
@@ -2428,7 +2431,8 @@ final class AppointmentsRuntimeOperations05
             $agendaView === "diario" &&
             $agendaDoctor > 0 &&
             $rows === [] &&
-            in_array($role, ["recepcionista", "medico", "gerente"], true)
+            in_array($role, ["recepcionista", "medico", "gerente"], true) &&
+            (!$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid)
         ) {
             $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";
             $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";

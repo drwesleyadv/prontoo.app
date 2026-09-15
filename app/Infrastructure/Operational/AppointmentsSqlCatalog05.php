@@ -155,7 +155,7 @@ final class AppointmentsSqlCatalog05
                 "SELECT id FROM pi_appointments WHERE clinic_id=? AND doctor_user_id=? AND status NOT IN ('cancelado') AND start_at>=? AND start_at<? LIMIT 1 FOR UPDATE"
             ),
             'operational.appointments.05.page_appointments.44' => (
-                "SELECT id FROM pi_blocks WHERE clinic_id=? AND doctor_user_id=? AND deleted_at IS NULL AND start_at<=? AND end_at>=? ORDER BY start_at ASC LIMIT 1 FOR UPDATE"
+                "SELECT id,created_by FROM pi_blocks WHERE clinic_id=? AND doctor_user_id=? AND deleted_at IS NULL AND start_at<=? AND end_at>=? ORDER BY start_at ASC LIMIT 1 FOR UPDATE"
             ),
             'operational.appointments.05.page_appointments.45' => (
                 "UPDATE pi_blocks SET deleted_at=NOW(),deleted_by=?,cancel_reason=?,updated_at=NOW() WHERE clinic_id=? AND doctor_user_id=? AND deleted_at IS NULL AND start_at<=? AND end_at>=?"
