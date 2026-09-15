@@ -5273,31 +5273,56 @@ function initPasswordToggle(root = document) {
     document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
 
-  function updateAppointmentRecurrenceDuration(select) {
-    if (!select) return;
-    var row = select.closest("[data-recurrence-row]");
-    var hint = row && row.querySelector("[data-recurrence-duration]");
-    var option = select.options && select.options[select.selectedIndex];
-    var duration = parseInt((option && option.dataset.duration) || "0", 10);
-    if (hint) hint.textContent = duration > 0 ? duration + " min de duração" : "";
+  function recurrenceComposer(root) {
+    return {
+      procedure: root && root.querySelector("[data-recurrence-composer-procedure]"),
+      start: root && root.querySelector("[data-recurrence-composer-start]"),
+    };
+  }
+  function seedRecurrenceComposer(root) {
+    if (!root) return;
+    var composer = recurrenceComposer(root);
+    var form = root.closest("form");
+    var mainProcedure = form && form.querySelector("[data-procedure-select]");
+    if (composer.procedure && !composer.procedure.value && mainProcedure && mainProcedure.value)
+      composer.procedure.value = mainProcedure.value;
+  }
+  function initRecurrenceComposers() {
+    document.querySelectorAll("[data-appointment-recurrence]").forEach(seedRecurrenceComposer);
   }
   function addAppointmentRecurrence(button) {
     var root = button && button.closest("[data-appointment-recurrence]");
-    if (!root) return;
+    if (!root) return false;
     var list = root.querySelector("[data-recurrence-list]");
     var template = root.querySelector("template[data-recurrence-template]");
-    if (!list || !template || !template.content) return;
+    var composer = recurrenceComposer(root);
+    if (!list || !template || !template.content || !composer.procedure || !composer.start) return false;
+    composer.procedure.setCustomValidity("");
+    composer.start.setCustomValidity("");
+    if (!composer.procedure.value) {
+      composer.procedure.setCustomValidity("Selecione o procedimento.");
+      composer.procedure.reportValidity();
+      return false;
+    }
+    if (!composer.start.value) {
+      composer.start.setCustomValidity("Informe a data e hora.");
+      composer.start.reportValidity();
+      return false;
+    }
     var fragment = template.content.cloneNode(true);
     var row = fragment.querySelector("[data-recurrence-row]");
     var select = row && row.querySelector("[data-recurrence-procedure]");
-    var form = root.closest("form");
-    var mainProcedure = form && form.querySelector("[data-procedure-select]");
-    if (select && mainProcedure && mainProcedure.value) select.value = mainProcedure.value;
-    list.appendChild(fragment);
-    updateAppointmentRecurrenceDuration(select);
     var start = row && row.querySelector("[data-recurrence-start]");
-    if (start) start.focus();
+    if (select) select.value = composer.procedure.value;
+    if (start) start.value = composer.start.value;
+    list.appendChild(fragment);
+    composer.start.value = "";
+    composer.start.focus();
+    return true;
   }
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", initRecurrenceComposers, { once: true });
+  else initRecurrenceComposers();
   d.addEventListener("click", function (ev) {
     var add = closest(ev.target, "[data-recurrence-add]");
     if (add) {
@@ -5313,7 +5338,23 @@ function initPasswordToggle(root = document) {
     }
   });
   d.addEventListener("change", function (ev) {
-    var select = closest(ev.target, "[data-recurrence-procedure]");
-    if (select) updateAppointmentRecurrenceDuration(select);
+    var mainProcedure = closest(ev.target, "[data-appointment-create-form] [data-procedure-select]");
+    if (!mainProcedure) return;
+    var form = mainProcedure.closest("form");
+    var root = form && form.querySelector("[data-appointment-recurrence]");
+    var composer = recurrenceComposer(root);
+    if (composer.procedure && !composer.procedure.value) composer.procedure.value = mainProcedure.value;
+  });
+  d.addEventListener("submit", function (ev) {
+    var form = closest(ev.target, "[data-appointment-create-form]");
+    if (!form) return;
+    var root = form.querySelector("[data-appointment-recurrence]");
+    if (!root) return;
+    var composer = recurrenceComposer(root);
+    if (!composer.procedure || !composer.start || !composer.start.value) return;
+    ev.preventDefault();
+    if (!addAppointmentRecurrence(root.querySelector("[data-recurrence-add]"))) return;
+    if (form.requestSubmit) form.requestSubmit();
+    else form.submit();
   });
 })();

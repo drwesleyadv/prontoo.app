@@ -14591,14 +14591,14 @@ body.scope-global .developer-actions-card{min-width:0}body.scope-global .develop
   display:none;margin:12px 0 0;text-align:right;color:var(--ink-2);font-size:.875rem;font-weight:500}
 
 
-.agenda-quick-recurrence{display:grid;gap:12px}
-.agenda-recurrence-help{margin:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
-.agenda-recurrence-list{display:grid;gap:10px}
-.agenda-recurrence-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr) auto;gap:10px;align-items:end;padding:12px;border:1px solid var(--md-sys-color-outline-variant);border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}
-.agenda-recurrence-row .field{margin:0;min-width:0}
-.agenda-recurrence-remove{align-self:end;white-space:nowrap}
-.agenda-recurrence-add{justify-self:start}
-@media(max-width:720px){.agenda-quick-recurrence .agenda-recurrence-row{grid-template-columns:1fr}.agenda-quick-recurrence .agenda-recurrence-remove{justify-self:start}}
+.agenda-quick-recurrence{display:grid;gap:10px}
+.agenda-recurrence-list{display:grid;gap:8px}
+.agenda-recurrence-row,.agenda-recurrence-composer{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr) 42px;gap:10px;align-items:end}
+.agenda-recurrence-row{padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)}
+.agenda-recurrence-row .field,.agenda-recurrence-composer .field{margin:0;min-width:0}
+.agenda-recurrence-row :is(select,input),.agenda-recurrence-composer :is(select,input){min-width:0;width:100%}
+.agenda-recurrence-remove,.agenda-recurrence-add{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;align-self:end;border-radius:14px}
+@media(max-width:720px){.agenda-quick-recurrence .agenda-recurrence-row,.agenda-quick-recurrence .agenda-recurrence-composer{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px;gap:8px}.agenda-quick-recurrence .agenda-recurrence-remove,.agenda-quick-recurrence .agenda-recurrence-add{width:40px;min-width:40px;height:40px;min-height:40px}}
 
 @layer ds-foundation, ds-primitives, ds-components, ds-composition;
 
