@@ -1,0 +1,117 @@
+name: Temp Quick Recurrence UX 1.9.15.2
+
+on:
+  push:
+    branches:
+      - feature/quick-scheduling-recurrence-ux-1-9-15-2
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: feature/quick-scheduling-recurrence-ux-1-9-15-2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+      - name: Apply UX refinement and release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+          s = p.read_text()
+          old = '''            $createSubtitle =\n                "Confirme os horários sugeridos abaixo e selecione Profissional, Paciente e Procedimento.";'''
+          new = '''            $createSubtitle =\n                "Defina os dados do agendamento e, se necessário, inclua outras datas.";'''
+          assert old in s
+          s = s.replace(old, new, 1)
+
+          old = '''            $quickHeader =\n                '<div class=\\"agenda-quick-hero\\"><span class=\\"agenda-quick-hero-icon\\" aria-hidden=\\"true\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("event_available") .\n                '</span><div class=\\"agenda-quick-hero-copy\\"><h2>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($createTitle) .\n                "</h2><p>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($createSubtitle) .\n                '</p></div><a class=\\"ghost small agenda-quick-back\\" href=\\"' .\n                \\Prontoo\\Runtime\\SupportFoundation\\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .\n                '\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("arrow_back") .\n                "<span>Agenda</span></a></div>";\n            $quickSummary =\n                '<div class=\\"agenda-quick-summary\\" aria-label=\\"Resumo do horário inferido\\"><span>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("calendar_month") .\n                "<b>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e(\\Prontoo\\Runtime\\UiComponents\\UiComponentsRuntimeOperations01::date_br($initialDay)) .\n                "</b><small>Data</small></span><span>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("schedule") .\n                "<b>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($initialHour . "–" . $initialEndHour) .\n                "</b><small>Horário</small></span><span>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("stethoscope") .\n                "<b>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($doctorHint) .\n                "</b><small>Profissional</small></span></div>";'''
+          assert old in s
+          s = s.replace(old, '', 1)
+
+          old = '''            $recurrenceFieldset =\n                '<fieldset class=\\"agenda-quick-section agenda-quick-recurrence\\" data-appointment-recurrence><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("repeat") .\n                '<span>Recorrência</span></legend><p class=\\"agenda-recurrence-help\\">Adicione outras datas para o mesmo paciente e profissional. Cada linha cria um novo agendamento.</p><div class=\\"agenda-recurrence-list\\" data-recurrence-list></div><template data-recurrence-template><div class=\\"agenda-recurrence-row\\" data-recurrence-row><label class=\\"field\\"><span>Procedimento</span><select name=\\"recurrence_procedure[]\\" required data-recurrence-procedure>' .\n                $recurrenceProcedureOptions .\n                '</select><small class=\\"field-hint\\" data-recurrence-duration></small></label><label class=\\"field\\"><span>Data/Hora</span><input type=\\"datetime-local\\" name=\\"recurrence_start_at[]\\" required data-recurrence-start></label><button type=\\"button\\" class=\\"ghost small agenda-recurrence-remove\\" data-recurrence-remove>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("delete") .\n                '<span>Remover</span></button></div></template><button type=\\"button\\" class=\\"ghost small agenda-recurrence-add\\" data-recurrence-add>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("add") .\n                '<span>Adicionar recorrência</span></button></fieldset>';'''
+          new = '''            $recurrenceFieldset =\n                '<fieldset class=\\"agenda-quick-section agenda-quick-recurrence\\" data-appointment-recurrence><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("repeat") .\n                '<span>Recorrência</span></legend><div class=\\"agenda-recurrence-list\\" data-recurrence-list></div><template data-recurrence-template><div class=\\"agenda-recurrence-row\\" data-recurrence-row><label class=\\"field\\"><span>Procedimento</span><select name=\\"recurrence_procedure[]\\" required data-recurrence-procedure>' .\n                $recurrenceProcedureOptions .\n                '</select></label><label class=\\"field\\"><span>Data/Hora</span><input type=\\"datetime-local\\" name=\\"recurrence_start_at[]\\" required data-recurrence-start></label><button type=\\"button\\" class=\\"ghost agenda-recurrence-remove\\" data-recurrence-remove aria-label=\\"Remover recorrência\\" title=\\"Remover recorrência\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("delete") .\n                '<span class=\\"sr-only\\">Remover recorrência</span></button></div></template><div class=\\"agenda-recurrence-composer\\" data-recurrence-composer><label class=\\"field\\"><span>Procedimento</span><select data-recurrence-composer-procedure>' .\n                $recurrenceProcedureOptions .\n                '</select></label><label class=\\"field\\"><span>Data/Hora</span><input type=\\"datetime-local\\" data-recurrence-composer-start></label><button type=\\"button\\" class=\\"primary agenda-recurrence-add\\" data-recurrence-add aria-label=\\"Adicionar recorrência\\" title=\\"Adicionar recorrência\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("add") .\n                '<span class=\\"sr-only\\">Adicionar recorrência</span></button></div></fieldset>';'''
+          assert old in s
+          s = s.replace(old, new, 1)
+
+          old = '''            $form =\n                '<section class=\\"form-panel agenda-route-form agenda-quick-form-panel\\">' .\n                $quickHeader .\n                $quickSummary .\n                '<form method=\\"post\\" class=\\"compact agenda-create-form agenda-quick-form\\" data-appointment-create-form>' .\n                \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::csrf_field() .\n                $returnHiddenOperation .\n                '<input type=\\"hidden\\" name=\\"act\\" value=\\"create\\"><fieldset class=\\"agenda-quick-section agenda-quick-time\\"><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("schedule") .\n                '<span>Horário</span></legend><div class=\\"agenda-quick-time-grid\\">' .'''
+          new = '''            $form =\n                '<section class=\\"form-panel agenda-route-form agenda-quick-form-panel\\"><form method=\\"post\\" class=\\"compact agenda-create-form agenda-quick-form\\" data-appointment-create-form>' .\n                \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::csrf_field() .\n                $returnHiddenOperation .\n                '<input type=\\"hidden\\" name=\\"act\\" value=\\"create\\"><fieldset class=\\"agenda-quick-section agenda-quick-main\\"><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("edit_calendar") .\n                '<span>Agendamento</span></legend><div class=\\"agenda-quick-grid\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::select_label(\n                    "Paciente",\n                    "patient_link_id",\n                    $pats,\n                    $prePatientId ?: null,\n                    "required",\n                ) .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::select_label(\n                    \\Prontoo\\Runtime\\ClinicConfig\\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),\n                    "doctor_user_id",\n                    $formDoctorOptions,\n                    $initialDoctor ?: null,\n                    "required",\n                ) .\n                \\Prontoo\\Runtime\\Appointments\\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .\n                "</div><div class=\\"agenda-quick-time-grid\\">' .'''
+          assert old in s
+          s = s.replace(old, new, 1)
+
+          old = '''                '</div></fieldset><fieldset class=\\"agenda-quick-section agenda-quick-main\\"><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("edit_calendar") .\n                '<span>Dados do agendamento</span></legend><div class=\\"agenda-quick-grid\\">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::select_label(\n                    \\Prontoo\\Runtime\\ClinicConfig\\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),\n                    "doctor_user_id",\n                    $formDoctorOptions,\n                    $initialDoctor ?: null,\n                    "required",\n                ) .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::select_label(\n                    "Paciente",\n                    "patient_link_id",\n                    $pats,\n                    $prePatientId ?: null,\n                    "required",\n                ) .\n                \\Prontoo\\Runtime\\Appointments\\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .\n                "</div></fieldset>" .'''
+          new = '''                '</div>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(\n                    "Observações (opcional)",\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("notes", "text", "", 'placeholder=\\"Informação relevante para o atendimento\\"'),\n                ) .\n                "</fieldset>" .'''
+          assert old in s
+          s = s.replace(old, new, 1)
+
+          old = '''                $recurrenceFieldset .\n                \\Prontoo\\Runtime\\Financial\\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .\n                '<fieldset class=\\"agenda-quick-section agenda-quick-notes\\"><legend>' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("notes") .\n                "<span>Observações</span></legend>" .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(\n                    "Observações importantes",\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("notes", "text", "", 'placeholder=\\"Opcional\\"'),\n                ) .\n                '</fieldset><div class=\\"form-actions agenda-quick-actions\\"><a class=\\"ghost\\" href=\\"' .'''
+          new = '''                $recurrenceFieldset .\n                \\Prontoo\\Runtime\\Financial\\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .\n                '<div class=\\"form-actions agenda-quick-actions\\"><a class=\\"ghost\\" href=\\"' .'''
+          assert old in s
+          s = s.replace(old, new, 1)
+          s = s.replace('<span>Desistir</span></a><button type=\\"submit\\" class=\\"primary\\">', '<span>Cancelar</span></a><button type=\\"submit\\" class=\\"primary\\">', 1)
+          s = s.replace('"<span>Confirmar</span></button></div></form></section>";', '"<span>Agendar</span></button></div></form></section>";', 1)
+          p.write_text(s)
+
+          p = Path('public/assets/app.js')
+          s = p.read_text()
+          start = s.index('  function updateAppointmentRecurrenceDuration(select) {')
+          end = s.index('})();', start)
+          newblock = '''  function recurrenceComposer(root) {\n    return {\n      procedure: root && root.querySelector("[data-recurrence-composer-procedure]"),\n      start: root && root.querySelector("[data-recurrence-composer-start]"),\n    };\n  }\n  function seedRecurrenceComposer(root) {\n    if (!root) return;\n    var composer = recurrenceComposer(root);\n    var form = root.closest("form");\n    var mainProcedure = form && form.querySelector("[data-procedure-select]");\n    if (composer.procedure && !composer.procedure.value && mainProcedure && mainProcedure.value)\n      composer.procedure.value = mainProcedure.value;\n  }\n  function addAppointmentRecurrence(button) {\n    var root = button && button.closest("[data-appointment-recurrence]");\n    if (!root) return false;\n    var list = root.querySelector("[data-recurrence-list]");\n    var template = root.querySelector("template[data-recurrence-template]");\n    var composer = recurrenceComposer(root);\n    if (!list || !template || !template.content || !composer.procedure || !composer.start) return false;\n    composer.procedure.setCustomValidity("");\n    composer.start.setCustomValidity("");\n    if (!composer.procedure.value) {\n      composer.procedure.setCustomValidity("Selecione o procedimento.");\n      composer.procedure.reportValidity();\n      return false;\n    }\n    if (!composer.start.value) {\n      composer.start.setCustomValidity("Informe a data e hora.");\n      composer.start.reportValidity();\n      return false;\n    }\n    var fragment = template.content.cloneNode(true);\n    var row = fragment.querySelector("[data-recurrence-row]");\n    var select = row && row.querySelector("[data-recurrence-procedure]");\n    var start = row && row.querySelector("[data-recurrence-start]");\n    if (select) select.value = composer.procedure.value;\n    if (start) start.value = composer.start.value;\n    list.appendChild(fragment);\n    composer.start.value = "";\n    composer.start.focus();\n    return true;\n  }\n  document.querySelectorAll("[data-appointment-recurrence]").forEach(seedRecurrenceComposer);\n  d.addEventListener("click", function (ev) {\n    var add = closest(ev.target, "[data-recurrence-add]");\n    if (add) {\n      ev.preventDefault();\n      addAppointmentRecurrence(add);\n      return;\n    }\n    var remove = closest(ev.target, "[data-recurrence-remove]");\n    if (remove) {\n      ev.preventDefault();\n      var row = remove.closest("[data-recurrence-row]");\n      if (row) row.remove();\n    }\n  });\n  d.addEventListener("change", function (ev) {\n    var mainProcedure = closest(ev.target, "[data-appointment-create-form] [data-procedure-select]");\n    if (!mainProcedure) return;\n    var form = mainProcedure.closest("form");\n    var root = form && form.querySelector("[data-appointment-recurrence]");\n    var composer = recurrenceComposer(root);\n    if (composer.procedure && !composer.procedure.value) composer.procedure.value = mainProcedure.value;\n  });\n  d.addEventListener("submit", function (ev) {\n    var form = closest(ev.target, "[data-appointment-create-form]");\n    if (!form) return;\n    var root = form.querySelector("[data-appointment-recurrence]");\n    if (!root) return;\n    var composer = recurrenceComposer(root);\n    if (!composer.procedure || !composer.start) return;\n    var hasProcedure = !!composer.procedure.value;\n    var hasStart = !!composer.start.value;\n    if (!hasProcedure && !hasStart) return;\n    ev.preventDefault();\n    if (!addAppointmentRecurrence(root.querySelector("[data-recurrence-add]"))) return;\n    if (form.requestSubmit) form.requestSubmit();\n    else form.submit();\n  });\n'''
+          s = s[:start] + newblock + s[end:]
+          p.write_text(s)
+
+          p = Path('design/styles/application.css')
+          s = p.read_text()
+          old = '''.agenda-quick-recurrence{display:grid;gap:12px}\n.agenda-recurrence-help{margin:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}\n.agenda-recurrence-list{display:grid;gap:10px}\n.agenda-recurrence-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr) auto;gap:10px;align-items:end;padding:12px;border:1px solid var(--md-sys-color-outline-variant);border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}\n.agenda-recurrence-row .field{margin:0;min-width:0}\n.agenda-recurrence-remove{align-self:end;white-space:nowrap}\n.agenda-recurrence-add{justify-self:start}\n@media(max-width:720px){.agenda-quick-recurrence .agenda-recurrence-row{grid-template-columns:1fr}.agenda-quick-recurrence .agenda-recurrence-remove{justify-self:start}}'''
+          new = '''.agenda-quick-recurrence{display:grid;gap:10px}\n.agenda-recurrence-list{display:grid;gap:8px}\n.agenda-recurrence-row,.agenda-recurrence-composer{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr) 42px;gap:10px;align-items:end}\n.agenda-recurrence-row{padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--md-sys-color-outline-variant) 78%,transparent)}\n.agenda-recurrence-row .field,.agenda-recurrence-composer .field{margin:0;min-width:0}\n.agenda-recurrence-row :is(select,input),.agenda-recurrence-composer :is(select,input){min-width:0;width:100%}\n.agenda-recurrence-remove,.agenda-recurrence-add{width:42px;min-width:42px;height:42px;min-height:42px;padding:0;align-self:end;border-radius:14px}\n@media(max-width:720px){.agenda-quick-recurrence .agenda-recurrence-row,.agenda-quick-recurrence .agenda-recurrence-composer{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px;gap:8px}.agenda-quick-recurrence .agenda-recurrence-remove,.agenda-quick-recurrence .agenda-recurrence-add{width:40px;min-width:40px;height:40px;min-height:40px}}'''
+          assert old in s
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.2-quick-scheduling-recurrence-ux",
+            "package_type": "micro_ux",
+            "notes": "Simplifica o Agendamento Rápido, reduzindo informação repetida e tornando a inclusão de recorrências uma composição inline por Procedimento e Data/Hora com ação de adição no fim da linha.",
+            "logic_changes": true,
+            "visual_changes": true,
+            "documentation_changes": true,
+            "changelog": {
+              "title": "Agendamento Rápido mais simples e recorrência inline",
+              "items": [
+                "Substitui o botão textual Adicionar recorrência por uma linha inline com Procedimento, Data/Hora e ícone de adição.",
+                "Mantém uma linha de composição sempre disponível e permite adicionar sucessivas recorrências sem limite artificial.",
+                "Remove o cabeçalho e o resumo duplicados dentro do card, preservando título, contexto e retorno no PageHead.",
+                "Consolida dados principais e horários em uma única seção Agendamento, reduzindo fragmentação visual.",
+                "Move Observações para o grupo principal como campo opcional e elimina um fieldset exclusivo redundante.",
+                "Renomeia as ações finais para Cancelar e Agendar, com linguagem mais direta e operacional."
+              ]
+            }
+          }
+          JSON
+          php tools/release-version --write --date=2026-09-15 --timestamp=2026-09-15T09:20:00-04:00 --expected-current=1.9.15.1 --metadata-file=/tmp/release.json
+          php tools/release-contract-reconcile --write
+          node --check public/assets/app.js
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/test-fast
+          php tools/runtime-refactor-on-touch-check --base-ref=origin/prontoo
+          php tools/presentation-visual-contract-check
+          git diff --check
+          git rm .github/workflows/zz-temp-quick-recurrence-ux-1-9-15-2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Simplifica recorrência e Agendamento Rápido"
+          git push origin HEAD:feature/quick-scheduling-recurrence-ux-1-9-15-2
