@@ -58,6 +58,36 @@ final class AppointmentCommandService
         );
     }
 
+    public function agendaBlockConflict(
+        int $clinicId,
+        ?int $doctorUserId,
+        string $startAt,
+        string $endAt,
+        int $ignoreBlockId,
+        bool $lockRows,
+    ): ?array {
+        if ($clinicId <= 0) {
+            return null;
+        }
+        $doctorUserId = $doctorUserId !== null && $doctorUserId > 0 ? $doctorUserId : null;
+        $params = [$clinicId, $endAt, $startAt];
+        if ($ignoreBlockId > 0) {
+            $params[] = $ignoreBlockId;
+        }
+        if ($doctorUserId !== null) {
+            $params[] = $doctorUserId;
+        }
+        return $this->data->row(
+            'operational.appointments.03.agenda_conflict_message.03',
+            $params,
+            [
+                'ignoreBlock' => $ignoreBlockId > 0,
+                'doctorScoped' => $doctorUserId !== null,
+                'lockRows' => $lockRows,
+            ],
+        );
+    }
+
     public function createAgendaNote(
         int $clinicId,
         ?int $doctorUserId,

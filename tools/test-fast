@@ -1317,6 +1317,7 @@ $noConflict = static fn(...$arguments): string => '';
 $loadedAgendaNote = $appointmentCommands->agendaNoteById(7, 702);
 $visibleTimedAgendaNotes = $appointmentCommands->visibleTimedAgendaNotes(7, 91, '2026-08-11');
 $reservationConflict = $appointmentCommands->timedAgendaReservationConflict(7, 91, '2026-08-11 13:00:00', '2026-08-11 13:30:00', true);
+$blockConflict = $appointmentCommands->agendaBlockConflict(7, 91, '2026-08-11 13:00:00', '2026-08-11 13:30:00', 0, true);
 $createdAgendaNoteId = $appointmentCommands->createAgendaNote(
     7,
     91,
@@ -1540,6 +1541,7 @@ $same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_co
 $same(702, (int) ($loadedAgendaNote['id'] ?? 0), 'application.appointment_commands.note_loaded');
 $same(702, (int) ($visibleTimedAgendaNotes[0]['id'] ?? 0), 'application.appointment_commands.timed_notes_visible');
 $same(null, $reservationConflict, 'application.appointment_commands.reservation_conflict_absent');
+$same(null, $blockConflict, 'application.appointment_commands.block_conflict_absent');
 $same(701, $createdAgendaNoteId, 'application.appointment_commands.note_created');
 $same('Horário já pré-reservado.', $agendaNoteConflict, 'application.appointment_commands.note_conflict');
 $assert($removedAgendaNote, 'application.appointment_commands.note_removed');

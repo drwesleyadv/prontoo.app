@@ -394,18 +394,14 @@ final class AppointmentsRuntimeOperations03
                 $detail .
                 ". Ajuste o horário, escolha outro profissional disponível ou remova/reagende o conflito antes de concluir a operação.";
         }
-        $blockParams = [$cid, $endAt, $startAt];
-        if ($ignoreBlockId > 0) {
-            $blockParams[] = $ignoreBlockId;
-        }
-        if ($doctorId !== null) {
-            $blockParams[] = $doctorId;
-        }
-        $block = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.03', $blockParams, [
-            'ignoreBlock' => $ignoreBlockId > 0,
-            'doctorScoped' => $doctorId !== null,
-            'lockRows' => $lock,
-        ]);
+        $block = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->agendaBlockConflict(
+            $cid,
+            $doctorId,
+            $startAt,
+            $endAt,
+            $ignoreBlockId,
+            $lock,
+        );
         if ($block) {
             $creator = "";
             $u = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.04', [(int) ($block["created_by"] ?? 0), $cid], []);
