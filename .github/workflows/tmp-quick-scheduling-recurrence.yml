@@ -45,17 +45,16 @@ jobs:
                   target['assertions'].append(assertion)
           path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
           PY
-      - name: Keep responsive selectors canonical
+      - name: Prepare canonical responsive selectors
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('tools/tmp-quick-scheduling-recurrence')
-          text = path.read_text()
+          source = Path('tools/tmp-quick-scheduling-recurrence').read_text()
           old = '@media(max-width:720px){.agenda-recurrence-row{grid-template-columns:1fr}.agenda-recurrence-remove{justify-self:start}}'
           new = '@media(max-width:720px){.agenda-quick-recurrence .agenda-recurrence-row{grid-template-columns:1fr}.agenda-quick-recurrence .agenda-recurrence-remove{justify-self:start}}'
-          if old not in text:
+          if old not in source:
               raise SystemExit('Trecho responsivo da recorrência não encontrado.')
-          path.write_text(text.replace(old, new, 1))
+          Path('/tmp/tmp-quick-scheduling-recurrence').write_text(source.replace(old, new, 1))
           PY
       - name: Apply recurrence feature
-        run: bash tools/tmp-quick-scheduling-recurrence
+        run: bash /tmp/tmp-quick-scheduling-recurrence
