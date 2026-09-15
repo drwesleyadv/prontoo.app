@@ -44,7 +44,7 @@ jobs:
           node --check public/assets/app.js
           php tools/release-contract-reconcile --check
           php tools/release-version
-          php tools/version-asset-contract-check
+          php tools/version-asset-contract-check.php
           php tools/superseded-reference-contract-check
           php tools/test-fast
           php tools/quality-gate --fast
