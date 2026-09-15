@@ -21,6 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's/text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci/text COLLATE utf8mb4_unicode_ci/g' tools/timed-note-apply.py
           python3 tools/timed-note-apply.py
           rm -f tools/timed-note-apply.py .github/workflows/timed-note-inspect.yml .github/workflows/timed-note-apply.yml
           php tools/presentation-css-build --write
