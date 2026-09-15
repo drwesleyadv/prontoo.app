@@ -46,6 +46,7 @@ jobs:
               raise SystemExit(f'asset fallback expected once, found {text.count(old)}')
           path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
+          php tools/presentation-css-build --write
           git rm \
             tools/tmp-agenda-day-block-toggle-1-9-15-4.py \
             tools/tmp-agenda-day-block-toggle-driver-1-9-15-4.py \
@@ -64,6 +65,8 @@ jobs:
           php tools/release-version
           php tools/version-asset-contract-check.php
           php tools/superseded-reference-contract-check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
           php tools/test-fast
           php tools/quality-gate --fast
           git diff --check
