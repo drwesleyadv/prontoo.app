@@ -1,10 +1,9 @@
 # Versão canônica
 
-## 1.9.15.2 — Agendamento Rápido mais simples e recorrência inline
+## 1.9.15.3 — Correção da adição de recorrências
 
-- Substitui o botão textual Adicionar recorrência por uma linha inline com Procedimento, Data/Hora e ícone de adição.
-- Mantém uma linha de composição sempre disponível e permite adicionar sucessivas recorrências sem limite artificial.
-- Remove o cabeçalho e o resumo duplicados dentro do card, preservando título, contexto e retorno no PageHead.
-- Consolida dados principais e horários em uma única seção Agendamento, reduzindo fragmentação visual.
-- Move Observações para o grupo principal como campo opcional e elimina um fieldset exclusivo redundante.
-- Renomeia as ações finais para Cancelar e Agendar, com linguagem mais direta e operacional.
+- Isola a inicialização da recorrência do módulo de elementos flutuantes da Agenda.
+- Garante que o botão de adição registre seu listener de forma própria e idempotente.
+- Preserva a composição inline por Procedimento e Data/Hora sem alterar o backend transacional.
+- Mantém a inclusão sucessiva de recorrências e a limpeza da Data/Hora após cada adição.
+- Adiciona contrato automatizado para impedir regressão no clique, clonagem e inclusão da linha de recorrência.
