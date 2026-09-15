@@ -273,6 +273,7 @@ final class AppointmentCommandService
                 [$clinicId],
             );
             $ids = [];
+            $batchWindows = [];
             foreach (array_values($appointments) as $index => $appointment) {
                 $startAt = trim((string) ($appointment['start_at'] ?? ''));
                 $endAt = trim((string) ($appointment['end_at'] ?? ''));
@@ -282,6 +283,19 @@ final class AppointmentCommandService
                 if ($startAt === '' || $endAt === '' || $procedureId <= 0) {
                     throw new RuntimeException($prefix . 'Informe procedimento e Data/Hora válidos.');
                 }
+                $startTimestamp = strtotime($startAt);
+                $endTimestamp = strtotime($endAt);
+                if ($startTimestamp === false || $endTimestamp === false || $endTimestamp <= $startTimestamp) {
+                    throw new RuntimeException($prefix . 'Informe Data/Hora válida e término posterior ao início.');
+                }
+                foreach ($batchWindows as [$batchStart, $batchEnd]) {
+                    if ($startTimestamp < $batchEnd && $endTimestamp > $batchStart) {
+                        throw new RuntimeException(
+                            $prefix . 'O horário se sobrepõe a outro agendamento deste mesmo lote.',
+                        );
+                    }
+                }
+                $batchWindows[] = [$startTimestamp, $endTimestamp];
                 $procedure = $this->data->row(
                     'operational.appointments.05.page_appointments.36',
                     [$procedureId, $clinicId],

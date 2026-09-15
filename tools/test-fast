@@ -1398,6 +1398,36 @@ $batchIds = $appointmentCommands->createAppointmentBatch(
         $appointmentBatchSync[] = $arguments;
     },
 );
+$appointmentBatchOverlap = '';
+try {
+    $appointmentCommands->createAppointmentBatch(
+        7,
+        51,
+        91,
+        [
+            [
+                'start_at' => '2026-08-19 15:00:00',
+                'end_at' => '2026-08-19 16:00:00',
+                'procedure_id' => 31,
+                'notes' => 'lote',
+            ],
+            [
+                'start_at' => '2026-08-19 15:30:00',
+                'end_at' => '2026-08-19 16:30:00',
+                'procedure_id' => 31,
+                'notes' => 'lote',
+            ],
+        ],
+        11,
+        $noConflict,
+        $noConflict,
+        $noConflict,
+        static fn(int $clinicId, int $procedureId, int $index): array => [false, '', 1300, 0, null],
+        static function (...$arguments): void {},
+    );
+} catch (RuntimeException $e) {
+    $appointmentBatchOverlap = $e->getMessage();
+}
 $appointmentConflict = '';
 try {
     $appointmentCommands->createBlock(
@@ -1416,6 +1446,7 @@ $same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_co
 $assert($removedBlock, 'application.appointment_commands.remove_block');
 $same([701, 701], $batchIds, 'application.appointment_commands.batch_ids');
 $same(2, count($appointmentBatchSync), 'application.appointment_commands.batch_financial_sync');
+$same('Recorrência 1: O horário se sobrepõe a outro agendamento deste mesmo lote.', $appointmentBatchOverlap, 'application.appointment_commands.batch_overlap');
 $same('Horário indisponível.', $appointmentConflict, 'application.appointment_commands.conflict');
 $same(
     [[7, 81, 11, 0], [7, 701, 11, 41]],
