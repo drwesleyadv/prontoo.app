@@ -1,0 +1,26 @@
+name: Timed Note Inspection
+on:
+  push:
+    branches:
+      - feature/timed-agenda-notes
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Inspect agenda styles and scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== CSS agenda-day-event ==='
+          grep -n -A45 -B20 'agenda-day-event' design/styles/application.css | head -n 220 || true
+          echo '=== CSS agenda-day-note ==='
+          grep -n -A45 -B20 'agenda-day-note' design/styles/application.css | head -n 220 || true
+          echo '=== JS event geometry ==='
+          grep -n -A60 -B30 'querySelectorAll(".agenda-day-event")' public/assets/app.js | head -n 180 || true
+          echo '=== DOMAIN note helpers ==='
+          grep -n -A80 -B20 'agenda_note_role_codes' app/Domain/Appointments/AppointmentsDomainOperations01.php | head -n 180 || true
+          echo '=== VERSION ==='
+          php -r '$v=json_decode(file_get_contents("version.json"), true); echo $v["version"],"\n",$v["release_date"],"\n";'
