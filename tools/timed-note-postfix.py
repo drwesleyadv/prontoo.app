@@ -10,6 +10,15 @@ def replace_once(path, old, new):
     p.write_text(text.replace(old, new, 1))
 
 
+def replace_all(path, old, new):
+    p = Path(path)
+    text = p.read_text()
+    count = text.count(old)
+    if count < 1:
+        raise SystemExit(f'{path}: expected at least one occurrence')
+    p.write_text(text.replace(old, new))
+
+
 replace_once(
     'tools/test-fast',
     'str_contains($agendaRuntimeSource, \'if ($eventHtml === "" && !$dayBlocked)\')',
@@ -31,17 +40,17 @@ replace_once(
                 "</article>";''',
 )
 
-replace_once(
+replace_all(
     'design/styles/application.css',
     'body[data-route="appointments"] .agenda-day-event strong{',
     'body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) strong{',
 )
-replace_once(
+replace_all(
     'design/styles/application.css',
     'body[data-route="appointments"] .agenda-day-event small{',
     'body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) small{',
 )
-replace_once(
+replace_all(
     'design/styles/application.css',
     'body[data-route="appointments"] .agenda-day-event em{',
     'body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) em{',
