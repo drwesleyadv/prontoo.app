@@ -66,7 +66,7 @@ Preserve os contratos vigentes:
 
 - autenticação por senha seguida do fluxo MFA tri-state fail-closed;
 - MFA obrigatório para Desenvolvedor e ciclo de reautenticação dos demais conforme a política vigente;
-- expiração por inatividade de 3600 segundos;
+- expiração por inatividade de 14400 segundos (4 horas);
 - mutações HTTP protegidas por CSRF;
 - logout e revogação global não podem ser enfraquecidos;
 - origem de auditoria, ator, horário, IP e agente não podem ser substituídos por dados públicos não confiáveis;

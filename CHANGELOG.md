@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.9.15.6 — Agenda diária: bloqueio mais discreto e previsível
+## 1.9.15.7 — Sessão autenticada: inatividade de 4 horas
 
-- Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.
-- Representa o bloqueio integral por atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.
-- Desativa a criação rápida por slots quando o dia inteiro está bloqueado.
-- Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.
-- Preserva bloqueios parciais, permissões, regras transacionais e schema existente.
+- Amplia o limite de inatividade autenticada de 3600 para 14400 segundos.
+- Mantém o limite absoluto de duração da sessão em 43200 segundos (12 horas).
+- Mantém MFA, CSRF, logout e revogação global de sessões sem relaxamento.
+- Atualiza o contrato executável de segurança para exigir o novo limite de inatividade.
+- Alinha documentação e metadados canônicos sem alteração de schema ou banco.

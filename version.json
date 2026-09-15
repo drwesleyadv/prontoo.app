@@ -1,18 +1,18 @@
 {
-    "version": "1.9.15.6",
-    "release": "1.9.15.6",
-    "generated_at_unix": 1789495380,
-    "generated_at": "2026-09-15T14:03:00-04:00",
-    "updated_at": "2026-09-15T14:03:00-04:00",
-    "build": "1.9.15.6-agenda-day-blocked-ux",
+    "version": "1.9.15.7",
+    "release": "1.9.15.7",
+    "generated_at_unix": 1789501860,
+    "generated_at": "2026-09-15T15:51:00-04:00",
+    "updated_at": "2026-09-15T15:51:00-04:00",
+    "build": "1.9.15.7-session-idle-4h",
     "asset_version": "1.9.15.6",
-    "package_type": "micro_ux",
+    "package_type": "security_policy",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
     "logic_changes": true,
-    "visual_changes": true,
+    "visual_changes": false,
     "functional_equivalence_policy": "maintenance_fixes_preserve_user_visible_behavior_and_schema",
     "architecture_policy": "php-layered-invariants-v2",
     "native_unit_policy": "native-unit-contract-v1",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Refina a Agenda diária para manter o seletor em uma única linha, representar o bloqueio integral de forma discreta e manter o cadeado desabilitado como sinalização quando há consultas.",
+    "notes": "Amplia a expiração por inatividade da sessão autenticada para 4 horas, preservando o limite absoluto de 12 horas e os demais controles de autenticação.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.9.15.6-release",
-    "deployment_sync_requested_at": "2026-09-15T14:03:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.15.7-release",
+    "deployment_sync_requested_at": "2026-09-15T15:51:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -56,7 +56,7 @@
             "speed": "ssd/telemetry/speed.json"
         }
     },
-    "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work",
+    "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_14400_generation_cascade_maestro_supervised_deferred_work",
     "runtime_readiness_policy": "login_and_normal_routes_verify_schema_contract_and_integrity_lightcheck_with_uncached_fallback_when_readiness_lock_cache_is_unavailable",
     "release_reconciliation_policy": "version_json_canonical_explicit_bump_then_deterministic_reconcile_ci_read_only",
     "rewrite_scope": "superseded_release_references_and_compatibility_only",
@@ -86,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Agenda diária: bloqueio mais discreto e previsível",
+        "title": "Sessão autenticada: inatividade de 4 horas",
         "items": [
-            "Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.",
-            "Representa o bloqueio integral por atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.",
-            "Desativa a criação rápida por slots quando o dia inteiro está bloqueado.",
-            "Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.",
-            "Preserva bloqueios parciais, permissões, regras transacionais e schema existente."
+            "Amplia o limite de inatividade autenticada de 3600 para 14400 segundos",
+            "Mantém o limite absoluto de duração da sessão em 43200 segundos (12 horas)",
+            "Mantém MFA, CSRF, logout e revogação global de sessões sem relaxamento",
+            "Atualiza o contrato executável de segurança para exigir o novo limite de inatividade",
+            "Alinha documentação e metadados canônicos sem alteração de schema ou banco"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",

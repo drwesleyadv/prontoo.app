@@ -241,7 +241,7 @@ if (!str_contains($nativeSecurityAccessSource, 'public static function password_
     $errors[] = 'password_minimum_8_policy';
 }
 $prontooSecuritySource = (string) file_get_contents($root . '/app/prontoo.php');
-if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600\s*;/', $prontooSecuritySource) ||
+if (!preg_match('/const\s+PRONTOO_SESSION_IDLE_SECONDS\s*=\s*14400\s*;/', $prontooSecuritySource) ||
     !str_contains($prontooSecuritySource, 'PRONTOO_AUTH_POLICY_GENERATION')) {
     $errors[] = 'session_idle_or_policy_generation';
 }
