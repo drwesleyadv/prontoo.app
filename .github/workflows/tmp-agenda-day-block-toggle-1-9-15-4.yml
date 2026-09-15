@@ -36,6 +36,16 @@ jobs:
             target="${source/1.9.15.3/1.9.15.4}"
             git mv "$source" "$target"
           done
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/prontoo.php')
+          text = path.read_text(encoding='utf-8')
+          old = 'PRONTOO_ASSET_REV_FALLBACK = "1.9.15.3"'
+          new = 'PRONTOO_ASSET_REV_FALLBACK = "1.9.15.4"'
+          if text.count(old) != 1:
+              raise SystemExit(f'asset fallback expected once, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
           git rm \
             tools/tmp-agenda-day-block-toggle-1-9-15-4.py \
             tools/tmp-agenda-day-block-toggle-driver-1-9-15-4.py \
