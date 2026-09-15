@@ -1,0 +1,58 @@
+name: Temporary agenda day block ownership
+
+on:
+  push:
+    branches:
+      - feature/agenda-day-block-toggle-1-9-15-4
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/agenda-day-block-toggle-1-9-15-4
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Apply ownership guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/tmp-agenda-day-block-ownership-1-9-15-4.py
+          git rm tools/tmp-agenda-day-block-ownership-1-9-15-4.py .github/workflows/tmp-agenda-day-block-ownership-1-9-15-4.yml
+          php tools/release-contract-reconcile --write
+      - name: Validate ownership guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l app/Application/Operational/AppointmentCommandService.php
+          php -l app/Infrastructure/Operational/AppointmentsSqlCatalog05.php
+          php -l app/Runtime/Appointments/AppointmentsRuntimeOperations05.php
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/presentation-css-build --check
+          php tools/test-fast
+          php tools/quality-gate --fast
+          git diff --check
+      - name: Commit clean product tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Preserva propriedade no bloqueio diário"
+          git push origin HEAD:feature/agenda-day-block-toggle-1-9-15-4
