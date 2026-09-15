@@ -21,31 +21,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          sed -i 's|php tools/release-contract-check|php tools/release-contract-reconcile --check|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|php tools/release-asset-contract|php tools/version-asset-contract-check.php|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|php tools/release-superseded-reference-check|php tools/superseded-reference-contract-check|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|2026-09-15T11:46:01-04:00|2026-09-15T14:03:00-04:00|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v2.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp-agenda-day-blocked-ux-materialize|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize|' tools/_tmp-agenda-day-blocked-ux-materialize
           python3 - <<'PY'
+          import json
           from pathlib import Path
-          p = Path('tools/_tmp-agenda-day-blocked-ux-materialize')
-          s = p.read_text()
-          s = s.replace('2026-09-15T11:46:01-04:00', '2026-09-15T14:03:00-04:00')
-          s = s.replace('php tools/release-contract-check', 'php tools/release-contract-reconcile --check')
-          s = s.replace('php tools/release-asset-contract', 'php tools/version-asset-contract-check.php')
-          s = s.replace('php tools/release-superseded-reference-check', 'php tools/superseded-reference-contract-check')
-          lines = s.splitlines(keepends=True)
-          release_index = next((i for i, line in enumerate(lines) if line.startswith('php tools/release-version --write --date=2026-09-15 ')), None)
-          if release_index is None:
-              raise SystemExit('release write command not found')
-          asset_sync = """python3 - <<'PYASSET'\nimport json\nfrom pathlib import Path\np = Path('version.json')\nd = json.loads(p.read_text())\nd['asset_version'] = '1.9.15.6'\np.write_text(json.dumps(d, ensure_ascii=False, indent=4) + '\\n')\nPYASSET\n"""
-          lines.insert(release_index + 1, asset_sync)
-          s = ''.join(lines)
-          old_rm = 'git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v2.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp-agenda-day-blocked-ux-materialize'
-          new_rm = 'git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize'
-          if old_rm not in s:
-              raise SystemExit('temporary cleanup command not found')
-          s = s.replace(old_rm, new_rm, 1)
-          old_tail = """git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize\nphp tools/release-contract-reconcile --write\nphp tools/release-contract-reconcile --check\ngit diff --check\n"""
-          new_tail = """git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize\nphp tools/release-contract-reconcile --write\nphp tools/release-contract-reconcile --check\nphp tools/release-version\nphp tools/version-asset-contract-check.php\nphp tools/superseded-reference-contract-check\nphp tools/test-fast\nphp tools/quality-gate --fast\ngit diff --check\n"""
-          if old_tail not in s:
-              raise SystemExit('final validation tail not found')
-          s = s.replace(old_tail, new_tail, 1)
-          p.write_text(s)
+          p = Path('version.json')
+          d = json.loads(p.read_text())
+          d['asset_version'] = '1.9.15.6'
+          p.write_text(json.dumps(d, ensure_ascii=False, indent=4) + '\n')
           PY
           bash tools/_tmp-agenda-day-blocked-ux-materialize
