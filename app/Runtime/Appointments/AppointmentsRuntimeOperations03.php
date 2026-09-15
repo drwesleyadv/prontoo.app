@@ -394,18 +394,14 @@ final class AppointmentsRuntimeOperations03
                 $detail .
                 ". Ajuste o horário, escolha outro profissional disponível ou remova/reagende o conflito antes de concluir a operação.";
         }
-        $blockParams = [$cid, $endAt, $startAt];
-        if ($ignoreBlockId > 0) {
-            $blockParams[] = $ignoreBlockId;
-        }
-        if ($doctorId !== null) {
-            $blockParams[] = $doctorId;
-        }
-        $block = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.03', $blockParams, [
-            'ignoreBlock' => $ignoreBlockId > 0,
-            'doctorScoped' => $doctorId !== null,
-            'lockRows' => $lock,
-        ]);
+        $block = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->agendaBlockConflict(
+            $cid,
+            $doctorId,
+            $startAt,
+            $endAt,
+            $ignoreBlockId,
+            $lock,
+        );
         if ($block) {
             $creator = "";
             $u = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.03.agenda_conflict_message.04', [(int) ($block["created_by"] ?? 0), $cid], []);
@@ -437,6 +433,34 @@ final class AppointmentsRuntimeOperations03
                 " se sobrepõe a um " .
                 $detail .
                 ". Ajuste o horário, escolha outro profissional disponível ou remova o bloqueio antes de concluir a operação.";
+        }
+        if ($doctorId !== null) {
+            $reservation = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->timedAgendaReservationConflict(
+                $cid,
+                $doctorId,
+                $startAt,
+                $endAt,
+                $lock,
+            );
+            if ($reservation) {
+                $doctorLabel = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
+                    \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_doctor_name($cid, $doctorId),
+                );
+                $reservedPeriod =
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $reservation["start_at"], $cid) .
+                    "–" .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $reservation["end_at"], $cid);
+                return
+                    "Não é possível concluir " .
+                    $operation .
+                    ": o período " .
+                    $period .
+                    " na agenda de " .
+                    $doctorLabel .
+                    " se sobrepõe à pré-reserva " .
+                    $reservedPeriod .
+                    ". Remova a anotação de pré-reserva ou escolha outro horário.";
+            }
         }
         return null;
     

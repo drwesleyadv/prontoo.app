@@ -49,12 +49,19 @@ final class AppointmentsSqlCatalog03
             'operational.appointments.03.agenda_conflict_message.04' => (
                 "SELECT u.name FROM pi_users u WHERE u.id=? AND EXISTS (SELECT 1 FROM pi_user_roles ur WHERE ur.user_id=u.id AND ur.clinic_id=? AND ur.active=1) LIMIT 1"
             ),
+            'operational.appointments.03.agenda_conflict_message.05' => (
+                "SELECT id,doctor_user_id,start_at,end_at,created_by FROM pi_agenda_notes WHERE clinic_id=? AND doctor_user_id=? AND deleted_at IS NULL AND start_at IS NOT NULL AND end_at IS NOT NULL AND start_at < ? AND end_at > ? ORDER BY start_at ASC LIMIT 1" .
+                (!empty($lockRows) ? " FOR UPDATE" : "")
+            ),
             'operational.appointments.03.agenda_note_visible_for_day.01' => (
-                "SELECT n.id,n.note_date,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all')" .
+                "SELECT n.id,n.note_date,n.start_at,n.end_at,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.start_at IS NULL AND n.end_at IS NULL AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all')" .
                                 ((int) $roleCount > 0
                                     ? " OR (n.target_scope='role' AND n.target_role IN (" . OperationalSequenceSql::placeholders((int) $roleCount) . "))"
                                     : "") .
                                 ") ORDER BY n.id DESC LIMIT 1"
+            ),
+            'operational.appointments.03.agenda_notes_timed_visible_for_day.01' => (
+                "SELECT n.id,n.doctor_user_id,n.note_date,n.start_at,n.end_at,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.doctor_user_id=? AND n.note_date=? AND n.start_at IS NOT NULL AND n.end_at IS NOT NULL AND n.deleted_at IS NULL ORDER BY n.start_at ASC,n.id DESC LIMIT 100"
             ),
             default => throw new RuntimeException('Operação SQL operacional desconhecida.'),
         };

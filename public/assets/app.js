@@ -3730,6 +3730,7 @@ document.addEventListener(
     var canvas = ev.target.closest && ev.target.closest("[data-agenda-canvas]");
     hideAgendaBlockHover(canvas || null);
     if (!canvas || canvas.closest(".agenda-week-day-shell")) return;
+    if (ev.target.closest && ev.target.closest(".agenda-day-event-note")) return;
     var base = agendaBlockActionBase();
     if (!base) return;
     var slotIndex = agendaSlotIndexFromPointer(canvas, ev);
@@ -3760,7 +3761,7 @@ document.addEventListener(
     if (
       ev.target.closest &&
       ev.target.closest(
-        ".agenda-day-event,.agenda-day-event-block,a,button,input,select,textarea,summary,details",
+        ".agenda-day-event,.agenda-day-event-block,.agenda-day-event-note,a,button,input,select,textarea,summary,details",
       )
     )
       return;

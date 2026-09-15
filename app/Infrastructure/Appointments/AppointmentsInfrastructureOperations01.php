@@ -43,6 +43,9 @@ final class AppointmentsInfrastructureOperations01
         }
         return $ready =
             \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_table_exists("pi_agenda_notes") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "doctor_user_id") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "start_at") &&
+            \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "end_at") &&
             \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_by") &&
             \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_at");
     
