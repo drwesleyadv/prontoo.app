@@ -5,7 +5,7 @@
     "generated_at": "2026-09-15T09:19:00-04:00",
     "updated_at": "2026-09-15T09:19:00-04:00",
     "build": "1.9.15.2-quick-scheduling-recurrence-ux",
-    "asset_version": "1.9.15.1",
+    "asset_version": "1.9.15.2",
     "package_type": "micro_ux",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
