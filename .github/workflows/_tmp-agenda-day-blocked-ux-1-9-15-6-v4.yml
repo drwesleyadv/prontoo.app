@@ -1,0 +1,28 @@
+name: tmp agenda day blocked ux 1.9.15.6 v4
+on:
+  push:
+    branches:
+      - feature/agenda-day-blocked-ux-1-9-15-6
+permissions:
+  contents: write
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: '8.4'
+      - name: Materialize and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's|php tools/release-contract-check|php tools/release-contract-reconcile --check|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|php tools/release-asset-contract|php tools/version-asset-contract-check.php|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|php tools/release-superseded-reference-check|php tools/superseded-reference-contract-check|g' tools/_tmp-agenda-day-blocked-ux-materialize
+          sed -i 's|.github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp|.github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v4.yml tools/_tmp|' tools/_tmp-agenda-day-blocked-ux-materialize
+          bash tools/_tmp-agenda-day-blocked-ux-materialize
