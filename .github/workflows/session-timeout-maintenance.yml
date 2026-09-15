@@ -1,0 +1,101 @@
+name: Session Timeout Maintenance
+
+on:
+  push:
+    branches:
+      - fix/session-idle-4h
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply canonical session policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+
+          replacements = {
+              Path('app/prontoo.php'): [
+                  ('const PRONTOO_SESSION_IDLE_SECONDS = 3600;', 'const PRONTOO_SESSION_IDLE_SECONDS = 14400;'),
+              ],
+              Path('tools/install-security-check.php'): [
+                  (r'PRONTOO_SESSION_IDLE_SECONDS\\s*=\\s*3600', r'PRONTOO_SESSION_IDLE_SECONDS\\s*=\\s*14400'),
+              ],
+              Path('AGENTS.md'): [
+                  ('expiração por inatividade de 3600 segundos;', 'expiração por inatividade de 14400 segundos (4 horas);'),
+              ],
+          }
+          for path, pairs in replacements.items():
+              text = path.read_text()
+              for old, new in pairs:
+                  count = text.count(old)
+                  if count != 1:
+                      raise SystemExit(f'{path}: esperado 1 ocorrência de {old!r}, encontrado {count}')
+                  text = text.replace(old, new)
+              path.write_text(text)
+
+          for path in [Path('version.json'), Path('app/architecture.manifest.json'), Path('app/update.manifest.json')]:
+              data = json.loads(path.read_text())
+              policy = data.get('authentication_policy')
+              if policy != 'password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_3600_generation_cascade_maestro_supervised_deferred_work':
+                  raise SystemExit(f'{path}: authentication_policy inesperada: {policy!r}')
+              data['authentication_policy'] = 'password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_14400_generation_cascade_maestro_supervised_deferred_work'
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+          PY
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.7-session-idle-4h",
+            "package_type": "security_policy",
+            "notes": "Amplia a expiração por inatividade da sessão autenticada para 4 horas, preservando o limite absoluto de 12 horas e os demais controles de autenticação.",
+            "logic_changes": true,
+            "visual_changes": false,
+            "documentation_changes": true,
+            "changelog": {
+              "title": "Sessão autenticada: inatividade de 4 horas",
+              "items": [
+                "Amplia o limite de inatividade autenticada de 3600 para 14400 segundos",
+                "Mantém o limite absoluto de duração da sessão em 43200 segundos (12 horas)",
+                "Mantém MFA, CSRF, logout e revogação global de sessões sem relaxamento",
+                "Atualiza o contrato executável de segurança para exigir o novo limite de inatividade",
+                "Alinha documentação e metadados canônicos sem alteração de schema ou banco"
+              ]
+            }
+          }
+          JSON
+          php tools/release-version --write --date=2026-09-15 --timestamp=2026-09-15T15:51:00-04:00 --expected-current=1.9.15.6 --metadata-file=/tmp/release.json
+          rm .github/workflows/session-timeout-maintenance.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/install-security-check.php
+          php tools/security-regression-check.php
+          php tools/quality-gate --fast
+          php tools/documentation-check.php
+          git diff --check
+      - name: Commit reconciled change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Aumenta inatividade da sessão para 4 horas"
+          git push origin HEAD:fix/session-idle-4h
