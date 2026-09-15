@@ -1,0 +1,50 @@
+name: Agenda Conflict Refactor Apply
+
+on:
+  push:
+    branches:
+      - feature/timed-agenda-notes
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Refactor and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/agenda-conflict-refactor-apply.py
+          rm -f tools/agenda-conflict-refactor-apply.py .github/workflows/agenda-conflict-refactor-apply.yml
+          git add -A
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/superseded-reference-contract-check
+          GITHUB_BASE_REF=prontoo php tools/runtime-refactor-on-touch-check
+          php tools/quality-gate --fast
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          git diff --check
+          test ! -e tools/agenda-conflict-refactor-apply.py
+          test ! -e .github/workflows/agenda-conflict-refactor-apply.yml
+      - name: Commit refactor
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Encapsula conflito de bloqueio em serviço tipado"
+          git push origin HEAD:feature/timed-agenda-notes
