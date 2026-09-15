@@ -1,0 +1,57 @@
+name: Temporary action contract count fix
+
+on:
+  push:
+    branches:
+      - feature/agenda-day-block-toggle-1-9-15-4
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/agenda-day-block-toggle-1-9-15-4
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, mbstring
+      - name: Apply contract fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/architecture-check.php')
+          text = path.read_text(encoding='utf-8')
+          old = "($architecture['action_contracts_total'] ?? 0) === 151"
+          new = "($architecture['action_contracts_total'] ?? 0) === 153"
+          if text.count(old) != 1:
+              raise SystemExit(f'action contract count marker expected once, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          git rm .github/workflows/tmp-action-contract-count-1-9-15-4.yml
+          php tools/release-contract-reconcile --write
+      - name: Validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/architecture-check.php
+          php tools/release-contract-reconcile --check
+          php tools/test-fast
+          php tools/quality-gate
+          git diff --check
+      - name: Commit clean tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Atualiza contrato de ações da Agenda"
+          git push origin HEAD:feature/agenda-day-block-toggle-1-9-15-4
