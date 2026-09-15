@@ -27,7 +27,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/timed-note-reservation-apply.py
-          rm -f tools/timed-note-reservation-apply.py .github/workflows/timed-note-reservation-apply.yml
+          python3 tools/timed-note-reservation-postfix.py
+          rm -f tools/timed-note-reservation-apply.py tools/timed-note-reservation-postfix.py .github/workflows/timed-note-reservation-apply.yml
           git add -A
           php tools/presentation-css-build --write
           php tools/release-contract-reconcile --write
@@ -44,6 +45,7 @@ jobs:
           php tools/code-comment-check.php
           git diff --check
           test ! -e tools/timed-note-reservation-apply.py
+          test ! -e tools/timed-note-reservation-postfix.py
           test ! -e .github/workflows/timed-note-reservation-apply.yml
       - name: Commit reservation semantics
         shell: bash
