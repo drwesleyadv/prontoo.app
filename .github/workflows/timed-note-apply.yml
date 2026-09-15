@@ -24,7 +24,8 @@ jobs:
           sed -i 's/text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci/text COLLATE utf8mb4_unicode_ci/g' tools/timed-note-apply.py
           python3 tools/timed-note-fix.py
           python3 tools/timed-note-apply.py
-          rm -f tools/timed-note-apply.py tools/timed-note-fix.py .github/workflows/timed-note-inspect.yml .github/workflows/timed-note-apply.yml
+          python3 tools/timed-note-postfix.py
+          rm -f tools/timed-note-apply.py tools/timed-note-fix.py tools/timed-note-postfix.py .github/workflows/timed-note-inspect.yml .github/workflows/timed-note-apply.yml
           php tools/presentation-css-build --write
           cat > /tmp/release.json <<'JSON'
           {
@@ -71,6 +72,7 @@ jobs:
           git diff --check
           test ! -e tools/timed-note-apply.py
           test ! -e tools/timed-note-fix.py
+          test ! -e tools/timed-note-postfix.py
           test ! -e .github/workflows/timed-note-inspect.yml
           test ! -e .github/workflows/timed-note-apply.yml
       - name: Commit feature
