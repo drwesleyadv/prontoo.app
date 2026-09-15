@@ -1,0 +1,542 @@
+name: Timed Note Apply
+on:
+  push:
+    branches:
+      - feature/timed-agenda-notes
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - name: Apply feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import json, re, hashlib
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, got {count}')
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              'app/Database/schema.sql',
+              "  `note_date` bigint UNSIGNED NOT NULL DEFAULT '0',\n  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,",
+              "  `note_date` bigint UNSIGNED NOT NULL DEFAULT '0',\n  `start_at` bigint UNSIGNED DEFAULT NULL,\n  `end_at` bigint UNSIGNED DEFAULT NULL,\n  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,",
+          )
+          replace_once(
+              'app/Database/schema.sql',
+              "  KEY `idx_agenda_notes_day_visible` (`clinic_id`,`note_date`,`target_scope`,`target_role`,`deleted_at`,`id`),",
+              "  KEY `idx_agenda_notes_day_visible` (`clinic_id`,`note_date`,`target_scope`,`target_role`,`deleted_at`,`id`),\n  KEY `idx_agenda_notes_timed` (`clinic_id`,`note_date`,`start_at`,`end_at`,`deleted_at`,`id`),",
+          )
+
+          replace_once(
+              'app/Infrastructure/Appointments/AppointmentsInfrastructureOperations01.php',
+              '            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_by") &&\n            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_at");',
+              '            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "start_at") &&\n            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "end_at") &&\n            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_by") &&\n            \\Prontoo\\Infrastructure\\DatabaseSchema\\DatabaseSchemaInfrastructureOperations02::db_column_exists("pi_agenda_notes", "deleted_at");',
+          )
+
+          replace_once(
+              'app/Infrastructure/Operational/AppointmentsSqlCatalog03.php',
+              '''            'operational.appointments.03.agenda_note_visible_for_day.01' => (
+                "SELECT n.id,n.note_date,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all')" .
+                                ((int) $roleCount > 0
+                                    ? " OR (n.target_scope='role' AND n.target_role IN (" . OperationalSequenceSql::placeholders((int) $roleCount) . "))"
+                                    : "") .
+                                ") ORDER BY n.id DESC LIMIT 1"
+            ),''',
+              '''            'operational.appointments.03.agenda_note_visible_for_day.01' => (
+                "SELECT n.id,n.note_date,n.start_at,n.end_at,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.start_at IS NULL AND n.end_at IS NULL AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all')" .
+                                ((int) $roleCount > 0
+                                    ? " OR (n.target_scope='role' AND n.target_role IN (" . OperationalSequenceSql::placeholders((int) $roleCount) . "))"
+                                    : "") .
+                                ") ORDER BY n.id DESC LIMIT 1"
+            ),
+            'operational.appointments.03.agenda_notes_timed_visible_for_day.01' => (
+                "SELECT n.id,n.note_date,n.start_at,n.end_at,n.content,n.target_scope,n.target_role,n.created_by,n.updated_by,n.deleted_by,n.created_at,n.updated_at,n.deleted_at,u.name AS created_by_name FROM pi_agenda_notes n LEFT JOIN pi_users u ON u.id=n.created_by WHERE n.clinic_id=? AND n.note_date=? AND n.start_at IS NOT NULL AND n.end_at IS NOT NULL AND n.deleted_at IS NULL AND (n.target_scope IN ('clinic','all')" .
+                                ((int) $roleCount > 0
+                                    ? " OR (n.target_scope='role' AND n.target_role IN (" . OperationalSequenceSql::placeholders((int) $roleCount) . "))"
+                                    : "") .
+                                ") ORDER BY n.start_at ASC,n.id DESC LIMIT 100"
+            ),''',
+          )
+
+          replace_once(
+              'app/Infrastructure/Operational/AppointmentsSqlCatalog05.php',
+              '                "SELECT id,note_date,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1"',
+              '                "SELECT id,note_date,start_at,end_at,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1"',
+          )
+          replace_once(
+              'app/Infrastructure/Operational/AppointmentsSqlCatalog05.php',
+              '                "INSERT INTO pi_agenda_notes (clinic_id,note_date,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,NOW(),NOW())"',
+              '                "INSERT INTO pi_agenda_notes (clinic_id,note_date,start_at,end_at,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NOW(),NOW())"',
+          )
+
+          service_methods = r'''    public function agendaNoteById(int $clinicId, int $noteId): ?array
+    {
+        if ($clinicId <= 0 || $noteId <= 0) {
+            return null;
+        }
+        return $this->data->row(
+            'operational.appointments.05.page_appointments.01',
+            [$noteId, $clinicId],
+        );
+    }
+
+    public function visibleTimedAgendaNotes(
+        int $clinicId,
+        string $day,
+        array $roleCodes,
+    ): array {
+        if ($clinicId <= 0 || preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) !== 1) {
+            return [];
+        }
+        $roles = array_values(array_unique(array_filter(
+            array_map(static fn(mixed $role): string => mb_trim((string) $role), $roleCodes),
+            static fn(string $role): bool => $role !== '',
+        )));
+        $parameters = [$clinicId, $day];
+        foreach ($roles as $role) {
+            $parameters[] = $role;
+        }
+        return $this->data->result(
+            'operational.appointments.03.agenda_notes_timed_visible_for_day.01',
+            $parameters,
+            ['roleCount' => count($roles)],
+        )->fetchAll();
+    }
+
+    public function createAgendaNote(
+        int $clinicId,
+        string $noteDate,
+        ?string $startAt,
+        ?string $endAt,
+        string $content,
+        string $targetScope,
+        ?string $targetRole,
+        int $userId,
+    ): int {
+        $this->data->result(
+            'operational.appointments.05.page_appointments.03',
+            [
+                $clinicId,
+                $noteDate,
+                $startAt,
+                $endAt,
+                $content,
+                $targetScope,
+                $targetRole,
+                $userId,
+                $userId,
+            ],
+        );
+        return $this->data->lastInsertId();
+    }
+
+    public function removeAgendaNote(int $clinicId, int $noteId, int $userId): bool
+    {
+        if ($clinicId <= 0 || $noteId <= 0 || $userId <= 0) {
+            return false;
+        }
+        return $this->data->result(
+            'operational.appointments.05.page_appointments.02',
+            [$userId, $userId, $noteId, $clinicId, $userId],
+        )->rowCount() > 0;
+    }
+
+'''
+          replace_once(
+              'app/Application/Operational/AppointmentCommandService.php',
+              '    public function createBlock(\n',
+              service_methods + '    public function createBlock(\n',
+          )
+
+          replace_once(
+              'app/application.test-contract.json',
+              '"entry_points": ["createBlock", "updateBlock", "removeBlock", "setDayBlocked", "updateAppointment", "createAppointment", "createAppointmentBatch"]',
+              '"entry_points": ["agendaNoteById", "visibleTimedAgendaNotes", "createAgendaNote", "removeAgendaNote", "createBlock", "updateBlock", "removeBlock", "setDayBlocked", "updateAppointment", "createAppointment", "createAppointmentBatch"]',
+          )
+          replace_once(
+              'app/application.test-contract.json',
+              '"application.appointment_commands.ids", "application.appointment_commands.remove_block",',
+              '"application.appointment_commands.ids", "application.appointment_commands.note_loaded", "application.appointment_commands.timed_notes_visible", "application.appointment_commands.note_created", "application.appointment_commands.note_removed", "application.appointment_commands.remove_block",',
+          )
+
+          replace_once(
+              'tools/test-fast',
+              "        'operational.appointments.05.page_appointments.27' => [['id' => 701]],\n",
+              "        'operational.appointments.05.page_appointments.27' => [['id' => 701]],\n        'operational.appointments.05.page_appointments.01' => [['id' => 702, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'created_by' => 11]],\n        'operational.appointments.03.agenda_notes_timed_visible_for_day.01' => [['id' => 702, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'content' => 'Aviso', 'created_by' => 11]],\n",
+          )
+          note_tests = r'''$loadedAgendaNote = $appointmentCommands->agendaNoteById(7, 702);
+$visibleTimedAgendaNotes = $appointmentCommands->visibleTimedAgendaNotes(7, '2026-08-11', ['medico']);
+$createdAgendaNoteId = $appointmentCommands->createAgendaNote(
+    7,
+    '2026-08-11',
+    '2026-08-11 13:00:00',
+    '2026-08-11 13:30:00',
+    'Aviso',
+    'role',
+    'medico',
+    11,
+);
+$removedAgendaNote = $appointmentCommands->removeAgendaNote(7, 702, 11);
+'''
+          replace_once(
+              'tools/test-fast',
+              '$noConflict = static fn(...$arguments): string => \'\';\n$blockId = $appointmentCommands->createBlock(',
+              '$noConflict = static fn(...$arguments): string => \'\';\n' + note_tests + '$blockId = $appointmentCommands->createBlock(',
+          )
+          replace_once(
+              'tools/test-fast',
+              "$same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');\n",
+              "$same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');\n$same(702, (int) ($loadedAgendaNote['id'] ?? 0), 'application.appointment_commands.note_loaded');\n$same(702, (int) ($visibleTimedAgendaNotes[0]['id'] ?? 0), 'application.appointment_commands.timed_notes_visible');\n$same(701, $createdAgendaNoteId, 'application.appointment_commands.note_created');\n$assert($removedAgendaNote, 'application.appointment_commands.note_removed');\n",
+          )
+
+          replace_once(
+              'app/Runtime/Appointments/AppointmentsRuntimeOperations04.php',
+              '''            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row("Data", \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("note_date", "date", $day, "required")) .
+            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(
+                "Conteúdo",''',
+              '''            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row("Data", \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("note_date", "date", $day, "required")) .
+            '<div class="two agenda-note-time-window">' .
+            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(
+                "Horário de início (opcional)",
+                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("note_start_time", "time", "", 'step="300"'),
+            ) .
+            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(
+                "Horário de fim (opcional)",
+                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::input("note_end_time", "time", "", 'step="300"'),
+            ) .
+            '</div><p class="muted-copy">Deixe os dois horários em branco para manter a anotação como dia todo. Se informar um intervalo, a anotação aparecerá posicionada nessa faixa da Agenda diária.</p>' .
+            \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::form_row(
+                "Conteúdo",''',
+          )
+
+          runtime_path = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+          runtime = runtime_path.read_text()
+          runtime = runtime.replace(
+              '        $uid = (int) ($c["user"]["id"] ?? 0);\n        $returnHidden =',
+              '        $uid = (int) ($c["user"]["id"] ?? 0);\n        $appointmentCommands = \\Prontoo\\Runtime\\Operational\\OperationalComposition::appointmentCommands();\n        $returnHidden =',
+              1,
+          )
+          runtime = runtime.replace(
+              '            $appointmentCommands = \\Prontoo\\Runtime\\Operational\\OperationalComposition::appointmentCommands();\n',
+              '',
+              1,
+          )
+          runtime = runtime.replace(
+              "                        ? \\Prontoo\\Runtime\\Operational\\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.01', [$noteId, $cid], [])\n                        : null;",
+              "                        ? $appointmentCommands->agendaNoteById($cid, $noteId)\n                        : null;",
+              1,
+          )
+          runtime = runtime.replace(
+              "                \\Prontoo\\Runtime\\Operational\\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.02', [$uid, $uid, $noteId, $cid, $uid], []);",
+              "                if (!$appointmentCommands->removeAgendaNote($cid, $noteId, $uid)) {\n                    \\Prontoo\\Presentation\\SecurityAccess\\SecurityAccessPresentationOperations01::flash(\"A anotação foi atualizada por outra ação. Reabra a Agenda e tente novamente.\", \"bad\");\n                    $redirectBack($noteDay, $postDoctor);\n                }",
+              1,
+          )
+          agenda_block = r'''            if ($act === "agenda_note") {
+                $noteDate = (string) ($_POST["note_date"] ?? $postDay);
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $noteDate)) {
+                    $noteDate = $postDay;
+                }
+                $content = mb_trim((string) ($_POST["content"] ?? ""));
+                if ($content === "") {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o conteúdo da anotação.", "bad");
+                    $postRedirect();
+                }
+                $content = mb_substr($content, 0, 4000);
+                $noteStartTime = mb_trim((string) ($_POST["note_start_time"] ?? ""));
+                $noteEndTime = mb_trim((string) ($_POST["note_end_time"] ?? ""));
+                if (($noteStartTime === "") !== ($noteEndTime === "")) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Informe os horários de início e fim, ou deixe ambos em branco para uma anotação de dia todo.",
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                $noteStartAt = null;
+                $noteEndAt = null;
+                if ($noteStartTime !== "") {
+                    if (
+                        preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $noteStartTime) !== 1 ||
+                        preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $noteEndTime) !== 1 ||
+                        $noteEndTime <= $noteStartTime
+                    ) {
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                            "Informe um intervalo de horário válido, com o fim posterior ao início.",
+                            "bad",
+                        );
+                        $postRedirect();
+                    }
+                    $noteStartAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                        \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($noteDate, $noteStartTime),
+                    );
+                    $noteEndAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                        \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($noteDate, $noteEndTime),
+                    );
+                }
+                $visibility = (string) ($_POST["visibility_scope"] ?? "my_role");
+                $roleOptions = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, false);
+                $targetScope = "clinic";
+                $targetRole = null;
+                if ($visibility === "clinic") {
+                    $targetScope = "clinic";
+                    $targetRole = null;
+                } else {
+                    $targetScope = "role";
+                    $targetRole = (string) ($c["role"] ?? "");
+                    if ($targetRole === "" || !isset($roleOptions[$targetRole])) {
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                            "Não foi possível identificar seu cargo para restringir a anotação.",
+                            "bad",
+                        );
+                        $postRedirect();
+                    }
+                }
+                $noteId = $appointmentCommands->createAgendaNote(
+                    $cid,
+                    $noteDate,
+                    $noteStartAt,
+                    $noteEndAt,
+                    $content,
+                    $targetScope,
+                    $targetRole,
+                    $uid,
+                );
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                    "agenda_anotacao_criada",
+                    "agenda_note",
+                    $noteId,
+                    [
+                        "note_date" => $noteDate,
+                        "start_at" => $noteStartAt,
+                        "end_at" => $noteEndAt,
+                        "all_day" => $noteStartAt === null,
+                        "target_scope" => $targetScope,
+                        "target_role" => $targetRole,
+                    ],
+                );
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    $noteStartAt === null
+                        ? "Anotação de dia todo registrada para a data escolhida."
+                        : "Anotação registrada no intervalo informado.",
+                );
+                $redirectBack($noteDate, $postDoctor);
+            }
+'''
+          runtime, n = re.subn(
+              r'            if \(\$act === "agenda_note"\) \{.*?\n            \}\n            if \(\$act === "confirm"\) \{',
+              agenda_block + '            if ($act === "confirm") {',
+              runtime,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit(f'Runtime agenda_note block: {n}')
+          marker = '''        $localTs = function (string $dt) use ($cid): int {
+    
+            $d = \\Prontoo\\Runtime\\SupportFoundation\\SupportFoundationRuntimeOperations01::app_db_utc_to_local($dt, $cid);
+            return $d ? $d->getTimestamp() : (strtotime($dt) ?: 0);
+        };
+'''
+          timed_load = marker + '''        $timedAgendaNotes =
+            $agendaView === "diario"
+                ? $appointmentCommands->visibleTimedAgendaNotes(
+                    $cid,
+                    $day,
+                    \\Prontoo\\Domain\\Appointments\\AppointmentsDomainOperations01::agenda_note_role_codes($c),
+                )
+                : [];
+'''
+          if marker not in runtime:
+              raise SystemExit('localTs marker missing')
+          runtime = runtime.replace(marker, timed_load, 1)
+          bounds_old = '''        $workStartTs = (int) $workRanges[0][0];
+        $workEndTs = (int) $workRanges[count($workRanges) - 1][1];
+        $workStartLabel = (string) $workRanges[0][2];
+        $workEndLabel = (string) $workRanges[count($workRanges) - 1][3];
+'''
+          bounds_new = '''        $workStartTs = (int) $workRanges[0][0];
+        $workEndTs = (int) $workRanges[count($workRanges) - 1][1];
+        $slotSeconds = 15 * 60;
+        foreach ($timedAgendaNotes as $timedAgendaNote) {
+            $noteStartTs = $localTs((string) ($timedAgendaNote["start_at"] ?? ""));
+            $noteEndTs = $localTs((string) ($timedAgendaNote["end_at"] ?? ""));
+            if ($noteStartTs <= 0 || $noteEndTs <= $noteStartTs) {
+                continue;
+            }
+            $noteGridStart = intdiv($noteStartTs, $slotSeconds) * $slotSeconds;
+            $noteGridEnd = intdiv($noteEndTs + $slotSeconds - 1, $slotSeconds) * $slotSeconds;
+            $workStartTs = min($workStartTs, $noteGridStart);
+            $workEndTs = max($workEndTs, $noteGridEnd);
+        }
+        $workStartLabel = $fmtLocal($workStartTs);
+        $workEndLabel = $fmtLocal($workEndTs);
+'''
+          if bounds_old not in runtime:
+              raise SystemExit('bounds marker missing')
+          runtime = runtime.replace(bounds_old, bounds_new, 1)
+          timed_render = r'''        $timedNoteHtml = "";
+        foreach ($timedAgendaNotes as $timedAgendaNote) {
+            $noteStartTs = $localTs((string) ($timedAgendaNote["start_at"] ?? ""));
+            $noteEndTs = $localTs((string) ($timedAgendaNote["end_at"] ?? ""));
+            if ($noteStartTs <= 0 || $noteEndTs <= $noteStartTs || $noteEndTs <= $workStartTs || $noteStartTs >= $workEndTs) {
+                continue;
+            }
+            $top = max(0, ($noteStartTs - $workStartTs) / 60 / $slotMinutes);
+            $height = max(
+                1,
+                (min($noteEndTs, $workEndTs) - max($noteStartTs, $workStartTs)) / 60 / $slotMinutes,
+            );
+            $period =
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $timedAgendaNote["start_at"]) .
+                "–" .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $timedAgendaNote["end_at"]);
+            $creatorName = mb_trim((string) ($timedAgendaNote["created_by_name"] ?? ""));
+            $noteDelete = "";
+            if ((int) ($timedAgendaNote["created_by"] ?? 0) === $uid) {
+                $noteDelete =
+                    '<form method="post" class="agenda-day-note-delete agenda-day-note-inline-delete">' .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+                    $returnHidden .
+                    '<input type="hidden" name="act" value="agenda_note_delete"><input type="hidden" name="id" value="' .
+                    (int) $timedAgendaNote["id"] .
+                    '"><button type="submit" class="icon-btn" aria-label="Excluir anotação" title="Excluir anotação">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
+                    "</button></form>";
+            }
+            $timedNoteHtml .=
+                '<article class="agenda-day-event-note" data-agenda-note style="--event-top:' .
+                $top .
+                ';--event-height:' .
+                $height .
+                ';--agenda-event-left:50%" title="Anotação · ' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
+                '"><span class="agenda-day-event-time">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
+                '</span><strong>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
+                '<span>Anotação</span></strong><small>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($timedAgendaNote["content"] ?? "")) .
+                '</small><em>' .
+                ($creatorName !== ""
+                    ? "Por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($creatorName))
+                    : "Aviso da Agenda") .
+                $noteDelete .
+                "</em></article>";
+        }
+'''
+          empty_marker = '        if ($eventHtml === "" && !$dayBlocked) {\n'
+          if empty_marker not in runtime:
+              raise SystemExit('empty event marker missing')
+          runtime = runtime.replace(empty_marker, timed_render + '        if ($eventHtml === "" && $timedNoteHtml === "" && !$dayBlocked) {\n', 1)
+          runtime = runtime.replace(
+              '            $dayBlockedWatermark .\n            $eventHtml .\n            "</div></section>";',
+              '            $dayBlockedWatermark .\n            $eventHtml .\n            $timedNoteHtml .\n            "</div></section>";',
+              1,
+          )
+          runtime_path.write_text(runtime)
+
+          replace_once(
+              'design/styles/application.css',
+              '  left:clamp(8px,1.4vw,14px)!important;\n',
+              '  left:var(--agenda-event-left,clamp(8px,1.4vw,14px))!important;\n',
+          )
+
+          js_path = Path('public/assets/app.js')
+          js = js_path.read_text()
+          js = js.replace(
+              '    if (!canvas || canvas.closest(".agenda-week-day-shell")) return;\n',
+              '    if (!canvas || canvas.closest(".agenda-week-day-shell")) return;\n    if (ev.target.closest && ev.target.closest(".agenda-day-event-note")) return;\n',
+              1,
+          )
+          js = js.replace(
+              '        ".agenda-day-event,.agenda-day-event-block,a,button,input,select,textarea,summary,details",',
+              '        ".agenda-day-event,.agenda-day-event-block,.agenda-day-event-note,a,button,input,select,textarea,summary,details",',
+              1,
+          )
+          js_path.write_text(js)
+
+          schema = Path('app/Database/schema.sql').read_text()
+          match = re.search(r'CREATE TABLE `pi_agenda_notes` \(.*?\n\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;', schema, re.S)
+          if not match:
+              raise SystemExit('pi_agenda_notes block missing')
+          block = re.sub(r'`Seq` bigint UNSIGNED (?:DEFAULT NULL|NOT NULL DEFAULT \(UUID_SHORT\(\)\))', '`Seq` <native-seq>', match.group(0))
+          block = re.sub(r'\s+', ' ', block).strip()
+          contract_path = Path('app/Database/operational-schema.contract.json')
+          contract = json.loads(contract_path.read_text())
+          contract['tables']['pi_agenda_notes'] = hashlib.sha256(block.encode()).hexdigest()
+          contract_path.write_text(json.dumps(contract, ensure_ascii=False, indent=4) + '\n')
+          PY
+
+          rm -f .github/workflows/timed-note-inspect.yml .github/workflows/timed-note-apply.yml
+          php tools/presentation-css-build --write
+
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.9-timed-agenda-notes",
+            "package_type": "feature",
+            "notes": "Permite que anotações da Agenda sejam de dia todo ou associadas opcionalmente a um intervalo de horário e posicionadas na visão diária sem bloquear disponibilidade.",
+            "logic_changes": true,
+            "visual_changes": true,
+            "documentation_changes": true,
+            "changelog": {
+              "title": "Agenda diária: anotações com intervalo opcional",
+              "items": [
+                "Mantém anotações sem horário como anotações de dia todo no formato atual",
+                "Adiciona horários opcionais de início e fim ao cadastro de anotação",
+                "Posiciona anotações temporizadas na faixa correspondente da Agenda diária",
+                "Mantém anotações temporizadas informativas, sem bloquear horários ou disponibilidade",
+                "Preserva visibilidade por cargo ou clínica e exclusão pelo autor"
+              ]
+            }
+          }
+          JSON
+          TS="$(TZ=America/Cuiaba date --iso-8601=seconds)"
+          php tools/release-version --write --date=2026-09-15 --timestamp="$TS" --expected-current=1.9.15.8 --metadata-file=/tmp/release.json
+          python3 <<'PY'
+          from pathlib import Path
+          import json
+          p=Path('version.json')
+          v=json.loads(p.read_text())
+          v['database_changes']=True
+          v['schema_changes']=True
+          p.write_text(json.dumps(v, ensure_ascii=False, indent=4)+'\n')
+          PY
+          php tools/release-contract-reconcile --write
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/schema-check.php
+          GITHUB_BASE_REF=prontoo php tools/runtime-refactor-on-touch-check
+          php tools/quality-gate --fast
+          php tools/documentation-check.php
+          php tools/code-comment-check.php
+          git diff --check
+          test ! -e .github/workflows/timed-note-inspect.yml
+          test ! -e .github/workflows/timed-note-apply.yml
+      - name: Commit feature
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Adiciona anotações temporizadas na Agenda diária"
+          git push origin HEAD:feature/timed-agenda-notes
