@@ -129,6 +129,92 @@ final class AppointmentCommandService
         });
     }
 
+    public function setDayBlocked(
+        int $clinicId,
+        int $doctorUserId,
+        string $dayStartAt,
+        string $dayEndAt,
+        string $blockStartAt,
+        string $blockEndAt,
+        int $userId,
+        bool $blocked,
+    ): int {
+        if ($clinicId <= 0 || $doctorUserId <= 0 || $userId <= 0) {
+            throw new RuntimeException('Não foi possível identificar consultório, profissional e usuário para alterar o dia.');
+        }
+        $dayStartTs = strtotime($dayStartAt);
+        $dayEndTs = strtotime($dayEndAt);
+        $blockStartTs = strtotime($blockStartAt);
+        $blockEndTs = strtotime($blockEndAt);
+        if (
+            $dayStartTs === false ||
+            $dayEndTs === false ||
+            $blockStartTs === false ||
+            $blockEndTs === false ||
+            $dayEndTs <= $dayStartTs ||
+            $blockEndTs <= $blockStartTs ||
+            $blockStartTs < $dayStartTs ||
+            $blockEndTs > $dayEndTs
+        ) {
+            throw new RuntimeException('Não foi possível determinar o expediente deste dia.');
+        }
+        return (int) $this->data->atomic(function () use (
+            $clinicId,
+            $doctorUserId,
+            $dayStartAt,
+            $dayEndAt,
+            $blockStartAt,
+            $blockEndAt,
+            $userId,
+            $blocked,
+        ): int {
+            $this->data->result(
+                'operational.appointments.05.page_appointments.22',
+                [$clinicId],
+            );
+            $appointment = $this->data->row(
+                'operational.appointments.05.page_appointments.43',
+                [$clinicId, $doctorUserId, $dayStartAt, $dayEndAt],
+            );
+            if ($appointment) {
+                throw new RuntimeException('O dia já possui consulta marcada para este profissional.');
+            }
+            $existing = $this->data->row(
+                'operational.appointments.05.page_appointments.44',
+                [$clinicId, $doctorUserId, $blockStartAt, $blockEndAt],
+            );
+            if (!$blocked) {
+                $this->data->result(
+                    'operational.appointments.05.page_appointments.45',
+                    [
+                        $userId,
+                        'Dia desbloqueado pela Agenda diária.',
+                        $clinicId,
+                        $doctorUserId,
+                        $blockStartAt,
+                        $blockEndAt,
+                    ],
+                );
+                return (int) ($existing['id'] ?? 0);
+            }
+            if ($existing) {
+                return (int) ($existing['id'] ?? 0);
+            }
+            $this->data->result(
+                'operational.appointments.05.page_appointments.23',
+                [
+                    $clinicId,
+                    $doctorUserId,
+                    $blockStartAt,
+                    $blockEndAt,
+                    'Dia bloqueado',
+                    $userId,
+                ],
+            );
+            return $this->data->lastInsertId();
+        });
+    }
+
     public function updateAppointment(
         int $clinicId,
         int $appointmentId,

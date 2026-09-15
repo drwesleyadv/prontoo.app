@@ -20,8 +20,8 @@ final class SchedulingActionDefinitions implements ActionDefinitionSource
         $definitions->add('leads', 'archive_lead', 'clinic', $leads, ['leads:edit'], ['leads:archive']);
 
         $definitions->add('appointments', ['__default__', 'create'], 'clinic', $appointments, ['appointments:add'], ['appointments:add'], ['financial:sync', 'tasks:add']);
-        $definitions->add('appointments', ['agenda_note', 'block'], 'clinic', $appointments, ['appointments:add'], ['agenda:add']);
-        $definitions->add('appointments', ['agenda_note_delete', 'delete_appointment', 'delete_block', 'unblock', 'cancel'], 'clinic', $appointments, ['appointments:delete'], ['agenda:delete'], ['financial:sync', 'tasks:edit']);
+        $definitions->add('appointments', ['agenda_note', 'block', 'block_day'], 'clinic', $appointments, ['appointments:add'], ['agenda:add']);
+        $definitions->add('appointments', ['agenda_note_delete', 'delete_appointment', 'delete_block', 'unblock', 'unblock_day', 'cancel'], 'clinic', $appointments, ['appointments:delete'], ['agenda:delete'], ['financial:sync', 'tasks:edit']);
         $definitions->add(
             'appointments',
             ['edit', 'update_block', 'update_appointment', 'confirm', 'arrived', 'no_show', 'start_prepare', 'finish_prepare', 'start_consultation', 'finish_consultation', 'finish_checkout'],

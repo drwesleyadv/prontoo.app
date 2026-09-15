@@ -102,6 +102,100 @@ final class AppointmentsRuntimeOperations05
     
                 $redirectBack($postDay, $postDoctor);
             };
+            $appointmentCommands = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands();
+            if (in_array($act, ["block_day", "unblock_day"], true)) {
+                if (!in_array($role, ["recepcionista", "medico", "gerente"], true)) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Seu cargo não possui operação de bloqueio de dia.",
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                if ($postDoctor <= 0 || !isset($docs[$postDoctor])) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Selecione um profissional válido para alterar o dia.",
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                if ($role === "medico" && $postDoctor !== $uid) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "O profissional só pode alterar o bloqueio da própria Agenda.",
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                [$toggleDayStart, $toggleDayEnd] = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_local_day_utc_range(
+                    $postDay,
+                    $cid,
+                    $c,
+                );
+                $toggleRanges = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_ranges_for_day(
+                    $cid,
+                    $postDoctor,
+                    $postDay,
+                );
+                $toggleStartHm = $toggleRanges ? (string) $toggleRanges[0][2] : "08:00";
+                $toggleEndHm = $toggleRanges
+                    ? (string) $toggleRanges[count($toggleRanges) - 1][3]
+                    : "17:00";
+                $toggleBlockStart = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                    \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($postDay, $toggleStartHm),
+                );
+                $toggleBlockEnd = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                    \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($postDay, $toggleEndHm),
+                );
+                $shouldBlockDay = $act === "block_day";
+                try {
+                    $dayBlockId = $appointmentCommands->setDayBlocked(
+                        $cid,
+                        $postDoctor,
+                        $toggleDayStart,
+                        $toggleDayEnd,
+                        $toggleBlockStart,
+                        $toggleBlockEnd,
+                        $uid,
+                        $shouldBlockDay,
+                    );
+                } catch (RuntimeException $error) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        $error->getMessage(),
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                if ($shouldBlockDay) {
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "agenda_blocks");
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                        "agenda_dia_bloqueado",
+                        "bloqueio",
+                        $dayBlockId,
+                        [
+                            "doctor_user_id" => $postDoctor,
+                            "day" => $postDay,
+                            "start_at" => $toggleBlockStart,
+                            "end_at" => $toggleBlockEnd,
+                            "audit_body" => "Expediente inteiro bloqueado pela ação rápida da Agenda diária.",
+                        ],
+                    );
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Dia bloqueado.");
+                } else {
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                        "agenda_dia_desbloqueado",
+                        "bloqueio",
+                        0,
+                        [
+                            "doctor_user_id" => $postDoctor,
+                            "day" => $postDay,
+                            "start_at" => $toggleBlockStart,
+                            "end_at" => $toggleBlockEnd,
+                            "audit_body" => "Bloqueio integral do expediente removido pela ação rápida da Agenda diária.",
+                        ],
+                    );
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Dia desbloqueado.");
+                }
+                $postRedirect();
+            }
             if ($act === "agenda_note_delete") {
                 $noteId = (int) ($_POST["id"] ?? 0);
                 $note =
@@ -578,7 +672,7 @@ final class AppointmentsRuntimeOperations05
                 $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
                 $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
                 try {
-                    $blockId = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createBlock(
+                    $blockId = $appointmentCommands->createBlock(
                         $cid,
                         $blockDoctor,
                         $startAt,
@@ -665,7 +759,7 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 try {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->updateBlock(
+                    $appointmentCommands->updateBlock(
                         $cid,
                         $id,
                         $blockDoctor,
@@ -698,7 +792,7 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o motivo da exclusão do bloqueio.", "bad");
                     $postRedirect();
                 }
-                $removed = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->removeBlock(
+                $removed = $appointmentCommands->removeBlock(
                     $cid,
                     $id,
                     (int) $c["user"]["id"],
@@ -788,7 +882,7 @@ final class AppointmentsRuntimeOperations05
                 $appointmentNotes = mb_trim((string) ($_POST['notes'] ?? ''));
                 $changeReason = mb_trim((string) ($_POST['change_reason'] ?? ''));
                 try {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->updateAppointment(
+                    $appointmentCommands->updateAppointment(
                         $cid,
                         $id,
                         $did,
@@ -949,7 +1043,7 @@ final class AppointmentsRuntimeOperations05
                         'notes' => $appointmentNotes,
                     ];
                 }
-                $appointmentIds = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createAppointmentBatch(
+                $appointmentIds = $appointmentCommands->createAppointmentBatch(
                     $cid,
                     $patient,
                     $did,
@@ -2315,8 +2409,47 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</option>";
         }
+        $dayBlocked = false;
+        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {
+            foreach ($blocks as $dayBlock) {
+                if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
+                    continue;
+                }
+                $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));
+                $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
+                if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {
+                    $dayBlocked = true;
+                    break;
+                }
+            }
+        }
+        $dayBlockToggle = "";
+        if (
+            $agendaView === "diario" &&
+            $agendaDoctor > 0 &&
+            $rows === [] &&
+            in_array($role, ["recepcionista", "medico", "gerente"], true)
+        ) {
+            $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";
+            $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";
+            $dayBlockIcon = $dayBlocked ? "event_available" : "event_busy";
+            $dayBlockToggle =
+                '<form method="post" class="agenda-day-toggle-form">' .
+                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+                '<input type="hidden" name="act" value="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockAct) .
+                '"><input type="hidden" name="return_day" value="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
+                '"><input type="hidden" name="return_doctor" value="' .
+                $agendaDoctor .
+                '"><button type="submit" class="pagehead-control pagehead-control--secondary agenda-day-toggle-button">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($dayBlockIcon) .
+                '<span>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockLabel) .
+                '</span></button></form>';
+        }
         $navDay =
-            '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
+            '<div class="agenda-crown-row"><form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
             '<input type="hidden" name="r" value="appointments">' .
             '<input type="hidden" name="d" value="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -2343,7 +2476,9 @@ final class AppointmentsRuntimeOperations05
             '" aria-label="Avançar">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("chevron_right") .
             "</a>" .
-            "</form>";
+            "</form>" .
+            $dayBlockToggle .
+            "</div>";
         $title = "Agenda";
         $subtitle = "";
         $agendaCreateUrl = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
