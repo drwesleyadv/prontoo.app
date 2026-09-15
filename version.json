@@ -11,7 +11,7 @@
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
     "schema_changes": false,
-    "logic_changes": false,
+    "logic_changes": true,
     "visual_changes": false,
     "functional_equivalence_policy": "maintenance_fixes_preserve_user_visible_behavior_and_schema",
     "architecture_policy": "php-layered-invariants-v2",

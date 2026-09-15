@@ -185,7 +185,7 @@
     "function_documentation_closures": 0,
     "function_documentation_arrows": 0,
     "function_documentation_ci": ".github/workflows/architecture.yml",
-    "logic_changes": false,
+    "logic_changes": true,
     "authentication_policy": "password_then_inline_mfa_tri_state_fail_closed_all_users_developer_mandatory_regular_reauthenticated_lifecycle_idle_14400_generation_cascade_maestro_supervised_deferred_work",
     "privileged_elevation_policy": "fresh_password_and_mfa_required_for_global_scope",
     "commissioned_installation_lockdown": {

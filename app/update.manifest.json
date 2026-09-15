@@ -10,7 +10,7 @@
     "minimum_mysql": "8.0.30",
     "database_changes": false,
     "schema_changes": false,
-    "logic_changes": false,
+    "logic_changes": true,
     "visual_changes": false,
     "documentation_changes": true,
     "clean_install_schema": true,
@@ -483,7 +483,7 @@
         "app/Runtime/UsersPermissions/UsersPermissionsRuntimeOperations05.php": "9f2e135d1cad50897193e2b13c581c882d768b288511337a887028915a0ee04b",
         "app/application.test-contract.json": "ce4773e35a6646081a92de4a1863c8dab3f8fe1e012acf40a5b24bc673b6c773",
         "app/architecture.gateway-budget.json": "3eab09df36e1d8b770d1dc60241a6b2f444bb9452568b763d377f5312640cf52",
-        "app/architecture.manifest.json": "2f9657e862c255a57cad5cf3dd4ae186df9d5fa559cffd0f19a16766b6a87957",
+        "app/architecture.manifest.json": "de0a7093a29befc836a1045be7aedb70725154df941471741c69f17986b31cf4",
         "app/bootstrap_architecture.php": "8788ce3a68b9aa0006fe96286d3511f6d6f4cbbb3e3b1ccefdc7ce6ac5b97ed6",
         "app/design-system.visual-baseline.json": "ed5ea4cad5944815de2468f6e4c6c8e4bd79fff2b2a84a9bfb4e3d0520d90fe2",
         "app/performance.budgets.json": "e601ab57255b5248e2bb3c94b104a3687e0a5b5182d274e7ea28925e697f9d56",
@@ -686,7 +686,7 @@
         "tools/telemetry-json-source-contract-check": "50e654e86c709840ff0991cdd0a1aeb12044a67fdb7742d1de48be34ffee6438",
         "tools/test-fast": "97d6bc6fbb9dfd0dbd3bb4c3f18798ec2d321f47dc5e4a49776bab84ba1ec1bd",
         "tools/version-asset-contract-check.php": "476439bc976c261a8528db35e67f587e3ea39e9b2996b31529d13de5c182c235",
-        "version.json": "3733a281b1b16e29c03a47fbee86f224500f757168ae052ee05516ea7da16e9d"
+        "version.json": "8070c2411748866c8227382ee253eb04c404c5680c4a6b42f574abd9359ea611"
     },
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "updated_at": "2026-08-09T23:15:00+00:00",
