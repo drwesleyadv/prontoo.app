@@ -1,0 +1,27 @@
+name: Temporary quick scheduling recurrence
+
+on:
+  push:
+    branches:
+      - feature/quick-scheduling-recurrence-1-9-15-1
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply recurrence feature
+        run: bash tools/tmp-quick-scheduling-recurrence
