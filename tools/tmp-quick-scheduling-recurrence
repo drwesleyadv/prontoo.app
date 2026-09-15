@@ -1,0 +1,733 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 - <<'PY'
+from pathlib import Path
+
+
+def replace_once(path: str, old: str, new: str) -> None:
+    p = Path(path)
+    text = p.read_text()
+    if old not in text:
+        raise SystemExit(f"Trecho não encontrado em {path}: {old[:120]!r}")
+    p.write_text(text.replace(old, new, 1))
+
+# AppointmentCommandService: move remoção de bloqueio para Application e adiciona lote atômico.
+p = Path('app/Application/Operational/AppointmentCommandService.php')
+text = p.read_text()
+marker = "    public function updateAppointment(\n"
+remove_block = r'''    public function removeBlock(
+        int $clinicId,
+        int $blockId,
+        int $userId,
+        string $reason,
+    ): bool {
+        return (bool) $this->data->atomic(function () use (
+            $clinicId,
+            $blockId,
+            $userId,
+            $reason,
+        ): bool {
+            $block = $this->data->row(
+                'operational.appointments.05.page_appointments.27',
+                [$blockId, $clinicId],
+            );
+            if (!$block) {
+                return false;
+            }
+            $this->data->result(
+                'operational.appointments.05.page_appointments.28',
+                [$userId, trim($reason), $blockId, $clinicId],
+            );
+            return true;
+        });
+    }
+
+'''
+if marker not in text:
+    raise SystemExit('Marcador updateAppointment não encontrado.')
+text = text.replace(marker, remove_block + marker, 1)
+start = text.index("    public function createAppointment(\n")
+new_tail = r'''    public function createAppointmentBatch(
+        int $clinicId,
+        int $patientId,
+        int $doctorUserId,
+        array $appointments,
+        int $userId,
+        Closure $durationMessage,
+        Closure $workHoursMessage,
+        Closure $conflictMessage,
+        Closure $paymentContext,
+        Closure $syncFinancial,
+    ): array {
+        if ($appointments === []) {
+            throw new RuntimeException('Informe ao menos um agendamento.');
+        }
+        return (array) $this->data->atomic(function () use (
+            $clinicId,
+            $patientId,
+            $doctorUserId,
+            $appointments,
+            $userId,
+            $durationMessage,
+            $workHoursMessage,
+            $conflictMessage,
+            $paymentContext,
+            $syncFinancial,
+        ): array {
+            $this->data->result(
+                'operational.appointments.05.page_appointments.35',
+                [$clinicId],
+            );
+            $ids = [];
+            foreach (array_values($appointments) as $index => $appointment) {
+                $startAt = trim((string) ($appointment['start_at'] ?? ''));
+                $endAt = trim((string) ($appointment['end_at'] ?? ''));
+                $procedureId = (int) ($appointment['procedure_id'] ?? 0);
+                $notes = trim((string) ($appointment['notes'] ?? ''));
+                $prefix = $index > 0 ? 'Recorrência ' . $index . ': ' : '';
+                if ($startAt === '' || $endAt === '' || $procedureId <= 0) {
+                    throw new RuntimeException($prefix . 'Informe procedimento e Data/Hora válidos.');
+                }
+                $procedure = $this->data->row(
+                    'operational.appointments.05.page_appointments.36',
+                    [$procedureId, $clinicId],
+                );
+                if (!$procedure) {
+                    throw new RuntimeException(
+                        $prefix . 'O procedimento selecionado não está mais disponível. Escolha outro procedimento cadastrado.',
+                    );
+                }
+                $hoursConflict = (string) $workHoursMessage(
+                    $clinicId,
+                    $doctorUserId,
+                    $startAt,
+                    $endAt,
+                );
+                if ($hoursConflict !== '') {
+                    throw new RuntimeException($prefix . $hoursConflict);
+                }
+                $durationConflict = (string) $durationMessage(
+                    $clinicId,
+                    $procedureId,
+                    $startAt,
+                    $endAt,
+                );
+                if ($durationConflict !== '') {
+                    throw new RuntimeException($prefix . $durationConflict);
+                }
+                $conflict = (string) $conflictMessage(
+                    $clinicId,
+                    $doctorUserId,
+                    $startAt,
+                    $endAt,
+                    $index > 0 ? 'recorrência do agendamento' : 'agendamento',
+                    0,
+                    0,
+                );
+                if ($conflict !== '') {
+                    throw new RuntimeException($prefix . $conflict);
+                }
+                [
+                    $paid,
+                    $method,
+                    $amountCents,
+                    $paymentDestination,
+                    $paymentError,
+                ] = (array) $paymentContext($clinicId, $procedureId, $index);
+                if ($paymentError) {
+                    throw new RuntimeException($prefix . (string) $paymentError);
+                }
+                $this->data->result(
+                    'operational.appointments.05.page_appointments.37',
+                    [
+                        $clinicId,
+                        $patientId,
+                        $doctorUserId,
+                        $startAt,
+                        $endAt,
+                        $procedureId,
+                        (string) $procedure['title'],
+                        $notes,
+                        $amountCents,
+                        $method ?: null,
+                        $paid ? 'efetivada' : 'prevista',
+                        $paid ? 1 : 0,
+                        $userId,
+                    ],
+                );
+                $appointmentId = $this->data->lastInsertId();
+                $syncFinancial(
+                    $clinicId,
+                    $appointmentId,
+                    $userId,
+                    $paymentDestination,
+                );
+                $ids[] = $appointmentId;
+            }
+            return $ids;
+        });
+    }
+
+    public function createAppointment(
+        int $clinicId,
+        int $patientId,
+        int $doctorUserId,
+        string $startAt,
+        string $endAt,
+        int $procedureId,
+        string $notes,
+        int $userId,
+        Closure $durationMessage,
+        Closure $conflictMessage,
+        Closure $paymentContext,
+        Closure $syncFinancial,
+    ): int {
+        $ids = $this->createAppointmentBatch(
+            $clinicId,
+            $patientId,
+            $doctorUserId,
+            [[
+                'start_at' => $startAt,
+                'end_at' => $endAt,
+                'procedure_id' => $procedureId,
+                'notes' => $notes,
+            ]],
+            $userId,
+            $durationMessage,
+            static fn(...$arguments): string => '',
+            $conflictMessage,
+            static function (int $batchClinicId, int $batchProcedureId, int $index) use ($paymentContext): array {
+                return (array) $paymentContext($batchClinicId, $batchProcedureId);
+            },
+            $syncFinancial,
+        );
+        return (int) ($ids[0] ?? 0);
+    }
+}
+'''
+text = text[:start] + new_tail
+p.write_text(text)
+
+# Runtime06: interpreta as linhas sem impor limite arbitrário e deriva o fim pela duração cadastrada.
+p = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations06.php')
+text = p.read_text()
+marker = "    public static function appointment_min_duration_message(\n"
+recurrence_method = r'''    public static function appointment_recurrence_rows_from_post(
+        int $cid,
+        array $procedures,
+    ): array {
+        $procedureValues = $_POST['recurrence_procedure'] ?? [];
+        $startValues = $_POST['recurrence_start_at'] ?? [];
+        if (!is_array($procedureValues) || !is_array($startValues)) {
+            throw new RuntimeException('Dados de recorrência inválidos.');
+        }
+        $procedureMap = [];
+        foreach ($procedures as $procedure) {
+            $procedureId = (int) ($procedure['id'] ?? 0);
+            if ($procedureId > 0) {
+                $procedureMap[$procedureId] = $procedure;
+            }
+        }
+        $rows = [];
+        $count = max(count($procedureValues), count($startValues));
+        for ($index = 0; $index < $count; $index++) {
+            $selection = mb_trim((string) ($procedureValues[$index] ?? ''));
+            $startLocal = mb_trim((string) ($startValues[$index] ?? ''));
+            if ($selection === '' && $startLocal === '') {
+                continue;
+            }
+            $line = $index + 1;
+            if ($selection === '' || $startLocal === '') {
+                throw new RuntimeException('Complete Procedimento e Data/Hora na recorrência ' . $line . '.');
+            }
+            if (!str_starts_with($selection, 'procedure:')) {
+                throw new RuntimeException('Selecione um procedimento cadastrado na recorrência ' . $line . '.');
+            }
+            $procedureId = (int) substr($selection, 10);
+            $procedure = $procedureMap[$procedureId] ?? null;
+            if (!$procedure) {
+                throw new RuntimeException('O procedimento da recorrência ' . $line . ' não está disponível.');
+            }
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/', $startLocal) !== 1) {
+                throw new RuntimeException('Informe Data/Hora válida na recorrência ' . $line . '.');
+            }
+            $duration = max(0, (int) ($procedure['duration_minutes'] ?? 0));
+            if ($duration <= 0) {
+                throw new RuntimeException(
+                    'O procedimento da recorrência ' . $line . ' precisa ter duração cadastrada antes do agendamento.',
+                );
+            }
+            $endLocal = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_local_input_add_minutes(
+                $startLocal,
+                $duration,
+            );
+            $rows[] = [
+                'procedure_id' => $procedureId,
+                'start_at' => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startLocal),
+                'end_at' => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endLocal),
+                'duration_minutes' => $duration,
+            ];
+        }
+        return $rows;
+    }
+
+'''
+if marker not in text:
+    raise SystemExit('Marcador Runtime06 não encontrado.')
+text = text.replace(marker, recurrence_method + marker, 1)
+p.write_text(text)
+
+# Runtime05: reduz gateways do hotspot e troca criação singular por lote atômico.
+p = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+text = p.read_text()
+old_remove = r'''                $b = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.27', [$id, $cid], []);
+                if ($b) {
+                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.28', [(int) $c["user"]["id"], $cancelReason, $id, $cid], []);
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_removido", "bloqueio", $id, [
+                        "motivo" => $cancelReason,
+                    ]);
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio excluído da agenda e preservado no histórico.");
+                } else {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado.", "bad");
+                }
+'''
+new_remove = r'''                $removed = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->removeBlock(
+                    $cid,
+                    $id,
+                    (int) $c["user"]["id"],
+                    $cancelReason,
+                );
+                if ($removed) {
+                    \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_removido", "bloqueio", $id, [
+                        "motivo" => $cancelReason,
+                    ]);
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio excluído da agenda e preservado no histórico.");
+                } else {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Bloqueio não encontrado.", "bad");
+                }
+'''
+if old_remove not in text:
+    raise SystemExit('Fluxo removeBlock não encontrado no Runtime05.')
+text = text.replace(old_remove, new_remove, 1)
+
+anchor = text.index('            if ($act === "delete_appointment") {')
+start = text.index('            $did = (int) ($_POST["doctor_user_id"] ?? 0);', anchor)
+end_marker = '            $postRedirect();\n        }\n        $agendaDoctor'
+end = text.index(end_marker, start) + len('            $postRedirect();\n')
+new_create = r'''            $did = (int) ($_POST["doctor_user_id"] ?? 0);
+            $startAt = (string) ($_POST["start_at"] ?? "");
+            $endAt = (string) ($_POST["end_at"] ?? "");
+            $patient = (int) ($_POST["patient_link_id"] ?? 0);
+            if (!isset($docs[$did])) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Selecione um profissional válido.", "bad");
+                $postRedirect();
+            }
+            if (
+                $patient <= 0 ||
+                !isset($pats[$patient]) ||
+                $startAt === "" ||
+                $endAt === "" ||
+                strtotime($endAt) <= strtotime($startAt)
+            ) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    "Informe paciente da clínica atual, início e fim posterior ao início.",
+                    "bad",
+                );
+                $postRedirect();
+            }
+            if (
+                $blockReason = \Prontoo\Runtime\Patients\PatientComposition::registrationBlockReason(
+                    $cid,
+                    $patient,
+                )
+            ) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($blockReason, "bad");
+                $postRedirect();
+            }
+            $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
+            $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
+            $procId = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_id_from_post($cid);
+            if ($act === "create" && !$procId) {
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_options($cid, true) === []
+                        ? "Cadastre Procedimentos primeiro."
+                        : "Selecione um procedimento cadastrado.",
+                    "bad",
+                );
+                $postRedirect();
+            }
+            $appointmentNotes = mb_trim((string) ($_POST['notes'] ?? ''));
+            try {
+                $recurrenceRows = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_recurrence_rows_from_post(
+                    $cid,
+                    $procedures,
+                );
+                $appointmentItems = [[
+                    'start_at' => $startAt,
+                    'end_at' => $endAt,
+                    'procedure_id' => (int) $procId,
+                    'notes' => $appointmentNotes,
+                ]];
+                foreach ($recurrenceRows as $recurrenceRow) {
+                    $appointmentItems[] = [
+                        'start_at' => (string) $recurrenceRow['start_at'],
+                        'end_at' => (string) $recurrenceRow['end_at'],
+                        'procedure_id' => (int) $recurrenceRow['procedure_id'],
+                        'notes' => $appointmentNotes,
+                    ];
+                }
+                $appointmentIds = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createAppointmentBatch(
+                    $cid,
+                    $patient,
+                    $did,
+                    $appointmentItems,
+                    (int) $c['user']['id'],
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::class,
+                        'appointment_min_duration_message',
+                    ]),
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::class,
+                        'doctor_work_hours_conflict_message',
+                    ]),
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
+                        'agenda_conflict_message',
+                    ]),
+                    static function (int $clinicId, int $procedureId, int $index): array {
+                        if ($index === 0) {
+                            return \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
+                                $clinicId,
+                                $procedureId,
+                                0,
+                            );
+                        }
+                        return [
+                            false,
+                            '',
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_price_cents(
+                                $clinicId,
+                                $procedureId,
+                                0,
+                            ),
+                            0,
+                            null,
+                        ];
+                    },
+                    Closure::fromCallable([
+                        \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class,
+                        'financial_sync_appointment',
+                    ]),
+                );
+            } catch (Throwable $e) {
+                error_log("[Prontoo appointment batch create] " . $e->getMessage());
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    $e instanceof RuntimeException && trim($e->getMessage()) !== ""
+                        ? $e->getMessage()
+                        : "Não foi possível agendar a consulta e suas recorrências. Revise os horários e tente novamente.",
+                    "bad",
+                );
+                $postRedirect();
+            }
+            foreach ($appointmentIds as $batchIndex => $appointmentId) {
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("appointments_total");
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "appointments");
+                $auditPayload = $batchIndex === 0
+                    ? $_POST
+                    : [
+                        'patient_link_id' => $patient,
+                        'doctor_user_id' => $did,
+                        'procedure_id' => (int) ($appointmentItems[$batchIndex]['procedure_id'] ?? 0),
+                        'start_at' => (string) ($appointmentItems[$batchIndex]['start_at'] ?? ''),
+                        'end_at' => (string) ($appointmentItems[$batchIndex]['end_at'] ?? ''),
+                        'recurrence_index' => $batchIndex,
+                        'audit_body' => 'Recorrência criada junto ao Agendamento Rápido.',
+                    ];
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                    "consulta_agendada",
+                    "consulta",
+                    (int) $appointmentId,
+                    $auditPayload,
+                );
+            }
+            $recurrenceCount = max(0, count($appointmentIds) - 1);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                $recurrenceCount > 0
+                    ? "Consulta agendada com " . $recurrenceCount . " recorrência" . ($recurrenceCount === 1 ? "" : "s") . "."
+                    : "Consulta agendada.",
+            );
+            $postRedirect();
+'''
+text = text[:start] + new_create + text[end:]
+
+form_marker = "            $form =\n                '<section class=\"form-panel agenda-route-form agenda-quick-form-panel\">' .\n"
+if form_marker not in text:
+    raise SystemExit('Marcador do formulário rápido não encontrado.')
+recurrence_ui = r'''            $recurrenceProcedureOptions = '<option value="">Selecione o procedimento</option>';
+            foreach ($procedures as $procedure) {
+                $recurrenceProcedureOptions .=
+                    '<option value="procedure:' .
+                    (int) $procedure['id'] .
+                    '" data-duration="' .
+                    max(0, (int) ($procedure['duration_minutes'] ?? 0)) .
+                    '">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                        \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::procedure_option_label($procedure),
+                    ) .
+                    '</option>';
+            }
+            $recurrenceFieldset =
+                '<fieldset class="agenda-quick-section agenda-quick-recurrence" data-appointment-recurrence><legend>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("repeat") .
+                '<span>Recorrência</span></legend><p class="agenda-recurrence-help">Adicione outras datas para o mesmo paciente e profissional. Cada linha cria um novo agendamento.</p><div class="agenda-recurrence-list" data-recurrence-list></div><template data-recurrence-template><div class="agenda-recurrence-row" data-recurrence-row><label class="field"><span>Procedimento</span><select name="recurrence_procedure[]" required data-recurrence-procedure>' .
+                $recurrenceProcedureOptions .
+                '</select><small class="field-hint" data-recurrence-duration></small></label><label class="field"><span>Data/Hora</span><input type="datetime-local" name="recurrence_start_at[]" required data-recurrence-start></label><button type="button" class="ghost small agenda-recurrence-remove" data-recurrence-remove>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
+                '<span>Remover</span></button></div></template><button type="button" class="ghost small agenda-recurrence-add" data-recurrence-add>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add") .
+                '<span>Adicionar recorrência</span></button></fieldset>';
+'''
+text = text.replace(form_marker, recurrence_ui + form_marker, 1)
+old_form_join = r'''                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
+                "</div></fieldset>" .
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .
+'''
+new_form_join = r'''                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
+                "</div></fieldset>" .
+                $recurrenceFieldset .
+                \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .
+'''
+if old_form_join not in text:
+    raise SystemExit('Junção do formulário de agendamento não encontrada.')
+text = text.replace(old_form_join, new_form_join, 1)
+p.write_text(text)
+
+# JS: linhas dinâmicas sem número máximo artificial.
+p = Path('public/assets/app.js')
+text = p.read_text()
+ending = "})();\n"
+if not text.endswith(ending):
+    raise SystemExit('Final de app.js inesperado.')
+js = r'''
+  function updateAppointmentRecurrenceDuration(select) {
+    if (!select) return;
+    var row = select.closest("[data-recurrence-row]");
+    var hint = row && row.querySelector("[data-recurrence-duration]");
+    var option = select.options && select.options[select.selectedIndex];
+    var duration = parseInt((option && option.dataset.duration) || "0", 10);
+    if (hint) hint.textContent = duration > 0 ? duration + " min de duração" : "";
+  }
+  function addAppointmentRecurrence(button) {
+    var root = button && button.closest("[data-appointment-recurrence]");
+    if (!root) return;
+    var list = root.querySelector("[data-recurrence-list]");
+    var template = root.querySelector("template[data-recurrence-template]");
+    if (!list || !template || !template.content) return;
+    var fragment = template.content.cloneNode(true);
+    var row = fragment.querySelector("[data-recurrence-row]");
+    var select = row && row.querySelector("[data-recurrence-procedure]");
+    var form = root.closest("form");
+    var mainProcedure = form && form.querySelector("[data-procedure-select]");
+    if (select && mainProcedure && mainProcedure.value) select.value = mainProcedure.value;
+    list.appendChild(fragment);
+    updateAppointmentRecurrenceDuration(select);
+    var start = row && row.querySelector("[data-recurrence-start]");
+    if (start) start.focus();
+  }
+  d.addEventListener("click", function (ev) {
+    var add = closest(ev.target, "[data-recurrence-add]");
+    if (add) {
+      ev.preventDefault();
+      addAppointmentRecurrence(add);
+      return;
+    }
+    var remove = closest(ev.target, "[data-recurrence-remove]");
+    if (remove) {
+      ev.preventDefault();
+      var row = remove.closest("[data-recurrence-row]");
+      if (row) row.remove();
+    }
+  });
+  d.addEventListener("change", function (ev) {
+    var select = closest(ev.target, "[data-recurrence-procedure]");
+    if (select) updateAppointmentRecurrenceDuration(select);
+  });
+'''
+p.write_text(text[:-len(ending)] + js + ending)
+
+# CSS do grupo em linha no desktop e empilhado no mobile.
+p = Path('design/styles/application.css')
+text = p.read_text()
+css = r'''
+
+.agenda-quick-recurrence{display:grid;gap:12px}
+.agenda-recurrence-help{margin:0;color:var(--md-sys-color-on-surface-variant);font:var(--md-sys-typescale-body-small)}
+.agenda-recurrence-list{display:grid;gap:10px}
+.agenda-recurrence-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr) auto;gap:10px;align-items:end;padding:12px;border:1px solid var(--md-sys-color-outline-variant);border-radius:16px;background:var(--md-sys-color-surface-container-lowest)}
+.agenda-recurrence-row .field{margin:0;min-width:0}
+.agenda-recurrence-remove{align-self:end;white-space:nowrap}
+.agenda-recurrence-add{justify-self:start}
+@media(max-width:720px){.agenda-recurrence-row{grid-template-columns:1fr}.agenda-recurrence-remove{justify-self:start}}
+'''
+if '.agenda-recurrence-row{' not in text:
+    text += css
+p.write_text(text)
+
+# Testes nativos do serviço de lote e da extração do gateway de remoção.
+p = Path('tools/test-fast')
+text = p.read_text()
+text = text.replace(
+    "        'operational.appointments.05.page_appointments.36' => [['title' => 'Consulta']],\n",
+    "        'operational.appointments.05.page_appointments.36' => [['title' => 'Consulta']],\n        'operational.appointments.05.page_appointments.27' => [['id' => 701]],\n",
+    1,
+)
+needle = r'''$appointmentCommands->updateBlock(
+    7,
+    701,
+    91,
+    '2026-08-11 10:00:00',
+    '2026-08-11 11:00:00',
+    'Reunião ajustada',
+    $noConflict,
+);
+'''
+replacement = needle + r'''$removedBlock = $appointmentCommands->removeBlock(
+    7,
+    701,
+    11,
+    'Agenda ajustada',
+);
+'''
+if needle not in text:
+    raise SystemExit('Teste updateBlock não encontrado.')
+text = text.replace(needle, replacement, 1)
+needle = r'''$appointmentConflict = '';
+try {
+'''
+batch_test = r'''$appointmentBatchSync = [];
+$batchIds = $appointmentCommands->createAppointmentBatch(
+    7,
+    51,
+    91,
+    [
+        [
+            'start_at' => '2026-08-18 15:00:00',
+            'end_at' => '2026-08-18 16:00:00',
+            'procedure_id' => 31,
+            'notes' => 'lote',
+        ],
+        [
+            'start_at' => '2026-08-25 15:00:00',
+            'end_at' => '2026-08-25 16:00:00',
+            'procedure_id' => 31,
+            'notes' => 'lote',
+        ],
+    ],
+    11,
+    $noConflict,
+    $noConflict,
+    $noConflict,
+    static fn(int $clinicId, int $procedureId, int $index): array => [false, '', 1300 + $index, 0, null],
+    static function (...$arguments) use (&$appointmentBatchSync): void {
+        $appointmentBatchSync[] = $arguments;
+    },
+);
+$appointmentConflict = '';
+try {
+'''
+if needle not in text:
+    raise SystemExit('Marcador de conflito não encontrado nos testes.')
+text = text.replace(needle, batch_test, 1)
+needle = r'''$same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');
+$same('Horário indisponível.', $appointmentConflict, 'application.appointment_commands.conflict');
+'''
+replacement = r'''$same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');
+$assert($removedBlock, 'application.appointment_commands.remove_block');
+$same([701, 701], $batchIds, 'application.appointment_commands.batch_ids');
+$same(2, count($appointmentBatchSync), 'application.appointment_commands.batch_financial_sync');
+$same('Horário indisponível.', $appointmentConflict, 'application.appointment_commands.conflict');
+'''
+if needle not in text:
+    raise SystemExit('Asserções de appointment commands não encontradas.')
+text = text.replace(needle, replacement, 1)
+p.write_text(text)
+PY
+
+php -l app/Application/Operational/AppointmentCommandService.php
+php -l app/Runtime/Appointments/AppointmentsRuntimeOperations05.php
+php -l app/Runtime/Appointments/AppointmentsRuntimeOperations06.php
+node --check public/assets/app.js
+
+# Remove materialização antes de gerar contratos/manifests canônicos.
+git rm .github/workflows/tmp-quick-scheduling-recurrence.yml tools/tmp-quick-scheduling-recurrence
+
+cat >/tmp/prontoo-release.json <<'JSON'
+{
+  "build": "1.9.15.1-quick-scheduling-recurrence",
+  "package_type": "micro_ux",
+  "notes": "Adiciona recorrências ao Agendamento Rápido, permitindo tantas repetições quanto necessário, cada uma com Procedimento e Data/Hora, mantendo paciente e profissional e salvando todo o lote de forma atômica.",
+  "logic_changes": true,
+  "visual_changes": true,
+  "documentation_changes": true,
+  "changelog": {
+    "title": "Recorrências no Agendamento Rápido",
+    "items": [
+      "Inclui o grupo Recorrência no Agendamento Rápido.",
+      "Permite adicionar e remover um número aberto de repetições, uma por linha.",
+      "Cada recorrência escolhe Procedimento e Data/Hora e mantém paciente e profissional do agendamento principal.",
+      "Calcula o término da recorrência pela duração cadastrada do procedimento.",
+      "Valida horário de trabalho, duração e conflitos para cada repetição.",
+      "Grava agendamento principal e recorrências em uma única transação, sem persistência parcial."
+    ]
+  }
+}
+JSON
+STAMP="$(TZ=America/Cuiaba date --iso-8601=seconds)"
+php tools/release-version --write --date=2026-09-15 --timestamp="$STAMP" --expected-current=1.9.14.6 --metadata-file=/tmp/prontoo-release.json
+python3 - <<'PY'
+import json
+from pathlib import Path
+p = Path('version.json')
+data = json.loads(p.read_text())
+data['asset_version'] = data['version']
+data['database_changes'] = False
+data['schema_changes'] = False
+p.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+PY
+
+OLD=1.9.14.6
+NEW=1.9.15.1
+for pair in \
+  "app-icon-$OLD.png:app-icon-$NEW.png" \
+  "favicon-$OLD.ico:favicon-$NEW.ico" \
+  "favicon-$OLD.png:favicon-$NEW.png" \
+  "pix-$OLD.svg:pix-$NEW.svg" \
+  "prontoo-mark-$OLD.png:prontoo-mark-$NEW.png"; do
+  from="${pair%%:*}"
+  to="${pair##*:}"
+  git mv "public/assets/$from" "public/assets/$to"
+done
+
+while IFS= read -r file; do
+  sed -i "s/${OLD//./\\.}/$NEW/g" "$file"
+done < <(git grep -Il "$OLD" || true)
+
+php tools/presentation-css-build --lint
+php tools/presentation-css-build --write
+php tools/presentation-css-build --check
+php tools/release-contract-reconcile --write
+php tools/release-contract-reconcile --check
+php tools/release-version
+php tools/version-asset-contract-check.php
+php tools/superseded-reference-contract-check
+php tools/test-fast
+git diff --check
+
+git config user.name 'github-actions[bot]'
+git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+git add -A
+git commit -m 'Adiciona recorrências ao Agendamento Rápido'
+GITHUB_BASE_REF=prontoo php tools/runtime-refactor-on-touch-check
+php tools/quality-gate --fast
+git push origin HEAD
