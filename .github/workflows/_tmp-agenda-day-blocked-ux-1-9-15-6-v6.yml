@@ -245,6 +245,7 @@ jobs:
           p = Path('design/styles/application.css')
           p.write_text(p.read_text().replace('pix-1.9.15.5.svg', 'pix-1.9.15.6.svg'))
           PY
+          git add -A public/assets
           php tools/presentation-css-build --write
           php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
