@@ -1268,6 +1268,7 @@ $appointmentPort = new class implements OperationalDataPort, OperationalSchemaPo
     public array $rowsByOperation = [
         'operational.appointments.05.page_appointments.31' => [['id' => 81]],
         'operational.appointments.05.page_appointments.36' => [['title' => 'Consulta']],
+        'operational.appointments.05.page_appointments.27' => [['id' => 701]],
     ];
     public int $insertId = 701;
     public function run(string $operation, array $parameters, array $context): OperationalDataResult
@@ -1328,6 +1329,12 @@ $appointmentCommands->updateBlock(
     'Reunião ajustada',
     $noConflict,
 );
+$removedBlock = $appointmentCommands->removeBlock(
+    7,
+    701,
+    11,
+    'Agenda ajustada',
+);
 $appointmentFinancialSync = [];
 $syncAppointment = static function (...$arguments) use (&$appointmentFinancialSync): void {
     $appointmentFinancialSync[] = $arguments;
@@ -1363,6 +1370,34 @@ $createdAppointmentId = $appointmentCommands->createAppointment(
     static fn(int $clinicId, int $procedureId): array => [true, 'pix', 1300, 41, ''],
     $syncAppointment,
 );
+$appointmentBatchSync = [];
+$batchIds = $appointmentCommands->createAppointmentBatch(
+    7,
+    51,
+    91,
+    [
+        [
+            'start_at' => '2026-08-18 15:00:00',
+            'end_at' => '2026-08-18 16:00:00',
+            'procedure_id' => 31,
+            'notes' => 'lote',
+        ],
+        [
+            'start_at' => '2026-08-25 15:00:00',
+            'end_at' => '2026-08-25 16:00:00',
+            'procedure_id' => 31,
+            'notes' => 'lote',
+        ],
+    ],
+    11,
+    $noConflict,
+    $noConflict,
+    $noConflict,
+    static fn(int $clinicId, int $procedureId, int $index): array => [false, '', 1300 + $index, 0, null],
+    static function (...$arguments) use (&$appointmentBatchSync): void {
+        $appointmentBatchSync[] = $arguments;
+    },
+);
 $appointmentConflict = '';
 try {
     $appointmentCommands->createBlock(
@@ -1378,6 +1413,9 @@ try {
     $appointmentConflict = $error->getMessage();
 }
 $same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');
+$assert($removedBlock, 'application.appointment_commands.remove_block');
+$same([701, 701], $batchIds, 'application.appointment_commands.batch_ids');
+$same(2, count($appointmentBatchSync), 'application.appointment_commands.batch_financial_sync');
 $same('Horário indisponível.', $appointmentConflict, 'application.appointment_commands.conflict');
 $same(
     [[7, 81, 11, 0], [7, 701, 11, 41]],

@@ -5272,4 +5272,48 @@ function initPasswordToggle(root = document) {
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
+
+  function updateAppointmentRecurrenceDuration(select) {
+    if (!select) return;
+    var row = select.closest("[data-recurrence-row]");
+    var hint = row && row.querySelector("[data-recurrence-duration]");
+    var option = select.options && select.options[select.selectedIndex];
+    var duration = parseInt((option && option.dataset.duration) || "0", 10);
+    if (hint) hint.textContent = duration > 0 ? duration + " min de duração" : "";
+  }
+  function addAppointmentRecurrence(button) {
+    var root = button && button.closest("[data-appointment-recurrence]");
+    if (!root) return;
+    var list = root.querySelector("[data-recurrence-list]");
+    var template = root.querySelector("template[data-recurrence-template]");
+    if (!list || !template || !template.content) return;
+    var fragment = template.content.cloneNode(true);
+    var row = fragment.querySelector("[data-recurrence-row]");
+    var select = row && row.querySelector("[data-recurrence-procedure]");
+    var form = root.closest("form");
+    var mainProcedure = form && form.querySelector("[data-procedure-select]");
+    if (select && mainProcedure && mainProcedure.value) select.value = mainProcedure.value;
+    list.appendChild(fragment);
+    updateAppointmentRecurrenceDuration(select);
+    var start = row && row.querySelector("[data-recurrence-start]");
+    if (start) start.focus();
+  }
+  d.addEventListener("click", function (ev) {
+    var add = closest(ev.target, "[data-recurrence-add]");
+    if (add) {
+      ev.preventDefault();
+      addAppointmentRecurrence(add);
+      return;
+    }
+    var remove = closest(ev.target, "[data-recurrence-remove]");
+    if (remove) {
+      ev.preventDefault();
+      var row = remove.closest("[data-recurrence-row]");
+      if (row) row.remove();
+    }
+  });
+  d.addEventListener("change", function (ev) {
+    var select = closest(ev.target, "[data-recurrence-procedure]");
+    if (select) updateAppointmentRecurrenceDuration(select);
+  });
 })();

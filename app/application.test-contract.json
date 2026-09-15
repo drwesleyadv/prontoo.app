@@ -7,97 +7,210 @@
             "id": "authorization.evaluate",
             "service": "Prontoo\\Application\\Authorization\\AuthorizationService",
             "service_file": "app/Application/Authorization/AuthorizationService.php",
-            "entry_points": ["evaluate"],
+            "entry_points": [
+                "evaluate"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Authorization\\CapabilityProvider", "file": "app/Application/Authorization/CapabilityProvider.php"}
+                {
+                    "interface": "Prontoo\\Application\\Authorization\\CapabilityProvider",
+                    "file": "app/Application/Authorization/CapabilityProvider.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "permission_denied", "wrong_tenant", "invalid_user", "fail_closed", "deterministic_return"],
-            "assertions": ["application.authorization.clinic_allowed", "application.authorization.permission_denied", "application.authorization.wrong_tenant", "application.authorization.identity_missing"]
+            "characteristics": [
+                "happy_path",
+                "permission_denied",
+                "wrong_tenant",
+                "invalid_user",
+                "fail_closed",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.authorization.clinic_allowed",
+                "application.authorization.permission_denied",
+                "application.authorization.wrong_tenant",
+                "application.authorization.identity_missing"
+            ]
         },
         {
             "id": "financial.cashier_attention",
             "service": "Prontoo\\Application\\Financial\\FinancialCashierAttentionService",
             "service_file": "app/Application/Financial/FinancialCashierAttentionService.php",
-            "entry_points": ["requiresAttention"],
+            "entry_points": [
+                "requiresAttention"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialCashierAttentionPort", "file": "app/Application/Financial/FinancialCashierAttentionPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialCashierAttentionPort",
+                    "file": "app/Application/Financial/FinancialCashierAttentionPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "invalid_user", "deterministic_return"],
-            "assertions": ["application.cash.requires_attention", "application.cash.readonly_short_circuit"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "invalid_user",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.cash.requires_attention",
+                "application.cash.readonly_short_circuit"
+            ]
         },
         {
             "id": "financial.data.query",
             "service": "Prontoo\\Application\\Financial\\FinancialDataService",
             "service_file": "app/Application/Financial/FinancialDataService.php",
-            "entry_points": ["result", "row", "scalar", "lastInsertId"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar",
+                "lastInsertId"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "normalization", "deterministic_return"],
-            "assertions": ["application.financial_data.rows", "application.financial_data.last_insert_id"]
+            "characteristics": [
+                "happy_path",
+                "normalization",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_data.rows",
+                "application.financial_data.last_insert_id"
+            ]
         },
         {
             "id": "financial.data.fail_closed",
             "service": "Prontoo\\Application\\Financial\\FinancialDataService",
             "service_file": "app/Application/Financial/FinancialDataService.php",
-            "entry_points": ["safeScalar"],
+            "entry_points": [
+                "safeScalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["port_failure", "fail_closed", "deterministic_return"],
-            "assertions": ["application.financial_data.fail_closed_default", "application.financial_data.failure_reported"]
+            "characteristics": [
+                "port_failure",
+                "fail_closed",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_data.fail_closed_default",
+                "application.financial_data.failure_reported"
+            ]
         },
         {
             "id": "financial.data.atomic",
             "service": "Prontoo\\Application\\Financial\\FinancialDataService",
             "service_file": "app/Application/Financial/FinancialDataService.php",
-            "entry_points": ["atomic"],
+            "entry_points": [
+                "atomic"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "port_failure", "atomicity"],
-            "assertions": ["application.financial_data.atomic", "application.financial_data.atomic_failure_propagates"]
+            "characteristics": [
+                "happy_path",
+                "port_failure",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.financial_data.atomic",
+                "application.financial_data.atomic_failure_propagates"
+            ]
         },
         {
             "id": "financial.data.schema",
             "service": "Prontoo\\Application\\Financial\\FinancialDataService",
             "service_file": "app/Application/Financial/FinancialDataService.php",
-            "entry_points": ["ensureOperationalSchema", "ensureDailyClosingSchema"],
+            "entry_points": [
+                "ensureOperationalSchema",
+                "ensureDailyClosingSchema"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "schema_readiness", "deterministic_return"],
-            "assertions": ["application.financial_data.schema_contracts", "application.financial_data.schema_contract_count"]
+            "characteristics": [
+                "happy_path",
+                "schema_readiness",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_data.schema_contracts",
+                "application.financial_data.schema_contract_count"
+            ]
         },
         {
             "id": "financial.goal.save",
             "service": "Prontoo\\Application\\Financial\\FinancialGoalService",
             "service_file": "app/Application/Financial/FinancialGoalService.php",
-            "entry_points": ["save"],
+            "entry_points": [
+                "save"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialGoalPort", "file": "app/Application/Financial/FinancialGoalPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialGoalPort",
+                    "file": "app/Application/Financial/FinancialGoalPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "wrong_tenant", "normalization"],
-            "assertions": ["application.goal.base_normalized", "application.goal.invalid_tenant", "application.goal.invalid_month"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "wrong_tenant",
+                "normalization"
+            ],
+            "assertions": [
+                "application.goal.base_normalized",
+                "application.goal.invalid_tenant",
+                "application.goal.invalid_month"
+            ]
         },
         {
             "id": "financial.patient_revenue.receive",
             "service": "Prontoo\\Application\\Financial\\PatientRevenueReceiptService",
             "service_file": "app/Application/Financial/PatientRevenueReceiptService.php",
-            "entry_points": ["receive"],
+            "entry_points": [
+                "receive"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\PatientRevenueReceiptPort", "file": "app/Application/Financial/PatientRevenueReceiptPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\PatientRevenueReceiptPort",
+                    "file": "app/Application/Financial/PatientRevenueReceiptPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "permission_denied", "idempotency", "conflict", "atomicity"],
-            "assertions": ["application.revenue.received", "application.revenue.not_pending", "application.revenue.invalid_role", "application.revenue.invalid_port_result"],
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "permission_denied",
+                "idempotency",
+                "conflict",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.revenue.received",
+                "application.revenue.not_pending",
+                "application.revenue.invalid_role",
+                "application.revenue.invalid_port_result"
+            ],
             "integration": {
                 "suite": "tools/critical-runtime-smoke-check",
                 "anchor": "financial_transactional_receipt"
@@ -107,517 +220,1183 @@
             "id": "identity.data.query",
             "service": "Prontoo\\Application\\Identity\\IdentityDataService",
             "service_file": "app/Application/Identity/IdentityDataService.php",
-            "entry_points": ["result", "row", "scalar", "lastInsertId"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar",
+                "lastInsertId"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "normalization", "deterministic_return"],
-            "assertions": ["application.identity.fetch_column", "application.identity.last_insert_id"]
+            "characteristics": [
+                "happy_path",
+                "normalization",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity.fetch_column",
+                "application.identity.last_insert_id"
+            ]
         },
         {
             "id": "identity.data.fail_closed",
             "service": "Prontoo\\Application\\Identity\\IdentityDataService",
             "service_file": "app/Application/Identity/IdentityDataService.php",
-            "entry_points": ["safeScalar"],
+            "entry_points": [
+                "safeScalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["port_failure", "fail_closed", "deterministic_return"],
-            "assertions": ["application.identity.fail_closed_default", "application.identity.failure_reported"]
+            "characteristics": [
+                "port_failure",
+                "fail_closed",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity.fail_closed_default",
+                "application.identity.failure_reported"
+            ]
         },
         {
             "id": "identity.data.atomic",
             "service": "Prontoo\\Application\\Identity\\IdentityDataService",
             "service_file": "app/Application/Identity/IdentityDataService.php",
-            "entry_points": ["atomic"],
+            "entry_points": [
+                "atomic"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "port_failure", "atomicity"],
-            "assertions": ["application.identity.atomic", "application.identity.atomic_failure_propagates"]
+            "characteristics": [
+                "happy_path",
+                "port_failure",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.identity.atomic",
+                "application.identity.atomic_failure_propagates"
+            ]
         },
         {
             "id": "identity.data.schema",
             "service": "Prontoo\\Application\\Identity\\IdentityDataService",
             "service_file": "app/Application/Identity/IdentityDataService.php",
-            "entry_points": ["ensureOnboardingTipsSchema"],
+            "entry_points": [
+                "ensureOnboardingTipsSchema"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "schema_readiness", "deterministic_return"],
-            "assertions": ["application.identity.ensure_contract", "application.identity.schema_contract_count"]
+            "characteristics": [
+                "happy_path",
+                "schema_readiness",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity.ensure_contract",
+                "application.identity.schema_contract_count"
+            ]
         },
         {
             "id": "operational.tasks.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.tasks.allowed", "application.operational.tasks.tenant_forwarded", "application.operational.tasks.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.tasks.allowed",
+                "application.operational.tasks.tenant_forwarded",
+                "application.operational.tasks.scope_closed"
+            ]
         },
         {
             "id": "operational.appointments.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.appointments.allowed", "application.operational.appointments.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.appointments.allowed",
+                "application.operational.appointments.scope_closed"
+            ]
         },
         {
             "id": "operational.patients.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.patients.allowed", "application.operational.patients.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.patients.allowed",
+                "application.operational.patients.scope_closed"
+            ]
         },
         {
             "id": "operational.documents.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.documents.allowed", "application.operational.documents.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.documents.allowed",
+                "application.operational.documents.scope_closed"
+            ]
         },
         {
             "id": "operational.leads.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.leads.allowed", "application.operational.leads.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.leads.allowed",
+                "application.operational.leads.scope_closed"
+            ]
         },
         {
             "id": "operational.maestro.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.maestro.allowed", "application.operational.maestro.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.maestro.allowed",
+                "application.operational.maestro.scope_closed"
+            ]
         },
         {
             "id": "operational.administration.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.administration.allowed", "application.operational.administration.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.administration.allowed",
+                "application.operational.administration.scope_closed"
+            ]
         },
         {
             "id": "operational.platform.execute",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["result", "row", "scalar"],
+            "entry_points": [
+                "result",
+                "row",
+                "scalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.operational.platform.allowed", "application.operational.platform.scope_closed"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.platform.allowed",
+                "application.operational.platform.scope_closed"
+            ]
         },
         {
             "id": "operational.fail_closed",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["safeScalar"],
+            "entry_points": [
+                "safeScalar"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["port_failure", "fail_closed", "deterministic_return"],
-            "assertions": ["application.operational.fail_closed_default", "application.operational.failure_reported"]
+            "characteristics": [
+                "port_failure",
+                "fail_closed",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.fail_closed_default",
+                "application.operational.failure_reported"
+            ]
         },
         {
             "id": "operational.atomic",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["atomic"],
+            "entry_points": [
+                "atomic"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "port_failure", "atomicity"],
-            "assertions": ["application.operational.atomic", "application.operational.atomic_failure_propagates"]
+            "characteristics": [
+                "happy_path",
+                "port_failure",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.operational.atomic",
+                "application.operational.atomic_failure_propagates"
+            ]
         },
         {
             "id": "operational.persistence_identity",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["lastInsertId", "inTransaction"],
+            "entry_points": [
+                "lastInsertId",
+                "inTransaction"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "atomicity", "deterministic_return"],
-            "assertions": ["application.operational.last_insert_id", "application.operational.transaction_state"]
+            "characteristics": [
+                "happy_path",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.last_insert_id",
+                "application.operational.transaction_state"
+            ]
         },
         {
             "id": "operational.schema",
             "service": "Prontoo\\Application\\Operational\\OperationalUseCaseService",
             "service_file": "app/Application/Operational/OperationalUseCaseService.php",
-            "entry_points": ["ensureSchema", "tableExists", "columnExists"],
+            "entry_points": [
+                "ensureSchema",
+                "tableExists",
+                "columnExists"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort", "file": "app/Application/Operational/OperationalSchemaPort.php"},
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort", "file": "app/Application/Operational/OperationalDatabaseContextPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalSchemaPort",
+                    "file": "app/Application/Operational/OperationalSchemaPort.php"
+                },
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDatabaseContextPort",
+                    "file": "app/Application/Operational/OperationalDatabaseContextPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "schema_readiness", "deterministic_return"],
-            "assertions": ["application.operational.schema_contract", "application.operational.table_exists", "application.operational.column_exists"]
+            "characteristics": [
+                "happy_path",
+                "schema_readiness",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.operational.schema_contract",
+                "application.operational.table_exists",
+                "application.operational.column_exists"
+            ]
         },
         {
             "id": "patients.contact.update",
             "service": "Prontoo\\Application\\Patients\\PatientContactCommandService",
             "service_file": "app/Application/Patients/PatientContactCommandService.php",
-            "entry_points": ["update"],
+            "entry_points": [
+                "update"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Patients\\PatientContactCommandPort", "file": "app/Application/Patients/PatientContactCommandPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Patients\\PatientContactCommandPort",
+                    "file": "app/Application/Patients/PatientContactCommandPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "wrong_tenant", "normalization", "port_failure"],
-            "assertions": ["application.contact.updated", "application.contact.invalid_context", "application.contact.invalid_port_result"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "wrong_tenant",
+                "normalization",
+                "port_failure"
+            ],
+            "assertions": [
+                "application.contact.updated",
+                "application.contact.invalid_context",
+                "application.contact.invalid_port_result"
+            ]
         },
         {
             "id": "patients.registration.evaluate",
             "service": "Prontoo\\Application\\Patients\\PatientReadService",
             "service_file": "app/Application/Patients/PatientReadService.php",
-            "entry_points": ["appointmentRegistrationBlockReason"],
+            "entry_points": [
+                "appointmentRegistrationBlockReason"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Patients\\PatientReadPort", "file": "app/Application/Patients/PatientReadPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Patients\\PatientReadPort",
+                    "file": "app/Application/Patients/PatientReadPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "wrong_tenant", "conflict", "deterministic_return"],
-            "assertions": ["application.patient.complete_registration", "application.patient.not_found"]
+            "characteristics": [
+                "happy_path",
+                "wrong_tenant",
+                "conflict",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.patient.complete_registration",
+                "application.patient.not_found"
+            ]
         },
         {
             "id": "patients.guardians.read",
             "service": "Prontoo\\Application\\Patients\\PatientReadService",
             "service_file": "app/Application/Patients/PatientReadService.php",
-            "entry_points": ["legalGuardians", "hasLegalGuardian"],
+            "entry_points": [
+                "legalGuardians",
+                "hasLegalGuardian"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Patients\\PatientReadPort", "file": "app/Application/Patients/PatientReadPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Patients\\PatientReadPort",
+                    "file": "app/Application/Patients/PatientReadPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "wrong_tenant", "normalization", "deterministic_return"],
-            "assertions": ["application.patient.guardian_normalization", "application.patient.has_guardian"]
+            "characteristics": [
+                "happy_path",
+                "wrong_tenant",
+                "normalization",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.patient.guardian_normalization",
+                "application.patient.has_guardian"
+            ]
         },
         {
             "id": "patients.reception_history.read",
             "service": "Prontoo\\Application\\Patients\\PatientReceptionHistoryReadService",
             "service_file": "app/Application/Patients/PatientReceptionHistoryReadService.php",
-            "entry_points": ["read"],
+            "entry_points": [
+                "read"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Patients\\PatientReceptionHistoryReadPort", "file": "app/Application/Patients/PatientReceptionHistoryReadPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Patients\\PatientReceptionHistoryReadPort",
+                    "file": "app/Application/Patients/PatientReceptionHistoryReadPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "wrong_tenant", "normalization", "deterministic_return"],
-            "assertions": ["application.history.port_arguments", "application.history.empty_no_port_call", "application.history.invalid_tenant"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "wrong_tenant",
+                "normalization",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.history.port_arguments",
+                "application.history.empty_no_port_call",
+                "application.history.invalid_tenant"
+            ]
         },
         {
             "id": "patients.tab.create",
             "service": "Prontoo\\Application\\Patients\\PatientTabCommandService",
             "service_file": "app/Application/Patients/PatientTabCommandService.php",
-            "entry_points": ["create"],
+            "entry_points": [
+                "create"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Patients\\PatientTabCommandPort", "file": "app/Application/Patients/PatientTabCommandPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Patients\\PatientTabCommandPort",
+                    "file": "app/Application/Patients/PatientTabCommandPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "wrong_tenant", "normalization", "idempotency", "port_failure"],
-            "assertions": ["application.tab.duplicate", "application.tab.invalid_input", "application.tab.invalid_port_result"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "wrong_tenant",
+                "normalization",
+                "idempotency",
+                "port_failure"
+            ],
+            "assertions": [
+                "application.tab.duplicate",
+                "application.tab.invalid_input",
+                "application.tab.invalid_port_result"
+            ]
         },
         {
             "id": "security.mfa.lifecycle",
             "service": "Prontoo\\Application\\SecurityAccess\\MfaRecordService",
             "service_file": "app/Application/SecurityAccess/MfaRecordService.php",
-            "entry_points": ["hasConfig", "load", "save", "delete", "secretKey"],
+            "entry_points": [
+                "hasConfig",
+                "load",
+                "save",
+                "delete",
+                "secretKey"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\SecurityAccess\\MfaRecordPort", "file": "app/Application/SecurityAccess/MfaRecordPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\SecurityAccess\\MfaRecordPort",
+                    "file": "app/Application/SecurityAccess/MfaRecordPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "invalid_user", "normalization", "fail_closed", "deterministic_return"],
-            "assertions": ["application.mfa.configured", "application.mfa.round_trip", "application.mfa.secret_key", "application.mfa.delete_port", "application.mfa.corrupt_fail_closed"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "invalid_user",
+                "normalization",
+                "fail_closed",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.mfa.configured",
+                "application.mfa.round_trip",
+                "application.mfa.secret_key",
+                "application.mfa.delete_port",
+                "application.mfa.corrupt_fail_closed"
+            ]
         },
         {
             "id": "security.incident.record",
             "service": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentService",
             "service_file": "app/Application/SecurityAccess/SecurityIncidentService.php",
-            "entry_points": ["recordScopeViolation"],
+            "entry_points": [
+                "recordScopeViolation"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentPort", "file": "app/Application/SecurityAccess/SecurityIncidentPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentPort",
+                    "file": "app/Application/SecurityAccess/SecurityIncidentPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "wrong_tenant", "invalid_user", "fail_closed"],
-            "assertions": ["application.security_incident.invalid_tenant_short_circuit", "application.security_incident.port_arguments", "application.security_incident.invalid_fingerprint"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "wrong_tenant",
+                "invalid_user",
+                "fail_closed"
+            ],
+            "assertions": [
+                "application.security_incident.invalid_tenant_short_circuit",
+                "application.security_incident.port_arguments",
+                "application.security_incident.invalid_fingerprint"
+            ]
         },
         {
             "id": "security.incident.shape",
             "service": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentService",
             "service_file": "app/Application/SecurityAccess/SecurityIncidentService.php",
-            "entry_points": ["scopedEntityReadShape"],
+            "entry_points": [
+                "scopedEntityReadShape"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentPort", "file": "app/Application/SecurityAccess/SecurityIncidentPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\SecurityAccess\\SecurityIncidentPort",
+                    "file": "app/Application/SecurityAccess/SecurityIncidentPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "scope_isolation", "deterministic_return"],
-            "assertions": ["application.security_incident.shape", "application.security_incident.shape_argument"]
+            "characteristics": [
+                "happy_path",
+                "scope_isolation",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.security_incident.shape",
+                "application.security_incident.shape_argument"
+            ]
         },
         {
             "id": "financial.drawer.assign",
             "service": "Prontoo\\Application\\Financial\\FinancialDrawerService",
             "service_file": "app/Application/Financial/FinancialDrawerService.php",
-            "entry_points": ["assignUser"],
+            "entry_points": [
+                "assignUser"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "atomicity", "deterministic_return"],
-            "assertions": ["application.financial_drawer.transaction_sequence", "application.financial_drawer.atomic"]
+            "characteristics": [
+                "happy_path",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_drawer.transaction_sequence",
+                "application.financial_drawer.atomic"
+            ]
         },
         {
             "id": "financial.movement.mutate",
             "service": "Prontoo\\Application\\Financial\\FinancialMovementService",
             "service_file": "app/Application/Financial/FinancialMovementService.php",
-            "entry_points": ["update", "create"],
+            "entry_points": [
+                "update",
+                "create"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "atomicity", "deterministic_return"],
-            "assertions": ["application.financial_movement.validation", "application.financial_movement.deterministic_id"]
+            "characteristics": [
+                "happy_path",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_movement.validation",
+                "application.financial_movement.deterministic_id"
+            ]
         },
         {
             "id": "financial.revenue.lifecycle",
             "service": "Prontoo\\Application\\Financial\\FinancialRevenueService",
             "service_file": "app/Application/Financial/FinancialRevenueService.php",
-            "entry_points": ["cancelAppointmentRevenue", "receiveByAdministrator", "receiveAtCashier"],
+            "entry_points": [
+                "cancelAppointmentRevenue",
+                "receiveByAdministrator",
+                "receiveAtCashier"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "atomicity", "deterministic_return"],
-            "assertions": ["application.financial_revenue.audit_sequence", "application.financial_revenue.movement_ids"]
+            "characteristics": [
+                "happy_path",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.financial_revenue.audit_sequence",
+                "application.financial_revenue.movement_ids"
+            ]
         },
         {
             "id": "financial.cash.session",
             "service": "Prontoo\\Application\\Financial\\FinancialCashSessionService",
             "service_file": "app/Application/Financial/FinancialCashSessionService.php",
-            "entry_points": ["keepClosed", "open", "close"],
+            "entry_points": [
+                "keepClosed",
+                "open",
+                "close"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_transition", "atomicity"],
-            "assertions": ["application.financial_cash_session.ids", "application.financial_cash_session.authorization_state", "application.financial_cash_session.closing_hooks"]
+            "characteristics": [
+                "happy_path",
+                "invalid_transition",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.financial_cash_session.ids",
+                "application.financial_cash_session.authorization_state",
+                "application.financial_cash_session.closing_hooks"
+            ]
         },
         {
             "id": "financial.review.lifecycle",
             "service": "Prontoo\\Application\\Financial\\FinancialReviewService",
             "service_file": "app/Application/Financial/FinancialReviewService.php",
-            "entry_points": ["reviewOpening", "reviewSession"],
+            "entry_points": [
+                "reviewOpening",
+                "reviewSession"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_transition", "atomicity"],
-            "assertions": ["application.financial_review.decisions", "application.financial_review.audit_events", "application.financial_review.approval_hooks"]
+            "characteristics": [
+                "happy_path",
+                "invalid_transition",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.financial_review.decisions",
+                "application.financial_review.audit_events",
+                "application.financial_review.approval_hooks"
+            ]
         },
         {
             "id": "financial.consolidation.day",
             "service": "Prontoo\\Application\\Financial\\FinancialConsolidationService",
             "service_file": "app/Application/Financial/FinancialConsolidationService.php",
-            "entry_points": ["consolidateDay"],
+            "entry_points": [
+                "consolidateDay"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Financial\\FinancialDataPort", "file": "app/Application/Financial/FinancialDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Financial\\FinancialDataPort",
+                    "file": "app/Application/Financial/FinancialDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "schema_readiness", "atomicity"],
-            "assertions": ["application.financial_consolidation.schema", "application.financial_consolidation.audit_hash"]
+            "characteristics": [
+                "happy_path",
+                "schema_readiness",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.financial_consolidation.schema",
+                "application.financial_consolidation.audit_hash"
+            ]
         },
         {
             "id": "operational.appointment.commands",
             "service": "Prontoo\\Application\\Operational\\AppointmentCommandService",
             "service_file": "app/Application/Operational/AppointmentCommandService.php",
-            "entry_points": ["createBlock", "updateBlock", "updateAppointment", "createAppointment"],
+            "entry_points": [
+                "createBlock",
+                "updateBlock",
+                "updateAppointment",
+                "createAppointment",
+                "removeBlock",
+                "createAppointmentBatch"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "conflict", "atomicity"],
-            "assertions": ["application.appointment_commands.ids", "application.appointment_commands.conflict", "application.appointment_commands.financial_sync"]
+            "characteristics": [
+                "happy_path",
+                "conflict",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.appointment_commands.ids",
+                "application.appointment_commands.conflict",
+                "application.appointment_commands.financial_sync",
+                "application.appointment_commands.remove_block",
+                "application.appointment_commands.batch_ids",
+                "application.appointment_commands.batch_financial_sync"
+            ]
         },
         {
             "id": "identity.clinic.registration",
             "service": "Prontoo\\Application\\Identity\\ClinicRegistrationService",
             "service_file": "app/Application/Identity/ClinicRegistrationService.php",
-            "entry_points": ["register"],
+            "entry_points": [
+                "register"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "wrong_tenant", "invalid_user", "fail_closed", "atomicity", "deterministic_return"],
-            "assertions": ["application.identity_registration.result", "application.identity_registration.sequence", "application.identity_registration.audit", "application.identity_registration.trial_scope", "application.identity_registration.inactive_fail_closed"]
+            "characteristics": [
+                "happy_path",
+                "wrong_tenant",
+                "invalid_user",
+                "fail_closed",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity_registration.result",
+                "application.identity_registration.sequence",
+                "application.identity_registration.audit",
+                "application.identity_registration.trial_scope",
+                "application.identity_registration.inactive_fail_closed"
+            ]
         },
         {
             "id": "identity.clinic.onboarding",
             "service": "Prontoo\\Application\\Identity\\ClinicOnboardingService",
             "service_file": "app/Application/Identity/ClinicOnboardingService.php",
-            "entry_points": ["complete"],
+            "entry_points": [
+                "complete"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "permission_denied", "atomicity", "deterministic_return"],
-            "assertions": ["application.identity_onboarding.audit_sequence", "application.identity_onboarding.permission_matrix"]
+            "characteristics": [
+                "happy_path",
+                "permission_denied",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity_onboarding.audit_sequence",
+                "application.identity_onboarding.permission_matrix"
+            ]
         },
         {
             "id": "identity.user.credentials",
             "service": "Prontoo\\Application\\Identity\\UserCredentialService",
             "service_file": "app/Application/Identity/UserCredentialService.php",
-            "entry_points": ["updateProfile", "changePassword"],
+            "entry_points": [
+                "updateProfile",
+                "changePassword"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_user", "fail_closed", "atomicity"],
-            "assertions": ["application.identity_credentials.session_revocation", "application.identity_credentials.audit_sequence"]
+            "characteristics": [
+                "happy_path",
+                "invalid_user",
+                "fail_closed",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.identity_credentials.session_revocation",
+                "application.identity_credentials.audit_sequence"
+            ]
         },
         {
             "id": "identity.user.permissions",
             "service": "Prontoo\\Application\\Identity\\UserPermissionService",
             "service_file": "app/Application/Identity/UserPermissionService.php",
-            "entry_points": ["syncRoles", "createTeamMember", "updateTeamMember"],
+            "entry_points": [
+                "syncRoles",
+                "createTeamMember",
+                "updateTeamMember"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Identity\\IdentityDataPort", "file": "app/Application/Identity/IdentityDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Identity\\IdentityDataPort",
+                    "file": "app/Application/Identity/IdentityDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "permission_denied", "atomicity", "deterministic_return"],
-            "assertions": ["application.identity_permissions.roles", "application.identity_permissions.sync_hooks", "application.identity_permissions.invalid_roles", "application.identity_permissions.create_member", "application.identity_permissions.update_member", "application.identity_permissions.update_propagates"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "permission_denied",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.identity_permissions.roles",
+                "application.identity_permissions.sync_hooks",
+                "application.identity_permissions.invalid_roles",
+                "application.identity_permissions.create_member",
+                "application.identity_permissions.update_member",
+                "application.identity_permissions.update_propagates"
+            ]
         },
         {
             "id": "operational.audit.write",
             "service": "Prontoo\\Application\\Operational\\AuditWriteService",
             "service_file": "app/Application/Operational/AuditWriteService.php",
-            "entry_points": ["write"],
+            "entry_points": [
+                "write"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_input", "atomicity"],
-            "assertions": ["application.audit_write.parameters", "application.audit_write.invalid_record"]
+            "characteristics": [
+                "happy_path",
+                "invalid_input",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.audit_write.parameters",
+                "application.audit_write.invalid_record"
+            ]
         },
         {
             "id": "operational.document.issuance",
             "service": "Prontoo\\Application\\Operational\\DocumentIssuanceService",
             "service_file": "app/Application/Operational/DocumentIssuanceService.php",
-            "entry_points": ["assignIdentifier", "confirmIssue"],
+            "entry_points": [
+                "assignIdentifier",
+                "confirmIssue"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "wrong_tenant", "conflict", "atomicity", "deterministic_return"],
-            "assertions": ["application.document_issuance.identifier", "application.document_issuance.confirm_identifier", "application.document_issuance.confirm_sequence", "application.document_issuance.invalid_tenant"]
+            "characteristics": [
+                "happy_path",
+                "wrong_tenant",
+                "conflict",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.document_issuance.identifier",
+                "application.document_issuance.confirm_identifier",
+                "application.document_issuance.confirm_sequence",
+                "application.document_issuance.invalid_tenant"
+            ]
         },
         {
             "id": "operational.installation.account",
             "service": "Prontoo\\Application\\Operational\\InstallationAccountService",
             "service_file": "app/Application/Operational/InstallationAccountService.php",
-            "entry_points": ["createInitialDeveloper"],
+            "entry_points": [
+                "createInitialDeveloper"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "port_failure", "fail_closed", "atomicity"],
-            "assertions": ["application.installation_account.user_id", "application.installation_account.transaction_guard"]
+            "characteristics": [
+                "happy_path",
+                "port_failure",
+                "fail_closed",
+                "atomicity"
+            ],
+            "assertions": [
+                "application.installation_account.user_id",
+                "application.installation_account.transaction_guard"
+            ]
         },
         {
             "id": "operational.maestro.commands",
             "service": "Prontoo\\Application\\Operational\\MaestroCommandService",
             "service_file": "app/Application/Operational/MaestroCommandService.php",
-            "entry_points": ["grantRuntimeAccess", "updateStats", "recordJobRun", "createClaimedAction", "createSupervisedAction"],
+            "entry_points": [
+                "grantRuntimeAccess",
+                "updateStats",
+                "recordJobRun",
+                "createClaimedAction",
+                "createSupervisedAction"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "idempotency", "conflict", "atomicity", "deterministic_return"],
-            "assertions": ["application.maestro_commands.actions", "application.maestro_commands.stats_insert", "application.maestro_commands.job_run", "application.maestro_commands.supervised_sequence"]
+            "characteristics": [
+                "happy_path",
+                "idempotency",
+                "conflict",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.maestro_commands.actions",
+                "application.maestro_commands.stats_insert",
+                "application.maestro_commands.job_run",
+                "application.maestro_commands.supervised_sequence"
+            ]
         },
         {
             "id": "operational.subscription.claim",
             "service": "Prontoo\\Application\\Operational\\SubscriptionClaimService",
             "service_file": "app/Application/Operational/SubscriptionClaimService.php",
-            "entry_points": ["register"],
+            "entry_points": [
+                "register"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "invalid_transition", "atomicity", "deterministic_return"],
-            "assertions": ["application.subscription_claim.audit_branches", "application.subscription_claim.deterministic_branches"]
+            "characteristics": [
+                "happy_path",
+                "invalid_transition",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.subscription_claim.audit_branches",
+                "application.subscription_claim.deterministic_branches"
+            ]
         },
         {
             "id": "operational.task.commands",
             "service": "Prontoo\\Application\\Operational\\TaskCommandService",
             "service_file": "app/Application/Operational/TaskCommandService.php",
-            "entry_points": ["createWorkflowTask"],
+            "entry_points": [
+                "createWorkflowTask"
+            ],
             "ports": [
-                {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
+                {
+                    "interface": "Prontoo\\Application\\Operational\\OperationalDataPort",
+                    "file": "app/Application/Operational/OperationalDataPort.php"
+                }
             ],
             "criticality": "critical",
-            "characteristics": ["happy_path", "idempotency", "atomicity", "deterministic_return"],
-            "assertions": ["application.task_commands.created", "application.task_commands.event", "application.task_commands.idempotent", "application.task_commands.no_duplicate_event"]
+            "characteristics": [
+                "happy_path",
+                "idempotency",
+                "atomicity",
+                "deterministic_return"
+            ],
+            "assertions": [
+                "application.task_commands.created",
+                "application.task_commands.event",
+                "application.task_commands.idempotent",
+                "application.task_commands.no_duplicate_event"
+            ]
         }
     ]
 }
