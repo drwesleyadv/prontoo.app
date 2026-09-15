@@ -491,13 +491,13 @@
             "id": "operational.appointment.commands",
             "service": "Prontoo\\Application\\Operational\\AppointmentCommandService",
             "service_file": "app/Application/Operational/AppointmentCommandService.php",
-            "entry_points": ["createBlock", "updateBlock", "removeBlock", "updateAppointment", "createAppointment", "createAppointmentBatch"],
+            "entry_points": ["createBlock", "updateBlock", "removeBlock", "setDayBlocked", "updateAppointment", "createAppointment", "createAppointmentBatch"],
             "ports": [
                 {"interface": "Prontoo\\Application\\Operational\\OperationalDataPort", "file": "app/Application/Operational/OperationalDataPort.php"}
             ],
             "criticality": "critical",
             "characteristics": ["happy_path", "conflict", "atomicity"],
-            "assertions": ["application.appointment_commands.ids", "application.appointment_commands.remove_block", "application.appointment_commands.batch_ids", "application.appointment_commands.batch_financial_sync", "application.appointment_commands.batch_overlap", "application.appointment_commands.conflict", "application.appointment_commands.financial_sync"]
+            "assertions": ["application.appointment_commands.ids", "application.appointment_commands.remove_block", "application.appointment_commands.day_block_toggle", "application.appointment_commands.day_block_guard", "application.appointment_commands.day_block_ownership", "application.appointment_commands.batch_ids", "application.appointment_commands.batch_financial_sync", "application.appointment_commands.batch_overlap", "application.appointment_commands.conflict", "application.appointment_commands.financial_sync"]
         },
         {
             "id": "identity.clinic.registration",
