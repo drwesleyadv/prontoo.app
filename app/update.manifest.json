@@ -639,7 +639,7 @@
         "tests/presentation/ds-lab.html": "6e9e1e2b6225e82ac57752e164c15090f5fa926a54d9b88c7c826e0e44083ff7",
         "tests/presentation/ux-fixture.html": "4bd8f9f6140a937011b03052c8822fe1f16b3973dc4548839d56302921b3a3bd",
         "tools/application-test-contract-check": "319e815db53147c03bad06025f3824951404af5197732221d7246d08f2fb277a",
-        "tools/architecture-check.php": "9307f5529aa323a729ce50c47d3dade8fbf7add010947649510c8078d5326172",
+        "tools/architecture-check.php": "efb696dc6b2a1defef18fa464a88accef815ecd1119b83b4e21e48b789773ba2",
         "tools/architecture-consolidation-check": "0a90f735fa5f769da134589d3a659057888efb40b05012d1e5c378076547d7af",
         "tools/canonical-source.php": "bdeb5e6518fd8618767f4d96d9f7e7b557b5d6790c45faa44920126a62d50c25",
         "tools/ci-supply-chain-check": "036f7e0c5aba2d9c0326f1b7531134d16328465ba1884d6f2f9d29b6d993e370",
