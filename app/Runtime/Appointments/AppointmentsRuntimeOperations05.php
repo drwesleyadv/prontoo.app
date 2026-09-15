@@ -698,9 +698,13 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Informe o motivo da exclusão do bloqueio.", "bad");
                     $postRedirect();
                 }
-                $b = \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.27', [$id, $cid], []);
-                if ($b) {
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.28', [(int) $c["user"]["id"], $cancelReason, $id, $cid], []);
+                $removed = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->removeBlock(
+                    $cid,
+                    $id,
+                    (int) $c["user"]["id"],
+                    $cancelReason,
+                );
+                if ($removed) {
                     \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("bloqueio_removido", "bloqueio", $id, [
                         "motivo" => $cancelReason,
                     ]);
@@ -915,16 +919,6 @@ final class AppointmentsRuntimeOperations05
             }
             $startAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startAt);
             $endAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endAt);
-            $hoursMessage = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::doctor_work_hours_conflict_message(
-                $cid,
-                $did,
-                $startAt,
-                $endAt,
-            );
-            if ($hoursMessage !== "") {
-                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash($hoursMessage, "bad");
-                $postRedirect();
-            }
             $procId = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_id_from_post($cid);
             if ($act === "create" && !$procId) {
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -937,48 +931,104 @@ final class AppointmentsRuntimeOperations05
             }
             $appointmentNotes = mb_trim((string) ($_POST['notes'] ?? ''));
             try {
-                $appointmentId = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createAppointment(
+                $recurrenceRows = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_recurrence_rows_from_post(
+                    $cid,
+                    $procedures,
+                );
+                $appointmentItems = [[
+                    'start_at' => $startAt,
+                    'end_at' => $endAt,
+                    'procedure_id' => (int) $procId,
+                    'notes' => $appointmentNotes,
+                ]];
+                foreach ($recurrenceRows as $recurrenceRow) {
+                    $appointmentItems[] = [
+                        'start_at' => (string) $recurrenceRow['start_at'],
+                        'end_at' => (string) $recurrenceRow['end_at'],
+                        'procedure_id' => (int) $recurrenceRow['procedure_id'],
+                        'notes' => $appointmentNotes,
+                    ];
+                }
+                $appointmentIds = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->createAppointmentBatch(
                     $cid,
                     $patient,
                     $did,
-                    $startAt,
-                    $endAt,
-                    $procId,
-                    $appointmentNotes,
+                    $appointmentItems,
                     (int) $c['user']['id'],
                     Closure::fromCallable([
                         \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::class,
                         'appointment_min_duration_message',
                     ]),
                     Closure::fromCallable([
+                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations01::class,
+                        'doctor_work_hours_conflict_message',
+                    ]),
+                    Closure::fromCallable([
                         \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::class,
                         'agenda_conflict_message',
                     ]),
-                    static fn(int $clinicId, int $procedureId): array =>
-                        \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
-                            $clinicId,
-                            $procedureId,
+                    static function (int $clinicId, int $procedureId, int $index): array {
+                        if ($index === 0) {
+                            return \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_payment_post_context(
+                                $clinicId,
+                                $procedureId,
+                                0,
+                            );
+                        }
+                        return [
+                            false,
+                            '',
+                            \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations06::appointment_procedure_price_cents(
+                                $clinicId,
+                                $procedureId,
+                                0,
+                            ),
                             0,
-                        ),
+                            null,
+                        ];
+                    },
                     Closure::fromCallable([
                         \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::class,
                         'financial_sync_appointment',
                     ]),
                 );
             } catch (Throwable $e) {
-                error_log("[Prontoo appointment create] " . $e->getMessage());
+                error_log("[Prontoo appointment batch create] " . $e->getMessage());
                 \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
                     $e instanceof RuntimeException && trim($e->getMessage()) !== ""
                         ? $e->getMessage()
-                        : "Não foi possível agendar a consulta. Revise os horários e tente novamente.",
+                        : "Não foi possível agendar a consulta e suas recorrências. Revise os horários e tente novamente.",
                     "bad",
                 );
                 $postRedirect();
             }
-            \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("appointments_total");
-            \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "appointments");
-            \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("consulta_agendada", "consulta", $appointmentId, $_POST);
-            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Consulta agendada.");
+            foreach ($appointmentIds as $batchIndex => $appointmentId) {
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::counter_inc("appointments_total");
+                \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_metric_inc($cid, "appointments");
+                $auditPayload = $batchIndex === 0
+                    ? $_POST
+                    : [
+                        'patient_link_id' => $patient,
+                        'doctor_user_id' => $did,
+                        'procedure_id' => (int) ($appointmentItems[$batchIndex]['procedure_id'] ?? 0),
+                        'start_at' => (string) ($appointmentItems[$batchIndex]['start_at'] ?? ''),
+                        'end_at' => (string) ($appointmentItems[$batchIndex]['end_at'] ?? ''),
+                        'recurrence_index' => $batchIndex,
+                        'audit_body' => 'Recorrência criada junto ao Agendamento Rápido.',
+                    ];
+                \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
+                    "consulta_agendada",
+                    "consulta",
+                    (int) $appointmentId,
+                    $auditPayload,
+                );
+            }
+            $recurrenceCount = max(0, count($appointmentIds) - 1);
+            \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                $recurrenceCount > 0
+                    ? "Consulta agendada com " . $recurrenceCount . " recorrência" . ($recurrenceCount === 1 ? "" : "s") . "."
+                    : "Consulta agendada.",
+            );
             $postRedirect();
         }
         $agendaDoctor = $viewDoctor;
@@ -1094,6 +1144,29 @@ final class AppointmentsRuntimeOperations05
                 "<b>" .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($doctorHint) .
                 "</b><small>Profissional</small></span></div>";
+            $recurrenceProcedureOptions = '<option value="">Selecione o procedimento</option>';
+            foreach ($procedures as $procedure) {
+                $recurrenceProcedureOptions .=
+                    '<option value="procedure:' .
+                    (int) $procedure['id'] .
+                    '" data-duration="' .
+                    max(0, (int) ($procedure['duration_minutes'] ?? 0)) .
+                    '">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(
+                        \Prontoo\Presentation\Appointments\AppointmentsPresentationOperations01::procedure_option_label($procedure),
+                    ) .
+                    '</option>';
+            }
+            $recurrenceFieldset =
+                '<fieldset class="agenda-quick-section agenda-quick-recurrence" data-appointment-recurrence><legend>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("repeat") .
+                '<span>Recorrência</span></legend><p class="agenda-recurrence-help">Adicione outras datas para o mesmo paciente e profissional. Cada linha cria um novo agendamento.</p><div class="agenda-recurrence-list" data-recurrence-list></div><template data-recurrence-template><div class="agenda-recurrence-row" data-recurrence-row><label class="field"><span>Procedimento</span><select name="recurrence_procedure[]" required data-recurrence-procedure>' .
+                $recurrenceProcedureOptions .
+                '</select><small class="field-hint" data-recurrence-duration></small></label><label class="field"><span>Data/Hora</span><input type="datetime-local" name="recurrence_start_at[]" required data-recurrence-start></label><button type="button" class="ghost small agenda-recurrence-remove" data-recurrence-remove>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
+                '<span>Remover</span></button></div></template><button type="button" class="ghost small agenda-recurrence-add" data-recurrence-add>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add") .
+                '<span>Adicionar recorrência</span></button></fieldset>';
             $form =
                 '<section class="form-panel agenda-route-form agenda-quick-form-panel">' .
                 $quickHeader .
@@ -1141,6 +1214,7 @@ final class AppointmentsRuntimeOperations05
                 ) .
                 \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
                 "</div></fieldset>" .
+                $recurrenceFieldset .
                 \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .
                 '<fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notes") .

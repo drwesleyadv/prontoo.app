@@ -126,6 +126,65 @@ final class AppointmentsRuntimeOperations06
     
     }
 
+    public static function appointment_recurrence_rows_from_post(
+        int $cid,
+        array $procedures,
+    ): array {
+        $procedureValues = $_POST['recurrence_procedure'] ?? [];
+        $startValues = $_POST['recurrence_start_at'] ?? [];
+        if (!is_array($procedureValues) || !is_array($startValues)) {
+            throw new RuntimeException('Dados de recorrência inválidos.');
+        }
+        $procedureMap = [];
+        foreach ($procedures as $procedure) {
+            $procedureId = (int) ($procedure['id'] ?? 0);
+            if ($procedureId > 0) {
+                $procedureMap[$procedureId] = $procedure;
+            }
+        }
+        $rows = [];
+        $count = max(count($procedureValues), count($startValues));
+        for ($index = 0; $index < $count; $index++) {
+            $selection = mb_trim((string) ($procedureValues[$index] ?? ''));
+            $startLocal = mb_trim((string) ($startValues[$index] ?? ''));
+            if ($selection === '' && $startLocal === '') {
+                continue;
+            }
+            $line = $index + 1;
+            if ($selection === '' || $startLocal === '') {
+                throw new RuntimeException('Complete Procedimento e Data/Hora na recorrência ' . $line . '.');
+            }
+            if (!str_starts_with($selection, 'procedure:')) {
+                throw new RuntimeException('Selecione um procedimento cadastrado na recorrência ' . $line . '.');
+            }
+            $procedureId = (int) substr($selection, 10);
+            $procedure = $procedureMap[$procedureId] ?? null;
+            if (!$procedure) {
+                throw new RuntimeException('O procedimento da recorrência ' . $line . ' não está disponível.');
+            }
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/', $startLocal) !== 1) {
+                throw new RuntimeException('Informe Data/Hora válida na recorrência ' . $line . '.');
+            }
+            $duration = max(0, (int) ($procedure['duration_minutes'] ?? 0));
+            if ($duration <= 0) {
+                throw new RuntimeException(
+                    'O procedimento da recorrência ' . $line . ' precisa ter duração cadastrada antes do agendamento.',
+                );
+            }
+            $endLocal = \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_local_input_add_minutes(
+                $startLocal,
+                $duration,
+            );
+            $rows[] = [
+                'procedure_id' => $procedureId,
+                'start_at' => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($startLocal),
+                'end_at' => \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime($endLocal),
+                'duration_minutes' => $duration,
+            ];
+        }
+        return $rows;
+    }
+
     public static function appointment_min_duration_message(
         int $cid,
         ?int $procedureId,
