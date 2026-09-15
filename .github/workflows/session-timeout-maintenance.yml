@@ -37,7 +37,7 @@ jobs:
                   ('const PRONTOO_SESSION_IDLE_SECONDS = 3600;', 'const PRONTOO_SESSION_IDLE_SECONDS = 14400;'),
               ],
               Path('tools/install-security-check.php'): [
-                  (r'PRONTOO_SESSION_IDLE_SECONDS\\s*=\\s*3600', r'PRONTOO_SESSION_IDLE_SECONDS\\s*=\\s*14400'),
+                  (r'PRONTOO_SESSION_IDLE_SECONDS\s*=\s*3600', r'PRONTOO_SESSION_IDLE_SECONDS\s*=\s*14400'),
               ],
               Path('AGENTS.md'): [
                   ('expiração por inatividade de 3600 segundos;', 'expiração por inatividade de 14400 segundos (4 horas);'),
