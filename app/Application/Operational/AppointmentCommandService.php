@@ -143,10 +143,21 @@ final class AppointmentCommandService
         if ($clinicId <= 0 || $doctorUserId <= 0 || $userId <= 0) {
             throw new RuntimeException('Não foi possível identificar consultório, profissional e usuário para alterar o dia.');
         }
-        $dayStartTs = strtotime($dayStartAt);
-        $dayEndTs = strtotime($dayEndAt);
-        $blockStartTs = strtotime($blockStartAt);
-        $blockEndTs = strtotime($blockEndAt);
+        $storageTimestamp = static function (string $value): int|false {
+            $value = mb_trim($value);
+            if ($value === "") {
+                return false;
+            }
+            if (preg_match('/^-?\d+$/', $value) === 1) {
+                return (int) $value;
+            }
+            $timestamp = strtotime($value . " UTC");
+            return $timestamp !== false ? $timestamp : strtotime($value);
+        };
+        $dayStartTs = $storageTimestamp($dayStartAt);
+        $dayEndTs = $storageTimestamp($dayEndAt);
+        $blockStartTs = $storageTimestamp($blockStartAt);
+        $blockEndTs = $storageTimestamp($blockEndAt);
         if (
             $dayStartTs === false ||
             $dayEndTs === false ||

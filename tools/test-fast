@@ -1363,10 +1363,10 @@ try {
     $appointmentCommands->setDayBlocked(
         7,
         91,
-        '2026-08-12 04:00:00',
-        '2026-08-13 04:00:00',
-        '2026-08-12 12:00:00',
-        '2026-08-12 21:00:00',
+        '1786507200',
+        '1786593600',
+        '1786536000',
+        '1786568400',
         11,
         true,
         true,
@@ -1381,10 +1381,10 @@ try {
     $appointmentCommands->setDayBlocked(
         7,
         91,
-        '2026-08-12 04:00:00',
-        '2026-08-13 04:00:00',
-        '2026-08-12 12:00:00',
-        '2026-08-12 21:00:00',
+        '1786507200',
+        '1786593600',
+        '1786536000',
+        '1786568400',
         11,
         false,
         false,
@@ -2080,6 +2080,8 @@ $assert(
         str_contains($agendaRuntimeSource, '$rows === []') &&
         str_contains($agendaRuntimeSource, 'Bloquear dia') &&
         str_contains($agendaRuntimeSource, 'Desbloquear dia') &&
+        str_contains($agendaRuntimeSource, '$dayBlockIcon = $dayBlocked ? "lock_open" : "lock";') &&
+        str_contains($agendaRuntimeSource, 'form="agenda-day-toggle-action"') &&
         str_contains($agendaRuntimeSource, 'agenda-day-toggle-form'),
     'presentation.agenda.day_block_toggle',
 );
