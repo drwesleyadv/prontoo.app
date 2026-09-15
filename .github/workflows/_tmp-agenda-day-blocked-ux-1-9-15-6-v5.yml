@@ -1,0 +1,39 @@
+name: tmp agenda day blocked ux 1.9.15.6 v5
+on:
+  push:
+    branches:
+      - feature/agenda-day-blocked-ux-1-9-15-6
+permissions:
+  contents: write
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: '8.4'
+      - name: Materialize and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('tools/_tmp-agenda-day-blocked-ux-materialize')
+          s = p.read_text()
+          s = s.replace('php tools/release-contract-check', 'php tools/release-contract-reconcile --check')
+          s = s.replace('php tools/release-asset-contract', 'php tools/version-asset-contract-check.php')
+          s = s.replace('php tools/release-superseded-reference-check', 'php tools/superseded-reference-contract-check')
+          release_line = 'php tools/release-version --write --date=2026-09-15 --timestamp=2026-09-15T11:46:01-04:00 --expected-current=1.9.15.5 --metadata-file=/tmp/release.json\n'
+          asset_sync = '''python3 - <<'PYASSET'\nimport json\nfrom pathlib import Path\np = Path('version.json')\nd = json.loads(p.read_text())\nd['asset_version'] = '1.9.15.6'\np.write_text(json.dumps(d, ensure_ascii=False, indent=4) + '\\n')\nPYASSET\n'''
+          if release_line not in s:
+              raise SystemExit('release line not found')
+          s = s.replace(release_line, release_line + asset_sync, 1)
+          s = s.replace('.github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp', '.github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v4.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v5.yml tools/_tmp')
+          p.write_text(s)
+          PY
+          bash tools/_tmp-agenda-day-blocked-ux-materialize
