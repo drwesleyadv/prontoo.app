@@ -1,0 +1,176 @@
+name: tmp agenda day blocked ux 1.9.15.6 v2
+on:
+  push:
+    branches:
+      - feature/agenda-day-blocked-ux-1-9-15-6
+permissions:
+  contents: write
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: '8.4'
+      - name: Materialize release
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+          s = p.read_text()
+
+          anchor = '''        $slotRows = "";\n        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true);'''
+          replacement = '''        $dayBlocked = false;\n        $dayBlockCreatorId = 0;\n        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {\n            foreach ($blocks as $dayBlock) {\n                if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {\n                    continue;\n                }\n                $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));\n                $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));\n                if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {\n                    $dayBlocked = true;\n                    $dayBlockCreatorId = (int) ($dayBlock["created_by"] ?? 0);\n                    break;\n                }\n            }\n        }\n        $slotRows = "";\n        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;'''
+          if anchor not in s:
+              raise SystemExit('slot/day state anchor not found')
+          s = s.replace(anchor, replacement, 1)
+
+          anchor = '''            $eventHtml .=\n                '<article class="agenda-day-event agenda-day-event-block" style="--event-top:' .'''
+          replacement = '''            if (\n                $dayBlocked &&\n                (int) ($b["doctor_user_id"] ?? 0) === $agendaDoctor &&\n                $sTs <= $workStartTs &&\n                $eTs >= $workEndTs\n            ) {\n                continue;\n            }\n            $eventHtml .=\n                '<article class="agenda-day-event agenda-day-event-block" style="--event-top:' .'''
+          if anchor not in s:
+              raise SystemExit('daily block event anchor not found')
+          s = s.replace(anchor, replacement, 1)
+
+          duplicate = '''        $dayBlocked = false;\n        $dayBlockCreatorId = 0;\n        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {\n            foreach ($blocks as $dayBlock) {\n                if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {\n                    continue;\n                }\n                $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));\n                $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));\n                if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {\n                    $dayBlocked = true;\n                    $dayBlockCreatorId = (int) ($dayBlock["created_by"] ?? 0);\n                    break;\n                }\n            }\n        }\n        $dayBlockForm = "";'''
+          if duplicate not in s:
+              raise SystemExit('old day state block not found')
+          s = s.replace(duplicate, '''        $dayBlockForm = "";''', 1)
+
+          old = '''        $dayBlockForm = "";\n        $dayBlockToggle = "";\n        if (\n            $agendaView === "diario" &&\n            $agendaDoctor > 0 &&\n            $rows === [] &&\n            in_array($role, ["recepcionista", "medico", "gerente"], true) &&\n            (!$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid)\n        ) {\n            $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";\n            $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";\n            $dayBlockIcon = $dayBlocked ? "lock_open" : "lock";\n            $dayBlockForm =\n                '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .\n                \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::csrf_field() .\n                '<input type="hidden" name="act" value="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockAct) .\n                '\"><input type="hidden" name="return_day" value="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($day) .\n                '\"><input type="hidden" name="return_doctor" value="' .\n                $agendaDoctor .\n                '\"></form>';\n            $dayBlockToggle =\n                '<button type="submit" form="agenda-day-toggle-action" class="pagehead-control pagehead-control--secondary agenda-day-toggle-button" aria-label="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockLabel) .\n                '" title="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockLabel) .\n                '">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon($dayBlockIcon) .\n                '</button>';\n        }'''
+          new = '''        $dayBlockForm = "";\n        $dayBlockToggle = "";\n        $dayBlockToggleVisible =\n            $agendaView === "diario" &&\n            $agendaDoctor > 0 &&\n            in_array($role, ["recepcionista", "medico", "gerente"], true);\n        if ($dayBlockToggleVisible) {\n            $dayBlockDisabled = $rows !== [];\n            $dayBlockCanToggle = !$dayBlockDisabled && (!$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid);\n            $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";\n            $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";\n            $dayBlockIcon = $dayBlocked ? "lock_open" : "lock";\n            if ($dayBlockCanToggle) {\n                $dayBlockForm =\n                    '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .\n                    \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::csrf_field() .\n                    '<input type="hidden" name="act" value="' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockAct) .\n                    '\"><input type="hidden" name="return_day" value="' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($day) .\n                    '\"><input type="hidden" name="return_doctor" value="' .\n                    $agendaDoctor .\n                    '\"></form>';\n            }\n            $dayBlockTitle = $dayBlockDisabled\n                ? "Não é possível bloquear o dia porque já existem consultas marcadas."\n                : $dayBlockLabel;\n            $dayBlockToggle =\n                '<button type="' . ($dayBlockCanToggle ? 'submit' : 'button') . '"' .\n                ($dayBlockCanToggle ? ' form="agenda-day-toggle-action"' : ' disabled aria-disabled="true"') .\n                ' class="pagehead-control pagehead-control--secondary agenda-day-toggle-button' . ($dayBlockDisabled ? ' is-blocked-by-appointments' : '') . '" aria-label="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockTitle) .\n                '" title="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockTitle) .\n                '">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon($dayBlockIcon) .\n                '</button>';\n        }'''
+          if old not in s:
+              raise SystemExit('toggle block not found')
+          s = s.replace(old, new, 1)
+
+          old = '''            '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .'''
+          new = '''            '<form method="get" class="agenda-crown-picker' . ($dayBlockToggleVisible ? ' has-day-toggle' : '') . '" aria-label="Selecionar dia e profissional">' .'''
+          if old not in s:
+              raise SystemExit('picker not found')
+          s = s.replace(old, new, 1)
+
+          old = '''        $agendaDay =\n            $agendaDayNote .\n            '<section class="agenda-day-shell agenda-crown-shell" style="--agenda-slots:' .'''
+          new = '''        $dayBlockedWatermark = $dayBlocked\n            ? '<div class="agenda-day-blocked-watermark" role="status" aria-label="Dia bloqueado">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("lock") .\n                '<span>Dia bloqueado</span></div>'\n            : "";\n        $agendaDay =\n            $agendaDayNote .\n            '<section class="agenda-day-shell agenda-crown-shell' . ($dayBlocked ? ' is-day-blocked' : '') . '" style="--agenda-slots:' .'''
+          if old not in s:
+              raise SystemExit('agenda shell not found')
+          s = s.replace(old, new, 1)
+
+          old = '''            '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .'''
+          new = '''            '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . '" data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . '" data-slot-minutes="' .'''
+          if old not in s:
+              raise SystemExit('canvas not found')
+          s = s.replace(old, new, 1)
+
+          old = '''            '">' .\n            $eventHtml .\n            "</div></section>";'''
+          new = '''            '">' .\n            $dayBlockedWatermark .\n            $eventHtml .\n            "</div></section>";'''
+          if old not in s:
+              raise SystemExit('canvas content not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('design/styles/application.css')
+          s = p.read_text()
+          old = '''body[data-route="appointments"] .agenda-crown-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;flex-wrap:wrap}\nbody[data-route="appointments"] .agenda-crown-row>.agenda-crown-picker{flex:1 1 420px;min-width:0}\nbody[data-route="appointments"] .agenda-day-toggle-form{display:none}\nbody[data-route="appointments"] .agenda-day-toggle-button{flex:0 0 auto;padding-inline:8px;white-space:nowrap}'''
+          new = '''body[data-route="appointments"] .agenda-crown-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;flex-wrap:nowrap}\nbody[data-route="appointments"] .agenda-crown-row>.agenda-crown-picker{flex:1 1 auto;min-width:0}\nbody[data-route="appointments"] .agenda-crown-picker.has-day-toggle{grid-template-columns:34px minmax(0,1fr) 32px 34px!important}\nbody[data-route="appointments"] .agenda-day-toggle-form{display:none}\nbody[data-route="appointments"] .agenda-day-toggle-button{width:32px;min-width:32px;height:32px;min-height:32px;flex:0 0 auto;padding:0!important;border-radius:999px!important;white-space:nowrap}\nbody[data-route="appointments"] .agenda-day-toggle-button .material-symbols-rounded{font-size:18px!important}\nbody[data-route="appointments"] .agenda-day-toggle-button.is-blocked-by-appointments{opacity:.24!important;filter:none!important;box-shadow:none!important;background:transparent!important;border-color:transparent!important;color:var(--md-sys-color-on-surface-variant)!important}\nbody[data-route="appointments"] .agenda-day-canvas.is-day-blocked{background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 97%,var(--md-sys-color-on-surface) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-low) 97%,var(--md-sys-color-on-surface) 3%))}\nbody[data-route="appointments"] .agenda-day-canvas.is-day-blocked::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(135deg,transparent 0 18px,color-mix(in srgb,var(--md-sys-color-on-surface-variant) 4%,transparent) 18px 19px)}\nbody[data-route="appointments"] .agenda-day-canvas.is-day-blocked .agenda-day-block-hover{display:none!important}\nbody[data-route="appointments"] .agenda-day-blocked-watermark{position:absolute;top:12px;right:12px;z-index:7;display:inline-flex;align-items:center;gap:6px;pointer-events:none;color:var(--md-sys-color-on-surface-variant);opacity:.48;font:var(--md-sys-typescale-label-small);font-weight:800;letter-spacing:.01em}\nbody[data-route="appointments"] .agenda-day-blocked-watermark .material-symbols-rounded{font-size:16px}\n@media(max-width:720px){body[data-route="appointments"] .agenda-crown-picker.has-day-toggle{grid-template-columns:32px minmax(0,1fr) 28px 32px!important;gap:4px!important}body[data-route="appointments"] .agenda-day-toggle-button{width:28px;min-width:28px;height:28px;min-height:28px}body[data-route="appointments"] .agenda-day-blocked-watermark{top:8px;right:8px}}'''
+          if old not in s:
+              raise SystemExit('css tail not found')
+          p.write_text(s.replace(old, new, 1))
+
+          p = Path('tools/test-fast')
+          s = p.read_text()
+          anchor = "'presentation.agenda.day_block_toggle',"
+          idx = s.find(anchor)
+          if idx < 0:
+              raise SystemExit('test anchor not found')
+          end = s.find(');', idx)
+          if end < 0:
+              raise SystemExit('test closing not found')
+          extra = '''\n$assert(\n    str_contains($agendaRuntimeSource, '$dayBlockDisabled = $rows !== [];') &&\n        str_contains($agendaRuntimeSource, 'is-blocked-by-appointments') &&\n        str_contains($agendaRuntimeSource, 'disabled aria-disabled="true"') &&\n        str_contains($agendaRuntimeSource, 'has-day-toggle') &&\n        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&\n        str_contains($agendaRuntimeSource, 'data-day-blocked="') &&\n        str_contains($agendaRuntimeSource, '$slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;'),\n    'presentation.agenda.day_block_state_ux',\n);'''
+          s = s[:end+2] + extra + s[end+2:]
+          p.write_text(s)
+
+          p = Path('docs/domain/appointments.md')
+          s = p.read_text()
+          needle = '## Bloqueio diário\n'
+          if needle not in s:
+              raise SystemExit('docs anchor not found')
+          replacement = '''## Bloqueio diário\n\nNa Agenda diária, o seletor de data/profissional permanece em uma única linha. O controle de bloqueio integral aparece imediatamente após o profissional: cadeado fechado para bloquear, cadeado aberto para desbloquear e, quando já existem consultas, cadeado fechado desabilitado em baixa opacidade como sinalização do impedimento. Um dia integralmente bloqueado não é desenhado como um evento vertical; a grade recebe uma atenuação discreta com marca d’água de cadeado, preservando a leitura dos horários.\n'''
+          p.write_text(s.replace(needle, replacement, 1))
+          PY
+
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.6-agenda-day-blocked-ux",
+            "package_type": "micro_ux",
+            "notes": "Refina a Agenda diária para manter o seletor em uma única linha, representar o bloqueio integral de forma discreta e manter o cadeado desabilitado como sinalização quando há consultas.",
+            "logic_changes": true,
+            "visual_changes": true,
+            "documentation_changes": true,
+            "changelog": {
+              "title": "Agenda diária: bloqueio mais discreto e previsível",
+              "items": [
+                "Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.",
+                "Representa o dia integralmente bloqueado por atenuação leve da grade e marca d’água compacta, sem um evento vertical de bloqueio.",
+                "Desativa a criação rápida por slots quando o dia inteiro está bloqueado.",
+                "Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.",
+                "Preserva bloqueios parciais como eventos, permissões, regras transacionais e schema existente."
+              ]
+            }
+          }
+          JSON
+
+          php tools/release-version --write --date=2026-09-15 --timestamp=2026-09-15T11:46:01-04:00 --expected-current=1.9.15.5 --metadata-file=/tmp/release.json
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('CHANGELOG.md')
+          s=p.read_text()
+          old='''## 1.9.15.5 — Correção do bloqueio diário da Agenda\n\n- Corrige a validação do bloqueio diário para aceitar limites temporais armazenados como timestamps UTC.\n- Mantém a leitura do expediente configurado no perfil do profissional sem converter timestamps válidos por strtotime.\n- Preserva a revalidação transacional contra consultas concorrentes e as regras de propriedade do bloqueio.\n- Move o controle para imediatamente após o profissional no seletor diário, sem rótulo visual.\n- Usa cadeado fechado para Bloquear dia e cadeado aberto para Desbloquear dia, preservando rótulos acessíveis.'''
+          new='''## 1.9.15.6 — Agenda diária com bloqueio discreto\n\n- Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.\n- Representa o bloqueio integral por uma atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.\n- Desativa a criação rápida por slots quando o dia inteiro está bloqueado.\n- Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.\n- Preserva bloqueios parciais, permissões, regras transacionais e schema existente.'''
+          if old not in s: raise SystemExit('changelog block not found')
+          p.write_text(s.replace(old,new,1))
+          files = ['app/prontoo.php','br/index.php','app/presentation.visual-contract.json','app/architecture.manifest.json','docs/index.md']
+          for f in files:
+              p=Path(f)
+              if not p.exists(): continue
+              t=p.read_text().replace('1.9.15.5-agenda-day-block-time-fix','1.9.15.6-agenda-day-blocked-ux').replace('1.9.15.5','1.9.15.6')
+              p.write_text(t)
+          renames = [
+              ('public/assets/app-icon-1.9.15.5.png','public/assets/app-icon-1.9.15.6.png'),
+              ('public/assets/favicon-1.9.15.5.ico','public/assets/favicon-1.9.15.6.ico'),
+              ('public/assets/favicon-1.9.15.5.png','public/assets/favicon-1.9.15.6.png'),
+              ('public/assets/pix-1.9.15.5.svg','public/assets/pix-1.9.15.6.svg'),
+              ('public/assets/prontoo-mark-1.9.15.5.png','public/assets/prontoo-mark-1.9.15.6.png')]
+          for a,b in renames:
+              pa,pb=Path(a),Path(b)
+              if pa.exists(): pa.rename(pb)
+          p=Path('design/styles/application.css')
+          p.write_text(p.read_text().replace('pix-1.9.15.5.svg','pix-1.9.15.6.svg'))
+          PY
+
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --write
+          php tools/release-version
+          php tools/release-contract-check
+          php tools/release-asset-contract
+          php tools/release-superseded-reference-check
+          php tools/test-fast
+          php tools/quality-gate --fast
+          git diff --check
+
+          git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v2.yml
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-check
+          git diff --check
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "Refina estado de bloqueio integral da Agenda"
+          git push origin HEAD:feature/agenda-day-blocked-ux-1-9-15-6
