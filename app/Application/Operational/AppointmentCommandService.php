@@ -123,7 +123,7 @@ final class AppointmentCommandService
             }
             $this->data->result(
                 'operational.appointments.05.page_appointments.28',
-                [$userId, trim($reason), $blockId, $clinicId],
+                [$userId, mb_trim($reason), $blockId, $clinicId],
             );
             return true;
         });
@@ -275,10 +275,10 @@ final class AppointmentCommandService
             $ids = [];
             $batchWindows = [];
             foreach (array_values($appointments) as $index => $appointment) {
-                $startAt = trim((string) ($appointment['start_at'] ?? ''));
-                $endAt = trim((string) ($appointment['end_at'] ?? ''));
+                $startAt = mb_trim((string) ($appointment['start_at'] ?? ''));
+                $endAt = mb_trim((string) ($appointment['end_at'] ?? ''));
                 $procedureId = (int) ($appointment['procedure_id'] ?? 0);
-                $notes = trim((string) ($appointment['notes'] ?? ''));
+                $notes = mb_trim((string) ($appointment['notes'] ?? ''));
                 $prefix = $index > 0 ? 'Recorrência ' . $index . ': ' : '';
                 if ($startAt === '' || $endAt === '' || $procedureId <= 0) {
                     throw new RuntimeException($prefix . 'Informe procedimento e Data/Hora válidos.');

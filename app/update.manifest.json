@@ -81,7 +81,7 @@
         "app/Application/Identity/IdentityDataService.php": "13c29f99dc38e30621eb26905510f941e0387a52add804014121a8c0d8bc5afb",
         "app/Application/Identity/UserCredentialService.php": "5234ffe24d392c81dec7b0fcb3fd0a87effdfe8218bb992be1bba9c509c1e9d6",
         "app/Application/Identity/UserPermissionService.php": "0bfa6f74af40619f5969af4ab826a66dbcc1517532176b5c380a2e481166570d",
-        "app/Application/Operational/AppointmentCommandService.php": "eda95f8a1d011ed8bc7bec80cfaa6dac60db60e18079b3efc25b97432c283f86",
+        "app/Application/Operational/AppointmentCommandService.php": "8628ea351926bdd5ce9f46612b883449d00257b69142170588ccec1f61b4c06c",
         "app/Application/Operational/AuditWriteService.php": "0fa98800c6e13613711a0b3234eef9c4ea87e01790ca84f4616cb246859d2bd2",
         "app/Application/Operational/DocumentIssuanceService.php": "8ae79123de05fd58282d7fb420b0af9ded652564d6e41a7e137bbd5c08151806",
         "app/Application/Operational/InstallationAccountService.php": "b4fadad64dae2c494041021558f0f0d6cc310962c6329e254257c034d698d656",
