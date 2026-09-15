@@ -63,6 +63,22 @@ if "presentation.quick_scheduling.recurrence_guard_before_handler" not in test_t
     test_text = test_text.replace(marker, insert, 1)
 test_fast.write_text(test_text, encoding="utf-8")
 
+for relative in [
+    "app/prontoo.php",
+    "br/index.php",
+    "docs/index.md",
+    "app/presentation.visual-contract.json",
+    "app/architecture.manifest.json",
+    "design/styles/application.css",
+    "public/assets/presentation.css",
+]:
+    path = root / relative
+    if not path.exists():
+        continue
+    value = path.read_text(encoding="utf-8")
+    if "1.9.15.2" in value:
+        path.write_text(value.replace("1.9.15.2", "1.9.15.3"), encoding="utf-8")
+
 version_path = root / "version.json"
 version = json.loads(version_path.read_text(encoding="utf-8"))
 version.update({
