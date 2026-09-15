@@ -1104,46 +1104,13 @@ final class AppointmentsRuntimeOperations05
             $cancelParams = $buildParams($initialDay, $initialDoctor);
             $createTitle = "Agendamento Rápido";
             $createSubtitle =
-                "Confirme os horários sugeridos abaixo e selecione Profissional, Paciente e Procedimento.";
-            $initialHour = substr($initialStart, 11, 5);
-            $initialEndHour = substr($initialEnd, 11, 5);
-            $doctorHint =
-                $initialDoctor > 0
-                    ? (string) ($formDoctorOptions[$initialDoctor] ??
-                        \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid))
-                    : \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid);
+                "Defina os dados do agendamento e, se necessário, inclua outras datas.";
             $returnHiddenOperation =
                 '<input type="hidden" name="return_day" value="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialDay) .
                 '"><input type="hidden" name="return_doctor" value="' .
                 (int) $initialDoctor .
                 '">';
-            $quickHeader =
-                '<div class="agenda-quick-hero"><span class="agenda-quick-hero-icon" aria-hidden="true">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
-                '</span><div class="agenda-quick-hero-copy"><h2>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createTitle) .
-                "</h2><p>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createSubtitle) .
-                '</p></div><a class="ghost small agenda-quick-back" href="' .
-                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
-                '">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("arrow_back") .
-                "<span>Agenda</span></a></div>";
-            $quickSummary =
-                '<div class="agenda-quick-summary" aria-label="Resumo do horário inferido"><span>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("calendar_month") .
-                "<b>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations01::date_br($initialDay)) .
-                "</b><small>Data</small></span><span>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
-                "<b>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($initialHour . "–" . $initialEndHour) .
-                "</b><small>Horário</small></span><span>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("stethoscope") .
-                "<b>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($doctorHint) .
-                "</b><small>Profissional</small></span></div>";
             $recurrenceProcedureOptions = '<option value="">Selecione o procedimento</option>';
             foreach ($procedures as $procedure) {
                 $recurrenceProcedureOptions .=
@@ -1160,23 +1127,38 @@ final class AppointmentsRuntimeOperations05
             $recurrenceFieldset =
                 '<fieldset class="agenda-quick-section agenda-quick-recurrence" data-appointment-recurrence><legend>' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("repeat") .
-                '<span>Recorrência</span></legend><p class="agenda-recurrence-help">Adicione outras datas para o mesmo paciente e profissional. Cada linha cria um novo agendamento.</p><div class="agenda-recurrence-list" data-recurrence-list></div><template data-recurrence-template><div class="agenda-recurrence-row" data-recurrence-row><label class="field"><span>Procedimento</span><select name="recurrence_procedure[]" required data-recurrence-procedure>' .
+                '<span>Recorrência (opcional)</span></legend><div class="agenda-recurrence-list" data-recurrence-list></div><template data-recurrence-template><div class="agenda-recurrence-row" data-recurrence-row><label class="field"><span>Procedimento</span><select name="recurrence_procedure[]" required data-recurrence-procedure>' .
                 $recurrenceProcedureOptions .
-                '</select><small class="field-hint" data-recurrence-duration></small></label><label class="field"><span>Data/Hora</span><input type="datetime-local" name="recurrence_start_at[]" required data-recurrence-start></label><button type="button" class="ghost small agenda-recurrence-remove" data-recurrence-remove>' .
+                '</select></label><label class="field"><span>Data/Hora</span><input type="datetime-local" name="recurrence_start_at[]" required data-recurrence-start></label><button type="button" class="ghost agenda-recurrence-remove" data-recurrence-remove aria-label="Remover recorrência" title="Remover recorrência">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
-                '<span>Remover</span></button></div></template><button type="button" class="ghost small agenda-recurrence-add" data-recurrence-add>' .
+                '<span class="sr-only">Remover recorrência</span></button></div></template><div class="agenda-recurrence-composer" data-recurrence-composer><label class="field"><span>Procedimento</span><select data-recurrence-composer-procedure>' .
+                $recurrenceProcedureOptions .
+                '</select></label><label class="field"><span>Data/Hora</span><input type="datetime-local" data-recurrence-composer-start></label><button type="button" class="primary agenda-recurrence-add" data-recurrence-add aria-label="Adicionar recorrência" title="Adicionar recorrência">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("add") .
-                '<span>Adicionar recorrência</span></button></fieldset>';
+                '<span class="sr-only">Adicionar recorrência</span></button></div></fieldset>';
             $form =
-                '<section class="form-panel agenda-route-form agenda-quick-form-panel">' .
-                $quickHeader .
-                $quickSummary .
-                '<form method="post" class="compact agenda-create-form agenda-quick-form" data-appointment-create-form>' .
+                '<section class="form-panel agenda-route-form agenda-quick-form-panel"><form method="post" class="compact agenda-create-form agenda-quick-form" data-appointment-create-form>' .
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 $returnHiddenOperation .
-                '<input type="hidden" name="act" value="create"><fieldset class="agenda-quick-section agenda-quick-time"><legend>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("schedule") .
-                '<span>Horário</span></legend><div class="agenda-quick-time-grid">' .
+                '<input type="hidden" name="act" value="create"><fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
+                '<span>Agendamento</span></legend><div class="agenda-quick-grid">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
+                    "Paciente",
+                    "patient_link_id",
+                    $pats,
+                    $prePatientId ?: null,
+                    "required",
+                ) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
+                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),
+                    "doctor_user_id",
+                    $formDoctorOptions,
+                    $initialDoctor ?: null,
+                    "required",
+                ) .
+                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
+                '</div><div class="agenda-quick-time-grid">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                     "Início",
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
@@ -1195,41 +1177,26 @@ final class AppointmentsRuntimeOperations05
                         "required data-appointment-end",
                     ),
                 ) .
-                '</div></fieldset><fieldset class="agenda-quick-section agenda-quick-main"><legend>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("edit_calendar") .
-                '<span>Dados do agendamento</span></legend><div class="agenda-quick-grid">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
-                    \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::role_label_for("medico", $cid),
-                    "doctor_user_id",
-                    $formDoctorOptions,
-                    $initialDoctor ?: null,
-                    "required",
+                '</div>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
+                    "Observações (opcional)",
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input(
+                        "notes",
+                        "text",
+                        "",
+                        'placeholder="Informação relevante para o atendimento"',
+                    ),
                 ) .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::select_label(
-                    "Paciente",
-                    "patient_link_id",
-                    $pats,
-                    $prePatientId ?: null,
-                    "required",
-                ) .
-                \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::procedure_select_html($cid, "reason", "", true) .
-                "</div></fieldset>" .
+                '</fieldset>' .
                 $recurrenceFieldset .
                 \Prontoo\Runtime\Financial\FinancialRuntimeOperations01::appointment_payment_form_html($cid) .
-                '<fieldset class="agenda-quick-section agenda-quick-notes"><legend>' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("notes") .
-                "<span>Observações</span></legend>" .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
-                    "Observações importantes",
-                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("notes", "text", "", 'placeholder="Opcional"'),
-                ) .
-                '</fieldset><div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
+                '<div class="form-actions agenda-quick-actions"><a class="ghost" href="' .
                 \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href("appointments", $cancelParams) .
                 '">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("close") .
-                '<span>Desistir</span></a><button type="submit" class="primary">' .
+                '<span>Cancelar</span></a><button type="submit" class="primary">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_available") .
-                "<span>Confirmar</span></button></div></form></section>";
+                '<span>Agendar</span></button></div></form></section>';
             \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations02::page(
                 $createTitle,
                 \Prontoo\Runtime\UiComponents\UiComponentsRuntimeOperations03::page_head(

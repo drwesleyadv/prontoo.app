@@ -1,11 +1,11 @@
 {
-    "version": "1.9.15.1",
-    "release": "1.9.15.1",
-    "generated_at_unix": 1789475252,
-    "generated_at": "2026-09-15T08:27:32-04:00",
-    "updated_at": "2026-09-15T08:27:32-04:00",
-    "build": "1.9.15.1-quick-scheduling-recurrence",
-    "asset_version": "1.9.15.1",
+    "version": "1.9.15.2",
+    "release": "1.9.15.2",
+    "generated_at_unix": 1789478340,
+    "generated_at": "2026-09-15T09:19:00-04:00",
+    "updated_at": "2026-09-15T09:19:00-04:00",
+    "build": "1.9.15.2-quick-scheduling-recurrence-ux",
+    "asset_version": "1.9.15.2",
     "package_type": "micro_ux",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Adiciona recorrências ao Agendamento Rápido, permitindo tantas repetições quanto necessário, cada uma com Procedimento e Data/Hora, mantendo paciente e profissional e salvando todo o lote de forma atômica.",
+    "notes": "Simplifica o Agendamento Rápido, reduzindo informação repetida e tornando a inclusão de recorrências uma composição inline por Procedimento e Data/Hora com ação de adição no fim da linha.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.9.15.1-release",
-    "deployment_sync_requested_at": "2026-09-15T08:27:32-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.15.2-release",
+    "deployment_sync_requested_at": "2026-09-15T09:19:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,14 +86,14 @@
         ]
     },
     "changelog": {
-        "title": "Recorrências no Agendamento Rápido",
+        "title": "Agendamento Rápido mais simples e recorrência inline",
         "items": [
-            "Inclui o grupo Recorrência no Agendamento Rápido.",
-            "Permite adicionar e remover um número aberto de repetições, uma por linha.",
-            "Cada recorrência escolhe Procedimento e Data/Hora e mantém paciente e profissional do agendamento principal.",
-            "Calcula o término da recorrência pela duração cadastrada do procedimento.",
-            "Valida horário de trabalho, duração e conflitos para cada repetição.",
-            "Grava agendamento principal e recorrências em uma única transação, sem persistência parcial."
+            "Substitui o botão textual Adicionar recorrência por uma linha inline com Procedimento, Data/Hora e ícone de adição.",
+            "Mantém uma linha de composição sempre disponível e permite adicionar sucessivas recorrências sem limite artificial.",
+            "Remove o cabeçalho e o resumo duplicados dentro do card, preservando título, contexto e retorno no PageHead.",
+            "Consolida dados principais e horários em uma única seção Agendamento, reduzindo fragmentação visual.",
+            "Move Observações para o grupo principal como campo opcional e elimina um fieldset exclusivo redundante.",
+            "Renomeia as ações finais para Cancelar e Agendar, com linguagem mais direta e operacional."
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
