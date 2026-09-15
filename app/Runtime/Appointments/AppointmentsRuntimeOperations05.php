@@ -2426,6 +2426,7 @@ final class AppointmentsRuntimeOperations05
                 }
             }
         }
+        $dayBlockForm = "";
         $dayBlockToggle = "";
         if (
             $agendaView === "diario" &&
@@ -2436,9 +2437,9 @@ final class AppointmentsRuntimeOperations05
         ) {
             $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";
             $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";
-            $dayBlockIcon = $dayBlocked ? "event_available" : "event_busy";
-            $dayBlockToggle =
-                '<form method="post" class="agenda-day-toggle-form">' .
+            $dayBlockIcon = $dayBlocked ? "lock_open" : "lock";
+            $dayBlockForm =
+                '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .
                 \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
                 '<input type="hidden" name="act" value="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockAct) .
@@ -2446,14 +2447,20 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
                 '"><input type="hidden" name="return_doctor" value="' .
                 $agendaDoctor .
-                '"><button type="submit" class="pagehead-control pagehead-control--secondary agenda-day-toggle-button">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($dayBlockIcon) .
-                '<span>' .
+                '"></form>';
+            $dayBlockToggle =
+                '<button type="submit" form="agenda-day-toggle-action" class="pagehead-control pagehead-control--secondary agenda-day-toggle-button" aria-label="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockLabel) .
-                '</span></button></form>';
+                '" title="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockLabel) .
+                '">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($dayBlockIcon) .
+                '</button>';
         }
         $navDay =
-            '<div class="agenda-crown-row"><form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
+            '<div class="agenda-crown-row">' .
+            $dayBlockForm .
+            '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
             '<input type="hidden" name="r" value="appointments">' .
             '<input type="hidden" name="d" value="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -2472,6 +2479,7 @@ final class AppointmentsRuntimeOperations05
             '<select name="doctor" onchange="this.form.submit()" aria-label="Dia e profissional">' .
             $navDoctorOptions .
             "</select>" .
+            $dayBlockToggle .
             '<a class="agenda-crown-arrow" href="' .
             \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(
                 "appointments",
@@ -2480,9 +2488,7 @@ final class AppointmentsRuntimeOperations05
             '" aria-label="Avançar">' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("chevron_right") .
             "</a>" .
-            "</form>" .
-            $dayBlockToggle .
-            "</div>";
+            "</form></div>";
         $title = "Agenda";
         $subtitle = "";
         $agendaCreateUrl = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::href(

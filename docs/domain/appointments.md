@@ -16,7 +16,7 @@ Agenda participa de cenários reais de query budget. Alterações que aumentem c
 
 ## Bloqueio diário
 
-Na visualização diária, quando o profissional selecionado não possui consultas na data, a própria barra de navegação pode alternar entre **Bloquear dia** e **Desbloquear dia**. O bloqueio cobre o expediente configurado do profissional, usa o mesmo fallback temporal da Agenda quando não há expediente cadastrado e é serializado com a criação de consultas para impedir corrida entre bloqueio e agendamento. Bloqueios parciais continuam independentes e não são apagados pela alternância do dia.
+Na visualização diária, quando o profissional selecionado não possui consultas na data, um controle por ícone aparece imediatamente após o nome do profissional no seletor: cadeado fechado bloqueia o dia e cadeado aberto desbloqueia. O bloqueio cobre o expediente configurado do profissional, usa o mesmo fallback temporal da Agenda quando não há expediente cadastrado e é serializado com a criação de consultas para impedir corrida entre bloqueio e agendamento. Os limites do dia e do expediente são comparados no formato temporal canônico armazenado pela Agenda, inclusive quando chegam como timestamps UTC. Bloqueios parciais continuam independentes e não são apagados pela alternância do dia.
 
 ## Segurança
 

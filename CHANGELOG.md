@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.9.15.4 — Bloqueio rápido do dia na Agenda
+## 1.9.15.5 — Correção do bloqueio diário da Agenda
 
-- Exibe Bloquear dia à direita da navegação da Agenda diária somente quando o profissional selecionado não possui consultas na data.
-- Alterna o mesmo controle para Desbloquear dia quando existe bloqueio cobrindo todo o expediente selecionado.
-- Bloqueia o expediente configurado do profissional e usa o mesmo fallback de 08:00 a 17:00 da Agenda quando não há faixa cadastrada.
-- Serializa o bloqueio com a criação de consultas e revalida a ausência de agendamentos dentro da transação para evitar corrida operacional.
-- Preserva bloqueios parciais independentes, mantém o fluxo Bloquear horário e não altera banco de dados nem schema.
+- Corrige a validação do bloqueio diário para aceitar limites temporais armazenados como timestamps UTC.
+- Mantém a leitura do expediente configurado no perfil do profissional sem converter timestamps válidos por strtotime.
+- Preserva a revalidação transacional contra consultas concorrentes e as regras de propriedade do bloqueio.
+- Move o controle para imediatamente após o profissional no seletor diário, sem rótulo visual.
+- Usa cadeado fechado para Bloquear dia e cadeado aberto para Desbloquear dia, preservando rótulos acessíveis.

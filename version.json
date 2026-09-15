@@ -1,12 +1,12 @@
 {
-    "version": "1.9.15.4",
-    "release": "1.9.15.4",
-    "generated_at_unix": 1789481700,
-    "generated_at": "2026-09-15T10:15:00-04:00",
-    "updated_at": "2026-09-15T10:15:00-04:00",
-    "build": "1.9.15.4-agenda-day-block-toggle",
-    "asset_version": "1.9.15.4",
-    "package_type": "micro_ux",
+    "version": "1.9.15.5",
+    "release": "1.9.15.5",
+    "generated_at_unix": 1789485141,
+    "generated_at": "2026-09-15T11:12:21-04:00",
+    "updated_at": "2026-09-15T11:12:21-04:00",
+    "build": "1.9.15.5-agenda-day-block-time-fix",
+    "asset_version": "1.9.15.5",
+    "package_type": "micro_fix",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Adiciona Bloquear dia na Agenda diária quando não há consultas, com alternância atômica para bloquear ou desbloquear o expediente do profissional selecionado.",
+    "notes": "Corrige o bloqueio diário para aceitar os timestamps UTC canônicos da Agenda e posiciona o toggle por cadeado junto ao profissional.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.9.15.4-release",
-    "deployment_sync_requested_at": "2026-09-15T10:15:00-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.15.5-release",
+    "deployment_sync_requested_at": "2026-09-15T11:12:21-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Bloqueio rápido do dia na Agenda",
+        "title": "Correção do bloqueio diário da Agenda",
         "items": [
-            "Exibe Bloquear dia à direita da navegação da Agenda diária somente quando o profissional selecionado não possui consultas na data.",
-            "Alterna o mesmo controle para Desbloquear dia quando existe bloqueio cobrindo todo o expediente selecionado.",
-            "Bloqueia o expediente configurado do profissional e usa o mesmo fallback de 08:00 a 17:00 da Agenda quando não há faixa cadastrada.",
-            "Serializa o bloqueio com a criação de consultas e revalida a ausência de agendamentos dentro da transação para evitar corrida operacional.",
-            "Preserva bloqueios parciais independentes, mantém o fluxo Bloquear horário e não altera banco de dados nem schema."
+            "Corrige a validação do bloqueio diário para aceitar limites temporais armazenados como timestamps UTC.",
+            "Mantém a leitura do expediente configurado no perfil do profissional sem converter timestamps válidos por strtotime.",
+            "Preserva a revalidação transacional contra consultas concorrentes e as regras de propriedade do bloqueio.",
+            "Move o controle para imediatamente após o profissional no seletor diário, sem rótulo visual.",
+            "Usa cadeado fechado para Bloquear dia e cadeado aberto para Desbloquear dia, preservando rótulos acessíveis."
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
