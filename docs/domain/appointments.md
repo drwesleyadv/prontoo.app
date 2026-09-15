@@ -16,7 +16,7 @@ Agenda participa de cenários reais de query budget. Alterações que aumentem c
 
 ## Bloqueio diário
 
-Na visualização diária, quando o profissional selecionado não possui consultas na data, um controle por ícone aparece imediatamente após o nome do profissional no seletor: cadeado fechado bloqueia o dia e cadeado aberto desbloqueia. O bloqueio cobre o expediente configurado do profissional, usa o mesmo fallback temporal da Agenda quando não há expediente cadastrado e é serializado com a criação de consultas para impedir corrida entre bloqueio e agendamento. Os limites do dia e do expediente são comparados no formato temporal canônico armazenado pela Agenda, inclusive quando chegam como timestamps UTC. Bloqueios parciais continuam independentes e não são apagados pela alternância do dia.
+Na visualização diária, o seletor de data e profissional permanece em uma única linha. O controle de bloqueio integral aparece imediatamente após o profissional: cadeado fechado bloqueia o dia e cadeado aberto desbloqueia. Quando já existem consultas, o cadeado fechado permanece visível, desabilitado e em baixa opacidade para sinalizar o impedimento do bloqueio integral. Quando o dia está integralmente bloqueado, a grade recebe uma atenuação discreta e uma marca d’água de cadeado, sem desenhar o bloqueio como evento vertical; a criação rápida por horários também fica indisponível. Bloqueios parciais continuam independentes, assim como as permissões, a serialização transacional e as regras de clínica.
 
 ## Segurança
 

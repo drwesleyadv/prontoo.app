@@ -1,12 +1,12 @@
 {
-    "version": "1.9.15.5",
-    "release": "1.9.15.5",
-    "generated_at_unix": 1789485141,
-    "generated_at": "2026-09-15T11:12:21-04:00",
-    "updated_at": "2026-09-15T11:12:21-04:00",
-    "build": "1.9.15.5-agenda-day-block-time-fix",
-    "asset_version": "1.9.15.5",
-    "package_type": "micro_fix",
+    "version": "1.9.15.6",
+    "release": "1.9.15.6",
+    "generated_at_unix": 1789495380,
+    "generated_at": "2026-09-15T14:03:00-04:00",
+    "updated_at": "2026-09-15T14:03:00-04:00",
+    "build": "1.9.15.6-agenda-day-blocked-ux",
+    "asset_version": "1.9.15.6",
+    "package_type": "micro_ux",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
     "database_changes": false,
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Corrige o bloqueio diário para aceitar os timestamps UTC canônicos da Agenda e posiciona o toggle por cadeado junto ao profissional.",
+    "notes": "Refina a Agenda diária para manter o seletor em uma única linha, representar o bloqueio integral de forma discreta e manter o cadeado desabilitado como sinalização quando há consultas.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_github_actions_cli_four_markers_only",
-    "deployment_sync_id": "github-prontoo-1.9.15.5-release",
-    "deployment_sync_requested_at": "2026-09-15T11:12:21-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.15.6-release",
+    "deployment_sync_requested_at": "2026-09-15T14:03:00-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Correção do bloqueio diário da Agenda",
+        "title": "Agenda diária: bloqueio mais discreto e previsível",
         "items": [
-            "Corrige a validação do bloqueio diário para aceitar limites temporais armazenados como timestamps UTC.",
-            "Mantém a leitura do expediente configurado no perfil do profissional sem converter timestamps válidos por strtotime.",
-            "Preserva a revalidação transacional contra consultas concorrentes e as regras de propriedade do bloqueio.",
-            "Move o controle para imediatamente após o profissional no seletor diário, sem rótulo visual.",
-            "Usa cadeado fechado para Bloquear dia e cadeado aberto para Desbloquear dia, preservando rótulos acessíveis."
+            "Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.",
+            "Representa o bloqueio integral por atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.",
+            "Desativa a criação rápida por slots quando o dia inteiro está bloqueado.",
+            "Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.",
+            "Preserva bloqueios parciais, permissões, regras transacionais e schema existente."
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
