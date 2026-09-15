@@ -2258,8 +2258,24 @@ final class AppointmentsRuntimeOperations05
             $metricCard("timelapse", $occupancyPct . "%", "Ocupação", "occupancy") .
             $metricCard("acute", $nextFree, "Horário livre", "free-time") .
             "</aside>";
+        $dayBlocked = false;
+        $dayBlockCreatorId = 0;
+        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {
+            foreach ($blocks as $dayBlock) {
+                if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
+                    continue;
+                }
+                $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));
+                $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
+                if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {
+                    $dayBlocked = true;
+                    $dayBlockCreatorId = (int) ($dayBlock["created_by"] ?? 0);
+                    break;
+                }
+            }
+        }
         $slotRows = "";
-        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true);
+        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;
         for ($i = 0; $i <= $slotCount; $i++) {
             $ts = $workStartTs + $i * $slotMinutes * 60;
             $slotStart = $day . "T" . $fmtLocal($ts);
@@ -2359,6 +2375,14 @@ final class AppointmentsRuntimeOperations05
                     60 /
                     $slotMinutes,
             );
+            if (
+                $dayBlocked &&
+                (int) ($b["doctor_user_id"] ?? 0) === $agendaDoctor &&
+                $sTs <= $workStartTs &&
+                $eTs >= $workEndTs
+            ) {
+                continue;
+            }
             $eventHtml .=
                 '<article class="agenda-day-event agenda-day-event-block" style="--event-top:' .
                 $top .
@@ -2379,7 +2403,7 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "Bloqueio</em></article>";
         }
-        if ($eventHtml === "") {
+        if ($eventHtml === "" && !$dayBlocked) {
             $eventHtml =
                 '<div class="agenda-day-empty agenda-day-empty-icon" role="img" aria-label="Sem agendamentos no expediente" title="Sem agendamentos no expediente">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("no_sim") .
@@ -2410,49 +2434,44 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                 "</option>";
         }
-        $dayBlocked = false;
-        $dayBlockCreatorId = 0;
-        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {
-            foreach ($blocks as $dayBlock) {
-                if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
-                    continue;
-                }
-                $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));
-                $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
-                if ($dayBlockStartTs <= $workStartTs && $dayBlockEndTs >= $workEndTs) {
-                    $dayBlocked = true;
-                    $dayBlockCreatorId = (int) ($dayBlock["created_by"] ?? 0);
-                    break;
-                }
-            }
-        }
         $dayBlockForm = "";
         $dayBlockToggle = "";
-        if (
+        $dayBlockOwnsState = !$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid;
+        $dayBlockToggleVisible =
             $agendaView === "diario" &&
             $agendaDoctor > 0 &&
-            $rows === [] &&
             in_array($role, ["recepcionista", "medico", "gerente"], true) &&
-            (!$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid)
-        ) {
+            ($rows !== [] || $dayBlockOwnsState);
+        if ($dayBlockToggleVisible) {
+            $dayBlockDisabled = $rows !== [];
+            $dayBlockCanToggle = !$dayBlockDisabled && $dayBlockOwnsState;
             $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";
             $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";
             $dayBlockIcon = $dayBlocked ? "lock_open" : "lock";
-            $dayBlockForm =
-                '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .
-                \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
-                '<input type="hidden" name="act" value="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockAct) .
-                '"><input type="hidden" name="return_day" value="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
-                '"><input type="hidden" name="return_doctor" value="' .
-                $agendaDoctor .
-                '"></form>';
+            if ($dayBlockCanToggle) {
+                $dayBlockForm =
+                    '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+                    '<input type="hidden" name="act" value="' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockAct) .
+                    '"><input type="hidden" name="return_day" value="' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
+                    '"><input type="hidden" name="return_doctor" value="' .
+                    $agendaDoctor .
+                    '"></form>';
+            }
+            $dayBlockTitle = $dayBlockDisabled
+                ? "Não é possível bloquear o dia porque já existem consultas marcadas."
+                : $dayBlockLabel;
             $dayBlockToggle =
-                '<button type="submit" form="agenda-day-toggle-action" class="pagehead-control pagehead-control--secondary agenda-day-toggle-button" aria-label="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockLabel) .
+                '<button type="' . ($dayBlockCanToggle ? 'submit' : 'button') . '"' .
+                ($dayBlockCanToggle ? ' form="agenda-day-toggle-action"' : ' disabled aria-disabled="true"') .
+                ' class="pagehead-control pagehead-control--secondary agenda-day-toggle-button' .
+                ($dayBlockDisabled ? ' is-blocked-by-appointments' : '') .
+                '" aria-label="' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockTitle) .
                 '" title="' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockLabel) .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($dayBlockTitle) .
                 '">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon($dayBlockIcon) .
                 '</button>';
@@ -2460,7 +2479,7 @@ final class AppointmentsRuntimeOperations05
         $navDay =
             '<div class="agenda-crown-row">' .
             $dayBlockForm .
-            '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">' .
+            '<form method="get" class="agenda-crown-picker' . ($dayBlockToggleVisible ? ' has-day-toggle' : '') . '" aria-label="Selecionar dia e profissional">' .
             '<input type="hidden" name="r" value="appointments">' .
             '<input type="hidden" name="d" value="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -2499,9 +2518,14 @@ final class AppointmentsRuntimeOperations05
             \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_note_visible_for_day($cid, $day, $c),
             $c,
         );
+        $dayBlockedWatermark = $dayBlocked
+            ? '<div class="agenda-day-blocked-watermark" role="status" aria-label="Dia bloqueado">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
+                '<span>Dia bloqueado</span></div>'
+            : "";
         $agendaDay =
             $agendaDayNote .
-            '<section class="agenda-day-shell agenda-crown-shell" style="--agenda-slots:' .
+            '<section class="agenda-day-shell agenda-crown-shell' . ($dayBlocked ? ' is-day-blocked' : '') . ' style="--agenda-slots:' .
             $slotCount .
             ';--agenda-day-date:\'' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -2517,7 +2541,7 @@ final class AppointmentsRuntimeOperations05
             $floating .
             '<div class="agenda-day-scale" aria-hidden="true">' .
             $slotRows .
-            '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .
+            '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . ' data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . ' data-slot-minutes="' .
             $slotMinutes .
             '" data-day="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -2526,6 +2550,7 @@ final class AppointmentsRuntimeOperations05
             '" data-agenda-create-url="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($agendaCreateUrl) .
             '">' .
+            $dayBlockedWatermark .
             $eventHtml .
             "</div></section>";
         $renderRows = "";

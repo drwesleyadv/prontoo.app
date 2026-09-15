@@ -2085,6 +2085,17 @@ $assert(
         str_contains($agendaRuntimeSource, 'agenda-day-toggle-form'),
     'presentation.agenda.day_block_toggle',
 );
+$assert(
+    str_contains($agendaRuntimeSource, '$dayBlockDisabled = $rows !== [];') &&
+        str_contains($agendaRuntimeSource, 'is-blocked-by-appointments') &&
+        str_contains($agendaRuntimeSource, 'disabled aria-disabled="true"') &&
+        str_contains($agendaRuntimeSource, 'has-day-toggle') &&
+        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
+        str_contains($agendaRuntimeSource, 'data-day-blocked="') &&
+        str_contains($agendaRuntimeSource, '$slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&
+        str_contains($agendaRuntimeSource, 'if ($eventHtml === "" && !$dayBlocked)'),
+    'presentation.agenda.day_block_state_ux',
+);
 $agendaAuthorizationSource = (string) file_get_contents($root . '/app/Application/Authorization/Definitions/SchedulingActionDefinitions.php');
 $assert(
     str_contains($agendaAuthorizationSource, "'block_day'") &&
