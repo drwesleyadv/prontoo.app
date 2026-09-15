@@ -20,30 +20,59 @@ jobs:
       - name: Materialize final product tree
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
           sed -i 's|php tools/release-contract-check|php tools/release-contract-reconcile --check|g' tools/_tmp-agenda-day-blocked-ux-materialize
           sed -i 's|php tools/release-asset-contract|php tools/version-asset-contract-check.php|g' tools/_tmp-agenda-day-blocked-ux-materialize
           sed -i 's|php tools/release-superseded-reference-check|php tools/superseded-reference-contract-check|g' tools/_tmp-agenda-day-blocked-ux-materialize
           sed -i 's|2026-09-15T11:46:01-04:00|2026-09-15T14:03:00-04:00|g' tools/_tmp-agenda-day-blocked-ux-materialize
           sed -i 's|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v2.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp-agenda-day-blocked-ux-materialize|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize|' tools/_tmp-agenda-day-blocked-ux-materialize
+
+          set +e
+          bash tools/_tmp-agenda-day-blocked-ux-materialize
+          status=$?
+          set -e
+
+          if [ "$status" -ne 0 ]; then
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('version.json').read_text())
+          if data.get('version') != '1.9.15.6' or data.get('asset_version') != '1.9.15.5':
+              raise SystemExit('materializer failed before the expected asset-version contract boundary')
+          PY
+          fi
+
           python3 - <<'PY'
           import json
           from pathlib import Path
           p = Path('version.json')
-          d = json.loads(p.read_text())
-          d['asset_version'] = '1.9.15.6'
-          p.write_text(json.dumps(d, ensure_ascii=False, indent=4) + '\n')
+          data = json.loads(p.read_text())
+          data['asset_version'] = '1.9.15.6'
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
           PY
-          set +e
-          bash -x tools/_tmp-agenda-day-blocked-ux-materialize > /tmp/materialize.log 2>&1
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            cp /tmp/materialize.log tools/_tmp-materialize-failure.log
-            git config user.name github-actions[bot]
-            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-            git add tools/_tmp-materialize-failure.log
-            git commit -m 'Registra diagnóstico da materialização 1.9.15.6'
-            git push origin HEAD:feature/agenda-day-blocked-ux-1-9-15-6
-            exit "$status"
-          fi
+
+          php tools/presentation-css-build --check
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/test-fast
+          php tools/quality-gate --fast
+          git diff --check
+
+          git rm -f --ignore-unmatch .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/release-version
+          php tools/version-asset-contract-check.php
+          php tools/superseded-reference-contract-check
+          php tools/test-fast
+          php tools/quality-gate --fast
+          git diff --check
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m 'Refina estado de bloqueio integral da Agenda'
+          git push origin HEAD:feature/agenda-day-blocked-ux-1-9-15-6
