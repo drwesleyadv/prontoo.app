@@ -232,7 +232,7 @@
     "developer_clinics_navigation_policy": "pagehead_clinics_users_messages_notices_audit_in_exact_order",
     "developer_administration_policy": "administration_contains_only_maintenance_and_configuration",
     "release": "1.9.15.9",
-    "build": "1.9.15.9-timed-agenda-notes",
+    "build": "1.9.15.9-timed-agenda-reservations",
     "public_status_policy": "get_only_prontoo_app_status_renders_exclusively_admin_performance_card_without_auth_context_post_or_schema_mutation",
     "public_status_layout_policy": "viewport_95_percent_bordered_outer_card_chart_group_and_chart_surfaces_public_only",
     "runtime_version_contract_policy": "version_json_app_fallback_landing_and_update_manifest_version_release_build_schema_revision_must_match",

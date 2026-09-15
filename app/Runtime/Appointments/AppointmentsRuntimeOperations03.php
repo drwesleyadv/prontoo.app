@@ -438,6 +438,34 @@ final class AppointmentsRuntimeOperations03
                 $detail .
                 ". Ajuste o horário, escolha outro profissional disponível ou remova o bloqueio antes de concluir a operação.";
         }
+        if ($doctorId !== null) {
+            $reservation = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands()->timedAgendaReservationConflict(
+                $cid,
+                $doctorId,
+                $startAt,
+                $endAt,
+                $lock,
+            );
+            if ($reservation) {
+                $doctorLabel = \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name(
+                    \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_doctor_name($cid, $doctorId),
+                );
+                $reservedPeriod =
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $reservation["start_at"], $cid) .
+                    "–" .
+                    \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $reservation["end_at"], $cid);
+                return
+                    "Não é possível concluir " .
+                    $operation .
+                    ": o período " .
+                    $period .
+                    " na agenda de " .
+                    $doctorLabel .
+                    " se sobrepõe à pré-reserva " .
+                    $reservedPeriod .
+                    ". Remova a anotação de pré-reserva ou escolha outro horário.";
+            }
+        }
         return null;
     
     }

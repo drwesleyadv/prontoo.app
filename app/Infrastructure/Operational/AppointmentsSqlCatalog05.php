@@ -16,13 +16,13 @@ final class AppointmentsSqlCatalog05
         extract($bindings, EXTR_SKIP);
         return match ($operationId) {
             'operational.appointments.05.page_appointments.01' => (
-                "SELECT id,note_date,start_at,end_at,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1"
+                "SELECT id,doctor_user_id,note_date,start_at,end_at,created_by FROM pi_agenda_notes WHERE id=? AND clinic_id=? AND deleted_at IS NULL LIMIT 1"
             ),
             'operational.appointments.05.page_appointments.02' => (
                 "UPDATE pi_agenda_notes SET deleted_at=NOW(), deleted_by=?, updated_by=?, updated_at=NOW() WHERE id=? AND clinic_id=? AND deleted_at IS NULL AND created_by=?"
             ),
             'operational.appointments.05.page_appointments.03' => (
-                "INSERT INTO pi_agenda_notes (clinic_id,note_date,start_at,end_at,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,NOW(),NOW())"
+                "INSERT INTO pi_agenda_notes (clinic_id,doctor_user_id,note_date,start_at,end_at,content,target_scope,target_role,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,NOW(),NOW())"
             ),
             'operational.appointments.05.page_appointments.04' => (
                 "SELECT id,patient_link_id,doctor_user_id,status,start_at,arrived_at,consultation_started_at,consultation_finished_at FROM pi_appointments WHERE id=? AND clinic_id=?"

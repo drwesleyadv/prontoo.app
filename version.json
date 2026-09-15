@@ -4,8 +4,8 @@
     "generated_at_unix": 1789509030,
     "generated_at": "2026-09-15T17:50:30-04:00",
     "updated_at": "2026-09-15T17:50:30-04:00",
-    "build": "1.9.15.9-timed-agenda-notes",
-    "asset_version": "1.9.15.8",
+    "build": "1.9.15.9-timed-agenda-reservations",
+    "asset_version": "1.9.15.9",
     "package_type": "feature",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Permite que anotações da Agenda sejam de dia todo ou associadas opcionalmente a um intervalo de horário e posicionadas na visão diária sem bloquear disponibilidade.",
+    "notes": "Permite anotações de dia todo ou pré-reservas com horário vinculadas ao profissional selecionado; pré-reservas bloqueiam a faixa contra novos agendamentos e preservam a visibilidade do conteúdo.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "28515f46af3081e5ac0dded5723e6d2d7ceddec11e9c6f782975f31931a69d33",
@@ -86,13 +86,14 @@
         ]
     },
     "changelog": {
-        "title": "Agenda diária: anotações com intervalo opcional",
+        "title": "Agenda diária: anotações com horário funcionam como pré-reserva",
         "items": [
             "Mantém anotações sem horário como anotações de dia todo no formato atual",
-            "Adiciona horários opcionais de início e fim ao cadastro de anotação",
-            "Posiciona anotações temporizadas na faixa correspondente da Agenda diária",
-            "Mantém anotações temporizadas informativas, sem bloquear horários ou disponibilidade",
-            "Preserva visibilidade por cargo ou clínica e exclusão pelo autor"
+            "Permite informar início e fim opcionais para transformar a anotação em pré-reserva",
+            "Vincula a pré-reserva ao profissional selecionado na visão diária",
+            "Bloqueia conflitos com consultas, bloqueios e outras pré-reservas no servidor",
+            "Considera pré-reservas na ocupação e nos horários livres da Agenda diária",
+            "Preserva o conteúdo conforme a visibilidade e mostra marcador genérico quando restrito"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",

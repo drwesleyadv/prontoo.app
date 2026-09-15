@@ -25,29 +25,42 @@ final class AppointmentCommandService
 
     public function visibleTimedAgendaNotes(
         int $clinicId,
+        int $doctorUserId,
         string $day,
-        array $roleCodes,
     ): array {
-        if ($clinicId <= 0 || preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) !== 1) {
+        if (
+            $clinicId <= 0 ||
+            $doctorUserId <= 0 ||
+            preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) !== 1
+        ) {
             return [];
-        }
-        $roles = array_values(array_unique(array_filter(
-            array_map(static fn(mixed $role): string => mb_trim((string) $role), $roleCodes),
-            static fn(string $role): bool => $role !== '',
-        )));
-        $parameters = [$clinicId, $day];
-        foreach ($roles as $role) {
-            $parameters[] = $role;
         }
         return $this->data->result(
             'operational.appointments.03.agenda_notes_timed_visible_for_day.01',
-            $parameters,
-            ['roleCount' => count($roles)],
+            [$clinicId, $doctorUserId, $day],
         )->fetchAll();
+    }
+
+    public function timedAgendaReservationConflict(
+        int $clinicId,
+        int $doctorUserId,
+        string $startAt,
+        string $endAt,
+        bool $lockRows,
+    ): ?array {
+        if ($clinicId <= 0 || $doctorUserId <= 0) {
+            return null;
+        }
+        return $this->data->row(
+            'operational.appointments.03.agenda_conflict_message.05',
+            [$clinicId, $doctorUserId, $endAt, $startAt],
+            ['lockRows' => $lockRows],
+        );
     }
 
     public function createAgendaNote(
         int $clinicId,
+        ?int $doctorUserId,
         string $noteDate,
         ?string $startAt,
         ?string $endAt,
@@ -55,22 +68,66 @@ final class AppointmentCommandService
         string $targetScope,
         ?string $targetRole,
         int $userId,
+        Closure $conflictMessage,
     ): int {
-        $this->data->result(
-            'operational.appointments.05.page_appointments.03',
-            [
-                $clinicId,
-                $noteDate,
-                $startAt,
-                $endAt,
-                $content,
-                $targetScope,
-                $targetRole,
-                $userId,
-                $userId,
-            ],
-        );
-        return $this->data->lastInsertId();
+        $timed = $startAt !== null || $endAt !== null;
+        if (($startAt === null) !== ($endAt === null)) {
+            throw new RuntimeException('Informe os horários de início e fim da pré-reserva.');
+        }
+        if ($timed && ($doctorUserId === null || $doctorUserId <= 0)) {
+            throw new RuntimeException('Selecione um profissional para criar uma pré-reserva com horário.');
+        }
+        if (!$timed) {
+            $doctorUserId = null;
+        }
+        return (int) $this->data->atomic(function () use (
+            $clinicId,
+            $doctorUserId,
+            $noteDate,
+            $startAt,
+            $endAt,
+            $content,
+            $targetScope,
+            $targetRole,
+            $userId,
+            $conflictMessage,
+            $timed,
+        ): int {
+            if ($timed) {
+                $this->data->result(
+                    'operational.appointments.05.page_appointments.35',
+                    [$clinicId],
+                );
+                $conflict = (string) $conflictMessage(
+                    $clinicId,
+                    $doctorUserId,
+                    (string) $startAt,
+                    (string) $endAt,
+                    'pré-reserva',
+                    0,
+                    0,
+                );
+                if ($conflict !== '') {
+                    throw new RuntimeException($conflict);
+                }
+            }
+            $this->data->result(
+                'operational.appointments.05.page_appointments.03',
+                [
+                    $clinicId,
+                    $doctorUserId,
+                    $noteDate,
+                    $startAt,
+                    $endAt,
+                    $content,
+                    $targetScope,
+                    $targetRole,
+                    $userId,
+                    $userId,
+                ],
+            );
+            return $this->data->lastInsertId();
+        });
     }
 
     public function removeAgendaNote(int $clinicId, int $noteId, int $userId): bool
@@ -263,6 +320,14 @@ final class AppointmentCommandService
             );
             if ($appointment) {
                 throw new RuntimeException('O dia já possui consulta marcada para este profissional.');
+            }
+            $reservation = $this->data->row(
+                'operational.appointments.03.agenda_conflict_message.05',
+                [$clinicId, $doctorUserId, $blockEndAt, $blockStartAt],
+                ['lockRows' => true],
+            );
+            if ($reservation) {
+                throw new RuntimeException('O dia já possui pré-reserva neste intervalo para este profissional.');
             }
             $existing = $this->data->row(
                 'operational.appointments.05.page_appointments.44',

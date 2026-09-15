@@ -93,7 +93,7 @@ final class AppointmentsRuntimeOperations04
                 "Horário de fim (opcional)",
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("note_end_time", "time", "", 'step="300"'),
             ) .
-            '</div><p class="muted-copy">Deixe os dois horários em branco para manter a anotação como dia todo. Se informar um intervalo, a anotação aparecerá posicionada nessa faixa da Agenda diária.</p>' .
+            '</div><p class="muted-copy">Deixe os dois horários em branco para manter a anotação como dia todo. Ao informar um intervalo, a anotação vira uma pré-reserva do profissional selecionado e bloqueia essa faixa para novos agendamentos.</p>' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Conteúdo",
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(

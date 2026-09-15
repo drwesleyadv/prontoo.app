@@ -1269,8 +1269,9 @@ $appointmentPort = new class implements OperationalDataPort, OperationalSchemaPo
         'operational.appointments.05.page_appointments.31' => [['id' => 81]],
         'operational.appointments.05.page_appointments.36' => [['title' => 'Consulta']],
         'operational.appointments.05.page_appointments.27' => [['id' => 701]],
-        'operational.appointments.05.page_appointments.01' => [['id' => 702, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'created_by' => 11]],
-        'operational.appointments.03.agenda_notes_timed_visible_for_day.01' => [['id' => 702, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'content' => 'Aviso', 'created_by' => 11]],
+        'operational.appointments.03.agenda_conflict_message.05' => [],
+        'operational.appointments.05.page_appointments.01' => [['id' => 702, 'doctor_user_id' => 91, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'created_by' => 11]],
+        'operational.appointments.03.agenda_notes_timed_visible_for_day.01' => [['id' => 702, 'doctor_user_id' => 91, 'note_date' => '2026-08-11', 'start_at' => '2026-08-11 13:00:00', 'end_at' => '2026-08-11 13:30:00', 'content' => 'Aviso', 'created_by' => 11]],
     ];
     public int $insertId = 701;
     public function run(string $operation, array $parameters, array $context): OperationalDataResult
@@ -1314,9 +1315,11 @@ $appointmentData = new OperationalUseCaseService(
 $appointmentCommands = new AppointmentCommandService($appointmentData);
 $noConflict = static fn(...$arguments): string => '';
 $loadedAgendaNote = $appointmentCommands->agendaNoteById(7, 702);
-$visibleTimedAgendaNotes = $appointmentCommands->visibleTimedAgendaNotes(7, '2026-08-11', ['medico']);
+$visibleTimedAgendaNotes = $appointmentCommands->visibleTimedAgendaNotes(7, 91, '2026-08-11');
+$reservationConflict = $appointmentCommands->timedAgendaReservationConflict(7, 91, '2026-08-11 13:00:00', '2026-08-11 13:30:00', true);
 $createdAgendaNoteId = $appointmentCommands->createAgendaNote(
     7,
+    91,
     '2026-08-11',
     '2026-08-11 13:00:00',
     '2026-08-11 13:30:00',
@@ -1324,7 +1327,25 @@ $createdAgendaNoteId = $appointmentCommands->createAgendaNote(
     'role',
     'medico',
     11,
+    $noConflict,
 );
+$agendaNoteConflict = '';
+try {
+    $appointmentCommands->createAgendaNote(
+        7,
+        91,
+        '2026-08-11',
+        '2026-08-11 13:00:00',
+        '2026-08-11 13:30:00',
+        'Reserva concorrente',
+        'clinic',
+        null,
+        11,
+        static fn(...$arguments): string => 'Horário já pré-reservado.',
+    );
+} catch (RuntimeException $error) {
+    $agendaNoteConflict = $error->getMessage();
+}
 $removedAgendaNote = $appointmentCommands->removeAgendaNote(7, 702, 11);
 $blockId = $appointmentCommands->createBlock(
     7,
@@ -1518,7 +1539,9 @@ try {
 $same([701, 701], [$blockId, $createdAppointmentId], 'application.appointment_commands.ids');
 $same(702, (int) ($loadedAgendaNote['id'] ?? 0), 'application.appointment_commands.note_loaded');
 $same(702, (int) ($visibleTimedAgendaNotes[0]['id'] ?? 0), 'application.appointment_commands.timed_notes_visible');
+$same(null, $reservationConflict, 'application.appointment_commands.reservation_conflict_absent');
 $same(701, $createdAgendaNoteId, 'application.appointment_commands.note_created');
+$same('Horário já pré-reservado.', $agendaNoteConflict, 'application.appointment_commands.note_conflict');
 $assert($removedAgendaNote, 'application.appointment_commands.note_removed');
 $assert($removedBlock, 'application.appointment_commands.remove_block');
 $same([701, 0], [$dayBlockId, $dayUnblockResult], 'application.appointment_commands.day_block_toggle');
