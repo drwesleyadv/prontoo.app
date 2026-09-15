@@ -35,7 +35,6 @@
         ".github/workflows/documentation.yml": "28c7143c638cd130cbf7d7dae153d68716012453915d686037ed80dea317ca72",
         ".github/workflows/merged-branch-cleanup.yml": "c9945357af124eb841ea9cddfc68fe0a2bd263d6a97856f55bdd9f61d1059983",
         ".github/workflows/presentation-ux.yml": "639d0a0dcef50f5f08aa66358bb5bfe06b734e97217a76fbf6648a28c8756a72",
-        ".github/workflows/zz-temp-quick-recurrence-ux-1-9-15-2.yml": "f20308777332ca0fe892ff0832bd0b9df28c8cd07d896a0062402e6ada5bdd71",
         ".gitignore": "bbac5fe39f533769964b8c992f5152d59f947990f277c98105327747d41d15ae",
         ".htaccess": "d8c71efc810ede7417bd8a15fe806b32da7a7997937f9668b61d2e8c0b050188",
         "AGENTS.md": "5429124446d02e16761d963955a3126fbc21e15107c06a14127e9b8536cd430e",
@@ -687,7 +686,6 @@
         "tools/telemetry-json-source-contract-check": "50e654e86c709840ff0991cdd0a1aeb12044a67fdb7742d1de48be34ffee6438",
         "tools/test-fast": "8a37d5a802a81dcaa7360915a7b01ecd1b67e31619a49b63caa369cf03e97e45",
         "tools/version-asset-contract-check.php": "476439bc976c261a8528db35e67f587e3ea39e9b2996b31529d13de5c182c235",
-        "tools/zz-temp-quick-recurrence-ux.py": "fd99a38e5065907eecd25f3ae81d361038ae195ffee9518eeefdd3b8bd1c03b6",
         "version.json": "1c2b5575bde4af1b8f490d88a249b7e37696be3663086b7a9f2a2d943faa56db"
     },
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
