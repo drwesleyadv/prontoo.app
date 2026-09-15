@@ -1034,7 +1034,7 @@ body[data-route="appointments"] [data-agenda-canvas]{
 body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-block),
 body[data-route="appointments"] [class*="agenda-day-event-"]{
   position:absolute!important;
-  left:clamp(8px,1.4vw,14px)!important;
+  left:var(--agenda-event-left,clamp(8px,1.4vw,14px))!important;
   right:clamp(8px,1.4vw,14px)!important;
   top:calc(var(--event-top,0) * var(--pt-agenda-slot-h))!important;
   min-height:max(38px,calc(var(--event-height,1) * var(--pt-agenda-slot-h) - 6px))!important;
@@ -1053,9 +1053,9 @@ body[data-route="appointments"] [class*="agenda-day-event-"]{
 }
 body[data-route="appointments"] .agenda-day-event::before,
 body[data-route="appointments"] [class*="agenda-day-event-"]::before{left:7px!important;top:9px!important;bottom:9px!important;background:var(--md-sys-color-primary)!important}
-body[data-route="appointments"] .agenda-day-event strong{font:var(--md-sys-typescale-title-small);font-weight:900;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body[data-route="appointments"] .agenda-day-event small{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body[data-route="appointments"] .agenda-day-event em{display:inline-flex;align-items:center;gap:4px;width:max-content;max-width:100%;font:var(--md-sys-typescale-label-small);font-weight:900;color:var(--md-sys-color-primary);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) strong{font:var(--md-sys-typescale-title-small);font-weight:900;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) small{font:var(--md-sys-typescale-body-small);color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) em{display:inline-flex;align-items:center;gap:4px;width:max-content;max-width:100%;font:var(--md-sys-typescale-label-small);font-weight:900;color:var(--md-sys-color-primary);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body[data-route="appointments"] .agenda-day-event-time{font:var(--md-sys-typescale-label-small);font-weight:900;color:var(--md-sys-color-primary);font-variant-numeric:tabular-nums;white-space:nowrap}
 body[data-route="appointments"] :is(.agenda-day-event-block,.agenda-day-event-bloqueio){
   background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-error) 12%,#fff),color-mix(in srgb,var(--md-sys-color-error) 6%,#fff))!important;
@@ -1154,9 +1154,9 @@ body[data-route="appointments"] .agenda-floating-copy > span{display:block!impor
   body[data-route="appointments"] .agenda-day-slot{padding:5px 6px 0 3px!important;font-size:.68rem!important;min-width:48px!important}
 
 
-  body[data-route="appointments"] .agenda-day-event strong{font-size:.82rem!important;}
-  body[data-route="appointments"] .agenda-day-event small{font-size:.72rem!important}
-  body[data-route="appointments"] .agenda-day-event em{font-size:.68rem!important}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) strong{font-size:.82rem!important;}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) small{font-size:.72rem!important}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) em{font-size:.68rem!important}
 
 
 
@@ -1352,9 +1352,9 @@ body[data-route="appointments"] [class*="agenda-day-event-"]{
   body[data-route="appointments"] .agenda-day-event::before,
   body[data-route="appointments"] [class*="agenda-day-event-"]::before{left:6px!important;top:8px!important;bottom:8px!important;width:3px!important;border-radius:999px!important}
   body[data-route="appointments"] .agenda-day-event-time{font-size:.64rem!important;line-height:1!important}
-  body[data-route="appointments"] .agenda-day-event strong{font-size:.81rem!important;line-height:1.05!important;letter-spacing:-.015em!important}
-  body[data-route="appointments"] .agenda-day-event small{font-size:.71rem!important;line-height:1.05!important}
-  body[data-route="appointments"] .agenda-day-event em{font-size:.66rem!important;line-height:1.05!important}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) strong{font-size:.81rem!important;line-height:1.05!important;letter-spacing:-.015em!important}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) small{font-size:.71rem!important;line-height:1.05!important}
+  body[data-route="appointments"] :is(.agenda-day-event,.agenda-day-event-note) em{font-size:.66rem!important;line-height:1.05!important}
   body[data-route="appointments"] .agenda-floating-kpis.ds-fixed-agenda-kpis,
   body[data-route="appointments"] > .ds-fixed-agenda-kpis,
   body[data-route="appointments"] > .agenda-floating-kpis{

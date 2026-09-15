@@ -84,6 +84,16 @@ final class AppointmentsRuntimeOperations04
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
             "<span>Conteúdo</span></legend>" .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row("Data", \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("note_date", "date", $day, "required")) .
+            '<div class="two agenda-note-time-window">' .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
+                "Horário de início (opcional)",
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("note_start_time", "time", "", 'step="300"'),
+            ) .
+            \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
+                "Horário de fim (opcional)",
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::input("note_end_time", "time", "", 'step="300"'),
+            ) .
+            '</div><p class="muted-copy">Deixe os dois horários em branco para manter a anotação como dia todo. Se informar um intervalo, a anotação aparecerá posicionada nessa faixa da Agenda diária.</p>' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::form_row(
                 "Conteúdo",
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::textarea(

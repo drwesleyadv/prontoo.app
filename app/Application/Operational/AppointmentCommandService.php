@@ -12,6 +12,78 @@ final class AppointmentCommandService
     {
     }
 
+    public function agendaNoteById(int $clinicId, int $noteId): ?array
+    {
+        if ($clinicId <= 0 || $noteId <= 0) {
+            return null;
+        }
+        return $this->data->row(
+            'operational.appointments.05.page_appointments.01',
+            [$noteId, $clinicId],
+        );
+    }
+
+    public function visibleTimedAgendaNotes(
+        int $clinicId,
+        string $day,
+        array $roleCodes,
+    ): array {
+        if ($clinicId <= 0 || preg_match('/^\d{4}-\d{2}-\d{2}$/', $day) !== 1) {
+            return [];
+        }
+        $roles = array_values(array_unique(array_filter(
+            array_map(static fn(mixed $role): string => mb_trim((string) $role), $roleCodes),
+            static fn(string $role): bool => $role !== '',
+        )));
+        $parameters = [$clinicId, $day];
+        foreach ($roles as $role) {
+            $parameters[] = $role;
+        }
+        return $this->data->result(
+            'operational.appointments.03.agenda_notes_timed_visible_for_day.01',
+            $parameters,
+            ['roleCount' => count($roles)],
+        )->fetchAll();
+    }
+
+    public function createAgendaNote(
+        int $clinicId,
+        string $noteDate,
+        ?string $startAt,
+        ?string $endAt,
+        string $content,
+        string $targetScope,
+        ?string $targetRole,
+        int $userId,
+    ): int {
+        $this->data->result(
+            'operational.appointments.05.page_appointments.03',
+            [
+                $clinicId,
+                $noteDate,
+                $startAt,
+                $endAt,
+                $content,
+                $targetScope,
+                $targetRole,
+                $userId,
+                $userId,
+            ],
+        );
+        return $this->data->lastInsertId();
+    }
+
+    public function removeAgendaNote(int $clinicId, int $noteId, int $userId): bool
+    {
+        if ($clinicId <= 0 || $noteId <= 0 || $userId <= 0) {
+            return false;
+        }
+        return $this->data->result(
+            'operational.appointments.05.page_appointments.02',
+            [$userId, $userId, $noteId, $clinicId, $userId],
+        )->rowCount() > 0;
+    }
+
     public function createBlock(
         int $clinicId,
         ?int $doctorUserId,

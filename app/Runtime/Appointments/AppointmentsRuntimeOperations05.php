@@ -78,6 +78,7 @@ final class AppointmentsRuntimeOperations05
         };
         $role = (string) ($c["role"] ?? "");
         $uid = (int) ($c["user"]["id"] ?? 0);
+        $appointmentCommands = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands();
         $returnHidden =
             '<input type="hidden" name="return_day" value="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .
@@ -102,7 +103,6 @@ final class AppointmentsRuntimeOperations05
     
                 $redirectBack($postDay, $postDoctor);
             };
-            $appointmentCommands = \Prontoo\Runtime\Operational\OperationalComposition::appointmentCommands();
             if (in_array($act, ["block_day", "unblock_day"], true)) {
                 if (!in_array($role, ["recepcionista", "medico", "gerente"], true)) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
@@ -201,7 +201,7 @@ final class AppointmentsRuntimeOperations05
                 $noteId = (int) ($_POST["id"] ?? 0);
                 $note =
                     $noteId > 0
-                        ? \Prontoo\Runtime\Operational\OperationalComposition::appointments()->row('operational.appointments.05.page_appointments.01', [$noteId, $cid], [])
+                        ? $appointmentCommands->agendaNoteById($cid, $noteId)
                         : null;
                 if (!$note) {
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação não encontrada ou já excluída.", "bad");
@@ -213,7 +213,10 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Somente quem criou a anotação pode excluí-la.", "bad");
                     $redirectBack($noteDay, $postDoctor);
                 }
-                \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.02', [$uid, $uid, $noteId, $cid, $uid], []);
+                if (!$appointmentCommands->removeAgendaNote($cid, $noteId, $uid)) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("A anotação foi atualizada por outra ação. Reabra a Agenda e tente novamente.", "bad");
+                    $redirectBack($noteDay, $postDoctor);
+                }
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit("agenda_anotacao_excluida", "agenda_note", $noteId, [
                     "note_date" => $noteDay,
                     "audit_body" =>
@@ -233,6 +236,36 @@ final class AppointmentsRuntimeOperations05
                     $postRedirect();
                 }
                 $content = mb_substr($content, 0, 4000);
+                $noteStartTime = mb_trim((string) ($_POST["note_start_time"] ?? ""));
+                $noteEndTime = mb_trim((string) ($_POST["note_end_time"] ?? ""));
+                if (($noteStartTime === "") !== ($noteEndTime === "")) {
+                    \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                        "Informe os horários de início e fim, ou deixe ambos em branco para uma anotação de dia todo.",
+                        "bad",
+                    );
+                    $postRedirect();
+                }
+                $noteStartAt = null;
+                $noteEndAt = null;
+                if ($noteStartTime !== "") {
+                    if (
+                        preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $noteStartTime) !== 1 ||
+                        preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $noteEndTime) !== 1 ||
+                        $noteEndTime <= $noteStartTime
+                    ) {
+                        \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                            "Informe um intervalo de horário válido, com o fim posterior ao início.",
+                            "bad",
+                        );
+                        $postRedirect();
+                    }
+                    $noteStartAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                        \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($noteDate, $noteStartTime),
+                    );
+                    $noteEndAt = \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::normalize_db_datetime(
+                        \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_iso_local_value($noteDate, $noteEndTime),
+                    );
+                }
                 $visibility = (string) ($_POST["visibility_scope"] ?? "my_role");
                 $roleOptions = \Prontoo\Runtime\ClinicConfig\ClinicConfigRuntimeOperations01::clinic_role_options($cid, false);
                 $targetScope = "clinic";
@@ -251,26 +284,34 @@ final class AppointmentsRuntimeOperations05
                         $postRedirect();
                     }
                 }
-                \Prontoo\Runtime\Operational\OperationalComposition::appointments()->result('operational.appointments.05.page_appointments.03', [
-                        $cid,
-                        $noteDate,
-                        $content,
-                        $targetScope,
-                        $targetRole,
-                        (int) $c["user"]["id"],
-                        (int) $c["user"]["id"],
-                    ], []);
+                $noteId = $appointmentCommands->createAgendaNote(
+                    $cid,
+                    $noteDate,
+                    $noteStartAt,
+                    $noteEndAt,
+                    $content,
+                    $targetScope,
+                    $targetRole,
+                    $uid,
+                );
                 \Prontoo\Runtime\AuditActivity\AuditActivityRuntimeOperations04::audit(
                     "agenda_anotacao_criada",
                     "agenda_note",
-                    \Prontoo\Runtime\Operational\OperationalComposition::appointments()->lastInsertId(),
+                    $noteId,
                     [
                         "note_date" => $noteDate,
+                        "start_at" => $noteStartAt,
+                        "end_at" => $noteEndAt,
+                        "all_day" => $noteStartAt === null,
                         "target_scope" => $targetScope,
                         "target_role" => $targetRole,
                     ],
                 );
-                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash("Anotação registrada para a data escolhida.");
+                \Prontoo\Presentation\SecurityAccess\SecurityAccessPresentationOperations01::flash(
+                    $noteStartAt === null
+                        ? "Anotação de dia todo registrada para a data escolhida."
+                        : "Anotação registrada no intervalo informado.",
+                );
                 $redirectBack($noteDate, $postDoctor);
             }
             if ($act === "confirm") {
@@ -2151,6 +2192,14 @@ final class AppointmentsRuntimeOperations05
             $d = \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_db_utc_to_local($dt, $cid);
             return $d ? $d->getTimestamp() : (strtotime($dt) ?: 0);
         };
+        $timedAgendaNotes =
+            $agendaView === "diario"
+                ? $appointmentCommands->visibleTimedAgendaNotes(
+                    $cid,
+                    $day,
+                    \Prontoo\Domain\Appointments\AppointmentsDomainOperations01::agenda_note_role_codes($c),
+                )
+                : [];
         $nextLabel = $nextAppt ? \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $nextAppt["start_at"]) : "—";
         $workRanges =
             $agendaDoctor > 0
@@ -2176,8 +2225,20 @@ final class AppointmentsRuntimeOperations05
         }
         $workStartTs = (int) $workRanges[0][0];
         $workEndTs = (int) $workRanges[count($workRanges) - 1][1];
-        $workStartLabel = (string) $workRanges[0][2];
-        $workEndLabel = (string) $workRanges[count($workRanges) - 1][3];
+        $slotSeconds = 15 * 60;
+        foreach ($timedAgendaNotes as $timedAgendaNote) {
+            $noteStartTs = $localTs((string) ($timedAgendaNote["start_at"] ?? ""));
+            $noteEndTs = $localTs((string) ($timedAgendaNote["end_at"] ?? ""));
+            if ($noteStartTs <= 0 || $noteEndTs <= $noteStartTs) {
+                continue;
+            }
+            $noteGridStart = intdiv($noteStartTs, $slotSeconds) * $slotSeconds;
+            $noteGridEnd = intdiv($noteEndTs + $slotSeconds - 1, $slotSeconds) * $slotSeconds;
+            $workStartTs = min($workStartTs, $noteGridStart);
+            $workEndTs = max($workEndTs, $noteGridEnd);
+        }
+        $workStartLabel = $fmtLocal($workStartTs);
+        $workEndLabel = $fmtLocal($workEndTs);
         $totalMinutes = max(15, (int) ceil(($workEndTs - $workStartTs) / 60));
         $slotMinutes = 15;
         $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));
@@ -2403,7 +2464,57 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                 "Bloqueio</em></article>";
         }
-        if ($eventHtml === "" && !$dayBlocked) {
+        $timedNoteHtml = "";
+        foreach ($timedAgendaNotes as $timedAgendaNote) {
+            $noteStartTs = $localTs((string) ($timedAgendaNote["start_at"] ?? ""));
+            $noteEndTs = $localTs((string) ($timedAgendaNote["end_at"] ?? ""));
+            if ($noteStartTs <= 0 || $noteEndTs <= $noteStartTs || $noteEndTs <= $workStartTs || $noteStartTs >= $workEndTs) {
+                continue;
+            }
+            $top = max(0, ($noteStartTs - $workStartTs) / 60 / $slotMinutes);
+            $height = max(
+                1,
+                (min($noteEndTs, $workEndTs) - max($noteStartTs, $workStartTs)) / 60 / $slotMinutes,
+            );
+            $period =
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $timedAgendaNote["start_at"]) .
+                "–" .
+                \Prontoo\Runtime\SupportFoundation\SupportFoundationRuntimeOperations01::app_time_br((string) $timedAgendaNote["end_at"]);
+            $creatorName = mb_trim((string) ($timedAgendaNote["created_by_name"] ?? ""));
+            $noteDelete = "";
+            if ((int) ($timedAgendaNote["created_by"] ?? 0) === $uid) {
+                $noteDelete =
+                    '<form method="post" class="agenda-day-note-delete agenda-day-note-inline-delete">' .
+                    \Prontoo\Runtime\SecurityAccess\SecurityAccessRuntimeOperations01::csrf_field() .
+                    $returnHidden .
+                    '<input type="hidden" name="act" value="agenda_note_delete"><input type="hidden" name="id" value="' .
+                    (int) $timedAgendaNote["id"] .
+                    '"><button type="submit" class="icon-btn" aria-label="Excluir anotação" title="Excluir anotação">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("delete") .
+                    "</button></form>";
+            }
+            $timedNoteHtml .=
+                '<article class="agenda-day-event-note" data-agenda-note style="--event-top:' .
+                $top .
+                ';--event-height:' .
+                $height .
+                ';--agenda-event-left:50%" title="Anotação · ' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
+                '"><span class="agenda-day-event-time">' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($period) .
+                '</span><strong>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("sticky_note_2") .
+                '<span>Anotação</span></strong><small>' .
+                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e((string) ($timedAgendaNote["content"] ?? "")) .
+                '</small><em>' .
+                ($creatorName !== ""
+                    ? "Por " . \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e(\Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::first_name($creatorName))
+                    : "Aviso da Agenda") .
+                "</em>" .
+                $noteDelete .
+                "</article>";
+        }
+        if ($eventHtml === "" && $timedNoteHtml === "" && !$dayBlocked) {
             $eventHtml =
                 '<div class="agenda-day-empty agenda-day-empty-icon" role="img" aria-label="Sem agendamentos no expediente" title="Sem agendamentos no expediente">' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("no_sim") .
@@ -2552,6 +2663,7 @@ final class AppointmentsRuntimeOperations05
             '">' .
             $dayBlockedWatermark .
             $eventHtml .
+            $timedNoteHtml .
             "</div></section>";
         $renderRows = "";
         foreach ($rows as $r) {
