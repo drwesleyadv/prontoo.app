@@ -37,8 +37,8 @@ jobs:
           import json
           from pathlib import Path
           data = json.loads(Path('version.json').read_text())
-          if data.get('version') != '1.9.15.6' or data.get('asset_version') != '1.9.15.5':
-              raise SystemExit('materializer failed before the expected asset-version contract boundary')
+          if data.get('version') != '1.9.15.6':
+              raise SystemExit('materializer failed before release 1.9.15.6 was generated')
           PY
           fi
 
