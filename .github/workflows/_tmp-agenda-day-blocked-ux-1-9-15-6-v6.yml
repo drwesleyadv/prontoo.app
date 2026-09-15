@@ -17,41 +17,242 @@ jobs:
         uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
         with:
           php-version: '8.4'
-      - name: Materialize final product tree
+
+      - name: Transform Agenda runtime
         shell: bash
         run: |
           set -euo pipefail
-          sed -i 's|php tools/release-contract-check|php tools/release-contract-reconcile --check|g' tools/_tmp-agenda-day-blocked-ux-materialize
-          sed -i 's|php tools/release-asset-contract|php tools/version-asset-contract-check.php|g' tools/_tmp-agenda-day-blocked-ux-materialize
-          sed -i 's|php tools/release-superseded-reference-check|php tools/superseded-reference-contract-check|g' tools/_tmp-agenda-day-blocked-ux-materialize
-          sed -i 's|2026-09-15T11:46:01-04:00|2026-09-15T14:03:00-04:00|g' tools/_tmp-agenda-day-blocked-ux-materialize
-          sed -i 's|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v2.yml .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v3.yml tools/_tmp-agenda-day-blocked-ux-materialize|git rm .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize|' tools/_tmp-agenda-day-blocked-ux-materialize
-
-          set +e
-          bash tools/_tmp-agenda-day-blocked-ux-materialize
-          status=$?
-          set -e
-
-          if [ "$status" -ne 0 ]; then
-            python3 - <<'PY'
-          import json
+          python3 - <<'PY'
           from pathlib import Path
-          data = json.loads(Path('version.json').read_text())
-          if data.get('version') != '1.9.15.6':
-              raise SystemExit('materializer failed before release 1.9.15.6 was generated')
-          PY
-          fi
 
+          p = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
+          s = p.read_text()
+
+          day_start_marker = '''        $dayBlocked = false;\n        $dayBlockCreatorId = 0;\n        if ($agendaView === "diario" && $agendaDoctor > 0 && $rows === []) {'''
+          day_start = s.find(day_start_marker)
+          if day_start < 0:
+              raise SystemExit('day state start not found')
+          day_end = s.find('        $dayBlockForm = "";\n', day_start)
+          if day_end < 0:
+              raise SystemExit('day state end not found')
+          day_state = s[day_start:day_end]
+          s = s[:day_start] + s[day_end:]
+
+          slot_anchor = '''        $slotRows = "";\n        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true);'''
+          if slot_anchor not in s:
+              raise SystemExit('slot anchor not found')
+          slot_replacement = day_state + '''        $slotRows = "";\n        $slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;'''
+          s = s.replace(slot_anchor, slot_replacement, 1)
+
+          event_root = s.find('        $eventHtml = "";\n')
+          if event_root < 0:
+              raise SystemExit('event root not found')
+          block_loop = s.find('        foreach ($blocks as $b) {\n', event_root)
+          if block_loop < 0:
+              raise SystemExit('daily block loop not found')
+          render_anchor = '''            $eventHtml .=\n                '<article class="agenda-day-event agenda-day-event-block" style="--event-top:' .'''
+          render_at = s.find(render_anchor, block_loop)
+          if render_at < 0:
+              raise SystemExit('daily block render anchor not found')
+          skip_full_day = '''            if (\n                $dayBlocked &&\n                (int) ($b["doctor_user_id"] ?? 0) === $agendaDoctor &&\n                $sTs <= $workStartTs &&\n                $eTs >= $workEndTs\n            ) {\n                continue;\n            }\n'''
+          s = s[:render_at] + skip_full_day + s[render_at:]
+          empty_at = s.find('        if ($eventHtml === "") {\n', render_at)
+          if empty_at < 0:
+              raise SystemExit('daily empty state not found')
+          s = s[:empty_at] + s[empty_at:].replace('        if ($eventHtml === "") {\n', '        if ($eventHtml === "" && !$dayBlocked) {\n', 1)
+
+          toggle_start = s.find('        $dayBlockForm = "";\n')
+          toggle_end = s.find('        $navDay =\n', toggle_start)
+          if toggle_start < 0 or toggle_end < 0:
+              raise SystemExit('day toggle section not found')
+          toggle = '''        $dayBlockForm = "";\n        $dayBlockToggle = "";\n        $dayBlockOwnsState = !$dayBlocked || $role === "gerente" || $dayBlockCreatorId === $uid;\n        $dayBlockToggleVisible =\n            $agendaView === "diario" &&\n            $agendaDoctor > 0 &&\n            in_array($role, ["recepcionista", "medico", "gerente"], true) &&\n            ($rows !== [] || $dayBlockOwnsState);\n        if ($dayBlockToggleVisible) {\n            $dayBlockDisabled = $rows !== [];\n            $dayBlockCanToggle = !$dayBlockDisabled && $dayBlockOwnsState;\n            $dayBlockAct = $dayBlocked ? "unblock_day" : "block_day";\n            $dayBlockLabel = $dayBlocked ? "Desbloquear dia" : "Bloquear dia";\n            $dayBlockIcon = $dayBlocked ? "lock_open" : "lock";\n            if ($dayBlockCanToggle) {\n                $dayBlockForm =\n                    '<form method="post" id="agenda-day-toggle-action" class="agenda-day-toggle-form">' .\n                    \\Prontoo\\Runtime\\SecurityAccess\\SecurityAccessRuntimeOperations01::csrf_field() .\n                    '<input type="hidden" name="act" value="' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockAct) .\n                    '\"><input type="hidden" name="return_day" value="' .\n                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($day) .\n                    '\"><input type="hidden" name="return_doctor" value="' .\n                    $agendaDoctor .\n                    '"></form>';\n            }\n            $dayBlockTitle = $dayBlockDisabled\n                ? "Não é possível bloquear o dia porque já existem consultas marcadas."\n                : $dayBlockLabel;\n            $dayBlockToggle =\n                '<button type="' . ($dayBlockCanToggle ? 'submit' : 'button') . '"' .\n                ($dayBlockCanToggle ? ' form="agenda-day-toggle-action"' : ' disabled aria-disabled="true"') .\n                ' class="pagehead-control pagehead-control--secondary agenda-day-toggle-button' .\n                ($dayBlockDisabled ? ' is-blocked-by-appointments' : '') .\n                '" aria-label="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockTitle) .\n                '" title="' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::e($dayBlockTitle) .\n                '">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon($dayBlockIcon) .\n                '</button>';\n        }\n'''
+          s = s[:toggle_start] + toggle + s[toggle_end:]
+
+          picker = '<form method="get" class="agenda-crown-picker" aria-label="Selecionar dia e profissional">'
+          picker_new = '<form method="get" class="agenda-crown-picker' + "' . ($dayBlockToggleVisible ? ' has-day-toggle' : '') . '" + '" aria-label="Selecionar dia e profissional">'
+          if picker not in s:
+              raise SystemExit('picker anchor not found')
+          s = s.replace(picker, picker_new, 1)
+
+          agenda_anchor = '        $agendaDay =\n            $agendaDayNote .\n'
+          agenda_at = s.find(agenda_anchor)
+          if agenda_at < 0:
+              raise SystemExit('agenda day anchor not found')
+          watermark = '''        $dayBlockedWatermark = $dayBlocked\n            ? '<div class="agenda-day-blocked-watermark" role="status" aria-label="Dia bloqueado">' .\n                \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("lock") .\n                '<span>Dia bloqueado</span></div>'\n            : "";\n'''
+          s = s[:agenda_at] + watermark + s[agenda_at:]
+          agenda_at += len(watermark)
+          tail = s[agenda_at:]
+          shell_old = '<section class="agenda-day-shell agenda-crown-shell" style="--agenda-slots:'
+          shell_new = '<section class="agenda-day-shell agenda-crown-shell' + "' . ($dayBlocked ? ' is-day-blocked' : '') . '" + ' style="--agenda-slots:'
+          if shell_old not in tail:
+              raise SystemExit('daily shell anchor not found')
+          tail = tail.replace(shell_old, shell_new, 1)
+          canvas_old = '<div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="'
+          canvas_new = '<div class="agenda-day-canvas' + "' . ($dayBlocked ? ' is-day-blocked' : '') . '" + ' data-agenda-canvas data-day-blocked="' + "' . ($dayBlocked ? '1' : '0') . '" + ' data-slot-minutes="'
+          if canvas_old not in tail:
+              raise SystemExit('daily canvas anchor not found')
+          tail = tail.replace(canvas_old, canvas_new, 1)
+          canvas_event = '''            '\">' .\n            $eventHtml .\n            "</div></section>";'''
+          canvas_event_new = '''            '\">' .\n            $dayBlockedWatermark .\n            $eventHtml .\n            "</div></section>";'''
+          if canvas_event not in tail:
+              raise SystemExit('daily canvas content anchor not found')
+          tail = tail.replace(canvas_event, canvas_event_new, 1)
+          s = s[:agenda_at] + tail
+          p.write_text(s)
+          PY
+          php -l app/Runtime/Appointments/AppointmentsRuntimeOperations05.php
+
+      - name: Transform Agenda presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('design/styles/application.css')
+          s = p.read_text()
+          old = '''body[data-route="appointments"] .agenda-crown-picker{\n  display:grid!important;\n  grid-template-columns:34px minmax(0,1fr) 34px!important;'''
+          new = '''body[data-route="appointments"] .agenda-crown-picker{\n  display:grid!important;\n  grid-template-columns:var(--agenda-crown-columns,34px minmax(0,1fr) 34px)!important;'''
+          if old not in s:
+              raise SystemExit('canonical crown grid not found')
+          s = s.replace(old, new, 1)
+          old = '''  body[data-route="appointments"] .agenda-crown-picker{grid-template-columns:32px minmax(0,1fr) 32px!important;gap:4px!important;min-height:34px!important;width:100%!important;max-width:none!important;margin:0!important}'''
+          new = '''  body[data-route="appointments"] .agenda-crown-picker{grid-template-columns:var(--agenda-crown-columns-mobile,32px minmax(0,1fr) 32px)!important;gap:4px!important;min-height:34px!important;width:100%!important;max-width:none!important;margin:0!important}'''
+          if old not in s:
+              raise SystemExit('mobile crown grid not found')
+          s = s.replace(old, new, 1)
+          old = '''body[data-route="appointments"] .agenda-crown-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;flex-wrap:wrap}\nbody[data-route="appointments"] .agenda-crown-row>.agenda-crown-picker{flex:1 1 420px;min-width:0}\nbody[data-route="appointments"] .agenda-day-toggle-form{display:none}\nbody[data-route="appointments"] .agenda-day-toggle-button{flex:0 0 auto;padding-inline:8px;white-space:nowrap}'''
+          new = '''body[data-route="appointments"] .agenda-crown-row{display:flex;align-items:center;gap:10px;width:100%;min-width:0;flex-wrap:nowrap}\nbody[data-route="appointments"] .agenda-crown-row>.agenda-crown-picker{flex:1 1 auto;min-width:0}\nbody[data-route="appointments"] .agenda-day-toggle-form{display:none}\nbody[data-route="appointments"] .agenda-day-toggle-button{flex:0 0 auto;padding-inline:8px;white-space:nowrap}\n.agenda-crown-picker.has-day-toggle{--agenda-crown-columns:34px minmax(0,1fr) 32px 34px;--agenda-crown-columns-mobile:32px minmax(0,1fr) 28px 32px}\n.agenda-day-toggle-button{width:32px;min-width:32px;height:32px;min-height:32px;padding:0;border-radius:999px}\n.agenda-day-toggle-button .material-symbols-rounded{font-size:18px}\n.agenda-day-toggle-button.is-blocked-by-appointments{opacity:.24;filter:none;box-shadow:none;background:transparent;border-color:transparent;color:var(--md-sys-color-on-surface-variant)}\n.agenda-day-canvas.is-day-blocked{background:linear-gradient(180deg,color-mix(in srgb,var(--md-sys-color-surface-container-lowest) 97%,var(--md-sys-color-on-surface) 3%),color-mix(in srgb,var(--md-sys-color-surface-container-low) 97%,var(--md-sys-color-on-surface) 3%))}\n.agenda-day-canvas.is-day-blocked::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(135deg,transparent 0 18px,color-mix(in srgb,var(--md-sys-color-on-surface-variant) 4%,transparent) 18px 19px)}\n.agenda-day-canvas.is-day-blocked .agenda-day-block-hover{display:none}\n.agenda-day-blocked-watermark{position:absolute;top:12px;right:12px;z-index:7;display:inline-flex;align-items:center;gap:6px;pointer-events:none;color:var(--md-sys-color-on-surface-variant);opacity:.48;font:var(--md-sys-typescale-label-small);font-weight:800;letter-spacing:.01em}\n.agenda-day-blocked-watermark .material-symbols-rounded{font-size:16px}\n@media(max-width:720px){.agenda-day-toggle-button{width:28px;min-width:28px;height:28px;min-height:28px}.agenda-day-blocked-watermark{top:8px;right:8px}}'''
+          if old not in s:
+              raise SystemExit('agenda css tail not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --lint
+          php tools/presentation-css-build --check
+
+      - name: Add regression contract and documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('tools/test-fast')
+          s = p.read_text()
+          anchor = "'presentation.agenda.day_block_toggle',\n);"
+          if anchor not in s:
+              raise SystemExit('test anchor not found')
+          extra = '''\n$assert(\n    str_contains($agendaRuntimeSource, '$dayBlockDisabled = $rows !== [];') &&\n        str_contains($agendaRuntimeSource, 'is-blocked-by-appointments') &&\n        str_contains($agendaRuntimeSource, 'disabled aria-disabled="true"') &&\n        str_contains($agendaRuntimeSource, 'has-day-toggle') &&\n        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&\n        str_contains($agendaRuntimeSource, 'data-day-blocked="') &&\n        str_contains($agendaRuntimeSource, '$slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&\n        str_contains($agendaRuntimeSource, 'if ($eventHtml === "" && !$dayBlocked)'),\n    'presentation.agenda.day_block_state_ux',\n);'''
+          s = s.replace(anchor, anchor + extra, 1)
+          p.write_text(s)
+
+          p = Path('docs/domain/appointments.md')
+          s = p.read_text()
+          heading = '## Bloqueio diário\n\n'
+          start = s.find(heading)
+          if start < 0:
+              raise SystemExit('docs heading not found')
+          body_start = start + len(heading)
+          next_heading = s.find('\n## ', body_start)
+          if next_heading < 0:
+              next_heading = len(s)
+          body = ('Na visualização diária, o seletor de data e profissional permanece em uma única linha. '
+                  'O controle de bloqueio integral aparece imediatamente após o profissional: cadeado fechado bloqueia o dia e cadeado aberto desbloqueia. '
+                  'Quando já existem consultas, o cadeado fechado permanece visível, desabilitado e em baixa opacidade para sinalizar o impedimento do bloqueio integral. '
+                  'Quando o dia está integralmente bloqueado, a grade recebe uma atenuação discreta e uma marca d’água de cadeado, sem desenhar o bloqueio como evento vertical; a criação rápida por horários também fica indisponível. '
+                  'Bloqueios parciais continuam independentes, assim como as permissões, a serialização transacional e as regras de clínica.\n')
+          s = s[:body_start] + body + s[next_heading:]
+          p.write_text(s)
+          PY
+          php tools/test-fast
+
+      - name: Generate release 1.9.15.6
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.6-agenda-day-blocked-ux",
+            "package_type": "micro_ux",
+            "notes": "Refina a Agenda diária para manter o seletor em uma única linha, representar o bloqueio integral de forma discreta e manter o cadeado desabilitado como sinalização quando há consultas.",
+            "logic_changes": true,
+            "visual_changes": true,
+            "documentation_changes": true,
+            "changelog": {
+              "title": "Agenda diária: bloqueio mais discreto e previsível",
+              "items": [
+                "Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.",
+                "Representa o bloqueio integral por atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.",
+                "Desativa a criação rápida por slots quando o dia inteiro está bloqueado.",
+                "Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.",
+                "Preserva bloqueios parciais, permissões, regras transacionais e schema existente."
+              ]
+            }
+          }
+          JSON
+          php tools/release-version --write --date=2026-09-15 --timestamp=2026-09-15T14:03:00-04:00 --expected-current=1.9.15.5 --metadata-file=/tmp/release.json
           python3 - <<'PY'
           import json
           from pathlib import Path
+
           p = Path('version.json')
           data = json.loads(p.read_text())
           data['asset_version'] = '1.9.15.6'
           p.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+
+          p = Path('CHANGELOG.md')
+          s = p.read_text()
+          old_start = '## 1.9.15.5 — Correção do bloqueio diário da Agenda\n\n'
+          pos = s.find(old_start)
+          if pos < 0:
+              raise SystemExit('current changelog block not found')
+          next_release = s.find('\n## ', pos + len(old_start))
+          if next_release < 0:
+              next_release = len(s)
+          new_block = '''## 1.9.15.6 — Agenda diária com bloqueio discreto\n\n- Mantém setas, profissional e cadeado do seletor diário sempre na mesma linha.\n- Representa o bloqueio integral por uma atenuação leve da grade e marca d’água compacta, sem evento vertical pesado.\n- Desativa a criação rápida por slots quando o dia inteiro está bloqueado.\n- Mantém o cadeado visível e desabilitado em baixa opacidade quando já existem consultas no dia.\n- Preserva bloqueios parciais, permissões, regras transacionais e schema existente.\n'''
+          s = s[:pos] + new_block + s[next_release:]
+          p.write_text(s)
+
+          files = [
+              'app/prontoo.php',
+              'br/index.php',
+              'app/presentation.visual-contract.json',
+              'app/architecture.manifest.json',
+              'docs/index.md',
+          ]
+          for filename in files:
+              path = Path(filename)
+              if not path.exists():
+                  continue
+              text = path.read_text()
+              text = text.replace('1.9.15.5-agenda-day-block-time-fix', '1.9.15.6-agenda-day-blocked-ux')
+              text = text.replace('1.9.15.5', '1.9.15.6')
+              path.write_text(text)
+
+          renames = [
+              ('public/assets/app-icon-1.9.15.5.png', 'public/assets/app-icon-1.9.15.6.png'),
+              ('public/assets/favicon-1.9.15.5.ico', 'public/assets/favicon-1.9.15.6.ico'),
+              ('public/assets/favicon-1.9.15.5.png', 'public/assets/favicon-1.9.15.6.png'),
+              ('public/assets/pix-1.9.15.5.svg', 'public/assets/pix-1.9.15.6.svg'),
+              ('public/assets/prontoo-mark-1.9.15.5.png', 'public/assets/prontoo-mark-1.9.15.6.png'),
+          ]
+          for source, target in renames:
+              src, dst = Path(source), Path(target)
+              if not src.exists():
+                  raise SystemExit(f'missing versioned asset: {source}')
+              src.rename(dst)
+
+          p = Path('design/styles/application.css')
+          p.write_text(p.read_text().replace('pix-1.9.15.5.svg', 'pix-1.9.15.6.svg'))
           PY
-
+          php tools/presentation-css-build --write
+          php tools/presentation-css-build --lint
           php tools/presentation-css-build --check
+
+      - name: Reconcile and validate release
+        shell: bash
+        run: |
+          set -euo pipefail
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/release-version
@@ -61,7 +262,11 @@ jobs:
           php tools/quality-gate --fast
           git diff --check
 
-          git rm -f --ignore-unmatch .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize
+      - name: Commit clean product tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm -f .github/workflows/_tmp-agenda-day-blocked-ux-1-9-15-6-v6.yml tools/_tmp-agenda-day-blocked-ux-materialize
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/release-version
@@ -70,7 +275,6 @@ jobs:
           php tools/test-fast
           php tools/quality-gate --fast
           git diff --check
-
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
