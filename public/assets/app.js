@@ -5272,6 +5272,12 @@ function initPasswordToggle(root = document) {
   if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
+})();
+
+(function () {
+  "use strict";
+  if (window.__prontooAppointmentRecurrenceReady) return;
+  window.__prontooAppointmentRecurrenceReady = true;
 
   function recurrenceComposer(root) {
     return {
