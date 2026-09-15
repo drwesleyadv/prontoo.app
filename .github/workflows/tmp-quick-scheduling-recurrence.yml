@@ -23,5 +23,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Register application test contract
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('app/application.test-contract.json')
+          data = json.loads(path.read_text())
+          target = next((case for case in data['cases'] if case.get('id') == 'operational.appointment.commands'), None)
+          if target is None:
+              raise SystemExit('Contrato operational.appointment.commands não encontrado.')
+          for entry in ['removeBlock', 'createAppointmentBatch']:
+              if entry not in target['entry_points']:
+                  target['entry_points'].append(entry)
+          for assertion in [
+              'application.appointment_commands.remove_block',
+              'application.appointment_commands.batch_ids',
+              'application.appointment_commands.batch_financial_sync',
+          ]:
+              if assertion not in target['assertions']:
+                  target['assertions'].append(assertion)
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+          PY
       - name: Apply recurrence feature
         run: bash tools/tmp-quick-scheduling-recurrence
