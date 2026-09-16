@@ -1,0 +1,39 @@
+name: Fix Hotfix CSS Asset Ref
+
+on:
+  push:
+    branches:
+      - fix/schema-contract-upgrade-1-9-15-9
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/schema-contract-upgrade-1-9-15-9
+      - name: Align canonical CSS asset reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('design/styles/application.css')
+          text = path.read_text()
+          old = 'pix-1.9.15.9.svg'
+          new = 'pix-1.9.15.10.svg'
+          if old not in text:
+              raise SystemExit('referência antiga do Pix não encontrada')
+          path.write_text(text.replace(old, new))
+          PY
+          rm -f .github/workflows/fix-hotfix-css-asset-ref.yml
+          git add -A
+          git commit -m 'Alinha referência Pix do CSS à release 1.9.15.10'
+          git push origin HEAD:fix/schema-contract-upgrade-1-9-15-9
