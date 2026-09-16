@@ -81,7 +81,7 @@ Leia `docs/security/threat-model.md` antes de mudanças em autenticação, autor
 
 A baseline usa schema limpo e exige banco vazio para instalação limpa. Runtime não é local de evolução oportunista de DDL.
 
-- não adicione `ALTER`, `CREATE` ou correções de schema em rotas normais;
+- não adicione `ALTER`, `CREATE` ou correções de schema em rotas normais, salvo migração aditiva e idempotente explicitamente allowlisted, vinculada a um hash predecessor conhecido, validada integralmente antes da promoção do contrato e incapaz de aceitar divergências desconhecidas;
 - preserve o contrato de schema e a política de mutação por CI/CLI;
 - respeite `Seq` não nulo e único e os contratos de ledger/auditoria;
 - mudanças financeiras devem manter atomicidade, idempotência e rastreabilidade existentes;

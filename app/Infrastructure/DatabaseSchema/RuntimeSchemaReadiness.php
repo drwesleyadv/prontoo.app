@@ -31,6 +31,14 @@ final class RuntimeSchemaReadiness
         }
         $expectedContract = DatabaseSchemaInfrastructureOperations02::prontoo_schema_contract_hash();
         if (!hash_equals($expectedContract, $contract)) {
+            KnownSchemaUpgrade::attempt($contract, $expectedContract);
+            $revision = self::metaValue('schema_revision');
+            $contract = self::metaValue('schema_contract_hash');
+        }
+        if (!self::revisionAccepted($revision, $expectedRevision)) {
+            throw new RuntimeException('Revisão do banco incompatível com a aplicação.');
+        }
+        if (!hash_equals($expectedContract, $contract)) {
             throw new RuntimeException('Contrato do banco incompatível com a aplicação.');
         }
         $ready = json_decode(

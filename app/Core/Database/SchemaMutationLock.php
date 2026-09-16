@@ -7,6 +7,9 @@ final class SchemaMutationLock
 {
     private const PUBLIC_INSTALL_WINDOW_START_UNIX = 1785770400;
     private const PUBLIC_INSTALL_WINDOW_END_UNIX = 1785777600;
+    private const TRUSTED_UPGRADE_IDS = [
+        'agenda_notes_timed_reservations_1_9_15_9' => true,
+    ];
 
     private static int $depth = 0;
     private static ?string $nonce = null;
@@ -21,21 +24,16 @@ final class SchemaMutationLock
         if (!self::mayOpenInstallerWindow()) {
             throw new \RuntimeException('A janela estrutural só pode ser aberta pelo instalador autorizado ou pela certificação controlada.');
         }
-        if (self::$depth !== 0 || self::$nonce !== null) {
-            throw new \RuntimeException('Janela estrutural já está ativa.');
+        return self::runAuthorized($callback);
+    }
+
+    public static function runForTrustedUpgrade(string $upgradeId, callable $callback): mixed
+    {
+
+        if (!isset(self::TRUSTED_UPGRADE_IDS[$upgradeId])) {
+            throw new \RuntimeException('Migração estrutural não autorizada.');
         }
-        $nonce = bin2hex(random_bytes(32));
-        self::$depth = 1;
-        self::$nonce = $nonce;
-        $GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE'] = $nonce;
-        $GLOBALS['PRONTOO_SCHEMA_INSTALLING'] = true;
-        try {
-            return $callback();
-        } finally {
-            unset($GLOBALS['PRONTOO_SCHEMA_INSTALLING'], $GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE']);
-            self::$nonce = null;
-            self::$depth = 0;
-        }
+        return self::runAuthorized($callback);
     }
 
     public static function isActive(): bool
@@ -53,6 +51,26 @@ final class SchemaMutationLock
 
         if (!self::isActive()) {
             throw new \RuntimeException('A estrutura do banco está congelada fora da janela privada do instalador.');
+        }
+    }
+
+    private static function runAuthorized(callable $callback): mixed
+    {
+
+        if (self::$depth !== 0 || self::$nonce !== null) {
+            throw new \RuntimeException('Janela estrutural já está ativa.');
+        }
+        $nonce = bin2hex(random_bytes(32));
+        self::$depth = 1;
+        self::$nonce = $nonce;
+        $GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE'] = $nonce;
+        $GLOBALS['PRONTOO_SCHEMA_INSTALLING'] = true;
+        try {
+            return $callback();
+        } finally {
+            unset($GLOBALS['PRONTOO_SCHEMA_INSTALLING'], $GLOBALS['PRONTOO_SCHEMA_MUTATION_NONCE']);
+            self::$nonce = null;
+            self::$depth = 0;
         }
     }
 
