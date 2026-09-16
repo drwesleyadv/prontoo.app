@@ -1,0 +1,141 @@
+name: Finalize Schema Contract Hotfix
+
+on:
+  push:
+    branches:
+      - fix/schema-contract-upgrade-1-9-15-9
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: fix/schema-contract-upgrade-1-9-15-9
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Prepare canonical release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          cat > /tmp/release.json <<'JSON'
+          {
+            "build": "1.9.15.10-schema-contract-recovery",
+            "package_type": "hotfix",
+            "notes": "Recupera com segurança instalações no contrato predecessor da Agenda, aplicando somente a migração aditiva conhecida de pré-reservas e preservando o bloqueio de DDL arbitrário.",
+            "changelog": {
+              "title": "Banco existente: recuperação do contrato da Agenda",
+              "items": [
+                "Reconhece exclusivamente o contrato predecessor publicado antes das pré-reservas temporizadas",
+                "Adiciona de forma idempotente as colunas, índices e chave estrangeira da pré-reserva em bancos existentes",
+                "Valida o schema completo antes de promover o hash e o marcador persistido",
+                "Mantém qualquer divergência desconhecida em modo fail-closed",
+                "Preserva o bloqueio geral de DDL fora do instalador, CI controlada e migração allowlisted",
+                "Corrige o hash canônico do schema publicado na metainformação da release"
+              ]
+            },
+            "logic_changes": true,
+            "visual_changes": false,
+            "documentation_changes": true,
+            "deployment_sync_id": "github-prontoo-1.9.15.10-schema-contract-recovery"
+          }
+          JSON
+
+          php tools/release-version --write \
+            --date=2026-09-15 \
+            --timestamp=2026-09-15T20:42:00-04:00 \
+            --expected-current=1.9.15.9 \
+            --metadata-file=/tmp/release.json
+
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path('.')
+          version_path = root / 'version.json'
+          data = json.loads(version_path.read_text())
+          release = data['version']
+          schema_bytes = (root / 'app/Database/schema.sql').read_bytes()
+          schema_hash = hashlib.sha256(schema_bytes).hexdigest()
+          data['asset_version'] = release
+          data['database_changes'] = True
+          data['schema_changes'] = True
+          data['logic_changes'] = True
+          data['visual_changes'] = False
+          data['documentation_changes'] = True
+          data['schema_contract_sha256'] = schema_hash
+          data['production_ddl_source_sha256'] = schema_hash
+          data['schema_mutation_policy'] = 'runtime_frozen_except_allowlisted_idempotent_known_schema_upgrade_and_installer_or_controlled_ci'
+          version_path.write_text(json.dumps(data, ensure_ascii=False, indent=4) + '\n')
+
+          old = '1.9.15.9'
+          for raw in subprocess.check_output(['git', 'ls-files', '*.md', '*.json'], text=True).splitlines():
+              path = pathlib.Path(raw)
+              if not path.is_file():
+                  continue
+              text = path.read_text()
+              changed = text.replace(old, release)
+              if changed != text:
+                  path.write_text(changed)
+
+          agents = pathlib.Path('AGENTS.md')
+          text = agents.read_text()
+          old_rule = '- não adicione `ALTER`, `CREATE` ou correções de schema em rotas normais;'
+          new_rule = '- não adicione `ALTER`, `CREATE` ou correções de schema em rotas normais, salvo migração aditiva e idempotente explicitamente allowlisted, vinculada a um hash predecessor conhecido, validada integralmente antes da promoção do contrato e incapaz de aceitar divergências desconhecidas;'
+          if old_rule in text:
+              agents.write_text(text.replace(old_rule, new_rule))
+
+          security = pathlib.Path('tools/install-security-check.php')
+          text = security.read_text()
+          anchor = "if (!$ddlBlocked) {\n    $errors[] = 'runtime_ddl_not_blocked';\n}\n"
+          addition = """if (!$ddlBlocked) {\n    $errors[] = 'runtime_ddl_not_blocked';\n}\n\n$unknownUpgradeBlocked = false;\ntry {\n    SchemaMutationLock::runForTrustedUpgrade('unknown-upgrade', static fn(): bool => true);\n} catch (RuntimeException $error) {\n    $unknownUpgradeBlocked = str_contains($error->getMessage(), 'não autorizada');\n}\nif (!$unknownUpgradeBlocked) {\n    $errors[] = 'unknown_schema_upgrade_not_blocked';\n}\n$trustedUpgradeWindow = false;\ntry {\n    $trustedUpgradeWindow = SchemaMutationLock::runForTrustedUpgrade(\n        'agenda_notes_timed_reservations_1_9_15_9',\n        static fn(): bool => SchemaMutationLock::isActive(),\n    );\n} catch (Throwable $error) {\n    $errors[] = 'trusted_schema_upgrade_window:' . $error->getMessage();\n}\nif (!$trustedUpgradeWindow || SchemaMutationLock::isActive()) {\n    $errors[] = 'trusted_schema_upgrade_lifecycle';\n}\n"""
+          if anchor in text and 'unknown_schema_upgrade_not_blocked' not in text:
+              text = text.replace(anchor, addition)
+          text = text.replace("'schema_mutation' => 'github-actions-cli-four-markers-only'", "'schema_mutation' => 'installer_controlled_ci_or_allowlisted_known_upgrade'")
+          security.write_text(text)
+          print(json.dumps({'release': release, 'schema_hash': schema_hash}))
+          PY
+
+          release="$(php -r '$v=json_decode(file_get_contents("version.json"),true); echo $v["version"];')"
+          old='1.9.15.9'
+          for stem in app-icon prontoo-mark favicon; do
+            if [[ -f "public/assets/${stem}-${old}.png" ]]; then
+              git mv "public/assets/${stem}-${old}.png" "public/assets/${stem}-${release}.png"
+            fi
+          done
+          if [[ -f "public/assets/favicon-${old}.ico" ]]; then
+            git mv "public/assets/favicon-${old}.ico" "public/assets/favicon-${release}.ico"
+          fi
+          if [[ -f "public/assets/pix-${old}.svg" ]]; then
+            git mv "public/assets/pix-${old}.svg" "public/assets/pix-${release}.svg"
+          fi
+
+          rm -f .github/workflows/schema-upgrade-recovery-test.yml
+          rm -f .github/workflows/finalize-schema-contract-hotfix.yml
+
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          php tools/superseded-reference-contract-check
+          php tools/version-asset-contract-check.php
+          php tools/install-security-check.php
+          php tools/quality-gate --fast
+          php tools/documentation-check.php
+          git diff --check
+
+          git add -A
+          git commit -m 'Publica hotfix de recuperação do contrato do banco'
+          git push origin HEAD:fix/schema-contract-upgrade-1-9-15-9
