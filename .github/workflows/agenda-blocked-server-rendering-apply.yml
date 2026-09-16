@@ -31,205 +31,172 @@ jobs:
           set -euo pipefail
           python3 <<'PY'
           from pathlib import Path
+          import re
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(label + ' anchor not found')
+              return text.replace(old, new, 1)
+
+          def regex_once(text, pattern, replacement, label):
+              updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+              if count != 1:
+                  raise SystemExit(label + ' anchor not found exactly once')
+              return updated
 
           runtime_path = Path('app/Runtime/Appointments/AppointmentsRuntimeOperations05.php')
           source = runtime_path.read_text()
-          old_marker = '''        $dayBlockedWatermark = $dayBlocked
-              ? '<div class="agenda-day-blocked-watermark" role="status" aria-label="Dia bloqueado">' .
-                  \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("lock") .
-                  '<span>Dia bloqueado</span></div>'
-              : "";
-          '''
-          new_marker = '''        $blockedDayMarkers = static function (int $slots, int $slotMinutes): string {
-              $html = '<span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>';
-              for ($index = 0; $index < $slots; $index++) {
-                  if (($index * $slotMinutes) % 30 !== 0) {
-                      continue;
-                  }
-                  $html .=
-                      '<div class="agenda-day-blocked-watermark" style="--blocked-slot-index:' .
-                      $index .
-                      '" aria-hidden="true">' .
-                      \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("lock") .
-                      '<span>Dia bloqueado</span></div>';
-              }
-              return $html;
-          };
-          $dayBlockedWatermark = $dayBlocked
-              ? $blockedDayMarkers($slotCount, $slotMinutes)
-              : "";
-          '''
-          if source.count(old_marker) != 1:
-              raise SystemExit('daily blocked marker anchor not found exactly once')
-          source = source.replace(old_marker, new_marker, 1)
+          new_marker = "\n".join([
+              '        $blockedDayMarkers = static function (int $slots, int $slotMinutes): string {',
+              '            $html = \'<span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>\';',
+              '            for ($index = 0; $index < $slots; $index++) {',
+              '                if (($index * $slotMinutes) % 30 !== 0) {',
+              '                    continue;',
+              '                }',
+              '                $html .=',
+              '                    \'<div class="agenda-day-blocked-watermark" style="--blocked-slot-index:\' .',
+              '                    $index .',
+              '                    \'" aria-hidden="true">\' .',
+              '                    \\Prontoo\\Presentation\\UiComponents\\UiComponentsPresentationOperations01::icon("lock") .',
+              '                    \'<span>Dia bloqueado</span></div>\';',
+              '            }',
+              '            return $html;',
+              '        };',
+              '        $dayBlockedWatermark = $dayBlocked',
+              '            ? $blockedDayMarkers($slotCount, $slotMinutes)',
+              '            : "";',
+              ''
+          ])
+          source = regex_once(
+              source,
+              r'        \$dayBlockedWatermark = \$dayBlocked\n.*?\n            : "";\n',
+              lambda _: new_marker,
+              'daily blocked marker',
+          )
 
           anchor = source.index('        $renderAgendaCanvas = function (')
           prefix = source[:anchor]
           segment = source[anchor:]
-
-          old_use = '''            $statusMeta,
-              $localTs,
-              $fmtLocal,
-          ): string {
-          '''
-          new_use = '''            $statusMeta,
-              $localTs,
-              $fmtLocal,
-              $blockedDayMarkers,
-          ): string {
-          '''
-          if segment.count(old_use) != 1:
-              raise SystemExit('weekly closure use anchor not found exactly once')
-          segment = segment.replace(old_use, new_use, 1)
-
-          old_slots = '''            $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));
-              $slotRows = "";
-              $canCreate = in_array($role, ["recepcionista", "gerente"], true);
-          '''
-          new_slots = '''            $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));
-              $dayBlocked = false;
-              $dayBlockKey = null;
-              if ($agendaDoctor > 0 && $dayRows === []) {
-                  foreach ($dayBlocks as $blockKey => $dayBlock) {
-                      if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
-                          continue;
-                      }
-                      $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));
-                      $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
-                      if ($dayBlockStartTs <= $startTs && $dayBlockEndTs >= $endTs) {
-                          $dayBlocked = true;
-                          $dayBlockKey = $blockKey;
-                          break;
-                      }
-                  }
-              }
-              $slotRows = "";
-              $canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;
-          '''
-          if segment.count(old_slots) != 1:
-              raise SystemExit('weekly slot anchor not found exactly once')
-          segment = segment.replace(old_slots, new_slots, 1)
-
-          old_blocks = '''            foreach ($dayBlocks as $b) {
-                  $sTs = $localTs((string) $b["start_at"]);
-                  $eTs = $localTs((string) $b["end_at"]);
-                  if ($eTs <= $startTs || $sTs >= $endTs) {
-                      continue;
-                  }
-                  $top = max(0, ($sTs - $startTs) / 60 / $slotMinutes);
-          '''
-          new_blocks = '''            foreach ($dayBlocks as $blockKey => $b) {
-                  $sTs = $localTs((string) $b["start_at"]);
-                  $eTs = $localTs((string) $b["end_at"]);
-                  if ($eTs <= $startTs || $sTs >= $endTs) {
-                      continue;
-                  }
-                  if ($dayBlocked && $dayBlockKey === $blockKey) {
-                      continue;
-                  }
-                  $top = max(0, ($sTs - $startTs) / 60 / $slotMinutes);
-          '''
-          if segment.count(old_blocks) != 1:
-              raise SystemExit('weekly block rendering anchor not found exactly once')
-          segment = segment.replace(old_blocks, new_blocks, 1)
-
-          old_empty = '''            if ($eventHtml === "") {
-                  $eventHtml =
-          '''
-          new_empty = '''            if ($eventHtml === "" && !$dayBlocked) {
-                  $eventHtml =
-          '''
-          if segment.count(old_empty) < 1:
-              raise SystemExit('weekly empty-state anchor not found')
-          segment = segment.replace(old_empty, new_empty, 1)
-
-          old_section = '''            return '<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell" style="--agenda-slots:' .
-          '''
-          new_section = '''            return '<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell' . ($dayBlocked ? ' is-day-blocked' : '') . '" style="--agenda-slots:' .
-          '''
-          if segment.count(old_section) != 1:
-              raise SystemExit('weekly section anchor not found exactly once')
-          segment = segment.replace(old_section, new_section, 1)
-
-          old_canvas = '''                '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .
-                  $slotMinutes .
-                  '" data-day="' .
-          '''
-          new_canvas = '''                '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . '" data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . '" data-slot-minutes="' .
-                  $slotMinutes .
-                  '" data-day="' .
-          '''
-          if segment.count(old_canvas) != 1:
-              raise SystemExit('weekly canvas anchor not found exactly once')
-          segment = segment.replace(old_canvas, new_canvas, 1)
-
-          old_event = '''                '">' .
-                  $eventHtml .
-                  "</div></section>";
-          '''
-          new_event = '''                '">' .
-                  ($dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : "") .
-                  $eventHtml .
-                  "</div></section>";
-          '''
-          if segment.count(old_event) < 1:
-              raise SystemExit('weekly event output anchor not found')
-          segment = segment.replace(old_event, new_event, 1)
-          runtime_path.write_text(prefix + segment)
+          segment = replace_once(
+              segment,
+              '            $fmtLocal,\n        ): string {',
+              '            $fmtLocal,\n            $blockedDayMarkers,\n        ): string {',
+              'weekly closure use',
+          )
+          slot_anchor = "\n".join([
+              '            $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));',
+              '            $slotRows = "";',
+              '            $canCreate = in_array($role, ["recepcionista", "gerente"], true);',
+          ])
+          slot_replacement = "\n".join([
+              '            $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));',
+              '            $dayBlocked = false;',
+              '            $dayBlockKey = null;',
+              '            if ($agendaDoctor > 0 && $dayRows === []) {',
+              '                foreach ($dayBlocks as $blockKey => $dayBlock) {',
+              '                    if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {',
+              '                        continue;',
+              '                    }',
+              '                    $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));',
+              '                    $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));',
+              '                    if ($dayBlockStartTs <= $startTs && $dayBlockEndTs >= $endTs) {',
+              '                        $dayBlocked = true;',
+              '                        $dayBlockKey = $blockKey;',
+              '                        break;',
+              '                    }',
+              '                }',
+              '            }',
+              '            $slotRows = "";',
+              '            $canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;',
+          ])
+          segment = replace_once(segment, slot_anchor, slot_replacement, 'weekly slot state')
+          segment = replace_once(
+              segment,
+              '            foreach ($dayBlocks as $b) {',
+              '            foreach ($dayBlocks as $blockKey => $b) {',
+              'weekly block loop',
+          )
+          block_pos = segment.index('            foreach ($dayBlocks as $blockKey => $b) {')
+          before_blocks = segment[:block_pos]
+          after_blocks = segment[block_pos:]
+          top_anchor = '                $top = max(0, ($sTs - $startTs) / 60 / $slotMinutes);'
+          top_replacement = "\n".join([
+              '                if ($dayBlocked && $dayBlockKey === $blockKey) {',
+              '                    continue;',
+              '                }',
+              top_anchor,
+          ])
+          after_blocks = replace_once(after_blocks, top_anchor, top_replacement, 'weekly full-day card suppression')
+          after_blocks = replace_once(
+              after_blocks,
+              '            if ($eventHtml === "") {',
+              '            if ($eventHtml === "" && !$dayBlocked) {',
+              'weekly empty state',
+          )
+          after_blocks = replace_once(
+              after_blocks,
+              '            return \'<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell" style="--agenda-slots:\' .',
+              '            return \'<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell\' . ($dayBlocked ? \' is-day-blocked\' : \'\') . \'" style="--agenda-slots:\' .',
+              'weekly section state',
+          )
+          after_blocks = replace_once(
+              after_blocks,
+              '                \'</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="\' .\n                $slotMinutes .',
+              '                \'</div><div class="agenda-day-canvas\' . ($dayBlocked ? \' is-day-blocked\' : \'\') . \'" data-agenda-canvas data-day-blocked="\' . ($dayBlocked ? \'1\' : \'0\') . \'" data-slot-minutes="\' .\n                $slotMinutes .',
+              'weekly canvas state',
+          )
+          after_blocks = replace_once(
+              after_blocks,
+              '                $eventHtml .\n                "</div></section>";',
+              '                ($dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : "") .\n                $eventHtml .\n                "</div></section>";',
+              'weekly markers output',
+          )
+          runtime_path.write_text(prefix + before_blocks + after_blocks)
 
           test_path = Path('tools/test-fast')
           test = test_path.read_text()
-          old_test = '''        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
-          '''
-          new_test = '''        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
-                  str_contains($agendaRuntimeSource, '$blockedDayMarkers = static function') &&
-                  str_contains($agendaRuntimeSource, 'data-day-blocked-status="1"') &&
-                  str_contains($agendaRuntimeSource, '$canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&
-                  str_contains($agendaRuntimeSource, '$eventHtml === "" && !$dayBlocked') &&
-                  str_contains($agendaRuntimeSource, '$dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : ""') &&
-          '''
-          if test.count(old_test) != 1:
-              raise SystemExit('test-fast blocked-day anchor not found exactly once')
-          test_path.write_text(test.replace(old_test, new_test, 1))
+          test_anchor = "        str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&\n"
+          test_extra = "".join([
+              test_anchor,
+              "        str_contains($agendaRuntimeSource, '$blockedDayMarkers = static function') &&\n",
+              "        str_contains($agendaRuntimeSource, 'data-day-blocked-status=\"1\"') &&\n",
+              "        str_contains($agendaRuntimeSource, '$canCreate = in_array($role, [\"recepcionista\", \"gerente\"], true) && !$dayBlocked;') &&\n",
+              "        str_contains($agendaRuntimeSource, '$eventHtml === \"\" && !$dayBlocked') &&\n",
+              "        str_contains($agendaRuntimeSource, '$dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : \"\"') &&\n",
+          ])
+          test_path.write_text(replace_once(test, test_anchor, test_extra, 'test-fast blocked-day'))
 
           ux_path = Path('tools/presentation-ux-contract.mjs')
           ux = ux_path.read_text()
-          old_fixture = '''    <section id="blocked-weekly" class="agenda-day-shell agenda-week-day-shell" style="--agenda-slots:36" data-agenda-day="2026-09-17" data-slot-minutes="15">
-                <div class="agenda-day-scale">${agendaSlots}</div>
-                <div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="15">
-                  <article class="agenda-day-event agenda-day-event-block" style="--event-top:0;--event-height:36"><strong>Bloqueado</strong></article>
-                </div>
-              </section>
-          '''
-          new_fixture = '''    <section id="blocked-weekly" class="agenda-day-shell agenda-week-day-shell is-day-blocked" style="--agenda-slots:36" data-agenda-day="2026-09-17" data-slot-minutes="15">
-                <div class="agenda-day-scale">${agendaSlots}</div>
-                <div class="agenda-day-canvas is-day-blocked" data-agenda-canvas data-day-blocked="1" data-slot-minutes="15">
-                  <span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>
-                  <div class="agenda-day-blocked-watermark" style="--blocked-slot-index:0" aria-hidden="true"><span>Dia bloqueado</span></div>
-                </div>
-              </section>
-          '''
-          if ux.count(old_fixture) != 1:
-              raise SystemExit('presentation weekly fixture anchor not found exactly once')
-          ux = ux.replace(old_fixture, new_fixture, 1)
-          old_inspect = '''        fullDayCardHidden: Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)
-          '''
-          new_inspect = '''        fullDayCardSuppressed: !canvas.querySelector('.agenda-day-event-block') || Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)
-          '''
-          if ux.count(old_inspect) != 1:
-              raise SystemExit('presentation inspection anchor not found exactly once')
-          ux = ux.replace(old_inspect, new_inspect, 1)
-          old_check = '''  if (!agendaResult.weekly.fullDayCardHidden) {
-              throw new Error('weekly full-day block card remained visible instead of using blocked-day markers');
-            }
-          '''
-          new_check = '''  if (!agendaResult.weekly.fullDayCardSuppressed) {
-              throw new Error('weekly full-day block card remained visible instead of using blocked-day markers');
-            }
-          '''
-          if ux.count(old_check) != 1:
-              raise SystemExit('presentation weekly card assertion anchor not found exactly once')
-          ux_path.write_text(ux.replace(old_check, new_check, 1))
+          weekly_fixture = "\n".join([
+              '    <section id="blocked-weekly" class="agenda-day-shell agenda-week-day-shell is-day-blocked" style="--agenda-slots:36" data-agenda-day="2026-09-17" data-slot-minutes="15">',
+              '      <div class="agenda-day-scale">${agendaSlots}</div>',
+              '      <div class="agenda-day-canvas is-day-blocked" data-agenda-canvas data-day-blocked="1" data-slot-minutes="15">',
+              '        <span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>',
+              '        <div class="agenda-day-blocked-watermark" style="--blocked-slot-index:0" aria-hidden="true"><span>Dia bloqueado</span></div>',
+              '      </div>',
+              '    </section>',
+              ''
+          ])
+          ux = regex_once(
+              ux,
+              r'    <section id="blocked-weekly".*?    </section>\n',
+              lambda _: weekly_fixture,
+              'presentation weekly fixture',
+          )
+          ux = replace_once(
+              ux,
+              "        fullDayCardHidden: Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)",
+              "        fullDayCardSuppressed: !canvas.querySelector('.agenda-day-event-block') || Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)",
+              'presentation inspection',
+          )
+          ux = replace_once(
+              ux,
+              '  if (!agendaResult.weekly.fullDayCardHidden) {',
+              '  if (!agendaResult.weekly.fullDayCardSuppressed) {',
+              'presentation weekly assertion',
+          )
+          ux_path.write_text(ux)
           PY
 
           cat > /tmp/release.json <<'JSON'
@@ -261,8 +228,7 @@ jobs:
           import subprocess
           old = b'1.9.16.2'
           new = b'1.9.16.3'
-          files = subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0')
-          for raw in files:
+          for raw in subprocess.check_output(['git', 'ls-files', '-z']).split(b'\0'):
               if not raw:
                   continue
               path = Path(raw.decode())
