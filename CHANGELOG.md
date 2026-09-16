@@ -1,10 +1,10 @@
 # Versão canônica
 
-## 1.9.15.9 — Agenda diária: anotações com horário funcionam como pré-reserva
+## 1.9.15.10 — Banco existente: recuperação do contrato da Agenda
 
-- Mantém anotações sem horário como anotações de dia todo no formato atual.
-- Permite informar início e fim opcionais para transformar a anotação em pré-reserva.
-- Vincula a pré-reserva ao profissional selecionado na visão diária.
-- Bloqueia conflitos com consultas, bloqueios e outras pré-reservas no servidor.
-- Considera pré-reservas na ocupação e nos horários livres da Agenda diária.
-- Preserva o conteúdo conforme a visibilidade e mostra marcador genérico quando restrito.
+- Reconhece exclusivamente o contrato predecessor publicado antes das pré-reservas temporizadas.
+- Adiciona de forma idempotente as colunas, índices e chave estrangeira da pré-reserva em bancos existentes.
+- Valida o schema completo antes de promover o hash e o marcador persistido.
+- Mantém qualquer divergência desconhecida em modo fail-closed.
+- Preserva o bloqueio geral de DDL fora do instalador, CI controlada e migração allowlisted.
+- Corrige o hash canônico do schema publicado na metainformação da release.

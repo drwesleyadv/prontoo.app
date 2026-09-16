@@ -103,6 +103,28 @@ if (!$ddlBlocked) {
     $errors[] = 'runtime_ddl_not_blocked';
 }
 
+$unknownUpgradeBlocked = false;
+try {
+    SchemaMutationLock::runForTrustedUpgrade('unknown-upgrade', static fn(): bool => true);
+} catch (RuntimeException $error) {
+    $unknownUpgradeBlocked = str_contains($error->getMessage(), 'não autorizada');
+}
+if (!$unknownUpgradeBlocked) {
+    $errors[] = 'unknown_schema_upgrade_not_blocked';
+}
+$trustedUpgradeWindow = false;
+try {
+    $trustedUpgradeWindow = SchemaMutationLock::runForTrustedUpgrade(
+        'agenda_notes_timed_reservations_1_9_15_9',
+        static fn(): bool => SchemaMutationLock::isActive(),
+    );
+} catch (Throwable $error) {
+    $errors[] = 'trusted_schema_upgrade_window:' . $error->getMessage();
+}
+if (!$trustedUpgradeWindow || SchemaMutationLock::isActive()) {
+    $errors[] = 'trusted_schema_upgrade_lifecycle';
+}
+
 $installAccessSource = (string) file_get_contents($root . '/app/Core/Install/InstallAccess.php');
 foreach ([
     'TEMPORARY_PUBLIC_HOST',
@@ -396,7 +418,7 @@ $result = [
     'public_installer' => false,
     'local_http_installer' => false,
     'runtime_install_redirect' => false,
-    'schema_mutation' => 'github-actions-cli-four-markers-only',
+    'schema_mutation' => 'installer_controlled_ci_or_allowlisted_known_upgrade',
     'webserver_install_denied' => true,
     'schema_frozen' => true,
     'https_enforced' => true,
