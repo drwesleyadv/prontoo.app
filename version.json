@@ -1,11 +1,11 @@
 {
-    "version": "1.9.16.2",
-    "release": "1.9.16.2",
-    "generated_at_unix": 1789566994,
-    "generated_at": "2026-09-16T09:56:34-04:00",
-    "updated_at": "2026-09-16T09:56:34-04:00",
-    "build": "1.9.16.2-agenda-blocked-day-rendering-fix",
-    "asset_version": "1.9.16.2",
+    "version": "1.9.16.3",
+    "release": "1.9.16.3",
+    "generated_at_unix": 1789572139,
+    "generated_at": "2026-09-16T11:22:19-04:00",
+    "updated_at": "2026-09-16T11:22:19-04:00",
+    "build": "1.9.16.3-agenda-blocked-server-rendering",
+    "asset_version": "1.9.16.3",
     "package_type": "presentation",
     "theme_policy": "light-only",
     "schema_revision": "prontoo_clean_schema_r7_layer2_ledger",
@@ -24,7 +24,7 @@
     "version_format": "1.month.day.sequence",
     "version_sequence_policy": "sequence_starts_at_1_and_resets_each_publication_day",
     "version_policy_file": "CHANGELOG.md",
-    "notes": "Corrige a execução dos marcadores de dia bloqueado para repetir cadeado e texto a cada 30 minutos na visão diária e aplicar o mesmo padrão visual na visão semanal.",
+    "notes": "Torna o estado de dia bloqueado autoritativo no servidor também na visão semanal, elimina o cartão integral redundante e entrega os marcadores de 30 em 30 minutos já no HTML.",
     "clean_install_schema": true,
     "requires_empty_database": true,
     "schema_contract_sha256": "a942e6fcdd1485c385e60c8be07900af488ce96e858dd62ffdf789ddaed6bac2",
@@ -40,8 +40,8 @@
     "public_install_route": "/install.php",
     "post_window_policy": "automatic_404_without_manual_intervention",
     "schema_mutation_policy": "runtime_frozen_except_allowlisted_idempotent_known_schema_upgrade_and_installer_or_controlled_ci",
-    "deployment_sync_id": "github-prontoo-1.9.16.2-agenda-blocked-day-rendering-fix",
-    "deployment_sync_requested_at": "2026-09-16T09:56:34-04:00",
+    "deployment_sync_id": "github-prontoo-1.9.16.3-agenda-blocked-server-rendering",
+    "deployment_sync_requested_at": "2026-09-16T11:22:19-04:00",
     "https_policy": "canonical_host_https_308_direct_tls_or_explicitly_trusted_proxy",
     "persistent_storage_policy": {
         "root": "ssd",
@@ -86,13 +86,13 @@
         ]
     },
     "changelog": {
-        "title": "Dias bloqueados consistentes na Agenda",
+        "title": "Dia bloqueado renderizado pelo servidor",
         "items": [
-            "Corrige o atributo data-agenda-canvas da visão diária para que o canvas bloqueado seja reconhecido corretamente",
-            "Remove dependências de helpers fora do escopo da rotina JavaScript de dia bloqueado",
-            "Repete cadeado e Dia bloqueado a cada 30 minutos durante todo o expediente bloqueado na visão diária",
-            "Substitui na visão semanal o cartão de bloqueio integral pelo mesmo marcador discreto usado na visão diária",
-            "Mantém indisponíveis os atalhos de criação enquanto o expediente inteiro estiver bloqueado"
+            "Detecta no servidor o bloqueio integral do expediente na visão semanal",
+            "Renderiza no HTML os marcadores Dia bloqueado a cada 30 minutos nas visões diária e semanal",
+            "Remove o cartão integral de bloqueio da coluna semanal quando o dia inteiro está bloqueado",
+            "Desabilita no servidor os atalhos de criação da coluna semanal bloqueada",
+            "Mantém a rotina JavaScript apenas como reforço idempotente do estado já entregue pelo servidor"
         ]
     },
     "login_availability_policy": "html_form_progressive_enhancement_submit_never_depends_on_advisory_login_autotest_storage_or_javascript",
