@@ -2153,6 +2153,8 @@ $assert(
         str_contains($agendaRuntimeSource, 'has-day-toggle') &&
         str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
         str_contains($agendaRuntimeSource, '$blockedDayMarkers = static function') &&
+        !str_contains($agendaRuntimeSource, ". ($dayBlocked ? ' is-day-blocked' : '') . ' style=\"--agenda-slots:") &&
+        !str_contains($agendaRuntimeSource, ". ($dayBlocked ? '1' : '0') . ' data-slot-minutes=\"'") &&
         str_contains($agendaRuntimeSource, 'data-day-blocked-status="1"') &&
         str_contains($agendaRuntimeSource, '$canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&
         str_contains($agendaRuntimeSource, '$eventHtml === "" && !$dayBlocked') &&
