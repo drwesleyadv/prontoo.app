@@ -2152,6 +2152,11 @@ $assert(
         str_contains($agendaRuntimeSource, 'disabled aria-disabled="true"') &&
         str_contains($agendaRuntimeSource, 'has-day-toggle') &&
         str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
+        str_contains($agendaRuntimeSource, '$blockedDayMarkers = static function') &&
+        str_contains($agendaRuntimeSource, 'data-day-blocked-status="1"') &&
+        str_contains($agendaRuntimeSource, '$canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&
+        str_contains($agendaRuntimeSource, '$eventHtml === "" && !$dayBlocked') &&
+        str_contains($agendaRuntimeSource, '$dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : ""') &&
         str_contains($agendaRuntimeSource, 'data-day-blocked="') &&
         str_contains($agendaRuntimeSource, "'\" data-agenda-canvas data-day-blocked=\"'") &&
         str_contains($agendaRuntimeSource, '$slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&

@@ -2676,10 +2676,23 @@ final class AppointmentsRuntimeOperations05
             \Prontoo\Runtime\Appointments\AppointmentsRuntimeOperations03::agenda_note_visible_for_day($cid, $day, $c),
             $c,
         );
+        $blockedDayMarkers = static function (int $slots, int $slotMinutes): string {
+            $html = '<span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>';
+            for ($index = 0; $index < $slots; $index++) {
+                if (($index * $slotMinutes) % 30 !== 0) {
+                    continue;
+                }
+                $html .=
+                    '<div class="agenda-day-blocked-watermark" style="--blocked-slot-index:' .
+                    $index .
+                    '" aria-hidden="true">' .
+                    \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
+                    '<span>Dia bloqueado</span></div>';
+            }
+            return $html;
+        };
         $dayBlockedWatermark = $dayBlocked
-            ? '<div class="agenda-day-blocked-watermark" role="status" aria-label="Dia bloqueado">' .
-                \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("lock") .
-                '<span>Dia bloqueado</span></div>'
+            ? $blockedDayMarkers($slotCount, $slotMinutes)
             : "";
         $agendaDay =
             $agendaDayNote .
@@ -2759,6 +2772,7 @@ final class AppointmentsRuntimeOperations05
             $statusMeta,
             $localTs,
             $fmtLocal,
+            $blockedDayMarkers,
         ): string {
     
             $ranges =
@@ -2781,8 +2795,24 @@ final class AppointmentsRuntimeOperations05
             $endTs = (int) $ranges[count($ranges) - 1][1];
             $totalMinutes = max(15, (int) ceil(($endTs - $startTs) / 60));
             $slotCount = max(1, (int) ceil($totalMinutes / $slotMinutes));
+            $dayBlocked = false;
+            $dayBlockKey = null;
+            if ($agendaDoctor > 0 && $dayRows === []) {
+                foreach ($dayBlocks as $blockKey => $dayBlock) {
+                    if ((int) ($dayBlock["doctor_user_id"] ?? 0) !== $agendaDoctor) {
+                        continue;
+                    }
+                    $dayBlockStartTs = $localTs((string) ($dayBlock["start_at"] ?? ""));
+                    $dayBlockEndTs = $localTs((string) ($dayBlock["end_at"] ?? ""));
+                    if ($dayBlockStartTs <= $startTs && $dayBlockEndTs >= $endTs) {
+                        $dayBlocked = true;
+                        $dayBlockKey = $blockKey;
+                        break;
+                    }
+                }
+            }
             $slotRows = "";
-            $canCreate = in_array($role, ["recepcionista", "gerente"], true);
+            $canCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;
             for ($i = 0; $i <= $slotCount; $i++) {
                 $ts = $startTs + $i * $slotMinutes * 60;
                 $slotStart = $renderDay . "T" . $fmtLocal($ts);
@@ -2880,10 +2910,13 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($label) .
                     "</em></article>";
             }
-            foreach ($dayBlocks as $b) {
+            foreach ($dayBlocks as $blockKey => $b) {
                 $sTs = $localTs((string) $b["start_at"]);
                 $eTs = $localTs((string) $b["end_at"]);
                 if ($eTs <= $startTs || $sTs >= $endTs) {
+                    continue;
+                }
+                if ($dayBlocked && $dayBlockKey === $blockKey) {
                     continue;
                 }
                 $top = max(0, ($sTs - $startTs) / 60 / $slotMinutes);
@@ -2911,7 +2944,7 @@ final class AppointmentsRuntimeOperations05
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("event_busy") .
                     "Bloqueio</em></article>";
             }
-            if ($eventHtml === "") {
+            if ($eventHtml === "" && !$dayBlocked) {
                 $eventHtml =
                     '<div class="agenda-day-empty agenda-day-empty-icon" role="img" aria-label="Sem agendamentos no expediente" title="Sem agendamentos no expediente">' .
                     \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::icon("no_sim") .
@@ -2924,7 +2957,7 @@ final class AppointmentsRuntimeOperations05
                     "quick" => "1",
                 ],
             );
-            return '<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell" style="--agenda-slots:' .
+            return '<section class="agenda-day-shell agenda-crown-shell agenda-week-day-shell' . ($dayBlocked ? ' is-day-blocked' : '') . '" style="--agenda-slots:' .
                 $slotCount .
                 ';--agenda-day-date:\'' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($renderDay) .
@@ -2938,7 +2971,7 @@ final class AppointmentsRuntimeOperations05
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($fmtLocal($endTs)) .
                 '"><div class="agenda-day-scale" aria-hidden="true">' .
                 $slotRows .
-                '</div><div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="' .
+                '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . '" data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . '" data-slot-minutes="' .
                 $slotMinutes .
                 '" data-day="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($renderDay) .
@@ -2947,6 +2980,7 @@ final class AppointmentsRuntimeOperations05
                 '" data-agenda-create-url="' .
                 \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($createUrl) .
                 '">' .
+                ($dayBlocked ? $blockedDayMarkers($slotCount, $slotMinutes) : "") .
                 $eventHtml .
                 "</div></section>";
         };

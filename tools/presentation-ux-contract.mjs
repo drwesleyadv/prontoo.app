@@ -206,10 +206,11 @@ try {
         <div class="agenda-day-blocked-watermark"><span>Dia bloqueado</span></div>
       </div>
     </section>
-    <section id="blocked-weekly" class="agenda-day-shell agenda-week-day-shell" style="--agenda-slots:36" data-agenda-day="2026-09-17" data-slot-minutes="15">
+    <section id="blocked-weekly" class="agenda-day-shell agenda-week-day-shell is-day-blocked" style="--agenda-slots:36" data-agenda-day="2026-09-17" data-slot-minutes="15">
       <div class="agenda-day-scale">${agendaSlots}</div>
-      <div class="agenda-day-canvas" data-agenda-canvas data-slot-minutes="15">
-        <article class="agenda-day-event agenda-day-event-block" style="--event-top:0;--event-height:36"><strong>Bloqueado</strong></article>
+      <div class="agenda-day-canvas is-day-blocked" data-agenda-canvas data-day-blocked="1" data-slot-minutes="15">
+        <span class="sr-only" data-day-blocked-status="1" role="status">Dia bloqueado</span>
+        <div class="agenda-day-blocked-watermark" style="--blocked-slot-index:0" aria-hidden="true"><span>Dia bloqueado</span></div>
       </div>
     </section>
   </body>`, { waitUntil: 'load' });
@@ -225,7 +226,7 @@ try {
           Number(marker.style.getPropertyValue('--blocked-slot-index'))
         ),
         activeCreateLinks: shell.querySelectorAll('.agenda-day-slot[href]').length,
-        fullDayCardHidden: Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)
+        fullDayCardSuppressed: !canvas.querySelector('.agenda-day-event-block') || Boolean(canvas.querySelector('.agenda-day-event-block')?.hidden)
       };
     };
     return { daily: inspect('blocked-daily'), weekly: inspect('blocked-weekly') };
@@ -242,7 +243,7 @@ try {
       throw new Error(`${surface} retained ${result.activeCreateLinks} create links while blocked`);
     }
   }
-  if (!agendaResult.weekly.fullDayCardHidden) {
+  if (!agendaResult.weekly.fullDayCardSuppressed) {
     throw new Error('weekly full-day block card remained visible instead of using blocked-day markers');
   }
   await context.close();
