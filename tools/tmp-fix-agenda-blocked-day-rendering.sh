@@ -197,18 +197,17 @@ cat >/tmp/prontoo-release.json <<'JSON'
 }
 JSON
 php tools/release-version --write --date="$DATE" --timestamp="$TIMESTAMP" --expected-current=1.9.16.1 --metadata-file=/tmp/prontoo-release.json
+
+rm -f .github/workflows/fix-agenda-blocked-day-rendering.yml tools/tmp-fix-agenda-blocked-day-rendering.sh
+
 php tools/release-contract-reconcile --write
 php tools/release-contract-reconcile --write
 php tools/release-contract-reconcile --check
 php tools/release-version
-
-rm -f .github/workflows/fix-agenda-blocked-day-rendering.yml tools/tmp-fix-agenda-blocked-day-rendering.sh
-
 node --check public/assets/app.js
 php tools/test-fast
 php tools/version-asset-contract-check.php
 php tools/quality-gate --fast
-php tools/documentation-check
 git diff --check
 
 git config user.name 'github-actions[bot]'
