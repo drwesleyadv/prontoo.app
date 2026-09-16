@@ -128,6 +128,21 @@ jobs:
 
           php tools/presentation-css-build --write
           php tools/release-contract-reconcile --write
+          python3 - <<'PY'
+          import pathlib, re, json
+          version = json.loads(pathlib.Path('version.json').read_text())['asset_version']
+          path = pathlib.Path('app/prontoo.php')
+          text = path.read_text()
+          text, count = re.subn(
+              r'const PRONTOO_ASSET_REV_FALLBACK = "[^"]+";',
+              f'const PRONTOO_ASSET_REV_FALLBACK = "{version}";',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('asset fallback não localizado')
+          path.write_text(text)
+          PY
           php tools/release-contract-reconcile --check
           php tools/superseded-reference-contract-check
           php tools/version-asset-contract-check.php
