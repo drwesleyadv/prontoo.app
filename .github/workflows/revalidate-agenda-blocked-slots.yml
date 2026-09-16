@@ -1,0 +1,17 @@
+name: Revalidate Agenda Blocked Slots
+
+on:
+  push:
+    branches:
+      - feat/agenda-blocked-slots
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: git diff --check origin/prontoo...HEAD
