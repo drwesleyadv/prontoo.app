@@ -1,0 +1,52 @@
+name: Finance 01 Export Helper
+
+on:
+  push:
+    branches:
+      - 'codex/finance-01-export-helper'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 456af257673eabdb323a73015e514c033abaddcc
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: mbstring
+      - name: Reconcile deterministic artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php tools/presentation-css-build --write
+          php tools/release-contract-reconcile --write
+          php tools/release-contract-reconcile --check
+          tar -czf /tmp/finance-01-prepared.tar.gz \
+            public/assets/presentation.css \
+            .github/workflows/architecture.yml \
+            .github/workflows/documentation.yml \
+            app/prontoo.php \
+            br/index.php \
+            CHANGELOG.md \
+            app/architecture.manifest.json \
+            app/update.manifest.json
+      - name: Upload prepared candidate
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: finance-01-prepared
+          path: /tmp/finance-01-prepared.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
