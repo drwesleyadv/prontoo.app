@@ -4394,27 +4394,52 @@ function initPasswordToggle(root = document) {
       )
     );
   }
-  function syncAgendaBlockedDayMarkers(root = d) {
-    $$(".agenda-day-shell[data-agenda-day]", root).forEach((shell) => {
-      const canvas = $("[data-agenda-canvas]", shell);
+  function agendaBlockedQueryAll(root, selector) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = Array.prototype.slice.call(scope.querySelectorAll(selector));
+    if (scope !== document && scope.matches && scope.matches(selector))
+      nodes.unshift(scope);
+    return nodes;
+  }
+  function syncAgendaBlockedDayMarkers(root) {
+    agendaBlockedQueryAll(
+      root || document,
+      ".agenda-day-shell[data-agenda-day]",
+    ).forEach(function (shell) {
+      var canvas = shell.querySelector("[data-agenda-canvas]");
       if (!canvas) return;
-      const slots = Math.max(
+      var slots = Math.max(
         0,
-        Number.parseInt(shell.style.getPropertyValue("--agenda-slots") || "0", 10) || 0,
+        Number.parseInt(
+          shell.style.getPropertyValue("--agenda-slots") || "0",
+          10,
+        ) || 0,
       );
-      const slotMinutes = Math.max(
+      var slotMinutes = Math.max(
         1,
-        Number.parseInt(shell.dataset.slotMinutes || canvas.dataset.slotMinutes || "15", 10) || 15,
+        Number.parseInt(
+          shell.dataset.slotMinutes || canvas.dataset.slotMinutes || "15",
+          10,
+        ) || 15,
       );
-      let blocked =
-        canvas.dataset.dayBlocked === "1" || shell.classList.contains("is-day-blocked");
-      let fullDayBlock = null;
-      if (!blocked && shell.classList.contains("agenda-week-day-shell") && slots > 0) {
-        fullDayBlock = $$(".agenda-day-event-block", canvas).find((event) => {
-          const top = Number.parseFloat(event.style.getPropertyValue("--event-top")) || 0;
-          const height =
+      var blocked =
+        canvas.dataset.dayBlocked === "1" ||
+        shell.classList.contains("is-day-blocked");
+      var fullDayBlock = null;
+      if (
+        !blocked &&
+        shell.classList.contains("agenda-week-day-shell") &&
+        slots > 0
+      ) {
+        fullDayBlock = agendaBlockedQueryAll(
+          canvas,
+          ".agenda-day-event-block",
+        ).find(function (event) {
+          var top =
+            Number.parseFloat(event.style.getPropertyValue("--event-top")) || 0;
+          var height =
             Number.parseFloat(event.style.getPropertyValue("--event-height")) || 0;
-          return top <= 0.001 && height >= slots - 0.001;
+          return top <= 0.25 && top + height >= slots - 0.25;
         });
         blocked = !!fullDayBlock;
       }
@@ -4426,33 +4451,41 @@ function initPasswordToggle(root = document) {
         fullDayBlock.classList.add("is-full-day-block");
         fullDayBlock.hidden = true;
       }
-      $$(".agenda-day-empty", canvas).forEach((empty) => {
-        empty.hidden = true;
-      });
-      $$(".agenda-day-blocked-watermark", canvas).forEach((marker) => marker.remove());
-      $$(".agenda-day-slot[href]", shell).forEach((slot) => {
-        slot.removeAttribute("href");
-        slot.setAttribute("aria-disabled", "true");
-        slot.tabIndex = -1;
-      });
-      if (!$("[data-day-blocked-status]", canvas)) {
-        const status = d.createElement("span");
+      agendaBlockedQueryAll(canvas, ".agenda-day-empty").forEach(
+        function (empty) {
+          empty.hidden = true;
+        },
+      );
+      agendaBlockedQueryAll(canvas, ".agenda-day-blocked-watermark").forEach(
+        function (marker) {
+          marker.remove();
+        },
+      );
+      agendaBlockedQueryAll(shell, ".agenda-day-slot[href]").forEach(
+        function (slot) {
+          slot.removeAttribute("href");
+          slot.setAttribute("aria-disabled", "true");
+          slot.tabIndex = -1;
+        },
+      );
+      if (!canvas.querySelector("[data-day-blocked-status]")) {
+        var status = document.createElement("span");
         status.className = "sr-only";
         status.dataset.dayBlockedStatus = "1";
         status.setAttribute("role", "status");
         status.textContent = "Dia bloqueado";
         canvas.prepend(status);
       }
-      for (let index = 0; index < slots; index += 1) {
+      for (var index = 0; index < slots; index += 1) {
         if ((index * slotMinutes) % 30 !== 0) continue;
-        const marker = d.createElement("div");
+        var marker = document.createElement("div");
         marker.className = "agenda-day-blocked-watermark";
         marker.style.setProperty("--blocked-slot-index", String(index));
         marker.setAttribute("aria-hidden", "true");
-        const icon = d.createElement("span");
+        var icon = document.createElement("span");
         icon.className = "material-symbols-rounded";
         icon.textContent = "lock";
-        const label = d.createElement("span");
+        var label = document.createElement("span");
         label.textContent = "Dia bloqueado";
         marker.append(icon, label);
         canvas.append(marker);
@@ -4593,7 +4626,10 @@ function initPasswordToggle(root = document) {
       new MutationObserver(function (ms) {
         ms.forEach(function (m) {
           arr(m.addedNodes).forEach(function (n) {
-            if (n && n.nodeType === 1) initWeekScroll(n);
+            if (n && n.nodeType === 1) {
+              syncAgendaBlockedDayMarkers(n);
+              initWeekScroll(n);
+            }
           });
         });
       }).observe(document.body, { childList: true, subtree: true });
