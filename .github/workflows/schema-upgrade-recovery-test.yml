@@ -102,7 +102,7 @@ jobs:
               throw new RuntimeException('O contrato atual não divergiu do predecessor esperado.');
           }
 
-          \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function (): void {
+          \Prontoo\Core\Database\SchemaMutationLock::runForInstaller(static function () use ($pdo): void {
               foreach ([
                   'ALTER TABLE `pi_agenda_notes` DROP FOREIGN KEY `fk_agenda_notes_doctor_user`',
                   'ALTER TABLE `pi_agenda_notes` DROP INDEX `idx_agenda_notes_timed`',
@@ -111,7 +111,8 @@ jobs:
                   'ALTER TABLE `pi_agenda_notes` DROP COLUMN `start_at`',
                   'ALTER TABLE `pi_agenda_notes` DROP COLUMN `doctor_user_id`',
               ] as $ddl) {
-                  \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations02::run_schema_sql($ddl);
+                  \Prontoo\Infrastructure\DatabaseSchema\DatabaseSchemaInfrastructureOperations01::db_reject_runtime_ddl($ddl);
+                  $pdo->exec($ddl);
               }
           });
 
