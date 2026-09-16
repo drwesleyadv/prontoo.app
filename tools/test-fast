@@ -2129,6 +2129,18 @@ $assert(
         str_contains($agendaRuntimeSource, 'agenda-day-toggle-form'),
     'presentation.agenda.day_block_toggle',
 );
+$agendaBlockedPresentationJs = (string) file_get_contents($root . '/public/assets/app.js');
+$agendaBlockedPresentationCss = (string) file_get_contents($root . '/design/styles/application.css');
+$assert(
+    str_contains($agendaBlockedPresentationJs, 'function syncAgendaBlockedDayMarkers(') &&
+        str_contains($agendaBlockedPresentationJs, '(index * slotMinutes) % 30 !== 0') &&
+        str_contains($agendaBlockedPresentationJs, 'agenda-week-day-shell') &&
+        str_contains($agendaBlockedPresentationJs, 'fullDayBlock.hidden = true') &&
+        str_contains($agendaBlockedPresentationJs, 'slot.removeAttribute("href")') &&
+        str_contains($agendaBlockedPresentationCss, '--blocked-slot-index,0') &&
+        str_contains($agendaBlockedPresentationCss, 'left:12px;right:auto'),
+    'presentation.agenda.blocked_day_half_hour_markers',
+);
 $assert(
     str_contains($agendaRuntimeSource, '$dayBlockDisabled = $rows !== [];') &&
         str_contains($agendaRuntimeSource, 'is-blocked-by-appointments') &&

@@ -301,6 +301,11 @@ $assert(
     (int) $footerDatabaseQueries[19] === 20,
     'rodapé deve usar 20 dias equivalentes e alimentar Consulta com deltas de database.json',
 );
+$loweredPeakWave = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_wave_path([4], 4.0);
+$assert(
+    str_contains($loweredPeakWave, 'M 0 66.5 L 1000 66.5'),
+    'pico do rodapé deve ficar 25% mais baixo preservando a base da área decorativa',
+);
 $historicalWave = \Prontoo\Presentation\AuthOnboarding\AuthOnboardingPresentationOperations01::footer_telemetry_wave_path([0, 3, 1, 4, 2], 4.0);
 $assert(
     substr_count($historicalWave, ' C ') === 4 &&
