@@ -115,7 +115,7 @@ final class KnownSchemaUpgrade
         $statement->closeCursor();
 
         if ($definition === false) {
-            DatabaseSchemaInfrastructureOperations02::run_schema_sql($ddl);
+            self::executeDdl($connection, $ddl);
             return;
         }
 
@@ -141,7 +141,7 @@ final class KnownSchemaUpgrade
         $statement->closeCursor();
 
         if ($actual === []) {
-            DatabaseSchemaInfrastructureOperations02::run_schema_sql($ddl);
+            self::executeDdl($connection, $ddl);
             return;
         }
         if ($actual !== $columns) {
@@ -166,7 +166,7 @@ final class KnownSchemaUpgrade
         $statement->closeCursor();
 
         if ($definition === false) {
-            DatabaseSchemaInfrastructureOperations02::run_schema_sql($ddl);
+            self::executeDdl($connection, $ddl);
             return;
         }
         if (
@@ -177,6 +177,12 @@ final class KnownSchemaUpgrade
         ) {
             throw new RuntimeException('Schema predecessor inválido: constraint ' . $constraint . ' diverge do upgrade conhecido.');
         }
+    }
+
+    private static function executeDdl(PDO $connection, string $ddl): void
+    {
+        DatabaseSchemaInfrastructureOperations01::db_reject_runtime_ddl($ddl);
+        $connection->exec($ddl);
     }
 
     private static function metaValue(PDO $connection, string $key): string
