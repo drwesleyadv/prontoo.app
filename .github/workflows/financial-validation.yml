@@ -54,6 +54,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          php tools/presentation-css-build --write
           php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           git diff --binary | gzip -n | base64 -w 0
