@@ -524,6 +524,49 @@ $same(
 );
 $same([901, 901], [$adminMovementId, $cashierMovementId], 'application.financial_revenue.movement_ids');
 
+$receiptWrites = array_values(array_filter(
+    $financialWorkflowPort->calls,
+    static fn(array $call): bool => $call[0] === 'financial.06.create_movement.01' && $call[1][1] === 'receipt',
+));
+$same('confirmed', $receiptWrites[0][1][2], 'finance_receipt_admin_confirmed');
+$same('pending_review', $receiptWrites[1][1][2], 'finance_receipt_cash_pending');
+$same(31, $receiptWrites[1][1][6], 'finance_receipt_cash_drawer');
+$same(61, $receiptWrites[1][1][7], 'finance_receipt_cash_session');
+$same('appointment', $receiptWrites[1][1][8], 'finance_receipt_canonical_source');
+$same(72, $receiptWrites[1][1][9], 'finance_receipt_appointment_identity');
+$financialWorkflowPort->rowsByOperation['financial.10.receive_expected_appointment_revenue.03'] = [[
+    'location_type' => 'bank_account',
+    'account_id' => 81,
+]];
+$revenueService->receiveAtCashier(
+    7, 91, 52, 'pix', 41, '', ['id' => 61],
+    static fn(int $clinicId, int $locationId): bool => $clinicId === 7 && $locationId === 41,
+    $validateMovement,
+    static fn(string $type): string => $type,
+    static function (...$arguments): void {},
+);
+$nonCashWrites = array_values(array_filter(
+    $financialWorkflowPort->calls,
+    static fn(array $call): bool => $call[0] === 'financial.06.create_movement.01',
+));
+$nonCash = $nonCashWrites[array_key_last($nonCashWrites)][1];
+$same('confirmed', $nonCash[2], 'finance_receipt_pix_confirmed');
+$same(41, $nonCash[6], 'finance_receipt_pix_bank');
+$same(null, $nonCash[7], 'finance_receipt_pix_outside_drawer_session');
+$writeCount = count($financialWorkflowPort->calls);
+try {
+    $revenueService->receiveAtCashier(
+        7, 91, 52, 'pix', 999, '', ['id' => 61],
+        static fn(int $clinicId, int $locationId): bool => false,
+        $validateMovement,
+        static fn(string $type): string => $type,
+        static function (...$arguments): void {},
+    );
+    $assert(false, 'finance_receipt_invalid_destination_rejected');
+} catch (RuntimeException) {
+    $same(2, count($financialWorkflowPort->calls) - $writeCount, 'finance_receipt_invalid_destination_no_write');
+}
+
 $cashSessionService = new FinancialCashSessionService($financialWorkflowData, $movementService);
 $sessionAudits = [];
 $sessionAudit = static function (...$arguments) use (&$sessionAudits): void {
