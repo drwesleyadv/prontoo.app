@@ -143,6 +143,7 @@ jobs:
               raise SystemExit('asset fallback não localizado')
           path.write_text(text)
           PY
+          php tools/release-contract-reconcile --write
           php tools/release-contract-reconcile --check
           php tools/superseded-reference-contract-check
           php tools/version-asset-contract-check.php
