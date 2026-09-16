@@ -248,7 +248,8 @@ final class AuthOnboardingPresentationOperations01
         $points = [];
         foreach ($values as $index => $value) {
             $x = $count <= 1 ? 0.0 : $index * ($width / ($count - 1));
-            $y = $top + $plotHeight - (max(0.0, (float) $value) / $maximum) * $plotHeight;
+            $ratio = min(1.0, max(0.0, (float) $value) / $maximum);
+            $y = $top + $plotHeight - $ratio * ($plotHeight * 0.75);
             $points[] = [$x, $y];
         }
         $widthValue = $format((float) $width);
