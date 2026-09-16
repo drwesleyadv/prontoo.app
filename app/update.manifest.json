@@ -669,7 +669,7 @@
         "tools/php84-runtime-contract-check": "17d42ba6dc21051e543aff1d7457817d0ff1ce8cc0e6e08cbf6b76e4acd79483",
         "tools/presentation-css-build": "149b976b892c14f26edce1158ab0993ea556090a8119bbce960e93dc0c3fcdf3",
         "tools/presentation-ux-baseline-check": "0d53a623ce59cdce533071f9cba58251e8c62d5e6a544eb04a026968bc8df146",
-        "tools/presentation-ux-contract.mjs": "13dc673155307e0e56d80e2bd2e2ab01f2fa3e50f72c239511644009e89e0455",
+        "tools/presentation-ux-contract.mjs": "d98bde637a2754e10d50fe8b9c1b21ca569222a9de9606134356ee578ddc9f34",
         "tools/presentation-visual-contract-check": "75c1f4eaafba329def4867f2b4db292a9894222bf09d03ccab58969c1f68606a",
         "tools/quality-gate": "7dadaa322bfcc8541c34fd7986bbb47f7e108d6b641f1c4a7724294f4507f9a4",
         "tools/query-budget-contract-check": "51cfb78c028e1204836c55e5b54742d7e334bea0f92167092b88e2f16db5a83b",
