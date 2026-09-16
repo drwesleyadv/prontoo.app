@@ -1,0 +1,31 @@
+name: Fix Agenda Blocked Day Rendering
+
+on:
+  push:
+    branches:
+      - fix/agenda-blocked-day-rendering
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          ref: fix/agenda-blocked-day-rendering
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: none
+          extensions: pdo_mysql, mbstring
+      - name: Apply and validate
+        shell: bash
+        run: bash tools/tmp-fix-agenda-blocked-day-rendering.sh
