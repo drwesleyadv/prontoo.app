@@ -1,0 +1,29 @@
+name: Inspect Agenda Blocked Slots
+
+on:
+  push:
+    branches:
+      - feat/agenda-blocked-slots
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Inspect relevant Agenda and footer sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== runtime watermark/day/week ==='
+          grep -n -C 40 -E 'dayBlockedWatermark|agenda-week-day-shell|slotCanCreate|data-day-blocked' app/Runtime/Appointments/AppointmentsRuntimeOperations05.php || true
+          echo '=== css blocked selectors ==='
+          grep -n -C 14 -E 'agenda-day-blocked|agenda-week-day-shell|agenda-day-slot' design/styles/application.css || true
+          echo '=== footer decorative lines ==='
+          grep -RIn -C 12 -E 'footer|rodape|rodapé|decorative|decoration|wave|line' design/styles app/Presentation public 2>/dev/null | head -n 500 || true
+          echo '=== tests ==='
+          grep -n -C 14 -E 'agenda-day-blocked-watermark|has-day-toggle|slotCanCreate' tools/test-fast || true
+          echo '=== release/version ==='
+          php -r '$v=json_decode(file_get_contents("version.json"),true); echo json_encode(["version"=>$v["version"]??null,"asset_version"=>$v["asset_version"]??null,"visual_changes"=>$v["visual_changes"]??null], JSON_PRETTY_PRINT), PHP_EOL;'
