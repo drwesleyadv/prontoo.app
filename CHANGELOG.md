@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.9.16.1 — Agenda bloqueada e rodapé mais discretos
+## 1.9.16.2 — Dias bloqueados consistentes na Agenda
 
-- Repete cadeado e Dia bloqueado a cada 30 minutos nas visões diária e semanal.
-- Alinha o marcador de dia bloqueado à esquerda da linha horária.
-- Oculta na visão semanal o cartão integral redundante de bloqueio mantendo o bloqueio funcional.
-- Mantém atalhos de criação indisponíveis quando o dia inteiro está bloqueado.
-- Reduz em 25% a altura máxima das linhas decorativas de telemetria do rodapé.
+- Corrige o atributo data-agenda-canvas da visão diária para que o canvas bloqueado seja reconhecido corretamente.
+- Remove dependências de helpers fora do escopo da rotina JavaScript de dia bloqueado.
+- Repete cadeado e Dia bloqueado a cada 30 minutos durante todo o expediente bloqueado na visão diária.
+- Substitui na visão semanal o cartão de bloqueio integral pelo mesmo marcador discreto usado na visão diária.
+- Mantém indisponíveis os atalhos de criação enquanto o expediente inteiro estiver bloqueado.

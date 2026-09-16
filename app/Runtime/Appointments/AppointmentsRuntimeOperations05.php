@@ -2699,7 +2699,7 @@ final class AppointmentsRuntimeOperations05
             $floating .
             '<div class="agenda-day-scale" aria-hidden="true">' .
             $slotRows .
-            '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . ' data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . ' data-slot-minutes="' .
+            '</div><div class="agenda-day-canvas' . ($dayBlocked ? ' is-day-blocked' : '') . '" data-agenda-canvas data-day-blocked="' . ($dayBlocked ? '1' : '0') . ' data-slot-minutes="' .
             $slotMinutes .
             '" data-day="' .
             \Prontoo\Presentation\UiComponents\UiComponentsPresentationOperations01::e($day) .

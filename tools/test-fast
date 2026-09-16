@@ -2132,11 +2132,16 @@ $assert(
 $agendaBlockedPresentationJs = (string) file_get_contents($root . '/public/assets/app.js');
 $agendaBlockedPresentationCss = (string) file_get_contents($root . '/design/styles/application.css');
 $assert(
-    str_contains($agendaBlockedPresentationJs, 'function syncAgendaBlockedDayMarkers(') &&
+    str_contains($agendaBlockedPresentationJs, 'function agendaBlockedQueryAll(') &&
+        str_contains($agendaBlockedPresentationJs, 'function syncAgendaBlockedDayMarkers(') &&
+        str_contains($agendaBlockedPresentationJs, 'shell.querySelector("[data-agenda-canvas]")') &&
         str_contains($agendaBlockedPresentationJs, '(index * slotMinutes) % 30 !== 0') &&
         str_contains($agendaBlockedPresentationJs, 'agenda-week-day-shell') &&
+        str_contains($agendaBlockedPresentationJs, 'top + height >= slots - 0.25') &&
         str_contains($agendaBlockedPresentationJs, 'fullDayBlock.hidden = true') &&
         str_contains($agendaBlockedPresentationJs, 'slot.removeAttribute("href")') &&
+        str_contains($agendaBlockedPresentationJs, 'document.createElement("div")') &&
+        str_contains($agendaBlockedPresentationJs, 'syncAgendaBlockedDayMarkers(n);') &&
         str_contains($agendaBlockedPresentationCss, '--blocked-slot-index,0') &&
         str_contains($agendaBlockedPresentationCss, 'left:12px;right:auto'),
     'presentation.agenda.blocked_day_half_hour_markers',
@@ -2148,6 +2153,7 @@ $assert(
         str_contains($agendaRuntimeSource, 'has-day-toggle') &&
         str_contains($agendaRuntimeSource, 'agenda-day-blocked-watermark') &&
         str_contains($agendaRuntimeSource, 'data-day-blocked="') &&
+        str_contains($agendaRuntimeSource, "'\" data-agenda-canvas data-day-blocked=\"'") &&
         str_contains($agendaRuntimeSource, '$slotCanCreate = in_array($role, ["recepcionista", "gerente"], true) && !$dayBlocked;') &&
         str_contains($agendaRuntimeSource, 'if ($eventHtml === "" && $timedNoteHtml === "" && !$dayBlocked)'),
     'presentation.agenda.day_block_state_ux',
