@@ -21,8 +21,10 @@ jobs:
           grep -n -C 40 -E 'dayBlockedWatermark|agenda-week-day-shell|slotCanCreate|data-day-blocked' app/Runtime/Appointments/AppointmentsRuntimeOperations05.php || true
           echo '=== css blocked selectors ==='
           grep -n -C 14 -E 'agenda-day-blocked|agenda-week-day-shell|agenda-day-slot' design/styles/application.css || true
-          echo '=== footer decorative lines ==='
-          grep -RIn -C 12 -E 'footer|rodape|rodapé|decorative|decoration|wave|line' design/styles app/Presentation public 2>/dev/null | head -n 500 || true
+          echo '=== landing final/footer exact ==='
+          grep -n -C 45 -E 'br-final|br-footer|::before|::after' br/assets/landing.css | tail -n 500 || true
+          echo '=== footer-like selectors in application css ==='
+          grep -n -C 20 -E 'seq-footer|app-footer|footer-line|footer.*before|footer.*after|decorative' design/styles/application.css || true
           echo '=== tests ==='
           grep -n -C 14 -E 'agenda-day-blocked-watermark|has-day-toggle|slotCanCreate' tools/test-fast || true
           echo '=== release/version ==='
