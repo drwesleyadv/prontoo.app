@@ -1,9 +1,9 @@
 # Versão canônica
 
-## 1.9.16.4 — Caracterização financeira e validação isolada
+## 1.9.25.1 — Remoção do projeto paralelo SOL
 
-- Documenta consumidores de saldo e diferenças entre caminhos de recebimento.
-- Testa destino, conferência, sessão e identidade dos recebimentos existentes.
-- Verifica rejeição de destino inválido antes das escritas financeiras.
-- Prepara validação financeira remota com PHP 8.4 e MySQL isolado sem publicação automática.
-- Preserva ativos visuais e registra critérios de aceite das etapas seguintes.
+- Remove a aplicação paralela hospedada em /sol.
+- Retira seus arquivos do pacote de atualização.
+- Preserva os módulos e as rotas do Prontoo.
+- Mantém o schema e os dados clínicos sem alterações.
+- Reconcilia a versão e os contratos da release.
