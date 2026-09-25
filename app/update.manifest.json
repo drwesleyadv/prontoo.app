@@ -650,7 +650,7 @@
         "tools/telemetry-json-source-contract-check": "8591f95b863bfca3e2815afc9f0836c1f08d889171c31085bc8a0f9e5b019269",
         "tools/test-fast": "4be22d0bc0f0db2fc2c1b4a21a2f9b317f2d8befe631970109136091e4001735",
         "tools/version-asset-contract-check.php": "476439bc976c261a8528db35e67f587e3ea39e9b2996b31529d13de5c182c235",
-        "version.json": "7791a5653b39b049542adb7e8fa10b9ba2f75591e49e59aa04280f2a16597518"
+        "version.json": "b25f8e658640e72ecc7d7f8a6101cf37acaa9a6317d191bc617a5755913e40f9"
     },
     "schema_mutation_policy": "runtime_frozen_except_temporary_public_clean_install_post_and_github_actions_cli_four_markers",
     "updated_at": "2026-08-09T23:15:00+00:00",
@@ -673,7 +673,7 @@
     "installer_locked": false,
     "installer_access_policy": "temporary_public_https_canonical_host_fresh_state_two_hour_unix_window_then_automatic_404",
     "post_window_policy": "automatic_404_without_manual_intervention",
-    "asset_version": "1.9.25.1",
+    "asset_version": "1.9.16.4",
     "required_php_family": "8.4",
     "release_date": "2026-09-25",
     "installer": {
